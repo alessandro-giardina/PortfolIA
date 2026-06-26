@@ -6,7 +6,7 @@ epic:
   title: Fondazione del progetto
 priority: HIGH
 points: 3
-status: PLANNED
+status: DONE
 scope: MVP
 body: |-
   #### US-001: Scaffolding del monorepo full-stack TypeScript
@@ -32,3 +32,9 @@ history:
     at: "2026-06-26T15:47:52Z"
   - status: PLANNED
     at: "2026-06-26T16:15:26Z"
+  - status: IN PROGRESS
+    at: "2026-06-26T16:20:19Z"
+  - status: REVIEW
+    at: "2026-06-26T16:31:53Z"
+  - status: DONE
+    at: "2026-06-26T16:40:48Z"

@@ -1,0 +1,117 @@
+schema: archetipo/plan/v2
+spec_code: US-002
+body: |-
+  # US-002: Persistenza locale su SQLite con migrazioni all'avvio — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-06-26
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-000 — Fondazione del progetto
+  **Priorità:** HIGH | **Punti:** 3
+
+  **User Story**
+  Come sviluppatore di PortfolIA,
+  voglio un database SQLite locale gestito tramite Drizzle ORM e migrato automaticamente all'avvio,
+  in modo che tutti i dati dell'app siano persistiti localmente tra le sessioni senza configurazione esterna (FR-017).
+
+  **Criteri di Accettazione**
+  - [ ] All'avvio l'app crea il file SQLite locale se assente e applica le migrazioni dello schema
+  - [ ] Esiste un layer di accesso dati tipizzato (Drizzle) utilizzabile dal backend
+  - [ ] Un record scritto in una sessione è ancora leggibile dopo il riavvio del processo
+  - [ ] Nessuna autenticazione e nessun servizio esterno sono richiesti per la persistenza
+
+  ---
+
+  ## Soluzione Tecnica
+
+  Si usa **Drizzle ORM** con il driver **better-sqlite3** (sincrono, zero configurazione, compatibile con uso locale single-user) e **drizzle-kit** per generare i file SQL di migrazione; il runner di migrazione viene invocato nel `start()` di Fastify prima del `listen()`, garantendo che lo schema sia sempre aggiornato all'avvio.
+
+  - **Schema iniziale (`server/src/db/schema.ts`):** definisce la tabella `portfolios` (`id` integer PK autoincrement, `name` text not null, `created_at` integer not null) — primo mattone concreto del modello dati, estendibile dalle spec successive.
+  - **Connessione (`server/src/db/index.ts`):** apre il file `data/portfolia.db` tramite `better-sqlite3`, crea la directory `data/` se assente (`mkdirSync` con `{ recursive: true }`), istanzia Drizzle con lo schema tipizzato ed esporta `db`.
+  - **Migration runner (`server/src/db/migrate.ts`):** usa `migrate()` da `drizzle-orm/better-sqlite3/migrator` puntando alla directory `server/src/db/migrations/` (file SQL generati da `drizzle-kit generate`).
+  - **Integrazione server (`server/src/index.ts`):** chiama `runMigrations()` prima di `fastify.listen()` — se la migrazione fallisce il processo esce con errore esplicito.
+  - **Requisito implicito:** `data/portfolia.db` (e la directory `data/`) vengono aggiunti al `.gitignore` radice.
+  - **Compatibilità ESM:** `server` è `"type": "module"`; `better-sqlite3` è un native addon CommonJS — verificare che `tsx` lo carichi correttamente (solitamente funziona senza configurazione aggiuntiva); in caso contrario aggiungere `--import tsx/esm` o usare un wrapper.
+
+  ---
+
+  ## Strategia di Test
+
+  Spec puramente backend senza UI — nessun test E2E. La strategia è concentrata su un integration test Vitest che simula il ciclo completo di persistenza senza richiedere il riavvio reale del processo.
+
+  - **Integration test persistenza (`server/tests/db.test.ts`):** apre il DB su un path temporaneo, applica le migrazioni, inserisce un record nella tabella `portfolios`, chiude la connessione, riapre il DB (stesso file), legge il record — asserisce che sia ancora presente. Pulisce il file temporaneo nel `afterAll`. Questo simula fedelmente il comportamento inter-sessione.
+  - **Verifica schema:** il test asserisce che la query di lettura ritorni il record con le colonne corrette (`id`, `name`, `created_at`), validando implicitamente che la migrazione abbia creato la struttura attesa.
+  - **Type-check come test di regressione:** `npm run typecheck` dalla radice deve passare senza errori dopo ogni task — la tipizzazione di Drizzle è il principale strumento di correttezza statica per questo layer.
+
+  ---
+
+  _Piano generato tramite ARchetipo Planning — 2026-06-26_
+tasks:
+  - id: TASK-01
+    title: Aggiungi dipendenze Drizzle, better-sqlite3 e drizzle-kit
+    description: 'In `server/package.json` aggiungi alle `dependencies`: `drizzle-orm` e `better-sqlite3`; alle `devDependencies`: `drizzle-kit` e `@types/better-sqlite3`. Aggiungi lo script `"db:generate": "drizzle-kit generate"`. Esegui `npm install` dalla radice del monorepo per installare i nuovi package.'
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Crea drizzle.config.ts nel package server
+    description: 'Crea `server/drizzle.config.ts` che esporta la configurazione Drizzle Kit: `dialect: ''sqlite''`, `schema: ''./src/db/schema.ts''`, `out: ''./src/db/migrations''`, `dbCredentials: { url: ''../data/portfolia.db'' }`. Questo file è usato solo da `drizzle-kit` (CLI) e non viene importato a runtime.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Definisci lo schema iniziale con la tabella portfolios
+    description: 'Crea `server/src/db/schema.ts` con la tabella `portfolios` usando le API di Drizzle per SQLite: colonne `id` (integer, primaryKey, autoIncrement), `name` (text, notNull), `created_at` (integer, notNull, default `sql\`(unixepoch())`\`). Esporta la tabella e un tipo `Portfolio` inferito da `typeof portfolios.$inferSelect`.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-03
+  - id: TASK-04
+    title: Genera i file SQL di migrazione con drizzle-kit
+    description: Dalla directory `server/`, esegui `npm run db:generate` per generare i file SQL di migrazione in `server/src/db/migrations/`. Verifica che almeno un file `.sql` sia stato creato e che contenga la `CREATE TABLE portfolios`. Committa i file generati — fanno parte del source.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+      - TASK-03
+    ref: TASK-04
+  - id: TASK-05
+    title: Crea db/index.ts — connessione SQLite e istanza Drizzle
+    description: 'Crea `server/src/db/index.ts`: importa `Database` da `better-sqlite3` e `drizzle` da `drizzle-orm/better-sqlite3`; usa `mkdirSync(''../data'', { recursive: true })` (path relativo al processo) per garantire l''esistenza della directory; apre la connessione al file `../data/portfolia.db`; istanzia `drizzle(conn, { schema })` e lo esporta come `db`. Esporta anche `conn` per il migration runner.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-03
+    ref: TASK-05
+  - id: TASK-06
+    title: Crea migrate.ts e integra le migrazioni nell'avvio del server
+    description: 'Crea `server/src/db/migrate.ts` con la funzione `runMigrations()` che usa `migrate(db, { migrationsFolder: ''./src/db/migrations'' })` da `drizzle-orm/better-sqlite3/migrator`. Modifica `server/src/index.ts` per importare e chiamare `runMigrations()` come prima istruzione di `start()`, prima di `fastify.listen()`. In caso di errore, logga e chiama `process.exit(1)`.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-04
+      - TASK-05
+    ref: TASK-06
+  - id: TASK-07
+    title: Test di integrazione persistenza — scrivi, chiudi, riapri, leggi
+    description: 'Crea `server/tests/db.test.ts` con Vitest. Nel test: instanzia una connessione `better-sqlite3` su un file temporaneo (es. `/tmp/test-portfolia.db`), applica le migrazioni via `migrate()`, inserisce un record in `portfolios` tramite `db.insert(portfolios).values({ name: ''Test'', created_at: Date.now() })`, chiude la connessione. Riapre una nuova connessione sullo stesso file, legge con `db.select().from(portfolios)`, asserisce che il record sia presente con il `name` corretto. Elimina il file nel `afterAll`.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-06
+    ref: TASK-07
+  - id: TASK-08
+    title: Gitignore del DB locale e verifica type-check finale
+    description: Aggiungi `data/` (o `data/portfolia.db`) al `.gitignore` radice del monorepo se non già presente. Esegui `npm run typecheck` dalla radice e verifica che passi senza errori su tutti i workspace. Esegui `npm test --workspace=server` per confermare che il test di persistenza sia verde.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-07
+    ref: TASK-08
