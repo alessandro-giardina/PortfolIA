@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-003
+title: Setup del testing con smoke test end-to-end
+epic:
+  code: EP-000
+  title: Fondazione del progetto
+priority: HIGH
+points: 2
+status: TODO
+blocked_by:
+  - US-001
+scope: MVP
+body: |-
+  #### US-003: Setup del testing con smoke test end-to-end
+
+  **Epic:** EP-000 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** US-001
+
+  **User Story**
+  Come sviluppatore di PortfolIA,
+  voglio una suite di test configurata con Vitest (unit/integration) e Playwright (E2E) e uno smoke test che passa,
+  in modo da poter verificare in modo affidabile il comportamento del codice durante tutto lo sviluppo.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, uno sviluppatore può eseguire i comandi di test e vedere passare almeno un test unitario e uno smoke test E2E che apre la pagina iniziale su `localhost`.
+
+  **Criteri di Accettazione**
+  - [ ] Vitest è configurato e un test unitario di esempio passa
+  - [ ] Playwright è configurato e uno smoke test E2E sulla pagina iniziale passa
+  - [ ] Esiste un comando di progetto che esegue lint, type-check e test
+  - [ ] La documentazione minima (README/CLAUDE.md) spiega come avviare ed eseguire i test
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

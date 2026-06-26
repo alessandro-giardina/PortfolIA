@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-013
+title: Modificare o rimuovere una posizione/carico
+epic:
+  code: EP-003
+  title: Gestione delle posizioni
+priority: MEDIUM
+points: 2
+status: TODO
+blocked_by:
+  - US-011
+scope: MVP
+body: |-
+  #### US-013: Modificare o rimuovere una posizione/carico
+
+  **Epic:** EP-003 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** US-011
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio modificare o rimuovere un carico inserito,
+  in modo da correggere errori e mantenere accurati i dati del portafoglio (FR-009).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, l'utente modifica prezzo o quantità di un carico esistente e vede aggiornarsi quantità e prezzo medio; rimuove un carico e questo scompare dal portafoglio anche dopo il riavvio.
+
+  **Criteri di Accettazione**
+  - [ ] L'utente può modificare data, prezzo o quantità di un carico esistente
+  - [ ] L'utente può rimuovere un carico previa conferma
+  - [ ] Quantità totale e prezzo medio di carico si aggiornano coerentemente dopo modifica/rimozione
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

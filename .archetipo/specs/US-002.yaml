@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-002
+title: Persistenza locale su SQLite con migrazioni all'avvio
+epic:
+  code: EP-000
+  title: Fondazione del progetto
+priority: HIGH
+points: 3
+status: TODO
+blocked_by:
+  - US-001
+scope: MVP
+body: |-
+  #### US-002: Persistenza locale su SQLite con migrazioni all'avvio
+
+  **Epic:** EP-000 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** US-001
+
+  **User Story**
+  Come sviluppatore di PortfolIA,
+  voglio un database SQLite locale gestito tramite Drizzle ORM e migrato automaticamente all'avvio,
+  in modo che tutti i dati dell'app siano persistiti localmente tra le sessioni senza configurazione esterna (FR-017).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, all'avvio dell'app viene creato/migrato il file `data/portfolia.db`; un dato di prova scritto tramite il layer di accesso dati è ancora presente dopo il riavvio del processo.
+
+  **Criteri di Accettazione**
+  - [ ] All'avvio l'app crea il file SQLite locale se assente e applica le migrazioni dello schema
+  - [ ] Esiste un layer di accesso dati tipizzato (Drizzle) utilizzabile dal backend
+  - [ ] Un record scritto in una sessione è ancora leggibile dopo il riavvio del processo
+  - [ ] Nessuna autenticazione e nessun servizio esterno sono richiesti per la persistenza
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

@@ -1,0 +1,32 @@
+schema: archetipo/spec/v2
+code: US-007
+title: Recuperare anagrafica e prezzo di un titolo per ISIN
+epic:
+  code: EP-002
+  title: Ricerca titoli e dati di mercato
+priority: HIGH
+points: 5
+status: TODO
+scope: MVP
+body: |-
+  #### US-007: Recuperare anagrafica e prezzo di un titolo per ISIN
+
+  **Epic:** EP-002 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio cercare un titolo inserendo il suo ISIN e ottenere denominazione e dati ufficiali da Borsa Italiana,
+  in modo da non dover inserire manualmente i dati dei titoli (FR-004, FR-005).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, l'utente inserisce un ISIN nella ricerca e visualizza i dati recuperati dalla fonte ufficiale: denominazione, prezzo attuale, ticker, tipo strumento, commissioni totali annue, valuta di denominazione, emittente, segmento e politica di distribuzione dividendi.
+
+  **Criteri di Accettazione**
+  - [ ] La logica di scraping di Borsa Italiana è isolata in un adapter dedicato (anti-corruption layer)
+  - [ ] Dato un ISIN valido, il sistema recupera denominazione, prezzo attuale, ticker, tipo strumento, commissioni annue, valuta, emittente, segmento e politica dividendi
+  - [ ] L'adapter usa uno User-Agent corretto e richieste a basso volume verso la fonte
+  - [ ] I dati recuperati sono mostrati all'utente nella vista di ricerca titolo
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

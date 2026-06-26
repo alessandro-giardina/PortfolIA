@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-006
+title: Rinominare ed eliminare un portafoglio
+epic:
+  code: EP-001
+  title: Gestione multi-portafoglio
+priority: MEDIUM
+points: 2
+status: TODO
+blocked_by:
+  - US-004
+scope: MVP
+body: |-
+  #### US-006: Rinominare ed eliminare un portafoglio
+
+  **Epic:** EP-001 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** US-004
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio rinominare ed eliminare un portafoglio esistente,
+  in modo da mantenere ordinata e aggiornata l'organizzazione dei miei investimenti (FR-003).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, l'utente rinomina un portafoglio e vede il nuovo nome riflesso nell'elenco; elimina un portafoglio, conferma e questo scompare anche dopo il riavvio.
+
+  **Criteri di Accettazione**
+  - [ ] L'utente può modificare il nome di un portafoglio esistente
+  - [ ] L'utente può eliminare un portafoglio previa conferma esplicita
+  - [ ] Le modifiche (rinomina/eliminazione) sono persistite e visibili dopo il riavvio
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

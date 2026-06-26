@@ -1,0 +1,31 @@
+schema: archetipo/spec/v2
+code: US-011
+title: Aggiungere un titolo a un portafoglio con un carico
+epic:
+  code: EP-003
+  title: Gestione delle posizioni
+priority: HIGH
+points: 3
+status: TODO
+scope: MVP
+body: |-
+  #### US-011: Aggiungere un titolo a un portafoglio con un carico
+
+  **Epic:** EP-003 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio aggiungere un titolo a un portafoglio indicando data di carico, prezzo di acquisto e quantità,
+  in modo da registrare le mie posizioni e poterne seguire il rendimento (FR-007).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, l'utente apre un portafoglio, aggiunge un titolo per ISIN con data, prezzo e quantità, e vede la posizione comparire nel portafoglio; la posizione persiste dopo il riavvio.
+
+  **Criteri di Accettazione**
+  - [ ] L'utente può aggiungere a un portafoglio un titolo specificando ISIN, data di carico, prezzo di acquisto e quantità
+  - [ ] Valori non validi (quantità o prezzo non positivi, data assente) sono rifiutati con messaggio chiaro
+  - [ ] La posizione aggiunta è persistita ed è visibile nel portafoglio dopo il riavvio
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

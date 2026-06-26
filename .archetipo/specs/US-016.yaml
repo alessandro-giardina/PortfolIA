@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-016
+title: Segnalare in modo trasparente gli orizzonti senza dati
+epic:
+  code: EP-004
+  title: Riepilogo e indicatori di rendimento
+priority: MEDIUM
+points: 2
+status: TODO
+blocked_by:
+  - US-015
+scope: MVP
+body: |-
+  #### US-016: Segnalare in modo trasparente gli orizzonti senza dati
+
+  **Epic:** EP-004 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** US-015
+
+  **User Story**
+  Come Giulia, investitrice prudente,
+  voglio che gli orizzonti temporali privi di dati storici sufficienti siano segnalati chiaramente,
+  in modo da non scambiare un'assenza di dati per un risultato reale (FR-012, ADR-003).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, per un titolo di emissione recente l'orizzonte a 10 anni mostra esplicitamente "dato non disponibile" anziché un numero, mentre gli orizzonti coperti mostrano il P&L.
+
+  **Criteri di Accettazione**
+  - [ ] Un orizzonte senza dati storici sufficienti mostra "dato non disponibile" invece di un valore
+  - [ ] Nessun valore è stimato o interpolato per gli orizzonti mancanti
+  - [ ] Gli orizzonti coperti continuano a mostrare correttamente il P&L
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

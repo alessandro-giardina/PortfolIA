@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-015
+title: Calcolare il P&L multi-orizzonte assoluto e percentuale
+epic:
+  code: EP-004
+  title: Riepilogo e indicatori di rendimento
+priority: HIGH
+points: 5
+status: TODO
+blocked_by:
+  - US-014
+scope: MVP
+body: |-
+  #### US-015: Calcolare il P&L multi-orizzonte assoluto e percentuale
+
+  **Epic:** EP-004 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** US-014
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio vedere il P&L del portafoglio in valore assoluto (€) e in percentuale su giorno, mese, anno, 5 e 10 anni precedenti,
+  in modo da capire come si è comportato il portafoglio su diversi orizzonti temporali (FR-011).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, il riepilogo del portafoglio mostra per ciascun orizzonte (giorno, mese, anno, 5 anni, 10 anni) la variazione assoluta in € e in percentuale calcolata sui prezzi storici in cache.
+
+  **Criteri di Accettazione**
+  - [ ] Il riepilogo mostra il P&L assoluto (€) e percentuale per giorno, mese, anno, 5 e 10 anni precedenti
+  - [ ] I calcoli usano la serie storica dei prezzi in cache
+  - [ ] Le definizioni delle metriche (P&L da prezzo) sono coerenti e verificate da test sui calcoli
+  - [ ] La distinzione tra performance "di periodo" e dato di riferimento è chiara nel riepilogo
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

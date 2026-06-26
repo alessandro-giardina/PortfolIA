@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-012
+title: Inserire più carichi dello stesso titolo con prezzo medio di carico
+epic:
+  code: EP-003
+  title: Gestione delle posizioni
+priority: MEDIUM
+points: 3
+status: TODO
+blocked_by:
+  - US-011
+scope: MVP
+body: |-
+  #### US-012: Inserire più carichi dello stesso titolo con prezzo medio di carico
+
+  **Epic:** EP-003 | **Priorità:** MEDIUM | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** US-011
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio inserire più carichi dello stesso titolo nello stesso portafoglio,
+  in modo da vedere la quantità complessiva e il prezzo medio di carico corretto (FR-008).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, l'utente inserisce due carichi dello stesso ISIN a prezzi diversi e vede la quantità totale aggregata e un prezzo medio di carico ponderato calcolato correttamente.
+
+  **Criteri di Accettazione**
+  - [ ] È possibile registrare più carichi dello stesso titolo in un portafoglio
+  - [ ] Il prezzo medio di carico è calcolato come media ponderata sulle quantità
+  - [ ] La quantità totale del titolo riflette la somma dei carichi
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

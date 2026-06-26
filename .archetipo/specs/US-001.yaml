@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-001
+title: Scaffolding del monorepo full-stack TypeScript
+epic:
+  code: EP-000
+  title: Fondazione del progetto
+priority: HIGH
+points: 3
+status: PLANNED
+scope: MVP
+body: |-
+  #### US-001: Scaffolding del monorepo full-stack TypeScript
+
+  **Epic:** EP-000 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come sviluppatore che avvia il progetto PortfolIA,
+  voglio un monorepo TypeScript con separazione client / server / shared avviabile con un solo comando,
+  in modo da avere una base di sviluppo coerente su cui costruire tutte le funzionalità.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, uno sviluppatore può clonare il progetto, eseguire `npm install` e `npm run dev`, e aprire nel browser su `localhost` una pagina iniziale servita dal frontend che dialoga con un endpoint di health del backend.
+
+  **Criteri di Accettazione**
+  - [ ] Il repository contiene le cartelle `client/`, `server/` e `shared/` con configurazione TypeScript condivisa
+  - [ ] Un singolo comando `npm run dev` avvia backend (Node + Fastify) e frontend (React + Vite)
+  - [ ] La pagina iniziale su `localhost` mostra contenuto servito dal client e conferma la raggiungibilità del backend (es. endpoint `/health`)
+  - [ ] Il type-check del progetto (`tsc`) passa senza errori
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"
+  - status: PLANNED
+    at: "2026-06-26T16:15:26Z"

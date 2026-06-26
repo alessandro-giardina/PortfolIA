@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-020
+title: Selezionare la scala temporale del grafico
+epic:
+  code: EP-006
+  title: Grafico andamento del portafoglio
+priority: MEDIUM
+points: 2
+status: TODO
+blocked_by:
+  - US-019
+scope: MVP
+body: |-
+  #### US-020: Selezionare la scala temporale del grafico
+
+  **Epic:** EP-006 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** US-019
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio selezionare la scala temporale del grafico tra giorno, mese, anno, 5 e 10 anni precedenti,
+  in modo da analizzare l'andamento del portafoglio sull'orizzonte che mi interessa (FR-016).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, l'utente seleziona una scala temporale (giorno, mese, anno, 5 anni, 10 anni) e il grafico si aggiorna mostrando l'andamento sull'orizzonte scelto.
+
+  **Criteri di Accettazione**
+  - [ ] L'utente può scegliere tra le scale: giorno, mese, anno, 5 anni e 10 anni precedenti
+  - [ ] Il grafico si aggiorna coerentemente con la scala selezionata
+  - [ ] Se l'orizzonte selezionato non ha dati sufficienti, la condizione è segnalata in modo trasparente
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

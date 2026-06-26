@@ -1,0 +1,31 @@
+schema: archetipo/spec/v2
+code: US-014
+title: Calcolare il valore attuale totale del portafoglio
+epic:
+  code: EP-004
+  title: Riepilogo e indicatori di rendimento
+priority: HIGH
+points: 3
+status: TODO
+scope: MVP
+body: |-
+  #### US-014: Calcolare il valore attuale totale del portafoglio
+
+  **Epic:** EP-004 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio vedere il valore attuale totale di un portafoglio calcolato sui prezzi correnti,
+  in modo da sapere quanto vale oggi complessivamente il mio investimento (FR-010).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, aprendo un portafoglio con posizioni l'utente vede il valore attuale totale, pari alla somma di quantità × prezzo corrente di ciascun titolo.
+
+  **Criteri di Accettazione**
+  - [ ] Il riepilogo del portafoglio mostra il valore attuale totale in EUR
+  - [ ] Il valore è la somma, per ogni posizione, di quantità × prezzo corrente del titolo
+  - [ ] Se il prezzo corrente di un titolo non è disponibile, il caso è dichiarato in modo trasparente senza inventare il valore
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

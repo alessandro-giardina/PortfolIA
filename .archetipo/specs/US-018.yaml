@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-018
+title: Visualizzare il dettaglio completo di un titolo
+epic:
+  code: EP-005
+  title: Visualizzazione dei titoli
+priority: MEDIUM
+points: 3
+status: TODO
+blocked_by:
+  - US-017
+scope: MVP
+body: |-
+  #### US-018: Visualizzare il dettaglio completo di un titolo
+
+  **Epic:** EP-005 | **Priorità:** MEDIUM | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** US-017
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio cliccare su un titolo della tabella e vederne tutti i dati disponibili,
+  in modo da approfondire l'anagrafica completa quando mi serve (FR-014).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, cliccando su una riga della tabella titoli l'utente apre un dettaglio che mostra ISIN, descrizione, quantità, valore attuale, valore medio di carico e differenza, oltre a ticker, tipo strumento, commissioni totali annue, valuta, emittente, segmento e politica di distribuzione dividendi.
+
+  **Criteri di Accettazione**
+  - [ ] Il dettaglio del titolo mostra i dati di posizione (quantità, valore attuale, valore medio di carico, differenza)
+  - [ ] Il dettaglio mostra i dati anagrafici: ticker, tipo strumento, commissioni annue, valuta, emittente, segmento, politica dividendi
+  - [ ] I campi non disponibili sono dichiarati "dato non disponibile" senza valori inventati
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

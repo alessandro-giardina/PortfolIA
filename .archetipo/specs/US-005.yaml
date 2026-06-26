@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-005
+title: Visualizzare l'elenco dei portafogli
+epic:
+  code: EP-001
+  title: Gestione multi-portafoglio
+priority: HIGH
+points: 2
+status: TODO
+blocked_by:
+  - US-004
+scope: MVP
+body: |-
+  #### US-005: Visualizzare l'elenco dei portafogli
+
+  **Epic:** EP-001 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** US-004
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio vedere l'elenco di tutti i miei portafogli,
+  in modo da avere a colpo d'occhio una panoramica e poter scegliere quale aprire (FR-002).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, l'utente apre la dashboard e vede l'elenco dei portafogli esistenti; selezionandone uno accede alla sua vista di dettaglio.
+
+  **Criteri di Accettazione**
+  - [ ] La dashboard mostra l'elenco di tutti i portafogli esistenti
+  - [ ] In assenza di portafogli viene mostrato uno stato vuoto chiaro con invito alla creazione
+  - [ ] Selezionando un portafoglio si accede alla sua vista di dettaglio
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

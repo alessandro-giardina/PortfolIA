@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-008
+title: Gestione trasparente di ISIN non trovato o dati non disponibili
+epic:
+  code: EP-002
+  title: Ricerca titoli e dati di mercato
+priority: HIGH
+points: 2
+status: TODO
+blocked_by:
+  - US-007
+scope: MVP
+body: |-
+  #### US-008: Gestione trasparente di ISIN non trovato o dati non disponibili
+
+  **Epic:** EP-002 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** US-007
+
+  **User Story**
+  Come Giulia, investitrice prudente,
+  voglio che l'app mi dica chiaramente quando un ISIN non viene trovato o un dato non è disponibile,
+  in modo da potermi fidare dei numeri senza temere valori inventati (FR-006, ADR-003).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, cercando un ISIN inesistente o quando la fonte è irraggiungibile, l'utente vede un messaggio esplicito di "dato non disponibile" invece di valori stimati o errori bloccanti.
+
+  **Criteri di Accettazione**
+  - [ ] Un ISIN non trovato produce un messaggio esplicito senza dati inventati
+  - [ ] Timeout o errori di rete verso la fonte sono gestiti in modo degradante, senza bloccare l'app
+  - [ ] I campi anagrafici non disponibili sono dichiarati come "dato non disponibile" anziché lasciati vuoti o stimati
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

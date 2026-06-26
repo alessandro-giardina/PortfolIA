@@ -1,0 +1,31 @@
+schema: archetipo/spec/v2
+code: US-019
+title: Visualizzare il grafico dell'andamento del valore
+epic:
+  code: EP-006
+  title: Grafico andamento del portafoglio
+priority: HIGH
+points: 3
+status: TODO
+scope: MVP
+body: |-
+  #### US-019: Visualizzare il grafico dell'andamento del valore
+
+  **Epic:** EP-006 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Giulia, investitrice prudente,
+  voglio vedere un grafico dell'andamento del valore del portafoglio nel tempo,
+  in modo da cogliere a colpo d'occhio l'andamento di lungo periodo senza interpretare tabelle di numeri (FR-015).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, aprendo un portafoglio popolato l'utente vede un grafico che traccia il valore del portafoglio nel tempo a partire dalle serie storiche in cache.
+
+  **Criteri di Accettazione**
+  - [ ] Il portafoglio mostra un grafico dell'andamento del valore nel tempo
+  - [ ] Il grafico è costruito dalle serie storiche dei prezzi disponibili in cache
+  - [ ] I periodi privi di dati sono rappresentati in modo trasparente senza interpolazioni inventate
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

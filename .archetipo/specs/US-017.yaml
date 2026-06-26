@@ -1,0 +1,31 @@
+schema: archetipo/spec/v2
+code: US-017
+title: Visualizzare la tabella dei titoli del portafoglio
+epic:
+  code: EP-005
+  title: Visualizzazione dei titoli
+priority: HIGH
+points: 3
+status: TODO
+scope: MVP
+body: |-
+  #### US-017: Visualizzare la tabella dei titoli del portafoglio
+
+  **Epic:** EP-005 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio vedere i titoli di un portafoglio in una tabella sintetica,
+  in modo da avere a colpo d'occhio la composizione e la differenza rispetto al carico (FR-013).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, aprendo un portafoglio l'utente vede una tabella con una riga per titolo che riporta ISIN, descrizione, quantità, valore attuale, valore medio di carico e differenza.
+
+  **Criteri di Accettazione**
+  - [ ] La tabella mostra per ogni titolo: ISIN, descrizione, quantità, valore attuale, valore medio di carico e differenza
+  - [ ] La differenza riflette il confronto tra valore attuale e valore medio di carico
+  - [ ] Un portafoglio senza titoli mostra uno stato vuoto chiaro
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-010
+title: Inizializzazione con gli ISIN seed
+epic:
+  code: EP-002
+  title: Ricerca titoli e dati di mercato
+priority: MEDIUM
+points: 2
+status: TODO
+blocked_by:
+  - US-007
+scope: MVP
+body: |-
+  #### US-010: Inizializzazione con gli ISIN seed
+
+  **Epic:** EP-002 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** US-007
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che all'inizializzazione l'app popoli l'anagrafica con gli ISIN seed previsti,
+  in modo da poter provare subito l'app con dati reali senza partire da uno stato vuoto (FR-019).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, eseguendo il comando di seed l'app popola l'anagrafica dei titoli `IT0003128367`, `IE00BMVB5S82` e `IE00BMVB5R75`, che risultano poi ricercabili senza ulteriore inserimento.
+
+  **Criteri di Accettazione**
+  - [ ] Un comando di seed popola l'anagrafica dei tre ISIN previsti dal PRD
+  - [ ] Gli ISIN seed sono persistiti e ricercabili dopo il seed
+  - [ ] Eventuali dati non recuperabili per un ISIN seed sono dichiarati "dato non disponibile" senza interrompere il seed degli altri
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"

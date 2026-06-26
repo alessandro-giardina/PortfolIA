@@ -1,0 +1,31 @@
+schema: archetipo/spec/v2
+code: US-004
+title: Creare un nuovo portafoglio
+epic:
+  code: EP-001
+  title: Gestione multi-portafoglio
+priority: HIGH
+points: 2
+status: TODO
+scope: MVP
+body: |-
+  #### US-004: Creare un nuovo portafoglio
+
+  **Epic:** EP-001 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio creare un nuovo portafoglio assegnandogli un nome,
+  in modo da poter organizzare i miei investimenti in più portafogli logici (FR-001).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, l'utente apre l'app, inserisce il nome di un portafoglio, conferma e vede il nuovo portafoglio comparire; dopo un riavvio il portafoglio è ancora presente.
+
+  **Criteri di Accettazione**
+  - [ ] L'utente può creare un portafoglio fornendo un nome
+  - [ ] Un nome vuoto viene rifiutato con un messaggio chiaro
+  - [ ] Il portafoglio creato è persistito ed è visibile dopo il riavvio dell'app
+history:
+  - status: TODO
+    at: "2026-06-26T15:47:52Z"
