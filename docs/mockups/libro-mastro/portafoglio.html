@@ -1,0 +1,199 @@
+<link rel="stylesheet" href="shared.css">
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; partita doppia</p>
+      <h1>Conto <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">7 titoli iscritti &middot; aperto il 04.III.2019</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Valore di carico <b>€ 38.420,00</b></div>
+      <div>Valore attuale <b>€ 51.207,40</b></div>
+      <div>P&amp;L da carico <b>+ € 12.787,40</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="index.html">Portafogli</a>
+    <a href="portafoglio.html" class="attiva">Riepilogo</a>
+    <a href="ricerca.html">Carico titoli</a>
+    <a href="titolo.html">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo">
+      Variazione di valore per orizzonte
+      <span class="nota">mark&#8209;to&#8209;market sul valore di portafoglio &middot; non sul prezzo di carico</span>
+    </div>
+
+    <div class="orizzonti">
+      <div class="orizzonte">
+        <span class="et">Giorno prec.</span>
+        <span class="valore guadagno">+€ 214</span>
+        <span class="perc guadagno">+0,42%</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Mese prec.</span>
+        <span class="valore perdita">&minus;€ 980</span>
+        <span class="perc perdita">&minus;1,88%</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Anno prec.</span>
+        <span class="valore guadagno">+€ 7.940</span>
+        <span class="perc guadagno">+18,4%</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">5 anni prec.</span>
+        <span class="valore guadagno">+€ 19.310</span>
+        <span class="perc guadagno">+60,5%</span>
+      </div>
+      <div class="orizzonte vuoto">
+        <span class="et">10 anni prec.</span>
+        <span class="timbro mancante" style="margin-top:6px">Dato non disp.</span>
+        <span class="perc" style="color:var(--seppia)">storico assente</span>
+      </div>
+    </div>
+
+    <div class="sezione-titolo">
+      Andamento del valore
+      <span class="nota">tracciato a inchiostro su carta quadrettata</span>
+    </div>
+
+    <div class="grafico-cornice">
+      <svg viewBox="0 0 920 300" role="img" aria-label="Andamento del valore di portafoglio">
+        <!-- asse -->
+        <line x1="60" y1="20" x2="60" y2="250" stroke="#221c14" stroke-width="1.5"/>
+        <line x1="60" y1="250" x2="900" y2="250" stroke="#221c14" stroke-width="1.5"/>
+        <!-- etichette asse Y -->
+        <g font-family="'Courier Prime', monospace" font-size="11" fill="#6e5a36" text-anchor="end">
+          <text x="52" y="44">55k</text>
+          <text x="52" y="113">48k</text>
+          <text x="52" y="182">41k</text>
+          <text x="52" y="252">34k</text>
+        </g>
+        <!-- area sotto la linea -->
+        <path d="M60,200 L185,212 L310,170 L435,188 L560,120 L685,138 L810,70 L900,58 L900,250 L60,250 Z"
+              fill="rgba(47,107,58,.12)"/>
+        <!-- linea valore -->
+        <polyline points="60,200 185,212 310,170 435,188 560,120 685,138 810,70 900,58"
+                  fill="none" stroke="#8d231f" stroke-width="2.5"
+                  stroke-linejoin="round" stroke-linecap="round"/>
+        <!-- punti registrati -->
+        <g fill="#221c14">
+          <circle cx="60" cy="200" r="3.5"/><circle cx="185" cy="212" r="3.5"/>
+          <circle cx="310" cy="170" r="3.5"/><circle cx="435" cy="188" r="3.5"/>
+          <circle cx="560" cy="120" r="3.5"/><circle cx="685" cy="138" r="3.5"/>
+          <circle cx="810" cy="70" r="3.5"/><circle cx="900" cy="58" r="3.5"/>
+        </g>
+        <!-- etichette asse X -->
+        <g font-family="'Courier Prime', monospace" font-size="11" fill="#6e5a36" text-anchor="middle">
+          <text x="60" y="270">2019</text>
+          <text x="310" y="270">2021</text>
+          <text x="560" y="270">2023</text>
+          <text x="810" y="270">2025</text>
+        </g>
+      </svg>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:12px">
+        <div class="scala-temporale" id="scala">
+          <button>Giorno</button>
+          <button>Mese</button>
+          <button>Anno</button>
+          <button class="attiva">5 anni</button>
+          <button>10 anni</button>
+        </div>
+        <span style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);font-size:13px">
+          linea in carminio = valore di portafoglio
+        </span>
+      </div>
+    </div>
+
+    <div class="sezione-titolo">
+      Titoli iscritti a conto
+      <span class="nota">clicca una riga per la scheda completa</span>
+    </div>
+
+    <div class="tabella-scroll">
+    <table class="mastro">
+      <thead>
+        <tr>
+          <th>Denominazione &middot; ISIN</th>
+          <th>Quantità</th>
+          <th>Prezzo medio</th>
+          <th>Prezzo attuale</th>
+          <th>Valore attuale</th>
+          <th>Differenza</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="cliccabile" onclick="location.href='titolo.html'">
+          <td><span class="voce">ENEL S.p.A.<small>IT0003128367</small></span></td>
+          <td class="cifra">1.200</td>
+          <td class="cifra euro">5,42</td>
+          <td class="cifra euro">7,18</td>
+          <td class="cifra euro">8.616,00</td>
+          <td class="cifra guadagno">+2.112,00</td>
+        </tr>
+        <tr class="cliccabile" onclick="location.href='titolo.html'">
+          <td><span class="voce">iShares Core MSCI World<small>IE00BMVB5S82</small></span></td>
+          <td class="cifra">220</td>
+          <td class="cifra euro">68,30</td>
+          <td class="cifra euro">94,55</td>
+          <td class="cifra euro">20.801,00</td>
+          <td class="cifra guadagno">+5.775,00</td>
+        </tr>
+        <tr class="cliccabile" onclick="location.href='titolo.html'">
+          <td><span class="voce">iShares MSCI EM IMI<small>IE00BMVB5R75</small></span></td>
+          <td class="cifra">340</td>
+          <td class="cifra euro">26,90</td>
+          <td class="cifra euro">25,15</td>
+          <td class="cifra euro">8.551,00</td>
+          <td class="cifra perdita">&minus;595,00</td>
+        </tr>
+        <tr class="cliccabile" onclick="location.href='titolo.html'">
+          <td><span class="voce">Intesa Sanpaolo<small>IT0000072618</small></span></td>
+          <td class="cifra">2.000</td>
+          <td class="cifra euro">2,10</td>
+          <td class="cifra euro">3,86</td>
+          <td class="cifra euro">7.720,00</td>
+          <td class="cifra guadagno">+3.520,00</td>
+        </tr>
+        <tr class="cliccabile" onclick="location.href='titolo.html'">
+          <td><span class="voce">Recordati<small>IT0003828271</small></span></td>
+          <td class="cifra">90</td>
+          <td class="cifra euro">42,00</td>
+          <td class="cifra euro">55,30</td>
+          <td class="cifra euro">4.977,00</td>
+          <td class="cifra guadagno">+1.197,00</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Totale conto (5 di 7 mostrati)</td>
+          <td class="cifra">&mdash;</td>
+          <td class="cifra">&mdash;</td>
+          <td class="cifra">&mdash;</td>
+          <td class="cifra euro">51.207,40</td>
+          <td class="cifra guadagno">+12.787,40</td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+
+    <div class="bottoni">
+      <a class="bottone" href="ricerca.html">+ Registra nuovo carico</a>
+      <a class="bottone secondario" href="index.html">&larr; Torna ai conti</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Conti verificati al 26.VI.2026 &mdash; saldo riportato a nuovo</span>
+    <span class="fila"><span class="timbro verde">Verificato</span> PortfolIA &middot; c. 2</span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>

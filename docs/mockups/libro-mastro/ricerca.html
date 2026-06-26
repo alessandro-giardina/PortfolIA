@@ -1,0 +1,114 @@
+<link rel="stylesheet" href="shared.css">
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Modulo di carico titoli</p>
+      <h1>Registra <span class="corsivo">un titolo</span></h1>
+      <p class="sottotesto">Cerca per ISIN, verifica l'anagrafica, iscrivi il carico</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Modulo <b>n. 04/B</b></div>
+      <div>Conto: <b>Lungo Periodo</b></div>
+      <div>Compilato il <b>26.VI.2026</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="index.html">Portafogli</a>
+    <a href="portafoglio.html">Riepilogo</a>
+    <a href="ricerca.html" class="attiva">Carico titoli</a>
+    <a href="titolo.html">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo">
+      Passo I &mdash; Ricerca per ISIN
+      <span class="nota">il dato proviene da Borsa Italiana</span>
+    </div>
+
+    <div class="modulo">
+      <div class="riga-modulo">
+        <label for="isin">Codice ISIN</label>
+        <div class="campo">
+          <input id="isin" type="text" value="IE00BMVB5S82" placeholder="es. IT0003128367" autocomplete="off">
+        </div>
+      </div>
+    </div>
+
+    <div class="bottoni">
+      <button class="bottone" id="cerca">Recupera anagrafica</button>
+      <span class="fila" id="esito" style="font-family:'IM Fell English';font-style:italic;color:var(--seppia)">
+        <span class="timbro verde">Titolo trovato</span> iShares Core MSCI World &middot; € 94,55
+      </span>
+    </div>
+
+    <div class="sezione-titolo">Anagrafica recuperata</div>
+    <div class="anagrafica">
+      <div class="voce-def"><span class="et">Denominazione</span><span class="dato">iShares Core MSCI World UCITS ETF</span></div>
+      <div class="voce-def"><span class="et">Prezzo attuale</span><span class="dato">€ 94,55</span></div>
+      <div class="voce-def"><span class="et">Ticker</span><span class="dato">SWDA</span></div>
+      <div class="voce-def"><span class="et">Tipo strumento</span><span class="dato">ETF azionario</span></div>
+      <div class="voce-def"><span class="et">Emittente</span><span class="dato">iShares (BlackRock)</span></div>
+      <div class="voce-def"><span class="et">Valuta</span><span class="dato">EUR</span></div>
+    </div>
+
+    <div class="sezione-titolo">
+      Passo II &mdash; Iscrivi il carico
+      <span class="nota">data, prezzo e quantità acquistata</span>
+    </div>
+
+    <div class="modulo">
+      <div class="riga-modulo">
+        <label for="data">Data di carico</label>
+        <div class="campo"><input id="data" type="text" value="14 febbraio 2025" placeholder="gg mese aaaa"></div>
+      </div>
+      <div class="riga-modulo">
+        <label for="prezzo">Prezzo d'acquisto (€)</label>
+        <div class="campo"><input id="prezzo" type="text" value="76,10" placeholder="0,00"></div>
+      </div>
+      <div class="riga-modulo">
+        <label for="qta">Quantità acquistata</label>
+        <div class="campo"><input id="qta" type="text" value="50" placeholder="0"></div>
+      </div>
+      <div class="riga-modulo">
+        <label for="conto">Conto di destinazione</label>
+        <div class="campo">
+          <select id="conto">
+            <option>Conto Lungo Periodo</option>
+            <option>Conto ETF Globale</option>
+            <option>Conto Speculativo</option>
+          </select>
+        </div>
+      </div>
+      <div class="riga-modulo">
+        <label>Controvalore</label>
+        <div class="campo">
+          <span class="dato cifra euro" style="font-family:'Courier Prime';font-size:18px;font-weight:700">3.805,00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottoni">
+      <a class="bottone" href="titolo.html">Registra a mastro</a>
+      <a class="bottone secondario" href="portafoglio.html">Annulla</a>
+    </div>
+
+    <p style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);margin-top:24px;border-top:1px dotted rgba(110,90,54,.5);padding-top:14px">
+      Nota del contabile: in caso di ISIN non reperibile o dati assenti, l'app dichiara
+      apertamente il vuoto &mdash; <span class="timbro mancante">Dato non disponibile</span> &mdash;
+      e non iscrive mai valori stimati o inventati.
+    </p>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Ogni carico è registrato con data certa e fonte tracciata</span>
+    <span>PortfolIA &middot; modulo di carico &middot; c. 4</span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>

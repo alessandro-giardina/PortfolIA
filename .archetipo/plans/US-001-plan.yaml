@@ -1,0 +1,110 @@
+schema: archetipo/plan/v2
+spec_code: US-001
+body: |-
+  # US-001: Scaffolding del monorepo full-stack TypeScript — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-06-26
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-000 — Fondazione del progetto
+  **Priorità:** HIGH | **Punti:** 3
+
+  **User Story**
+  Come sviluppatore che avvia il progetto PortfolIA,
+  voglio un monorepo TypeScript con separazione client / server / shared avviabile con un solo comando,
+  in modo da avere una base di sviluppo coerente su cui costruire tutte le funzionalità.
+
+  **Criteri di Accettazione**
+  - [ ] Il repository contiene le cartelle `client/`, `server/` e `shared/` con configurazione TypeScript condivisa
+  - [ ] Un singolo comando `npm run dev` avvia backend (Node + Fastify) e frontend (React + Vite)
+  - [ ] La pagina iniziale su `localhost` mostra contenuto servito dal client e conferma la raggiungibilità del backend (es. endpoint `/health`)
+  - [ ] Il type-check del progetto (`tsc`) passa senza errori
+
+  ---
+
+  ## Soluzione Tecnica
+
+  Si utilizza **npm workspaces** con tre package (`client`, `server`, `shared`) e una `tsconfig.json` radice con `composite: true` e project references; il comando radice `npm run dev` usa `concurrently` per avviare i due dev server in parallelo.
+
+  - **Struttura:** `package.json` radice con `workspaces: ["client", "server", "shared"]`; `tsconfig.json` radice con `references` verso ciascun workspace; ogni package lo estende via `extends: "../../tsconfig.json"`.
+  - **Backend:** Fastify minimale su porta 3001 (`server/src/index.ts`) con route `GET /health` che restituisce `{ status: "ok", timestamp: ... }`. Usa `ts-node` o `tsx` per lo startup in sviluppo.
+  - **Frontend:** App React 18 + Vite 5 (`client/`) con un componente `App.tsx` che chiama `/health` via `fetch` e ne mostra l'esito. Il `vite.config.ts` configura un proxy `{ '/health': 'http://localhost:3001' }` per evitare CORS in dev senza header aggiuntivi.
+  - **Shared:** Package con soli tipi TypeScript (`shared/types/index.ts`), referenziato da `client` e `server` tramite `paths` in tsconfig — nessun build step necessario per ora.
+  - **Dev script radice:** `concurrently "npm run dev --workspace=server" "npm run dev --workspace=client"` con label colorati per distinguere i log.
+  - **Type-check:** `npm run typecheck` radice esegue `tsc --build` che verifica tutti e tre i workspace in ordine di dipendenza.
+
+  ---
+
+  ## Strategia di Test
+
+  Questo spec è pura infrastruttura: la logica di business è quasi assente, quindi i test mirano alla correttezza strutturale e alla smoke verification dell'integrazione.
+
+  - **Test di integrazione `/health`:** Vitest con `fastify.inject()` — verifica che la route restituisca 200 e body `{ status: "ok" }`.
+  - **Type-check come test:** `tsc --build --noEmit` viene trattato come asserzione esplicita; un errore di compilazione è un test fallito.
+  - **E2E smoke test:** un singolo scenario Playwright che apre `http://localhost:5173`, verifica che la pagina sia caricata e che mostri la conferma di raggiungibilità del backend.
+
+  ### Test E2E — Simulazione Utente
+
+  **Framework:** Playwright (già specificato nel tech stack del PRD)
+  **Video recording:** Solo scenario demo (come da campo `Dimostra` della spec); gli altri scenari girano senza video
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Demo — Scaffolding smoke test | Lo sviluppatore apre `http://localhost:5173`; la pagina si carica mostrando contenuto client; la UI riporta che il backend è raggiungibile (risposta `/health` visibile). Video salvato in `docs/test-results/US-001/`. |
+
+  ---
+
+  _Piano generato tramite ARchetipo Planning — 2026-06-26_
+tasks:
+  - id: TASK-01
+    title: Crea struttura radice del monorepo con npm workspaces
+    description: 'Scrivi il `package.json` radice con `workspaces: ["client", "server", "shared"]`, aggiungi `concurrently` come dev dependency e definisci gli script radice (`dev`, `typecheck`). Crea il `tsconfig.json` radice con `strict: true`, `composite: true` e `references` verso i tre workspace.'
+    type: Impl
+    status: TODO
+  - id: TASK-02
+    title: Scaffolding package `shared` con tipi condivisi
+    description: 'Crea `shared/package.json` e `shared/tsconfig.json` (estende la config radice). Crea `shared/types/index.ts` con l''interfaccia `HealthResponse { status: string; timestamp: string }` come primo tipo condiviso.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+  - id: TASK-03
+    title: Scaffolding package `server` con Fastify e route /health
+    description: 'Crea `server/package.json` (dipendenze: `fastify`, `tsx`; dev: `vitest`) e `server/tsconfig.json`. Crea `server/src/index.ts` con un''istanza Fastify su porta 3001 che registra `GET /health` (risponde `{ status: ''ok'', timestamp: new Date().toISOString() }`) e avvia il server. Configura lo script `dev` usando `tsx watch`.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-02
+  - id: TASK-04
+    title: Scaffolding package `client` con React + Vite e chiamata /health
+    description: 'Crea `client/package.json` (dipendenze: `react`, `react-dom`; dev: `vite`, `@vitejs/plugin-react`, tipi React) e `client/tsconfig.json`. Crea `vite.config.ts` con il plugin React e il proxy `{ ''/health'': { target: ''http://localhost:3001'', changeOrigin: true } }`. Crea `client/src/App.tsx` che al mount chiama `fetch(''/health'')` e mostra il risultato (status + timestamp) con un testo che conferma la raggiungibilità del backend.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-02
+  - id: TASK-05
+    title: Verifica integrazione completa e type-check radice
+    description: Lancia `npm install` dalla radice per installare tutte le dipendenze dei workspace. Esegui `npm run dev` e verifica manualmente che entrambi i server si avviino. Esegui `npm run typecheck` (ovvero `tsc --build --noEmit`) e verifica che passi senza errori su tutti e tre i workspace.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-03
+      - TASK-04
+  - id: TASK-06
+    title: Test di integrazione Vitest per la route /health
+    description: 'Crea `server/tests/health.test.ts` con Vitest: usa `fastify.inject({ method: ''GET'', url: ''/health'' })` per testare la route senza avviare un server reale. Asserisce `statusCode === 200` e `body.status === ''ok''`.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-03
+  - id: TASK-07
+    title: Setup Playwright e smoke test E2E (con video per scenario demo)
+    description: 'Installa Playwright nella radice del monorepo (`npm init playwright@latest` o manuale). Crea `e2e/scaffolding.spec.ts` con lo scenario demo: apre `http://localhost:5173`, attende che la pagina mostri la conferma di raggiungibilità del backend, e asserisce che il testo contenga il risultato di `/health`. Configura `playwright.config.ts` con `use: { video: ''on'' }` solo per questo spec file; imposta `outputFolder: ''docs/test-results/US-001/''`.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-05

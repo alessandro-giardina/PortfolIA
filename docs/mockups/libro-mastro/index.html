@@ -1,0 +1,126 @@
+<link rel="stylesheet" href="shared.css">
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Registro Personale degli Investimenti</p>
+      <h1>Libro <span class="corsivo">Mastro</span></h1>
+      <p class="sottotesto">Tenuto in proprio &middot; tutti i conti regolati a Borsa Italiana</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MCMXXX</b></div>
+      <div>Conti aperti: <b>3</b></div>
+      <div>Aggiornato il <b>26.VI.2026</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="index.html" class="attiva">Portafogli</a>
+    <a href="portafoglio.html">Riepilogo</a>
+    <a href="ricerca.html">Carico titoli</a>
+    <a href="titolo.html">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo">
+      Conti aperti a mastro
+      <span class="nota">valori in euro, ai prezzi ufficiali di chiusura</span>
+    </div>
+
+    <div class="tabella-scroll">
+    <table class="mastro">
+      <thead>
+        <tr>
+          <th>Conto / Portafoglio</th>
+          <th>Titoli</th>
+          <th>Valore di carico</th>
+          <th>Valore attuale</th>
+          <th>Profitto / Perdita</th>
+          <th>Var. anno</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="cliccabile" onclick="location.href='portafoglio.html'">
+          <td><span class="voce">Conto Lungo Periodo<small>aperto il 04.III.2019</small></span></td>
+          <td class="cifra">7</td>
+          <td class="cifra euro">38.420,00</td>
+          <td class="cifra euro">51.207,40</td>
+          <td class="cifra euro guadagno">+12.787,40</td>
+          <td class="cifra guadagno">+18,4%</td>
+        </tr>
+        <tr class="cliccabile" onclick="location.href='portafoglio.html'">
+          <td><span class="voce">Conto ETF Globale<small>aperto il 19.IX.2021</small></span></td>
+          <td class="cifra">3</td>
+          <td class="cifra euro">22.150,00</td>
+          <td class="cifra euro">24.980,15</td>
+          <td class="cifra euro guadagno">+2.830,15</td>
+          <td class="cifra guadagno">+9,1%</td>
+        </tr>
+        <tr class="cliccabile" onclick="location.href='portafoglio.html'">
+          <td><span class="voce">Conto Speculativo<small>aperto il 11.I.2024</small></span></td>
+          <td class="cifra">4</td>
+          <td class="cifra euro">9.800,00</td>
+          <td class="cifra euro">8.642,00</td>
+          <td class="cifra euro perdita">&minus;1.158,00</td>
+          <td class="cifra perdita">&minus;11,8%</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Totale a mastro</td>
+          <td class="cifra">14</td>
+          <td class="cifra euro">70.370,00</td>
+          <td class="cifra euro">84.829,55</td>
+          <td class="cifra euro guadagno">+14.459,55</td>
+          <td class="cifra guadagno">+20,5%</td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+
+    <div class="bottoni">
+      <a class="bottone" href="ricerca.html">+ Apri nuovo conto</a>
+      <a class="bottone secondario" href="portafoglio.html">Sfoglia un conto</a>
+    </div>
+
+    <div class="sezione-titolo">
+      Promemoria di registrazione
+      <span class="nota">annotazioni del contabile</span>
+    </div>
+
+    <div class="griglia-schede">
+      <div class="scheda">
+        <span class="indice">§ I</span>
+        <h3>Verità del dato</h3>
+        <div class="riga-scheda"><span>Fonte</span><span>Borsa Italiana</span></div>
+        <div class="riga-scheda"><span>Stime</span><span>nessuna</span></div>
+        <div style="margin-top:10px"><span class="timbro verde">Solo dati ufficiali</span></div>
+      </div>
+      <div class="scheda">
+        <span class="indice">§ II</span>
+        <h3>Registro locale</h3>
+        <div class="riga-scheda"><span>Archivio</span><span>SQLite</span></div>
+        <div class="riga-scheda"><span>Accesso</span><span>nessun login</span></div>
+        <div style="margin-top:10px"><span class="timbro blu">In cassaforte</span></div>
+      </div>
+      <div class="scheda">
+        <span class="indice">§ III</span>
+        <h3>Orizzonti scoperti</h3>
+        <div class="riga-scheda"><span>10 anni</span><span>parziale</span></div>
+        <div class="riga-scheda"><span>Politica</span><span>dichiara il vuoto</span></div>
+        <div style="margin-top:10px"><span class="timbro mancante">Dato non disponibile</span></div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto &mdash; A. Giardina, contabile in proprio</span>
+    <span>PortfolIA &middot; libro mastro &middot; c. 1</span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>

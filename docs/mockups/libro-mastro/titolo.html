@@ -1,0 +1,136 @@
+<link rel="stylesheet" href="shared.css">
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Scheda anagrafica del titolo</p>
+      <h1>iShares <span class="corsivo">Core MSCI World</span></h1>
+      <p class="sottotesto">ISIN IE00BMVB5S82 &middot; iscritto al Conto Lungo Periodo</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantità <b>220</b></div>
+      <div>Prezzo attuale <b>€ 94,55</b></div>
+      <div>Valore <b>€ 20.801,00</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="index.html">Portafogli</a>
+    <a href="portafoglio.html">Riepilogo</a>
+    <a href="ricerca.html">Carico titoli</a>
+    <a href="titolo.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo">
+      Posizione a conto
+      <span class="nota">profitto rispetto al prezzo medio di carico</span>
+    </div>
+
+    <div class="orizzonti" style="grid-template-columns:repeat(4,1fr)">
+      <div class="orizzonte">
+        <span class="et">Prezzo medio</span>
+        <span class="valore" style="color:var(--inchiostro)">€ 68,30</span>
+        <span class="perc" style="color:var(--seppia)">su 3 carichi</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore di carico</span>
+        <span class="valore" style="color:var(--inchiostro)">€ 15.026</span>
+        <span class="perc" style="color:var(--seppia)">220 quote</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore attuale</span>
+        <span class="valore" style="color:var(--inchiostro)">€ 20.801</span>
+        <span class="perc" style="color:var(--seppia)">€ 94,55/quota</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Differenza</span>
+        <span class="valore guadagno">+€ 5.775</span>
+        <span class="perc guadagno">+38,4%</span>
+      </div>
+    </div>
+
+    <div class="sezione-titolo">
+      Anagrafica ufficiale
+      <span class="nota">dati recuperati da Borsa Italiana</span>
+    </div>
+
+    <div class="anagrafica">
+      <div class="voce-def"><span class="et">Denominazione</span><span class="dato">iShares Core MSCI World UCITS ETF</span></div>
+      <div class="voce-def"><span class="et">ISIN</span><span class="dato">IE00BMVB5S82</span></div>
+      <div class="voce-def"><span class="et">Ticker</span><span class="dato">SWDA</span></div>
+      <div class="voce-def"><span class="et">Tipo strumento</span><span class="dato">ETF azionario</span></div>
+      <div class="voce-def"><span class="et">Emittente</span><span class="dato">iShares (BlackRock)</span></div>
+      <div class="voce-def"><span class="et">Segmento</span><span class="dato">ETFplus</span></div>
+      <div class="voce-def"><span class="et">Valuta di denominazione</span><span class="dato">EUR</span></div>
+      <div class="voce-def"><span class="et">Commissioni totali annue</span><span class="dato">0,20% (TER)</span></div>
+      <div class="voce-def"><span class="et">Politica dividendi</span><span class="dato">ad accumulazione</span></div>
+      <div class="voce-def"><span class="et">Ultimo aggiornamento</span><span class="dato">26.VI.2026 &middot; 17:35</span></div>
+    </div>
+
+    <div class="sezione-titolo">Carichi registrati</div>
+
+    <div class="tabella-scroll">
+    <table class="mastro">
+      <thead>
+        <tr>
+          <th>Data di carico</th>
+          <th>Quantità</th>
+          <th>Prezzo d'acquisto</th>
+          <th>Controvalore</th>
+          <th>Annotazione</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="voce">19.IX.2021</span></td>
+          <td class="cifra">80</td>
+          <td class="cifra euro">61,40</td>
+          <td class="cifra euro">4.912,00</td>
+          <td style="text-align:left;font-family:'IM Fell English';font-style:italic">primo carico</td>
+        </tr>
+        <tr>
+          <td><span class="voce">07.III.2023</span></td>
+          <td class="cifra">90</td>
+          <td class="cifra euro">70,10</td>
+          <td class="cifra euro">6.309,00</td>
+          <td style="text-align:left;font-family:'IM Fell English';font-style:italic">incremento</td>
+        </tr>
+        <tr>
+          <td><span class="voce">14.II.2025</span></td>
+          <td class="cifra">50</td>
+          <td class="cifra euro">76,10</td>
+          <td class="cifra euro">3.805,00</td>
+          <td style="text-align:left;font-family:'IM Fell English';font-style:italic">ultimo carico</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Prezzo medio di carico</td>
+          <td class="cifra">220</td>
+          <td class="cifra euro">68,30</td>
+          <td class="cifra euro">15.026,00</td>
+          <td style="text-align:left">&mdash;</td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+
+    <div class="bottoni">
+      <a class="bottone" href="ricerca.html">+ Aggiungi carico</a>
+      <a class="bottone secondario" href="portafoglio.html">&larr; Torna al conto</a>
+      <a class="bottone rosso" href="#" onclick="return false">Rimuovi posizione</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Scheda compilata a regola d'arte &mdash; dati da fonte ufficiale</span>
+    <span class="fila"><span class="timbro verde">Dati ufficiali</span> PortfolIA &middot; c. 3</span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>
