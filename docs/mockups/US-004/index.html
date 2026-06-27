@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Lista portafogli (US-004)</title>
+  <meta name="description" content="Mockup US-004: vista principale con lista portafogli e form Apri nuovo conto.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Registro Personale degli Investimenti</p>
+      <h1>Libro <span class="corsivo">Mastro</span></h1>
+      <p class="sottotesto">Conti aperti &middot; apertura nuovo portafoglio</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Conti aperti: <b>3</b></div>
+      <div>Aggiornato il <b>27.VI.2026</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="index.html" class="attiva">Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a href="#">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- SEZIONE 1: lista conti aperti -->
+    <div class="sezione-titolo">
+      Conti aperti a mastro
+      <span class="nota">valori in euro, ai prezzi ufficiali di chiusura</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Conto / Portafoglio</th>
+            <th>Titoli</th>
+            <th>Valore di carico</th>
+            <th>Valore attuale</th>
+            <th>Profitto / Perdita</th>
+            <th>Var. anno</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="cliccabile">
+            <td><span class="voce">Conto Lungo Periodo<small>aperto il 04.III.2019</small></span></td>
+            <td class="cifra">7</td>
+            <td class="cifra euro">38.420,00</td>
+            <td class="cifra euro">51.207,40</td>
+            <td class="cifra euro guadagno">+12.787,40</td>
+            <td class="cifra guadagno">+18,4%</td>
+          </tr>
+          <tr class="cliccabile">
+            <td><span class="voce">Conto ETF Globale<small>aperto il 19.IX.2021</small></span></td>
+            <td class="cifra">3</td>
+            <td class="cifra euro">22.150,00</td>
+            <td class="cifra euro">24.980,15</td>
+            <td class="cifra euro guadagno">+2.830,15</td>
+            <td class="cifra guadagno">+9,1%</td>
+          </tr>
+          <tr class="cliccabile">
+            <td><span class="voce">Conto Speculativo<small>aperto il 11.I.2024</small></span></td>
+            <td class="cifra">4</td>
+            <td class="cifra euro">9.800,00</td>
+            <td class="cifra euro">8.642,00</td>
+            <td class="cifra euro perdita">&minus;1.158,00</td>
+            <td class="cifra perdita">&minus;11,8%</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Totale a mastro</td>
+            <td class="cifra">14</td>
+            <td class="cifra euro">70.370,00</td>
+            <td class="cifra euro">84.829,55</td>
+            <td class="cifra euro guadagno">+14.459,55</td>
+            <td class="cifra guadagno">+20,5%</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- SEZIONE 2: apertura nuovo conto -->
+    <div class="sezione-titolo" style="margin-top: 44px;">
+      Apri un nuovo conto a mastro
+      <span class="nota">Modulo n. 01/A &mdash; Registrazione portafoglio</span>
+    </div>
+
+    <div class="riquadro-modulo" id="modulo-nuovo-conto">
+      <div class="intestazione-modulo">
+        <span>Dati del nuovo portafoglio</span>
+        <span class="num-modulo">Mod. 01/A</span>
+      </div>
+      <div class="corpo-modulo">
+        <div class="riga-modulo" id="riga-nome">
+          <label for="nome-portafoglio">Denominazione del conto</label>
+          <div class="campo" id="campo-nome">
+            <input
+              type="text"
+              id="nome-portafoglio"
+              placeholder="es. Conto Obbligazionario"
+              autocomplete="off"
+              maxlength="80"
+            >
+            <span class="errore-campo" id="errore-nome"></span>
+          </div>
+        </div>
+
+        <div class="bottoni" style="margin-top: 18px;">
+          <button class="bottone" id="btn-registra" type="button">
+            Registra a mastro
+          </button>
+          <button class="bottone secondario" id="btn-annulla" type="button">
+            Annulla
+          </button>
+        </div>
+
+        <p style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);
+                  font-size:13px;margin-top:16px;border-top:1px dotted rgba(110,90,54,.4);
+                  padding-top:12px;">
+          Nota del contabile: il nome del conto deve essere univoco nel registro.
+          Una volta registrato, il portafoglio è persistito nel libro mastro locale e
+          sarà visibile ad ogni riapertura dell'applicazione.
+        </p>
+      </div>
+    </div>
+
+    <!-- Navigazione mockup -->
+    <div style="margin-top:48px; padding-top:20px; border-top:1px dotted rgba(110,90,54,.4);
+                font-family:'IM Fell English SC',serif; font-size:12px;
+                letter-spacing:.12em; color:var(--seppia); text-transform:uppercase;">
+      Schermate mockup US-004 &nbsp;&rarr;&nbsp;
+      <a href="errori.html" style="color:var(--rosso-margine);text-decoration:none;margin: 0 10px;">
+        Stato errori
+      </a>
+      &middot;
+      <a href="successo.html" style="color:var(--verde-attivo);text-decoration:none;margin: 0 10px;">
+        Stato successo
+      </a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto &mdash; A. Giardina, contabile in proprio</span>
+    <span>PortfolIA &middot; US-004 mockup &middot; schermata 1 di 3</span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

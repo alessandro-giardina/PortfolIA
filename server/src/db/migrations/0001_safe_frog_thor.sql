@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `portfolios_name_unique` ON `portfolios` (`name`);

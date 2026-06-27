@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Errori di validazione (US-004)</title>
+  <meta name="description" content="Mockup US-004: stati di errore — nome vuoto e nome duplicato.">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ---- annotazione laterale (post-it da contabile) ---- */
+    .annotazione {
+      position: relative;
+      margin: 22px 0 0;
+    }
+    .annotazione::before {
+      content: "⚠";
+      position: absolute;
+      left: -36px;
+      top: 2px;
+      font-size: 18px;
+      color: var(--carminio);
+      opacity: .7;
+    }
+
+    /* ---- selettore stato (controllo mockup) ---- */
+    .selettore-stato {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      padding: 14px 16px;
+      background: rgba(34,28,20,.05);
+      border: 1px dashed rgba(34,28,20,.3);
+    }
+    .selettore-stato span {
+      font-family: 'IM Fell English SC', serif;
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--seppia);
+      align-self: center;
+      margin-right: 6px;
+    }
+    .btn-stato {
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      padding: 6px 14px;
+      border: 1.5px solid var(--inchiostro);
+      background: var(--carta-chiara);
+      color: var(--inchiostro);
+      cursor: pointer;
+      letter-spacing: .04em;
+      transition: background .12s;
+    }
+    .btn-stato.attivo {
+      background: var(--carminio);
+      color: var(--carta-chiara);
+      border-color: var(--carminio);
+    }
+    .btn-stato:not(.attivo):hover { background: rgba(141,35,31,.08); }
+  </style>
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Registro Personale degli Investimenti</p>
+      <h1>Libro <span class="corsivo">Mastro</span></h1>
+      <p class="sottotesto">Errori di registrazione &middot; modulo rifiutato</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Conti aperti: <b>3</b></div>
+      <div>Aggiornato il <b>27.VI.2026</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="index.html" class="attiva">Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a href="#">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo">
+      Conti aperti a mastro
+      <span class="nota">valori in euro, ai prezzi ufficiali di chiusura</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Conto / Portafoglio</th>
+            <th>Titoli</th>
+            <th>Valore di carico</th>
+            <th>Valore attuale</th>
+            <th>Profitto / Perdita</th>
+            <th>Var. anno</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="cliccabile">
+            <td><span class="voce">Conto Lungo Periodo<small>aperto il 04.III.2019</small></span></td>
+            <td class="cifra">7</td>
+            <td class="cifra euro">38.420,00</td>
+            <td class="cifra euro">51.207,40</td>
+            <td class="cifra euro guadagno">+12.787,40</td>
+            <td class="cifra guadagno">+18,4%</td>
+          </tr>
+          <tr class="cliccabile">
+            <td><span class="voce">Conto ETF Globale<small>aperto il 19.IX.2021</small></span></td>
+            <td class="cifra">3</td>
+            <td class="cifra euro">22.150,00</td>
+            <td class="cifra euro">24.980,15</td>
+            <td class="cifra euro guadagno">+2.830,15</td>
+            <td class="cifra guadagno">+9,1%</td>
+          </tr>
+          <tr class="cliccabile">
+            <td><span class="voce">Conto Speculativo<small>aperto il 11.I.2024</small></span></td>
+            <td class="cifra">4</td>
+            <td class="cifra euro">9.800,00</td>
+            <td class="cifra euro">8.642,00</td>
+            <td class="cifra euro perdita">&minus;1.158,00</td>
+            <td class="cifra perdita">&minus;11,8%</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Totale a mastro</td>
+            <td class="cifra">14</td>
+            <td class="cifra euro">70.370,00</td>
+            <td class="cifra euro">84.829,55</td>
+            <td class="cifra euro guadagno">+14.459,55</td>
+            <td class="cifra guadagno">+20,5%</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- FORM CON ERRORI -->
+    <div class="sezione-titolo" style="margin-top: 44px;">
+      Apri un nuovo conto a mastro
+      <span class="nota">Modulo n. 01/A &mdash; Registrazione portafoglio</span>
+    </div>
+
+    <!-- Controllo prototipo: selezione stato errore -->
+    <div class="selettore-stato">
+      <span>Simula errore:</span>
+      <button class="btn-stato attivo" id="btn-vuoto" type="button">Nome vuoto</button>
+      <button class="btn-stato" id="btn-duplicato" type="button">Nome duplicato</button>
+    </div>
+
+    <div class="riquadro-modulo" id="modulo-nuovo-conto">
+      <div class="intestazione-modulo">
+        <span>Dati del nuovo portafoglio</span>
+        <span class="num-modulo">Mod. 01/A &mdash; <span style="color:var(--rosso-vivo);opacity:.9">Rifiutato</span></span>
+      </div>
+      <div class="corpo-modulo">
+
+        <!-- Errore campo -->
+        <div class="riga-modulo con-errore" id="riga-nome">
+          <label for="nome-portafoglio">Denominazione del conto</label>
+          <div class="campo con-errore" id="campo-nome">
+            <input
+              type="text"
+              id="nome-portafoglio"
+              value=""
+              placeholder="es. Conto Obbligazionario"
+              autocomplete="off"
+              maxlength="80"
+              aria-invalid="true"
+              aria-describedby="errore-nome"
+            >
+            <span class="errore-campo visibile" id="errore-nome">
+              Il nome del conto non può essere vuoto
+            </span>
+          </div>
+        </div>
+
+        <!-- Avviso errore globale -->
+        <div class="avviso-errore" id="avviso-globale">
+          <span class="timbro" style="flex-shrink:0; transform:rotate(-2deg)">Modulo rifiutato</span>
+          <span id="testo-avviso">
+            Il nome del conto è obbligatorio. Compilare il campo denominazione e ripresentare la registrazione.
+          </span>
+        </div>
+
+        <div class="bottoni" style="margin-top: 18px;">
+          <button class="bottone" id="btn-registra" type="button">
+            Registra a mastro
+          </button>
+          <button class="bottone secondario" type="button">
+            Annulla
+          </button>
+        </div>
+
+        <p style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);
+                  font-size:13px;margin-top:16px;border-top:1px dotted rgba(110,90,54,.4);
+                  padding-top:12px;">
+          Nota del contabile: il nome del conto deve essere univoco nel registro.
+          Una volta registrato, il portafoglio è persistito nel libro mastro locale.
+        </p>
+      </div>
+    </div>
+
+    <!-- Navigazione mockup -->
+    <div style="margin-top:48px; padding-top:20px; border-top:1px dotted rgba(110,90,54,.4);
+                font-family:'IM Fell English SC',serif; font-size:12px;
+                letter-spacing:.12em; color:var(--seppia); text-transform:uppercase;">
+      Schermate mockup US-004 &nbsp;&rarr;&nbsp;
+      <a href="index.html" style="color:var(--inchiostro-2);text-decoration:none;margin: 0 10px;">
+        Vista principale
+      </a>
+      &middot;
+      <a href="successo.html" style="color:var(--verde-attivo);text-decoration:none;margin: 0 10px;">
+        Stato successo
+      </a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Registrazione rifiutata &mdash; correggere e ripresentare</span>
+    <span>PortfolIA &middot; US-004 mockup &middot; schermata 2 di 3</span>
+  </footer>
+
+</div>
+
+<script>
+  // Prototype interaction: toggle tra i due stati di errore
+
+  const stati = {
+    vuoto: {
+      valore: '',
+      errore: 'Il nome del conto non può essere vuoto',
+      avviso: 'Il nome del conto è obbligatorio. Compilare il campo denominazione e ripresentare la registrazione.',
+    },
+    duplicato: {
+      valore: 'Conto Lungo Periodo',
+      errore: 'Esiste già un conto con questa denominazione',
+      avviso: 'Il nome «Conto Lungo Periodo» è già registrato a mastro. Scegliere una denominazione univoca.',
+    }
+  };
+
+  function applicaStato(chiave) {
+    const s = stati[chiave];
+    document.getElementById('nome-portafoglio').value = s.valore;
+    document.getElementById('errore-nome').textContent = s.errore;
+    document.getElementById('testo-avviso').textContent = s.avviso;
+
+    // aggiorna pulsanti selettore
+    document.getElementById('btn-vuoto').classList.toggle('attivo', chiave === 'vuoto');
+    document.getElementById('btn-duplicato').classList.toggle('attivo', chiave === 'duplicato');
+  }
+
+  document.getElementById('btn-vuoto').addEventListener('click', () => applicaStato('vuoto'));
+  document.getElementById('btn-duplicato').addEventListener('click', () => applicaStato('duplicato'));
+</script>
+</body>
+</html>

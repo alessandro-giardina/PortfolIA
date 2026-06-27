@@ -1,0 +1,72 @@
+schema: archetipo/plan/v2
+spec_code: US-004
+body: "# US-004: Creare un nuovo portafoglio — Piano di Implementazione\n\n**Generato da:** ARchetipo Planning Team\n**Data:** 2026-06-27\n\n---\n\n## Spec\n\n**Epic:** EP-001 — Gestione multi-portafoglio\n**Priorità:** HIGH | **Punti:** 2\n\n**User Story**\nCome Alessandro, investitore-proprietario,\nvoglio creare un nuovo portafoglio assegnandogli un nome,\nin modo da poter organizzare i miei investimenti in più portafogli logici (FR-001).\n\n**Criteri di Accettazione**\n- [ ] L'utente può creare un portafoglio fornendo un nome\n- [ ] Un nome vuoto viene rifiutato con un messaggio chiaro\n- [ ] Un nome uguale a quello di un portafoglio già esistente viene rifiutato con un messaggio chiaro\n- [ ] Il portafoglio creato è persistito ed è visibile dopo il riavvio dell'app\n\n---\n\n## Soluzione Tecnica\n\nLa feature si sviluppa su tre layer già presenti nell'architettura, senza cambiamenti strutturali: schema SQLite, API Fastify, componente React.\n\n- **Schema Drizzle (server/src/db/schema.ts):** aggiungere il vincolo `.unique()` al campo `name` della tabella `portfolios`. Generare ed eseguire la migrazione Drizzle corrispondente. La tabella `portfolios` esiste già con `id`, `name` (NOT NULL), `created_at`.\n- **API Fastify (server/src/api/portfolios.ts — nuovo file):** esporre `POST /api/portfolios` (body: `{ name: string }`) e `GET /api/portfolios`. La route POST valida il nome (vuoto → 400), inserisce via Drizzle e intercetta l'errore SQLite di unicità (`UNIQUE constraint failed: portfolios.name`) restituendo 409 con messaggio chiaro. Le route vengono registrate in `server/src/index.ts`. Aggiungere il tipo `Portfolio` e `CreatePortfolioRequest` nel package `shared`.\n- **Frontend React (client/src/components/CreatePortfolioForm.tsx + client/src/App.tsx):** il componente `CreatePortfolioForm` contiene un input testo, un pulsante \"Crea\", e mostra feedback inline (errore nome vuoto prima del submit lato client; errore duplicato da risposta API 409). `App.tsx` viene aggiornato per mostrare la lista portafogli e il form, in stile libro-mastro coerente con i mockup in `docs/mockups/US-004/`.\n- **Assunzione:** il confronto di unicità del nome è case-sensitive (SQLite default BINARY). Estendere a case-insensitive richiede `COLLATE NOCASE` — fuori scope per questa spec.\n\n---\n\n## Strategia di Test\n\nI test coprono la validazione a livello di repository, l'endpoint HTTP e il flusso utente completo via Playwright.\n\n- **Test unitari Vitest (server/tests/portfolios.test.ts):** verifica della logica di repository — inserimento corretto, rifiuto di nome vuoto, rifiuto di nome duplicato, persistenza dopo riapertura connessione.\n- **Test di integrazione Vitest (server/tests/api.portfolios.test.ts):** avvio di un'istanza Fastify in-memory, POST con nome valido → 201, POST con nome vuoto → 400, POST con nome duplicato → 409, GET lista → array con il portafoglio creato.\n- **Lint + typecheck:** `npm run check` deve restare a 0 con i nuovi file.\n\n### Test E2E — Simulazione Utente\n\n**Framework:** Playwright (già configurato in `playwright.config.ts`)\n**Video recording:** Solo lo scenario demo; video salvato in `docs/test-results/US-004/`\n\n| Scenario | Descrizione del flusso utente |\n|---|---|\n| Demo — crea portafoglio e verifica persistenza | L'utente apre l'app, vede la lista portafogli vuota, inserisce \"Portafoglio Principale\", clicca Crea, vede il portafoglio comparire in lista; ricarica la pagina e il portafoglio è ancora presente |\n| Validazione — nome vuoto | L'utente lascia il campo nome vuoto e clicca Crea; vede il messaggio di errore inline senza submit al server |\n| Validazione — nome duplicato | L'utente inserisce il nome di un portafoglio già esistente e clicca Crea; vede il messaggio di errore 409 dal server |\n\n---\n\n> \U0001F3A8 Mockup per questa spec disponibili in `docs/mockups/US-004/`\n\n_Piano generato tramite ARchetipo Planning — 2026-06-27_"
+tasks:
+  - id: TASK-01
+    title: Aggiungere vincolo UNIQUE al campo name in schema Drizzle
+    description: In `server/src/db/schema.ts` aggiungere `.unique()` al campo `name` della tabella `portfolios`. Eseguire `npx drizzle-kit generate` per generare la migrazione SQLite e verificare che il file di migrazione venga creato correttamente in `server/src/db/migrations/`.
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Aggiungere tipi condivisi Portfolio e CreatePortfolioRequest
+    description: 'Nel package `shared/types/` aggiungere l''interfaccia `Portfolio` (id, name, created_at) e `CreatePortfolioRequest` (name: string) ed esportarle dall''index. Questi tipi sono usati sia dal server sia dal client.'
+    type: Impl
+    status: DONE
+    ref: TASK-02
+  - id: TASK-03
+    title: Implementare route GET e POST /api/portfolios su Fastify
+    description: Creare `server/src/api/portfolios.ts` con le route `GET /api/portfolios` (restituisce la lista) e `POST /api/portfolios` (valida nome non vuoto → 400, inserisce via Drizzle, intercetta errore UNIQUE → 409 con messaggio chiaro). Registrare le route in `server/src/index.ts`.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+    ref: TASK-03
+  - id: TASK-04
+    title: Test unitari Vitest — repository portfolios
+    description: 'In `server/tests/portfolios.test.ts` testare: inserimento corretto restituisce id, nome vuoto lancia errore, nome duplicato lancia errore SQLite UNIQUE, la riga persiste dopo riapertura connessione. Usare DB SQLite in-memory o file temporaneo come nel test esistente `db.test.ts`.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-04
+  - id: TASK-05
+    title: Test di integrazione Vitest — endpoint POST /api/portfolios
+    description: 'In `server/tests/api.portfolios.test.ts` avviare un''istanza Fastify in-memory (inject), testare: POST nome valido → 201 + body con id e name, POST nome vuoto → 400, POST nome duplicato → 409, GET lista → array con il portafoglio. Pulire il DB tra i test.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+    ref: TASK-05
+  - id: TASK-06
+    title: Implementare componente CreatePortfolioForm in React
+    description: 'Creare `client/src/components/CreatePortfolioForm.tsx`: input testo per il nome, pulsante Crea, validazione client-side (nome vuoto → messaggio errore inline senza fetch), chiamata POST /api/portfolios, gestione risposta 409 con messaggio errore inline. Seguire lo stile libro-mastro dei mockup in `docs/mockups/US-004/`.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-06
+  - id: TASK-07
+    title: Aggiornare App.tsx con lista portafogli e form di creazione
+    description: Aggiornare `client/src/App.tsx` per recuperare la lista portafogli da GET /api/portfolios al mount, renderizzare la lista e includere il componente `CreatePortfolioForm`. Alla creazione riuscita aggiornare la lista localmente (re-fetch o append). Rimuovere o integrare l'attuale visualizzazione dell'health check.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-06
+    ref: TASK-07
+  - id: TASK-08
+    title: Aggiornare playwright.config.ts — outputDir US-004 + video demo
+    description: 'In `playwright.config.ts` aggiornare `outputDir` a `docs/test-results/US-004/`. Impostare `video: ''off''` come default globale e abilitare il video solo nello scenario demo nella spec E2E (tramite `test.use({ video: ''on'' })` nel blocco del demo scenario).'
+    type: Impl
+    status: DONE
+    ref: TASK-08
+  - id: TASK-09
+    title: Scrivere spec E2E Playwright — crea portafoglio e verifica persistenza
+    description: 'Creare `e2e/US-004__crea-portafoglio.spec.ts` con tre scenari: (1) demo con video — crea ''Portafoglio Principale'', verifica in lista, ricarica pagina e verifica ancora presente; (2) validazione nome vuoto — messaggio errore inline; (3) validazione duplicato — messaggio errore 409. Eseguire `npx playwright test` e verificare che tutti e tre passino.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-07
+      - TASK-08
+    ref: TASK-09

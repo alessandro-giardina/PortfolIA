@@ -3,7 +3,7 @@ import { sql } from 'drizzle-orm';
 
 export const portfolios = sqliteTable('portfolios', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  name: text('name').notNull(),
+  name: text('name').notNull().unique(),
   created_at: integer('created_at')
     .notNull()
     .default(sql`(unixepoch())`),

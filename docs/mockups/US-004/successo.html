@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Conto registrato (US-004)</title>
+  <meta name="description" content="Mockup US-004: stato successo — nuovo portafoglio visibile in lista.">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ---- Banner di conferma registrazione ---- */
+    .banner-registrazione {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 22px;
+      background: rgba(47,107,58,.09);
+      border: 2px solid var(--verde-attivo);
+      margin-bottom: 6px;
+    }
+    .banner-registrazione .icona-spunta {
+      font-family: 'Courier Prime', monospace;
+      font-size: 24px;
+      color: var(--verde-attivo);
+      flex-shrink: 0;
+    }
+    .banner-registrazione .testo-conferma {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      font-size: 16px;
+      color: var(--inchiostro);
+    }
+    .banner-registrazione .testo-conferma strong {
+      font-style: normal;
+      font-family: 'Playfair Display', serif;
+    }
+
+    /* ---- Nuovo conto evidenziato ---- */
+    .mastro tbody tr.nuova {
+      background: rgba(47,107,58,.11);
+    }
+    .mastro tbody tr.nuova td:first-child {
+      border-left: 3px solid var(--verde-attivo);
+    }
+    .mastro tbody tr.nuova .voce {
+      color: var(--verde-mastro);
+    }
+
+    /* ---- Timbro "Registrato" ---- */
+    .timbro-registrato {
+      display: inline-block;
+      font-family: 'IM Fell English SC', serif;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: 11px;
+      padding: 4px 12px;
+      border: 2.5px solid var(--verde-attivo);
+      color: var(--verde-attivo);
+      border-radius: 3px;
+      transform: rotate(-2deg);
+      opacity: .9;
+      background: rgba(47,107,58,.07);
+      box-shadow: inset 0 0 0 1px rgba(47,107,58,.2);
+    }
+
+    /* ---- Animazione riga nuova ---- */
+    @keyframes entraRiga {
+      from { opacity: 0; transform: translateX(-8px); background: rgba(47,107,58,.25); }
+      to   { opacity: 1; transform: translateX(0);    background: rgba(47,107,58,.11); }
+    }
+    .nuova { animation: entraRiga 1s ease both; }
+  </style>
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Registro Personale degli Investimenti</p>
+      <h1>Libro <span class="corsivo">Mastro</span></h1>
+      <p class="sottotesto">Nuovo conto registrato &middot; 4 conti aperti</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Conti aperti: <b>4</b></div>
+      <div>Aggiornato il <b>27.VI.2026</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="index.html" class="attiva">Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a href="#">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- Banner conferma -->
+    <div class="banner-registrazione" style="margin-top:8px;">
+      <span class="icona-spunta">✓</span>
+      <div class="testo-conferma">
+        Conto <strong>«Conto Obbligazionario»</strong> registrato a mastro il 27 giugno 2026.
+        Il portafoglio è ora persistito nel libro locale e sarà visibile ad ogni riapertura.
+        &nbsp;<span class="timbro-registrato">Registrato</span>
+      </div>
+    </div>
+
+    <!-- SEZIONE: lista conti aperti (ora include il nuovo) -->
+    <div class="sezione-titolo">
+      Conti aperti a mastro
+      <span class="nota">valori in euro, ai prezzi ufficiali di chiusura</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Conto / Portafoglio</th>
+            <th>Titoli</th>
+            <th>Valore di carico</th>
+            <th>Valore attuale</th>
+            <th>Profitto / Perdita</th>
+            <th>Var. anno</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="cliccabile">
+            <td><span class="voce">Conto Lungo Periodo<small>aperto il 04.III.2019</small></span></td>
+            <td class="cifra">7</td>
+            <td class="cifra euro">38.420,00</td>
+            <td class="cifra euro">51.207,40</td>
+            <td class="cifra euro guadagno">+12.787,40</td>
+            <td class="cifra guadagno">+18,4%</td>
+          </tr>
+          <tr class="cliccabile">
+            <td><span class="voce">Conto ETF Globale<small>aperto il 19.IX.2021</small></span></td>
+            <td class="cifra">3</td>
+            <td class="cifra euro">22.150,00</td>
+            <td class="cifra euro">24.980,15</td>
+            <td class="cifra euro guadagno">+2.830,15</td>
+            <td class="cifra guadagno">+9,1%</td>
+          </tr>
+          <tr class="cliccabile">
+            <td><span class="voce">Conto Speculativo<small>aperto il 11.I.2024</small></span></td>
+            <td class="cifra">4</td>
+            <td class="cifra euro">9.800,00</td>
+            <td class="cifra euro">8.642,00</td>
+            <td class="cifra euro perdita">&minus;1.158,00</td>
+            <td class="cifra perdita">&minus;11,8%</td>
+          </tr>
+
+          <!-- Nuovo portafoglio appena creato — evidenziato -->
+          <tr class="cliccabile nuova">
+            <td>
+              <span class="voce">
+                Conto Obbligazionario
+                <small>aperto il 27.VI.2026</small>
+              </span>
+            </td>
+            <td class="cifra" style="color:var(--seppia);font-style:italic">0</td>
+            <td class="cifra" style="color:var(--seppia);font-style:italic">&mdash;</td>
+            <td class="cifra" style="color:var(--seppia);font-style:italic">&mdash;</td>
+            <td class="cifra" style="color:var(--seppia);font-style:italic">&mdash;</td>
+            <td style="text-align:center;">
+              <span class="timbro-registrato" style="transform:rotate(1deg);">Nuovo</span>
+            </td>
+          </tr>
+
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Totale a mastro</td>
+            <td class="cifra">14</td>
+            <td class="cifra euro">70.370,00</td>
+            <td class="cifra euro">84.829,55</td>
+            <td class="cifra euro guadagno">+14.459,55</td>
+            <td class="cifra guadagno">+20,5%</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="bottoni">
+      <a class="bottone" href="#modulo">+ Apri altro conto</a>
+      <a class="bottone secondario" href="#">Sfoglia un conto</a>
+    </div>
+
+    <!-- Form vuoto pronto per un'altra apertura conto -->
+    <div class="sezione-titolo" id="modulo" style="margin-top: 44px;">
+      Apri un nuovo conto a mastro
+      <span class="nota">Modulo n. 01/A &mdash; Registrazione portafoglio</span>
+    </div>
+
+    <div class="riquadro-modulo">
+      <div class="intestazione-modulo">
+        <span>Dati del nuovo portafoglio</span>
+        <span class="num-modulo">Mod. 01/A</span>
+      </div>
+      <div class="corpo-modulo">
+        <div class="riga-modulo">
+          <label for="nome-portafoglio">Denominazione del conto</label>
+          <div class="campo">
+            <input
+              type="text"
+              id="nome-portafoglio"
+              placeholder="es. Conto Azionario USA"
+              autocomplete="off"
+              maxlength="80"
+            >
+            <span class="errore-campo" id="errore-nome"></span>
+          </div>
+        </div>
+
+        <div class="bottoni" style="margin-top: 18px;">
+          <button class="bottone" type="button">Registra a mastro</button>
+          <button class="bottone secondario" type="button">Annulla</button>
+        </div>
+
+        <p style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);
+                  font-size:13px;margin-top:16px;border-top:1px dotted rgba(110,90,54,.4);
+                  padding-top:12px;">
+          Nota del contabile: il nome del conto deve essere univoco nel registro.
+          Una volta registrato, il portafoglio è persistito nel libro mastro locale.
+        </p>
+      </div>
+    </div>
+
+    <!-- Navigazione mockup -->
+    <div style="margin-top:48px; padding-top:20px; border-top:1px dotted rgba(110,90,54,.4);
+                font-family:'IM Fell English SC',serif; font-size:12px;
+                letter-spacing:.12em; color:var(--seppia); text-transform:uppercase;">
+      Schermate mockup US-004 &nbsp;&rarr;&nbsp;
+      <a href="index.html" style="color:var(--inchiostro-2);text-decoration:none;margin: 0 10px;">
+        Vista principale
+      </a>
+      &middot;
+      <a href="errori.html" style="color:var(--rosso-margine);text-decoration:none;margin: 0 10px;">
+        Stato errori
+      </a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Registrazione accettata e iscritta a mastro &mdash; 27.VI.2026</span>
+    <span>PortfolIA &middot; US-004 mockup &middot; schermata 3 di 3</span>
+  </footer>
+
+</div>
+
+</body>
+</html>
