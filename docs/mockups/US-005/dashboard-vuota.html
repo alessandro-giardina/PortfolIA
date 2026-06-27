@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Dashboard vuota (US-005)</title>
+  <meta name="description" content="Mockup US-005: dashboard senza portafogli — stato vuoto con invito alla creazione.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Registro Personale degli Investimenti</p>
+      <h1>Libro <span class="corsivo">Mastro</span></h1>
+      <p class="sottotesto">Nessun conto ancora iscritto a registro</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Conti aperti: <b>0</b></div>
+      <div>Aggiornato il <b>27.VI.2026</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="dashboard-vuota.html" class="attiva">Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a href="#">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- SEZIONE: elenco conti — stato vuoto -->
+    <div class="sezione-titolo">
+      Conti aperti a mastro
+      <span class="nota">nessun portafoglio ancora registrato</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Conto / Portafoglio</th>
+            <th>Titoli</th>
+            <th>Valore di carico</th>
+            <th>Valore attuale</th>
+            <th>Profitto / Perdita</th>
+            <th>Var. anno</th>
+            <th style="width:32px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="riga-vuota">
+            <td colspan="7">
+              <div class="stato-vuoto-interno">
+                <span class="titolo-vuoto">Il registro è ancora vuoto</span>
+                <span class="desc-vuoto">Non hai ancora aperto alcun conto a mastro. Ogni portafoglio che crei sarà iscritto qui.</span>
+                <a href="#modulo-nuovo-conto" class="cta-vuoto">
+                  &#43;&nbsp; Apri il tuo primo conto a mastro
+                </a>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SEZIONE: apertura nuovo conto -->
+    <div class="sezione-titolo" style="margin-top: 44px;">
+      Apri un nuovo conto a mastro
+      <span class="nota">Modulo n. 01/A &mdash; Registrazione portafoglio</span>
+    </div>
+
+    <div class="riquadro-modulo" id="modulo-nuovo-conto">
+      <div class="intestazione-modulo">
+        <span>Dati del nuovo portafoglio</span>
+        <span class="num-modulo">Mod. 01/A</span>
+      </div>
+      <div class="corpo-modulo">
+        <div class="riga-modulo" id="riga-nome">
+          <label for="nome-portafoglio">Denominazione del conto</label>
+          <div class="campo" id="campo-nome">
+            <input
+              type="text"
+              id="nome-portafoglio"
+              placeholder="es. Conto Obbligazionario"
+              autocomplete="off"
+              maxlength="80"
+            >
+            <span class="errore-campo" id="errore-nome"></span>
+          </div>
+        </div>
+
+        <div class="bottoni" style="margin-top: 18px;">
+          <button class="bottone" id="btn-registra" type="button">
+            Registra a mastro
+          </button>
+          <button class="bottone secondario" id="btn-annulla" type="button">
+            Annulla
+          </button>
+        </div>
+
+        <p style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);
+                  font-size:13px;margin-top:16px;border-top:1px dotted rgba(110,90,54,.4);
+                  padding-top:12px;">
+          Nota del contabile: il nome del conto deve essere univoco nel registro.
+          Una volta registrato, il portafoglio è persistito nel libro mastro locale e
+          sarà visibile ad ogni riapertura dell&rsquo;applicazione.
+        </p>
+      </div>
+    </div>
+
+    <!-- navigazione mockup -->
+    <div class="nav-mockup">
+      Schermate mockup US-005 &nbsp;&rarr;&nbsp;
+      <a href="dashboard-con-portafogli.html">Dashboard con portafogli</a>
+      &middot;
+      <a href="dashboard-vuota.html">Dashboard vuota</a>
+      &middot;
+      <a href="dettaglio-portafoglio-placeholder.html">Dettaglio portafoglio</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto &mdash; A. Giardina, contabile in proprio</span>
+    <span>PortfolIA &middot; US-005 mockup &middot; schermata 2 di 3</span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

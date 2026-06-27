@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Dettaglio portafoglio (US-005)</title>
+  <meta name="description" content="Mockup US-005: vista di dettaglio placeholder per un portafoglio selezionato, con nome e back-link.">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* Stile specifico per la pagina dettaglio placeholder */
+    .dettaglio-placeholder {
+      text-align: center;
+      padding: 60px 24px;
+      border: 2px dashed rgba(110,90,54,.45);
+      background: repeating-linear-gradient(
+        45deg,
+        transparent 0 10px,
+        rgba(110,90,54,.03) 10px 20px
+      );
+      margin: 12px 0 32px;
+    }
+
+    .dettaglio-placeholder .icona-conto {
+      font-size: 52px;
+      opacity: .22;
+      display: block;
+      margin-bottom: 16px;
+      /* Simuliamo un'icona tipografica con carattere ornamentale */
+      font-family: 'IM Fell English', serif;
+      color: var(--inchiostro);
+    }
+
+    .dettaglio-placeholder h2 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(28px, 5vw, 48px);
+      line-height: 1.05;
+      margin: 0 0 12px;
+      color: var(--inchiostro);
+    }
+
+    .dettaglio-placeholder .sottotitolo {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      font-size: 17px;
+      color: var(--seppia);
+      margin: 0 0 28px;
+    }
+
+    .dettaglio-placeholder .avviso-wip {
+      display: inline-block;
+      font-family: 'IM Fell English SC', serif;
+      text-transform: uppercase;
+      letter-spacing: .22em;
+      font-size: 12px;
+      color: var(--seppia);
+      background: var(--verde-tenue);
+      border: 1px solid rgba(34,28,20,.22);
+      padding: 8px 20px;
+      margin-bottom: 10px;
+    }
+
+    .dettaglio-placeholder .nota-placeholder {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--seppia);
+      opacity: .75;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Lista futura delle sezioni pianificate */
+    .sezioni-future {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 32px;
+      justify-content: center;
+    }
+
+    .sezione-futura {
+      border: 1px solid rgba(34,28,20,.22);
+      background: rgba(215,221,196,.38);
+      padding: 16px 22px;
+      min-width: 200px;
+      text-align: left;
+      opacity: .6;
+    }
+    .sezione-futura .sf-label {
+      font-family: 'IM Fell English SC', serif;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: 11px;
+      color: var(--seppia);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .sezione-futura .sf-nome {
+      font-family: 'IM Fell English', serif;
+      font-size: 16px;
+      color: var(--inchiostro);
+    }
+
+    /* Stile per il nome del portafoglio preso dai query params */
+    #nome-portafoglio-dettaglio {
+      font-style: italic;
+      color: var(--carminio);
+    }
+  </style>
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; partita singola</p>
+      <h1 id="titolo-pagina">Conto <span class="corsivo" id="nome-portafoglio-dettaglio">Lungo Periodo</span></h1>
+      <p class="sottotesto" id="sottotesto-pagina">Vista di dettaglio &middot; in preparazione</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b id="id-portafoglio">001</b></div>
+      <div>Aggiornato il <b>27.VI.2026</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="dashboard-con-portafogli.html">&larr; Portafogli</a>
+    <a href="#" class="attiva">Riepilogo</a>
+    <a href="#" style="pointer-events:none;opacity:.4">Carico titoli</a>
+    <a href="#" style="pointer-events:none;opacity:.4">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- Placeholder dettaglio portafoglio -->
+    <div class="dettaglio-placeholder">
+      <span class="icona-conto" aria-hidden="true">&#9634;</span>
+
+      <div class="avviso-wip">Vista in preparazione</div>
+
+      <h2 id="nome-portafoglio-h2">Conto Lungo Periodo</h2>
+      <p class="sottotitolo">
+        Questa schermata mostrerà il dettaglio completo del portafoglio selezionato.
+      </p>
+
+      <p class="nota-placeholder">
+        La vista di dettaglio sarà implementata nelle prossime user story.
+        Tornerai a trovi qui i titoli iscritti, la variazione di valore per orizzonte
+        e il grafico dell&rsquo;andamento.
+      </p>
+
+      <!-- Anteprima delle sezioni future -->
+      <div class="sezioni-future" aria-hidden="true">
+        <div class="sezione-futura">
+          <span class="sf-label">In arrivo</span>
+          <span class="sf-nome">Variazione per orizzonte</span>
+        </div>
+        <div class="sezione-futura">
+          <span class="sf-label">In arrivo</span>
+          <span class="sf-nome">Grafico andamento</span>
+        </div>
+        <div class="sezione-futura">
+          <span class="sf-label">In arrivo</span>
+          <span class="sf-nome">Titoli iscritti a conto</span>
+        </div>
+        <div class="sezione-futura">
+          <span class="sf-label">In arrivo</span>
+          <span class="sf-nome">Carico nuovo titolo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back-link esplicito -->
+    <div class="bottoni">
+      <a class="bottone secondario" href="dashboard-con-portafogli.html">
+        &larr; Torna all&rsquo;elenco portafogli
+      </a>
+    </div>
+
+    <!-- navigazione mockup -->
+    <div class="nav-mockup">
+      Schermate mockup US-005 &nbsp;&rarr;&nbsp;
+      <a href="dashboard-con-portafogli.html">Dashboard con portafogli</a>
+      &middot;
+      <a href="dashboard-vuota.html">Dashboard vuota</a>
+      &middot;
+      <a href="dettaglio-portafoglio-placeholder.html">Dettaglio portafoglio</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto &mdash; A. Giardina, contabile in proprio</span>
+    <span>PortfolIA &middot; US-005 mockup &middot; schermata 3 di 3</span>
+  </footer>
+
+</div>
+
+<script>
+  // Legge il nome del portafoglio dai query params (simulazione navigazione SPA)
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const nome = params.get('nome') || 'Lungo Periodo';
+    const id   = params.get('id')   || '001';
+
+    const nomeFormatted = decodeURIComponent(nome).replace(/\+/g, ' ');
+    const idFormatted   = String(id).padStart(3, '0');
+
+    const el1 = document.getElementById('nome-portafoglio-dettaglio');
+    const el2 = document.getElementById('nome-portafoglio-h2');
+    const el3 = document.getElementById('id-portafoglio');
+    const el4 = document.getElementById('titolo-pagina');
+
+    if (el1) el1.textContent = nomeFormatted;
+    if (el2) el2.textContent = nomeFormatted;
+    if (el3) el3.textContent = idFormatted;
+
+    // Aggiorna il titolo del browser
+    document.title = `PortfolIA — ${nomeFormatted}`;
+  })();
+</script>
+<script src="app.js"></script>
+</body>
+</html>

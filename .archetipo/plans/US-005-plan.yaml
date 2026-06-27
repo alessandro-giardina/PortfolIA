@@ -1,0 +1,50 @@
+schema: archetipo/plan/v2
+spec_code: US-005
+body: "# US-005: Visualizzare l'elenco dei portafogli — Piano di Implementazione\n\n**Generato da:** ARchetipo Planning Team\n**Data:** 2026-06-27\n\n---\n\n## Spec\n\n**Epic:** EP-001 — Gestione multi-portafoglio\n**Priorità:** HIGH | **Punti:** 2\n\n**User Story**\nCome Alessandro, investitore-proprietario,\nvoglio vedere l'elenco di tutti i miei portafogli,\nin modo da avere a colpo d'occhio una panoramica e poter scegliere quale aprire (FR-002).\n\n**Criteri di Accettazione**\n- [ ] La dashboard mostra l'elenco di tutti i portafogli esistenti\n- [ ] In assenza di portafogli viene mostrato uno stato vuoto chiaro con invito alla creazione\n- [ ] Selezionando un portafoglio si accede alla sua vista di dettaglio\n\n---\n\n## Soluzione Tecnica\n\nL'implementazione introduce `react-router-dom` v6 come layer di navigazione client-side, aggiunge l'endpoint `GET /api/portfolios/:id` sul backend, e ristruttura l'App in due route distinte: la dashboard (`/`) e un placeholder di dettaglio portafoglio (`/portfolio/:id`).\n\n- **Backend:** aggiungere `GET /api/portfolios/:id` in `server/src/api/portfolios.ts`. Restituisce il singolo portafoglio o 404 se non trovato. Aggiornare `shared/types/index.ts` se necessario (nessuna modifica allo schema SQLite necessaria).\n- **Routing frontend:** installare `react-router-dom`. Creare `client/src/router.tsx` con `createBrowserRouter` — route `/` → `DashboardPage`, route `/portfolio/:id` → `PortfolioDetailPage`. `App.tsx` diventa il provider del router.\n- **DashboardPage:** estrarre la logica corrente di `App.tsx` (fetch lista, stato vuoto, form creazione) in `client/src/pages/DashboardPage.tsx`. Ogni voce della lista diventa un `<Link to=\"/portfolio/{id}\">` con stile cliccabile coerente con l'estetica libro-mastro (riferimento mockup: `docs/mockups/US-005/dashboard-con-portafogli.html` e `docs/mockups/US-005/dashboard-vuota.html`).\n- **PortfolioDetailPage:** componente `client/src/pages/PortfolioDetailPage.tsx` che legge `:id` da `useParams`, chiama `GET /api/portfolios/:id`, e mostra il nome del portafoglio come titolo con un link di ritorno alla dashboard. Riferimento mockup: `docs/mockups/US-005/dettaglio-portafoglio-placeholder.html`.\n- **App.tsx:** ridotto a shell con `<RouterProvider router={router} />`.\n- Nessuna modifica allo schema SQLite o alle migrazioni esistenti.\n\n---\n\n## Strategia di Test\n\nTre livelli di test: unit/integrazione Vitest sul nuovo endpoint backend, E2E Playwright per il flusso di navigazione completo, nessuna modifica ai test esistenti.\n\n- **Unit/integrazione (Vitest):** test per `GET /api/portfolios/:id` — caso happy path (200 con dati), caso non trovato (404). File: `server/tests/api.portfolios.test.ts` (aggiungere describe block).\n- **E2E (Playwright):** nuovo file `e2e/US-005__visualizza-portafogli.spec.ts`. Scenari: (1) lista vuota mostra stato vuoto; (2) con portafogli presenti la lista li mostra; (3) clic su portafoglio naviga al dettaglio e mostra il nome.\n- **Playwright config:** aggiornare `playwright.config.ts` per puntare `outputDir` a `docs/test-results/US-005/` per il nuovo spec file (o usare la configurazione per-project se necessario).\n\n### Test E2E — Simulazione Utente\n\n**Framework:** Playwright (già configurato nel progetto)\n**Video recording:** solo scenario demo; salvato in `docs/test-results/US-005/`\n\n| Scenario | Descrizione del flusso utente |\n|---|---|\n| Stato vuoto | L'utente apre la dashboard senza portafogli — vede messaggio chiaro con invito alla creazione |\n| Lista portafogli | L'utente apre la dashboard con portafogli esistenti — la lista li mostra tutti come righe cliccabili |\n| Navigazione al dettaglio (DEMO — con video) | L'utente apre la dashboard, vede la lista, clicca su un portafoglio, atterra sulla vista di dettaglio con il nome del portafoglio visibile, poi torna alla dashboard |\n\n---\n\n> \U0001F3A8 Mockup disponibili in `docs/mockups/US-005/`\n\n_Piano generato via ARchetipo Planning — 2026-06-27_"
+tasks:
+  - id: TASK-01
+    title: Aggiungere endpoint GET /api/portfolios/:id
+    description: 'In `server/src/api/portfolios.ts` aggiungere la route `GET /api/portfolios/:id` che recupera il singolo portafoglio dal DB via Drizzle. Restituisce 200 con il portafoglio o 404 `{ error: ''Portafoglio non trovato.'' }` se l''ID non esiste.'
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: 'Test unit: GET /api/portfolios/:id'
+    description: 'In `server/tests/api.portfolios.test.ts` aggiungere un describe block per `GET /api/portfolios/:id` con casi: happy path (201 POST + GET → 200 con dati corretti) e ID inesistente (→ 404).'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Installare react-router-dom e creare il router
+    description: Aggiungere `react-router-dom` alle dipendenze del workspace `client`. Creare `client/src/router.tsx` con `createBrowserRouter` — route `/` → `DashboardPage`, route `/portfolio/:id` → `PortfolioDetailPage`. Ridurre `App.tsx` a `<RouterProvider router={router} />`.
+    type: Impl
+    status: DONE
+    ref: TASK-03
+  - id: TASK-04
+    title: Creare DashboardPage con lista cliccabile
+    description: 'Creare `client/src/pages/DashboardPage.tsx` estraendo la logica corrente da `App.tsx` (fetch lista, stato vuoto, form creazione). Ogni voce della lista diventa `<Link to="/portfolio/{id}">` con stile cliccabile coerente con il design libro-mastro. Riferimento: `docs/mockups/US-005/dashboard-con-portafogli.html` e `docs/mockups/US-005/dashboard-vuota.html`.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-03
+    ref: TASK-04
+  - id: TASK-05
+    title: Creare PortfolioDetailPage (placeholder)
+    description: 'Creare `client/src/pages/PortfolioDetailPage.tsx` che legge `:id` da `useParams`, chiama `GET /api/portfolios/:id`, e mostra il nome del portafoglio come intestazione con link di ritorno (`<Link to="/">`) alla dashboard. Gestire stato loading e 404. Riferimento: `docs/mockups/US-005/dettaglio-portafoglio-placeholder.html`.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-03
+      - TASK-01
+    ref: TASK-05
+  - id: TASK-06
+    title: 'Test E2E: flusso visualizzazione e navigazione portafogli'
+    description: 'Creare `e2e/US-005__visualizza-portafogli.spec.ts` con tre scenari Playwright: (1) stato vuoto visibile senza portafogli; (2) lista portafogli visibile con portafogli presenti; (3) scenario demo con video — clic su portafoglio, navigazione a dettaglio, verifica nome visibile, ritorno dashboard. Aggiornare `playwright.config.ts` per dirigere l''output in `docs/test-results/US-005/`.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+      - TASK-05
+    ref: TASK-06
