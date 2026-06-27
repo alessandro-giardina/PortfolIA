@@ -8,7 +8,7 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     video: 'off',
   },
-  outputDir: 'docs/test-results/US-001/',
+  outputDir: 'docs/test-results/US-006/',
   projects: [
     {
       name: 'chromium',

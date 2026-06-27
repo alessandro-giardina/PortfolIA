@@ -6,7 +6,7 @@ epic:
   title: Gestione multi-portafoglio
 priority: MEDIUM
 points: 2
-status: TODO
+status: DONE
 blocked_by:
   - US-004
 scope: MVP
@@ -31,3 +31,11 @@ body: |-
 history:
   - status: TODO
     at: "2026-06-26T15:47:52Z"
+  - status: PLANNED
+    at: "2026-06-27T20:21:27Z"
+  - status: IN PROGRESS
+    at: "2026-06-27T20:22:00Z"
+  - status: REVIEW
+    at: "2026-06-27T20:26:19Z"
+  - status: DONE
+    at: "2026-06-27T20:35:20Z"

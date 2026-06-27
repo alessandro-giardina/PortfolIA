@@ -1,0 +1,124 @@
+schema: archetipo/plan/v2
+spec_code: US-006
+body: |-
+  # US-006: Rinominare ed eliminare un portafoglio — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-06-27
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-001 — Gestione multi-portafoglio
+  **Priorità:** MEDIUM | **Punti:** 2
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio rinominare ed eliminare un portafoglio esistente,
+  in modo da mantenere ordinata e aggiornata l'organizzazione dei miei investimenti (FR-003).
+
+  **Criteri di Accettazione**
+  - [ ] L'utente può modificare il nome di un portafoglio esistente
+  - [ ] L'utente può eliminare un portafoglio previa conferma esplicita
+  - [ ] Le modifiche (rinomina/eliminazione) sono persistite e visibili dopo il riavvio
+
+  ---
+
+  ## Soluzione Tecnica
+
+  L'implementazione aggiunge due endpoint REST (`PATCH` e `DELETE`) al file API già esistente e arricchisce la `PortfolioDetailPage` con le azioni di modifica ed eliminazione, senza modifiche allo schema SQLite.
+
+  - **Backend — `PATCH /api/portfolios/:id`:** aggiungere la route in `server/src/api/portfolios.ts`. Valida l'ID (404 se non trovato), il body `{ name }` (400 se vuoto), intercetta l'errore di unicità SQLite restituendo 409 — riciclando la stessa logica già presente nel POST. Restituisce 200 con il portafoglio aggiornato.
+  - **Backend — `DELETE /api/portfolios/:id`:** aggiungere la route in `server/src/api/portfolios.ts`. Valida l'ID (404 se non trovato), esegue la DELETE via Drizzle e restituisce 200 `{ deleted: true }`.
+  - **Tipi condivisi:** aggiungere `UpdatePortfolioRequest` (con campo `name: string`) in `shared/types/index.ts`.
+  - **Frontend — `PortfolioDetailPage.tsx`:** la pagina carica già il portafoglio via `GET /api/portfolios/:id`. Aggiungere: (1) un form inline di rinomina con input pre-popolato, pulsante "Salva", gestione errori inline (vuoto, duplicato); alla risposta 200 aggiornare lo stato locale `portfolio.name` senza navigazione. (2) Un pulsante "Elimina portafoglio" che mostra un dialogo di conferma nativo (`window.confirm`); alla conferma chiama `DELETE /api/portfolios/:id` e — in caso di successo — usa `useNavigate` per tornare a `/`; la lista della `DashboardPage` si aggiornerà automaticamente al mount. Lo stile segue l'estetica libro-mastro già usata nella pagina (Georgia, palette `#221c14` / `#6e5a36` / `#8d231f`).
+  - **Nessuna modifica:** schema SQLite, migrazioni Drizzle, `DashboardPage`, `CreatePortfolioForm`.
+
+  ---
+
+  ## Strategia di Test
+
+  Copertura su tre livelli: integrazione Vitest sui due nuovi endpoint, controllo lint+typecheck, E2E Playwright per il flusso utente completo.
+
+  - **Test di integrazione Vitest (`server/tests/api.portfolios.test.ts`):** aggiungere describe block per `PATCH /api/portfolios/:id` — happy path (200 con nome aggiornato), nome vuoto (400), ID inesistente (404), nome duplicato (409); e per `DELETE /api/portfolios/:id` — happy path (200 `{ deleted: true }`), ID inesistente (404), verifica che il portafoglio non compaia più in GET dopo la DELETE.
+  - **Lint + typecheck:** `npm run check` deve restare a 0 errori dopo i nuovi file e le modifiche.
+
+  ### Test E2E — Simulazione Utente
+
+  **Framework:** Playwright (già configurato in `playwright.config.ts`)
+  **Video recording:** Solo lo scenario demo; video salvato in `docs/test-results/US-006/`
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Demo — rinomina e poi elimina (con video) | L'utente apre la dashboard, clicca su un portafoglio, rinomina il portafoglio con un nuovo nome e verifica che il titolo si aggiorni inline; poi clicca Elimina, conferma nel dialogo, atterra sulla dashboard e verifica che il portafoglio non sia più in lista |
+  | Validazione rinomina — nome vuoto | L'utente svuota il campo nome e clicca Salva; vede il messaggio di errore inline |
+  | Validazione rinomina — nome duplicato | L'utente inserisce il nome di un portafoglio già esistente e clicca Salva; vede il messaggio di errore 409 |
+  | Eliminazione annullata | L'utente clicca Elimina, annulla nel dialogo di conferma; il portafoglio rimane nella lista |
+
+  ---
+
+  _Piano generato tramite ARchetipo Planning — 2026-06-27_
+tasks:
+  - id: TASK-01
+    title: Aggiungere tipo condiviso UpdatePortfolioRequest
+    description: 'In `shared/types/index.ts` aggiungere l''interfaccia `UpdatePortfolioRequest` con campo `name: string` ed esportarla. Questo tipo è usato sia dalla route PATCH del server sia dal form di rinomina del client.'
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Implementare route PATCH /api/portfolios/:id
+    description: 'In `server/src/api/portfolios.ts` aggiungere la route `PATCH /api/portfolios/:id` che: valida l''ID (404 se non trovato), valida il body `{ name }` (400 se vuoto), aggiorna il record via Drizzle, intercetta l''errore UNIQUE restituendo 409, e restituisce 200 con il portafoglio aggiornato.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Implementare route DELETE /api/portfolios/:id
+    description: 'In `server/src/api/portfolios.ts` aggiungere la route `DELETE /api/portfolios/:id` che: valida l''ID (404 se non trovato), elimina il record via Drizzle con `eq(portfolios.id, id)`, e restituisce 200 `{ deleted: true }`.'
+    type: Impl
+    status: DONE
+    ref: TASK-03
+  - id: TASK-04
+    title: Test di integrazione Vitest — PATCH /api/portfolios/:id
+    description: 'In `server/tests/api.portfolios.test.ts` aggiungere un describe block per `PATCH /api/portfolios/:id` con casi: happy path (200 + nome aggiornato), nome vuoto (400), ID inesistente (404), nome duplicato (409).'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-04
+  - id: TASK-05
+    title: Test di integrazione Vitest — DELETE /api/portfolios/:id
+    description: 'In `server/tests/api.portfolios.test.ts` aggiungere un describe block per `DELETE /api/portfolios/:id` con casi: happy path (200 `{ deleted: true }`), ID inesistente (404), verifica che il portafoglio non compaia in `GET /api/portfolios` dopo la DELETE.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+    ref: TASK-05
+  - id: TASK-06
+    title: Aggiungere form di rinomina alla PortfolioDetailPage
+    description: 'In `client/src/pages/PortfolioDetailPage.tsx` aggiungere un form inline con input pre-popolato con il nome corrente e pulsante "Salva". Alla submit: validazione client-side (vuoto → errore inline), chiamata `PATCH /api/portfolios/:id`, gestione 409 con messaggio inline, aggiornamento dello stato locale `portfolio.name` a risposta 200 senza navigazione. Stile coerente con l''estetica libro-mastro esistente.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+      - TASK-01
+    ref: TASK-06
+  - id: TASK-07
+    title: Aggiungere pulsante Elimina con conferma alla PortfolioDetailPage
+    description: In `client/src/pages/PortfolioDetailPage.tsx` aggiungere un pulsante "Elimina portafoglio" che mostra `window.confirm` con testo esplicito; se confermato chiama `DELETE /api/portfolios/:id` e — a risposta 200 — usa `useNavigate` per reindirizzare a `/`. In caso di errore mostra un messaggio inline. Stile con colore di allerta (`#8d231f`) coerente con la palette esistente.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-03
+    ref: TASK-07
+  - id: TASK-08
+    title: Test E2E Playwright — rinomina ed eliminazione portafoglio
+    description: 'Creare `e2e/US-006__rinomina-elimina-portafoglio.spec.ts` con quattro scenari: (1) scenario demo con video (`test.use({ video: ''on'' })`) — rinomina e poi elimina un portafoglio verificando il flusso completo; (2) validazione nome vuoto — messaggio errore inline; (3) validazione nome duplicato — messaggio errore 409; (4) eliminazione annullata — il portafoglio rimane. Aggiornare `playwright.config.ts` per dirigere l''output in `docs/test-results/US-006/`.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-06
+      - TASK-07
+    ref: TASK-08
