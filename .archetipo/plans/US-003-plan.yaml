@@ -1,0 +1,115 @@
+schema: archetipo/plan/v2
+spec_code: US-003
+body: |-
+  # US-003: Setup del testing con smoke test end-to-end — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-06-27
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-000 — Fondazione del progetto
+  **Priorità:** HIGH | **Punti:** 2
+
+  **User Story**
+  Come sviluppatore di PortfolIA,
+  voglio una suite di test configurata con Vitest (unit/integration) e Playwright (E2E) e uno smoke test che passa,
+  in modo da poter verificare in modo affidabile il comportamento del codice durante tutto lo sviluppo.
+
+  **Criteri di Accettazione**
+  - [ ] Vitest è configurato e un test unitario di esempio passa
+  - [ ] Playwright è configurato e uno smoke test E2E sulla pagina iniziale passa
+  - [ ] Esiste un comando di progetto che esegue lint, type-check e test
+  - [ ] La documentazione minima (README/CLAUDE.md) spiega come avviare ed eseguire i test
+
+  ---
+
+  ## Soluzione Tecnica
+
+  L'infrastruttura di test è già parzialmente presente: Vitest è installato nel package `server` con due test funzionanti (`health.test.ts`, `db.test.ts`), Playwright è installato a radice con `playwright.config.ts` e uno smoke test in `e2e/`. L'obiettivo è consolidare e completare questa infrastruttura aggiungendo le parti mancanti, senza riscrivere ciò che funziona.
+
+  - **Vitest sul server:** aggiungere un `vitest.config.ts` esplicito nel package `server` per chiarire la configurazione (test dir, environment node, coverage opzionale). I test esistenti (`health.test.ts`, `db.test.ts`) fungono già da test di riferimento.
+  - **ESLint (monorepo):** installare ESLint 9+ e configurarlo con flat config (`eslint.config.js`) a radice del monorepo, targeting tutti i package TypeScript. Usare `@eslint/js` + `typescript-eslint` per il preset TS. Il formato flat config è necessario perché il progetto usa `"type":"module"`.
+  - **Script radice unificati:** aggiungere nel `package.json` radice gli script `lint` (ESLint), `test` (Vitest su server + eventuale futuro client), e `check` (lint + typecheck + test in sequenza) per soddisfare il criterio di accettazione del comando unificato.
+  - **Playwright config — outputDir:** aggiornare `playwright.config.ts` portando `outputDir` da `docs/test-results/US-001/` a `docs/test-results/US-003/`, coerentemente con la spec attuale.
+  - **CLAUDE.md:** creare il file `CLAUDE.md` a radice con le istruzioni operative per avviare l'app (`npm run dev`), eseguire i test unitari (`npm run test`), eseguire gli E2E (`npx playwright test`), e il comando completo di verifica (`npm run check`).
+
+  ---
+
+  ## Strategia di Test
+
+  L'obiettivo è che al termine dello smoke test sia verificabile con un singolo comando che tutto il progetto è correttamente configurato.
+
+  - **Test unitari (Vitest, server):** `health.test.ts` e `db.test.ts` già presenti servono come test di riferimento; il task di configurazione Vitest verifica che passino con `npm run test` a radice.
+  - **Test di integrazione:** non richiesti per questa spec; i test esistenti coprono già l'integrazione DB.
+  - **Lint e type-check:** il comando `npm run check` deve uscire con codice 0 sull'intero monorepo.
+  - **E2E smoke test:** lo scenario esistente in `e2e/demo__scaffolding-health-check.spec.ts` verifica che la pagina iniziale si carichi e che il backend sia raggiungibile — è il caso d'uso minimo richiesto dalla spec.
+
+  ### Test E2E — Simulazione Utente
+
+  **Framework:** Playwright (già installato e configurato)
+  **Video recording:** Solo lo scenario demo (video: 'on' già impostato nel file spec); salvato in `docs/test-results/US-003/`
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Smoke — pagina iniziale | Lo sviluppatore apre `http://localhost:5173`, vede il titolo 'PortfolIA', la conferma 'Backend raggiungibile' e lo status ok del backend |
+
+  ---
+
+  _Piano generato tramite ARchetipo Planning — 2026-06-27_
+tasks:
+  - id: TASK-01
+    title: Aggiungere vitest.config.ts esplicito nel package server
+    description: 'Creare `server/vitest.config.ts` con configurazione esplicita: testDir `tests/`, environment `node`, globals `true`. Verificare che `npm test --workspace=server` (vitest run) esegua e passi tutti i test esistenti.'
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Installare e configurare ESLint 9 con flat config a radice
+    description: 'Installare `eslint`, `@eslint/js`, `typescript-eslint` come devDependencies a radice. Creare `eslint.config.js` (ES module) che target tutti i file `.ts` in `server/src`, `client/src`, `shared/src`, escludendo `node_modules` e file generati. Regole: errori TS base + no-unused-vars.'
+    type: Impl
+    status: DONE
+    ref: TASK-02
+  - id: TASK-03
+    title: Aggiungere script lint, test e check nel package.json radice
+    description: 'Nel `package.json` radice aggiungere: `"lint": "eslint ."`, `"test": "npm run test --workspace=server"`, `"check": "npm run lint && npm run typecheck && npm run test"`. Verificare che ogni script esegua correttamente da radice.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+    ref: TASK-03
+  - id: TASK-04
+    title: Aggiornare playwright.config.ts — outputDir US-003
+    description: In `playwright.config.ts` cambiare `outputDir` da `'docs/test-results/US-001/'` a `'docs/test-results/US-003/'`. Nessuna altra modifica al config.
+    type: Impl
+    status: DONE
+    ref: TASK-04
+  - id: TASK-05
+    title: Verificare smoke test E2E Playwright
+    description: Eseguire `npx playwright test` e verificare che `e2e/demo__scaffolding-health-check.spec.ts` passi con video registrato in `docs/test-results/US-003/`. Il test verifica che la pagina iniziale carichi, il testo 'PortfolIA' sia visibile e il backend risponda con status ok.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    ref: TASK-05
+  - id: TASK-06
+    title: Creare CLAUDE.md con istruzioni operative
+    description: 'Creare `CLAUDE.md` a radice del progetto con sezioni: prerequisiti (Node 20 LTS), avvio app (`npm run dev`), test unitari (`npm run test`), test E2E (`npx playwright test`), comando completo di verifica (`npm run check`), struttura del progetto in breve.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-03
+    ref: TASK-06
+  - id: TASK-07
+    title: Verifica end-to-end del comando npm run check
+    description: Eseguire `npm run check` a radice e verificare che lint, typecheck e test passino con exit code 0. Questo è il criterio di accettazione sintetico che valida l'intera spec.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+      - TASK-05
+      - TASK-06
+    ref: TASK-07
