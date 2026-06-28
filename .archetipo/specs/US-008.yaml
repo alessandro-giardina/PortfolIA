@@ -5,30 +5,31 @@ epic:
   code: EP-002
   title: Ricerca titoli e dati di mercato
 priority: HIGH
-points: 2
+points: 1
 status: TODO
 blocked_by:
   - US-007
   - US-022
 scope: MVP
 body: |
-  #### US-008: Gestione trasparente di ISIN non trovato o dati non disponibili
+  #### US-008: Trasparenza dei dati mancanti verificata end-to-end e indipendente dalla fonte
 
-  **Epic:** EP-002 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
+  **Epic:** EP-002 | **Priorità:** HIGH | **Punti:** 1 | **Stato:** TODO
   **Bloccata da:** US-007, US-022
 
   **User Story**
   Come Giulia, investitrice prudente,
-  voglio che l'app mi dica chiaramente quando un ISIN non viene trovato su nessuna fonte o un dato non è disponibile,
-  in modo da potermi fidare dei numeri senza temere valori inventati (FR-006, ADR-003).
+  voglio che i messaggi di "dato non disponibile" non nominino una fonte specifica e siano verificati lungo l'intero flusso a due fonti,
+  in modo da fidarmi del fatto che un titolo è dichiarato non reperibile solo dopo che entrambe le fonti sono state interrogate, senza mai vedere valori inventati (FR-006, ADR-003).
 
   **Dimostra**
-  Dopo l'implementazione di questa spec, cercando un ISIN che non esiste né su Borsa Italiana né su MorningStar (fonte di backup), o quando entrambe le fonti sono irraggiungibili, l'utente vede un messaggio esplicito di "dato non disponibile" invece di valori stimati o errori bloccanti.
+  Dopo l'implementazione di questa spec, la copy della ricerca titoli non contiene più riferimenti hardcoded a "Borsa Italiana" nei messaggi di esito (sottotesto, nota, esito "non trovato"), e un test end-to-end verifica che: un ISIN assente su entrambe le fonti mostra "dato non disponibile" solo dopo il fallback; un guasto di entrambe le fonti degrada senza bloccare l'app; i campi anagrafici nulli restano dichiarati "dato non disponibile".
 
   **Criteri di Accettazione**
-  - [ ] Un ISIN non trovato su nessuna fonte (dopo il fallback su MorningStar) produce un messaggio esplicito senza dati inventati
-  - [ ] Timeout o errori di rete verso le fonti sono gestiti in modo degradante, senza bloccare l'app
-  - [ ] I campi anagrafici non disponibili sono dichiarati come "dato non disponibile" anziché lasciati vuoti o stimati
+  - [ ] I messaggi di esito della ricerca (sottotesto, nota di sezione, "non trovato", riquadro vuoto) non nominano una fonte specifica e restano validi sia per la fonte primaria sia per quella di backup
+  - [ ] Un ISIN non trovato su nessuna fonte (dopo il fallback su MorningStar) mostra "dato non disponibile" senza dati inventati — verificato da un test end-to-end
+  - [ ] Il guasto (timeout/errore) di entrambe le fonti degrada in modo trasparente senza bloccare l'app — verificato da un test
+  - [ ] La dichiarazione "dato non disponibile" per i campi anagrafici nulli, già presente, è confermata invariata dal test di regressione
 history:
   - status: TODO
     at: "2026-06-26T15:47:52Z"
