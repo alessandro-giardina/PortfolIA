@@ -1,0 +1,110 @@
+schema: archetipo/plan/v2
+spec_code: US-014
+body: |-
+  # US-014: Calcolare il valore attuale totale del portafoglio — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-06-28
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-004 — Riepilogo e indicatori di rendimento
+  **Priorità:** HIGH | **Punti:** 3
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio vedere il valore attuale totale di un portafoglio calcolato sui prezzi correnti,
+  in modo da sapere quanto vale oggi complessivamente il mio investimento (FR-010).
+
+  **Criteri di Accettazione**
+  - Il riepilogo del portafoglio mostra il valore attuale totale in EUR
+  - Il valore è la somma, per ogni posizione, di quantità × prezzo corrente del titolo
+  - Se il prezzo corrente di un titolo non è disponibile, il caso è dichiarato in modo trasparente senza inventare il valore
+
+  ---
+
+  ## Soluzione Tecnica
+
+  ### Contesto
+
+  US-017 (DONE) ha implementato l'endpoint `GET /api/portfolios/:id/positions/enriched` che restituisce `EnrichedPositionSummary[]`. Ogni elemento contiene `currentValue: number | null` (null se il prezzo non è in cache). La `PortfolioDetailPage` carica già questi dati in stato `enrichedPositions` e la tabella titoli li visualizza. La scheda Riepilogo ha già nella `<tfoot>` un subtotale parziale, ma non espone un indicatore visivo prominente e dedicato del valore totale del portafoglio come richiesto da US-014.
+
+  ### Approccio
+
+  Pura modifica frontend: nessuna modifica a backend, schema DB, tipi condivisi o API. I dati sono già presenti nello stato del componente.
+
+  ### Calcolo del Valore Totale
+
+  ```typescript
+  const positionsWithPrice = enrichedPositions.filter(ep => ep.currentValue !== null);
+  const totalCurrentValue = positionsWithPrice.reduce((sum, ep) => sum + (ep.currentValue ?? 0), 0);
+  const missingPriceCount = enrichedPositions.length - positionsWithPrice.length;
+  ```
+
+  ### Nuovo blocco UI: indicatore Valore Attuale Totale
+
+  Nella scheda `riepilogo` di `PortfolioDetailPage.tsx`, aggiungere un riquadro di riepilogo numerico **sopra** la tabella titoli (ma sotto il titolo di sezione), contenente:
+
+  - **Label:** `Valore attuale totale`
+  - **Valore:** `totalCurrentValue` in EUR, formattato con `toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })`, prefissato da `EUR`
+  - **Condizione dati mancanti:** se `missingPriceCount > 0`, aggiungere una nota: `"N posizioni senza prezzo corrente: valore parziale"` con classe `dato-mancante`
+  - **Condizione nessuna posizione:** se `enrichedPositions.length === 0`, il blocco non è mostrato (già gestito dallo stato vuoto)
+  - **Condizione nessun prezzo disponibile:** se tutte le posizioni mancano di prezzo (`positionsWithPrice.length === 0`), mostrare `EUR –` con nota esplicativa
+
+  ### Stile / Estetica
+
+  Il riquadro segue l'estetica mastro del progetto. Suggerito:
+  - Un `<div className="riquadro-valore-totale">` o una sezione con bordo sottile e font Playfair Display per il numero grande
+  - Il valore EUR in corpo grande (es. `font-size: 28px`, `font-family: 'Playfair Display', serif`) per impatto visivo immediato
+  - La nota per dati mancanti in piccolo e in corsivo con colore `var(--seppia)`, allineata all'estetica della nota già presente sotto la tabella
+
+  ### Nessuna modifica necessaria a:
+  - `server/src/api/positions.ts` (endpoint `/enriched` già completo)
+  - `shared/types/index.ts` (tipi già completi)
+  - Schema SQLite
+  - Componenti oltre `PortfolioDetailPage.tsx`
+
+  ---
+
+  ## Strategia di Test
+
+  Test E2E Playwright per validare il flusso utente end-to-end, inclusa la trasparenza sui dati mancanti. Non sono necessari nuovi test Vitest backend (nessuna logica server nuova).
+
+  ### E2E Tests — Simulazione utente
+
+  **Framework:** Playwright (già configurato nel progetto)
+  **Video recording:** Scenario demo only — salvato in `docs/test-results/US-014/`
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Demo: valore totale visibile | L'utente apre un portafoglio con posizioni che hanno prezzo in cache (seed via API), naviga sulla scheda Riepilogo e vede l'indicatore "Valore attuale totale" con un valore EUR numerico corretto (somma di quantità × prezzo per ogni ISIN) |
+  | Portafoglio con prezzi mancanti | L'utente apre un portafoglio con una posizione il cui ISIN non ha prezzo in cache; nella scheda Riepilogo l'indicatore mostra `EUR –` o il totale parziale con nota chiara sui dati mancanti |
+
+  ---
+
+  _Piano generato via ARchetipo Planning — 2026-06-28_
+tasks:
+  - id: TASK-01
+    title: Aggiungere il blocco UI "Valore Attuale Totale" nella scheda Riepilogo
+    description: 'In `client/src/pages/PortfolioDetailPage.tsx`, nella sezione `scheda === ''riepilogo''`, aggiungere sopra la tabella titoli (ma dopo il titolo sezione) un riquadro di riepilogo che mostra il valore attuale totale del portafoglio. Calcola: `positionsWithPrice = enrichedPositions.filter(ep => ep.currentValue !== null)`, `totalCurrentValue = positionsWithPrice.reduce((s, ep) => s + (ep.currentValue ?? 0), 0)`, `missingPriceCount = enrichedPositions.length - positionsWithPrice.length`. Mostra il totale formattato in EUR. Se `missingPriceCount > 0`, mostra nota trasparente. Se tutte le posizioni mancano di prezzo, mostra `EUR –`. Il blocco non è mostrato se `enrichedPositions.length === 0` (già gestito dallo stato vuoto). Aggiungere `data-testid="valore-totale-portafoglio"` al container del valore per i test E2E.'
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Aggiungere stile CSS per il riquadro valore totale
+    description: Aggiungere le regole CSS necessarie per il riquadro del valore totale (es. in `client/src/index.css` o nel file CSS del componente, seguendo le convenzioni già presenti). Usare font Playfair Display in corpo grande per il numero EUR, bordo sottile coerente con l'estetica mastro. La nota sui dati mancanti deve usare la classe `.dato-mancante` già esistente e font in corsivo con `var(--seppia)`.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Test E2E Playwright — valore attuale totale e trasparenza dati mancanti
+    description: 'In `e2e/US-014__valore-totale-portafoglio.spec.ts`, implementare: (1) scenario demo con video recording (outputDir `docs/test-results/US-014/`) — crea portafoglio via API, aggiunge posizione per un ISIN con prezzo in cache (usa seed ISIN `IT0003128367`), apre la scheda Riepilogo, verifica che `[data-testid="valore-totale-portafoglio"]` sia visibile e contenga un valore EUR numerico positivo; (2) scenario dati mancanti — crea portafoglio con posizione per ISIN senza prezzo in cache (ISIN inventato non nel DB), apre Riepilogo, verifica che il blocco mostri `EUR –` o una nota esplicativa e NON mostri un numero inventato.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-03
