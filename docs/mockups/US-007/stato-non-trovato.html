@@ -1,0 +1,92 @@
+<link rel="stylesheet" href="shared.css">
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Ricerca titoli &middot; anagrafica e prezzo</p>
+      <h1>Nessuna <span class="corsivo">corrispondenza</span></h1>
+      <p class="sottotesto">L'ISIN cercato non risulta presso la fonte ufficiale</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Modulo <b>n. 07/A</b></div>
+      <div>Stato <b>non trovato</b></div>
+      <div>Consultato il <b>28.VI.2026</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="../libro-mastro/index.html">Portafogli</a>
+    <a href="../libro-mastro/portafoglio.html">Riepilogo</a>
+    <a href="index.html">Ricerca titoli</a>
+    <a href="stato-caricamento.html">Caricamento</a>
+    <a href="stato-non-trovato.html" class="attiva">Non trovato</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo">
+      Ricerca per ISIN
+      <span class="nota">il dato proviene da Borsa Italiana</span>
+    </div>
+
+    <div class="ricerca-isin">
+      <div class="campo-isin">
+        <label for="isin">Codice ISIN del titolo</label>
+        <input id="isin" type="text" value="IT9999999999" autocomplete="off" maxlength="12">
+      </div>
+      <button class="bottone" id="cerca">Recupera anagrafica</button>
+    </div>
+
+    <div class="riga-esito" id="esito">
+      <span class="timbro mancante">Dato non disponibile</span>
+      nessuna corrispondenza su Borsa Italiana per <b style="font-family:'Courier Prime';font-style:normal">IT9999999999</b>
+    </div>
+
+    <div class="sezione-titolo">Esito della ricerca</div>
+
+    <div class="riquadro-vuoto">
+      <span class="timbro mancante" style="font-size:13px">Dato non disponibile</span>
+      <h3>Titolo non reperito</h3>
+      <p>Il codice ISIN inserito non corrisponde ad alcun titolo presso la fonte ufficiale,
+      oppure i dati non sono al momento disponibili.</p>
+      <p>Verifica il codice (deve avere 12 caratteri) e riprova. PortfolIA non mostra mai
+      denominazioni, prezzi o valori stimati o inventati.</p>
+      <div class="bottoni" style="justify-content:center">
+        <a class="bottone" href="index.html">&larr; Nuova ricerca</a>
+      </div>
+    </div>
+
+    <div class="sezione-titolo">
+      Esempio: dati parzialmente assenti
+      <span class="nota">quando la fonte fornisce solo alcuni campi</span>
+    </div>
+
+    <div class="anagrafica">
+      <div class="voce-def"><span class="et">Denominazione</span><span class="dato">Obbligazione XYZ 2030</span></div>
+      <div class="voce-def"><span class="et">Prezzo attuale</span><span class="dato">€ 98,40</span></div>
+      <div class="voce-def"><span class="et">Ticker</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">Tipo strumento</span><span class="dato">Obbligazione</span></div>
+      <div class="voce-def"><span class="et">Commissioni totali annue</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">Valuta di denominazione</span><span class="dato">EUR</span></div>
+      <div class="voce-def"><span class="et">Emittente</span><span class="dato">Società XYZ S.p.A.</span></div>
+      <div class="voce-def"><span class="et">Segmento</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">Politica di distribuzione dividendi</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">ISIN</span><span class="dato">IT0000000123</span></div>
+    </div>
+
+    <p style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);margin-top:24px;border-top:1px dotted rgba(110,90,54,.5);padding-top:14px">
+      Nota del contabile: i campi che la fonte non fornisce sono dichiarati apertamente come
+      <span class="timbro mancante">Dato non disponibile</span> &mdash; mai colmati con stime.
+    </p>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Il vuoto dichiarato vale più di un valore inventato</span>
+    <span class="fila"><span class="timbro mancante">Dato non disponibile</span> PortfolIA &middot; US-007</span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>

@@ -1,0 +1,75 @@
+<link rel="stylesheet" href="shared.css">
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Ricerca titoli &middot; anagrafica e prezzo</p>
+      <h1>Recupero <span class="corsivo">in corso</span></h1>
+      <p class="sottotesto">Interrogazione della fonte ufficiale per il codice digitato</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Modulo <b>n. 07/A</b></div>
+      <div>Stato <b>caricamento</b></div>
+      <div>Consultato il <b>28.VI.2026</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="../libro-mastro/index.html">Portafogli</a>
+    <a href="../libro-mastro/portafoglio.html">Riepilogo</a>
+    <a href="index.html">Ricerca titoli</a>
+    <a href="stato-caricamento.html" class="attiva">Caricamento</a>
+    <a href="stato-non-trovato.html">Non trovato</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo">
+      Ricerca per ISIN
+      <span class="nota">interrogazione di Borsa Italiana</span>
+    </div>
+
+    <div class="ricerca-isin">
+      <div class="campo-isin">
+        <label for="isin">Codice ISIN del titolo</label>
+        <input id="isin" type="text" value="IE00BMVB5S82" autocomplete="off" maxlength="12" disabled>
+      </div>
+      <button class="bottone" disabled style="opacity:.7;cursor:wait">Recupero…</button>
+    </div>
+
+    <div class="riga-esito">
+      <span class="in-attesa"><span class="punto"></span> Interrogazione della fonte ufficiale in corso…</span>
+    </div>
+
+    <div class="sezione-titolo">
+      Anagrafica recuperata
+      <span class="nota">attendere il responso della fonte</span>
+    </div>
+
+    <div class="anagrafica">
+      <div class="voce-def"><span class="et">Denominazione</span><span class="dato"><span class="scheletro lungo"></span></span></div>
+      <div class="voce-def"><span class="et">Prezzo attuale</span><span class="dato"><span class="scheletro corto"></span></span></div>
+      <div class="voce-def"><span class="et">Ticker</span><span class="dato"><span class="scheletro corto"></span></span></div>
+      <div class="voce-def"><span class="et">Tipo strumento</span><span class="dato"><span class="scheletro"></span></span></div>
+      <div class="voce-def"><span class="et">Commissioni totali annue</span><span class="dato"><span class="scheletro corto"></span></span></div>
+      <div class="voce-def"><span class="et">Valuta di denominazione</span><span class="dato"><span class="scheletro corto"></span></span></div>
+      <div class="voce-def"><span class="et">Emittente</span><span class="dato"><span class="scheletro"></span></span></div>
+      <div class="voce-def"><span class="et">Segmento</span><span class="dato"><span class="scheletro corto"></span></span></div>
+      <div class="voce-def"><span class="et">Politica di distribuzione dividendi</span><span class="dato"><span class="scheletro"></span></span></div>
+      <div class="voce-def"><span class="et">ISIN</span><span class="dato"><span class="scheletro"></span></span></div>
+    </div>
+
+    <p style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);margin-top:24px;border-top:1px dotted rgba(110,90,54,.5);padding-top:14px">
+      Il pennino sta ancora scrivendo: i campi restano vuoti finché la fonte non risponde.
+      Nessun valore viene mostrato prima della conferma ufficiale.
+    </p>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Recupero dati in corso &mdash; nessun valore stimato</span>
+    <span class="fila"><span class="timbro verde">Borsa Italiana</span> PortfolIA &middot; US-007</span>
+  </footer>
+
+</div>

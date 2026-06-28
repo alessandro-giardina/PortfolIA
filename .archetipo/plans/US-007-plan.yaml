@@ -1,0 +1,88 @@
+schema: archetipo/plan/v2
+spec_code: US-007
+body: "# US-007: Recuperare anagrafica e prezzo di un titolo per ISIN — Piano di Implementazione\n\n**Generato da:** ARchetipo Planning Team\n**Data:** 2026-06-28\n\n---\n\n## Spec\n\n**Epic:** EP-002 — Ricerca titoli e dati di mercato\n**Priorità:** HIGH | **Punti:** 5\n\n**User Story**\nCome Alessandro, investitore-proprietario, voglio cercare un titolo inserendo il suo ISIN e ottenere denominazione e dati ufficiali da Borsa Italiana, in modo da non dover inserire manualmente i dati dei titoli (FR-004, FR-005).\n\n**Criteri di Accettazione**\n- [ ] La logica di scraping di Borsa Italiana è isolata in un adapter dedicato (anti-corruption layer)\n- [ ] Dato un ISIN valido, il sistema recupera denominazione, prezzo attuale, ticker, tipo strumento, commissioni annue, valuta, emittente, segmento e politica dividendi\n- [ ] L'adapter usa uno User-Agent corretto e richieste a basso volume verso la fonte\n- [ ] I dati recuperati sono mostrati all'utente nella vista di ricerca titolo\n- [ ] Prima di ripetere lo scraping dello stesso ISIN quando il prezzo non può essere cambiato (mercato chiuso) o nella stessa sessione, il sistema chiede conferma esplicita all'utente (guardia di buona cittadinanza)\n\n---\n\n## Soluzione Tecnica\n\nIntroduciamo il **Market Data Adapter** come anti-corruption layer verso Borsa Italiana (ADR-002), isolando il fetch HTTP e il parsing HTML fragile in un unico modulo. Il flusso è: la SPA chiama un nuovo endpoint backend `GET /api/securities/:isin`; il backend valida l'ISIN, consulta una cache locale SQLite dell'anagrafica e, in caso di miss/scadenza, invoca l'adapter che recupera e normalizza i dati ufficiali; il risultato viene persistito in cache e restituito alla UI, che lo mostra nella nuova vista di Ricerca per ISIN.\n\n- **Adapter isolato** (`server/src/market/borsaItalianaAdapter.ts` + `parser.ts`): l'adapter esegue `fetch` con User-Agent corretto verso `searchengine/search.html?q=<ISIN>` e la scheda strumento; `parser.ts` è una funzione pura HTML→`SecurityInfo` basata su Cheerio (unico punto da aggiornare se il layout cambia). Gestione degradante di timeout, errori di rete e markup variato: non lancia eccezioni opache ma ritorna un esito tipizzato (trovato / non trovato / dati parziali).\n- **Buona cittadinanza** (AC#3): User-Agent realistico, singola sessione di richieste a basso volume per ISIN, e **cache anagrafica su SQLite** (nuova tabella `securities` con `fetched_at`) per servire da cache ed evitare richieste ripetute alla fonte (ADR-005).\n- **Trasparenza totale** (FR-006, ADR-003): ISIN non trovato → 404 strutturato; campi mancanti dichiarati come \"dato non disponibile\", mai valori stimati o inventati. Validazione del formato ISIN (12 caratteri, 2 lettere paese + alfanumerico + check digit) prima di qualsiasi richiesta alla fonte → 400 su formato non valido.\n- **Tipi condivisi** (`shared/types`): nuovo `SecurityInfo` con tutti i campi anagrafici (denominazione, prezzo attuale, ticker, tipo strumento, commissioni totali annue/TER, valuta, emittente, segmento, politica dividendi) come campi nullable per supportare il dato mancante; e un wrapper di risposta `SecurityLookupResponse` (`{ security, fromCache, confirmation? }`) dove `confirmation` porta `kind` ('intra-session' | 'no-session'), `lastFetchedAt` e il `message` da mostrare. Usati end-to-end da adapter, API e client.\n- **Frontend** (`client/src/pages/SecuritySearchPage.tsx`, rotta `/ricerca`): campo ISIN + \"Recupera anagrafica\", scheda anagrafica, e i tre stati (caricamento, trovato, non trovato/dato assente) coerenti con i mockup. Riuso del componente `Foglio` e dello stile Libro Mastro esistente; abilitazione della linguetta \"Carico titoli\" nella navigazione. **Fuori scope:** l'iscrizione del carico (data/prezzo/quantità — FR-007) resta a una spec successiva.\n\n### Guardia di Buona Cittadinanza (orari di mercato)\n\nBorsa Italiana negozia nei giorni feriali dalle 9:00 alle 17:30 (Europe/Rome, con ora legale). Fuori da una sessione il prezzo non cambia: per ridurre le chiamate di scraping, prima di rifare il recupero di un ISIN già in cache il sistema confronta `securities.fetched_at` con l'istante attuale e classifica la richiesta. La logica è una funzione pura di dominio (`server/src/domain/marketHours.ts`) e l'endpoint la applica così:\n\n- **Stessa sessione** — `now` è dentro la finestra 9:00–17:30 di un feriale **e** l'ultimo recupero è dello stesso giorno entro la finestra. Il prezzo *potrebbe* essere cambiato ma si invita a non ripetere: l'endpoint NON chiama la fonte, restituisce i dati in cache con `confirmation.kind = 'intra-session'` e messaggio: *\"Hai già chiesto il recupero informazioni di questo titolo oggi alle HH:MM. Vuoi procedere comunque a una nuova ricerca?\"*\n- **Nessuna sessione nel mezzo** — l'intervallo `(fetched_at, now]` non interseca alcuna sessione di mercato (es. lun 19:00→mar 03:00; ven 18:00→dom 14:00). Il prezzo non può essere cambiato: l'endpoint NON chiama la fonte, restituisce la cache con `confirmation.kind = 'no-session'` e messaggio: *\"Hai già chiesto il recupero informazioni di questo titolo il GG/MM/AAAA alle HH:MM. Non possono esserci modifiche di prezzo dall'ultima ricerca. Vuoi procedere comunque?\"*\n- **Sessione trascorsa** — tra l'ultimo recupero e ora è passata almeno una sessione (dato legittimamente \"vecchio\"): recupero diretto dalla fonte senza conferma.\n- **Primo recupero** (nessuna cache): scraping diretto, nessuna conferma.\n- **Override:** quando l'utente conferma, il client richiama `GET /api/securities/:isin?force=true`; il flag bypassa la guardia, forza lo scraping e aggiorna `fetched_at`.\n\n**Assunzioni:** (1) si considera sessione qualsiasi feriale 9:00–17:30, **ignorando il calendario festivi di Borsa Italiana** per l'MVP — direzione conservativa (in un festivo non viene mostrato il messaggio \"forte\", si consente un normale recupero); gestione festivi rimandata a miglioria futura. (2) Fuso orario Europe/Rome con DST.\n\n---\n\n## Strategia di Test\n\nIl rischio principale è la fragilità dello scraping, quindi il parser viene testato in isolamento contro HTML reali salvati come fixture, mentre l'adapter, la logica orari-mercato e l'API sono testati in modo deterministico (fetch mockato, tempo iniettato) per coprire successo, non-trovato, errore e i percorsi della guardia senza dipendere dalla rete o dalla fonte live.\n\n- **Unit (Vitest)** sul `parser.ts`: estrazione corretta di tutti i campi da fixture HTML salvate (azione e ETF), e gestione dei campi assenti come `null`. Unit sulla validazione del formato ISIN (validi/non validi).\n- **Unit (Vitest)** su `marketHours.ts`: confini della finestra 9:00–17:30, weekend, ora legale/solare (DST), ripetizione intra-sessione, sessione trascorsa, e i casi senza sessione nel mezzo (lun 19:00→mar 03:00; ven 18:00→dom 14:00). Il tempo è iniettato (no orologio reale).\n- **Integration (Vitest)** sull'adapter con `fetch` mockato: ISIN trovato, ISIN non trovato, timeout/errore di rete, markup malformato (degradazione trasparente). Verifica che venga inviato lo User-Agent corretto.\n- **Integration (Vitest)** sull'endpoint `GET /api/securities/:isin`: 200 con anagrafica, 400 ISIN malformato, 404 non trovato, 502 errore fonte, hit/miss della cache, e la guardia (intra-session → advisory soft senza chiamata alla fonte; no-session → advisory forte senza chiamata; `force=true` → bypass e nuovo scraping; sessione trascorsa → recupero fresco).\n\n### Test E2E — Simulazione Utente\n\n**Framework:** Playwright (config `playwright.config.ts` già presente; artefatti in `docs/test-results/US-007/`)\n**Registrazione video:** Solo scenario demo (per il campo `Dimostra` della spec); gli altri scenari girano senza registrazione\n\nPer determinismo, le chiamate verso `/api/securities/:isin` sono intercettate a livello di rete (route fulfillment) con risposte fixture: lo scraping live di Borsa Italiana NON viene colpito nei test.\n\n| Scenario | Descrizione del flusso utente |\n|---|---|\n| Recupero anagrafica per ISIN (demo, video) | L'utente apre la Ricerca per ISIN, inserisce un ISIN valido (es. IE00BMVB5S82), avvia \"Recupera anagrafica\" e vede la scheda con denominazione, prezzo attuale e tutti i campi ufficiali |\n| ISIN non trovato / dato non disponibile | L'utente inserisce un ISIN inesistente e vede il messaggio trasparente \"Dato non disponibile\" senza valori inventati |\n| Conferma di ri-ricerca (guardia buona cittadinanza) | Su una seconda ricerca dello stesso ISIN il sistema mostra il messaggio di conferma; l'utente sceglie \"Procedi comunque\" e ottiene il recupero forzato |\n\n---\n\n> \U0001F3A8 I mockup per questa spec sono disponibili in `docs/mockups/US-007/`\n\n_Piano generato tramite ARchetipo Planning — 2026-06-28_"
+tasks:
+  - id: TASK-01
+    title: Definire tipi condivisi SecurityInfo, lookup response e validazione ISIN
+    description: Aggiungere in shared/types l'interfaccia SecurityInfo (campi anagrafici nullable) e il wrapper SecurityLookupResponse ({ security, fromCache, confirmation? } con kind 'intra-session'|'no-session', lastFetchedAt, message), più una utility di validazione del formato ISIN riutilizzabile da backend e client.
+    type: Impl
+    status: TODO
+  - id: TASK-02
+    title: Aggiungere tabella cache anagrafica securities (schema + migrazione)
+    description: Estendere lo schema Drizzle con una tabella securities (isin chiave, campi anagrafici, fetched_at) per la cache locale SQLite e generare la migrazione corrispondente.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+  - id: TASK-03
+    title: Implementare parser Borsa Italiana (HTML→SecurityInfo)
+    description: Aggiungere la dipendenza cheerio al server e implementare server/src/market/parser.ts come funzione pura che mappa l'HTML della scheda strumento in SecurityInfo, marcando come null i campi assenti.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+  - id: TASK-04
+    title: Unit test del parser e della validazione ISIN
+    description: Testare parser.ts contro fixture HTML salvate (azione ed ETF) verificando estrazione di tutti i campi e gestione dei dati mancanti; testare la validazione del formato ISIN con casi validi e non validi.
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-03
+  - id: TASK-05
+    title: Implementare borsaItalianaAdapter (fetch + anti-corruption layer)
+    description: 'Implementare server/src/market/borsaItalianaAdapter.ts: fetch con User-Agent corretto verso searchengine/search.html?q=<ISIN> e scheda strumento, richieste a basso volume, e ritorno tipizzato (trovato/non trovato/parziale) con gestione degradante di timeout ed errori di rete.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-03
+  - id: TASK-06
+    title: Integration test dell'adapter con fetch mockato
+    description: Testare l'adapter con fetch mockato per ISIN trovato, non trovato, errore/timeout di rete e markup malformato, verificando la degradazione trasparente e l'invio dello User-Agent corretto.
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-05
+  - id: TASK-07
+    title: Implementare helper di dominio orari di mercato e classificazione ri-recupero
+    description: 'Creare server/src/domain/marketHours.ts come funzioni pure (Europe/Rome, DST-aware): isMarketOpen(now), presenza di una sessione nell''intervallo (fetched_at, now], e classifyRefetch(fetchedAt, now) → ''none'' | ''intra-session'' | ''no-session'' con il messaggio associato. Tempo passato come parametro (no orologio interno). Festivi ignorati per l''MVP.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+  - id: TASK-08
+    title: Unit test dell'helper orari di mercato
+    description: 'Testare marketHours.ts: confini 9:00/17:30, giorni feriali vs weekend, DST, ripetizione intra-sessione, sessione trascorsa e i casi senza sessione nel mezzo (lun 19:00→mar 03:00; ven 18:00→dom 14:00), iniettando il tempo.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-07
+  - id: TASK-09
+    title: Esporre endpoint GET /api/securities/:isin con guardia buona cittadinanza
+    description: 'Aggiungere la route che valida l''ISIN (400 se malformato), consulta la cache; se esiste fetched_at applica classifyRefetch: su ''intra-session''/''no-session'' e senza force restituisce la cache + confirmation SENZA chiamare la fonte, mentre con ?force=true (o ''none''/cache miss) invoca l''adapter, persiste e aggiorna fetched_at; restituisce 200/400/404/502 strutturati. Registrare in server/src/index.ts.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-02
+      - TASK-05
+      - TASK-07
+  - id: TASK-10
+    title: Integration test dell'endpoint securities (inclusa la guardia)
+    description: 'Testare GET /api/securities/:isin per 200 (anagrafica), 400 (ISIN malformato), 404 (non trovato), 502 (errore fonte), hit/miss cache, e la guardia: intra-session → advisory soft senza chiamata alla fonte, no-session → advisory forte senza chiamata, force=true → bypass con nuovo scraping, sessione trascorsa → recupero fresco.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-09
+  - id: TASK-11
+    title: Implementare la vista Ricerca per ISIN con dialog di conferma (frontend)
+    description: Creare client/src/pages/SecuritySearchPage.tsx con rotta /ricerca e linguetta in navigazione, riusando il componente Foglio e lo stile Libro Mastro; implementare campo ISIN, azione di recupero e i tre stati (caricamento, trovato, non trovato/dato assente) seguendo i mockup in docs/mockups/US-007/. Quando la risposta porta confirmation, mostrare il relativo messaggio con 'Procedi comunque' / 'Annulla'; su conferma richiamare con ?force=true.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-09
+  - id: TASK-12
+    title: E2E Playwright della ricerca per ISIN (demo + conferma)
+    description: 'Aggiungere i test E2E con intercettazione di rete delle risposte /api/securities/:isin: scenario demo (ISIN valido → scheda anagrafica completa, video in docs/test-results/US-007/), scenario ISIN non trovato (messaggio ''Dato non disponibile'') e scenario di conferma ri-ricerca (advisory mostrata → ''Procedi comunque'' → recupero forzato).'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-11

@@ -1,0 +1,84 @@
+<link rel="stylesheet" href="shared.css">
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Ricerca titoli &middot; anagrafica e prezzo</p>
+      <h1>Cerca un titolo <span class="corsivo">per ISIN</span></h1>
+      <p class="sottotesto">Digita il codice ISIN e recupera i dati ufficiali da Borsa Italiana</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Modulo <b>n. 07/A</b></div>
+      <div>Epica <b>EP-002</b></div>
+      <div>Consultato il <b>28.VI.2026</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="../libro-mastro/index.html">Portafogli</a>
+    <a href="../libro-mastro/portafoglio.html">Riepilogo</a>
+    <a href="index.html" class="attiva">Ricerca titoli</a>
+    <a href="stato-caricamento.html">Caricamento</a>
+    <a href="stato-non-trovato.html">Non trovato</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo">
+      Ricerca per ISIN
+      <span class="nota">il dato proviene da Borsa Italiana &mdash; nessun valore inventato</span>
+    </div>
+
+    <div class="ricerca-isin">
+      <div class="campo-isin">
+        <label for="isin">Codice ISIN del titolo</label>
+        <input id="isin" type="text" value="IE00BMVB5S82" placeholder="es. IT0003128367" autocomplete="off" maxlength="12">
+      </div>
+      <button class="bottone" id="cerca">Recupera anagrafica</button>
+    </div>
+
+    <div class="riga-esito" id="esito">
+      <span class="timbro verde">Titolo trovato</span>
+      iShares Core MSCI World UCITS ETF &middot; € 94,55
+    </div>
+
+    <div class="sezione-titolo">
+      Anagrafica recuperata
+      <span class="nota">dati ufficiali alla fonte</span>
+    </div>
+
+    <div class="anagrafica" id="anagrafica">
+      <div class="voce-def"><span class="et">Denominazione</span><span class="dato">iShares Core MSCI World UCITS ETF</span></div>
+      <div class="voce-def"><span class="et">Prezzo attuale</span><span class="dato">€ 94,55</span></div>
+      <div class="voce-def"><span class="et">Ticker</span><span class="dato">SWDA</span></div>
+      <div class="voce-def"><span class="et">Tipo strumento</span><span class="dato">ETF azionario</span></div>
+      <div class="voce-def"><span class="et">Commissioni totali annue</span><span class="dato">0,20% (TER)</span></div>
+      <div class="voce-def"><span class="et">Valuta di denominazione</span><span class="dato">EUR</span></div>
+      <div class="voce-def"><span class="et">Emittente</span><span class="dato">iShares (BlackRock)</span></div>
+      <div class="voce-def"><span class="et">Segmento</span><span class="dato">ETFplus</span></div>
+      <div class="voce-def"><span class="et">Politica di distribuzione dividendi</span><span class="dato">ad accumulazione</span></div>
+      <div class="voce-def"><span class="et">ISIN</span><span class="dato">IE00BMVB5S82</span></div>
+    </div>
+
+    <div class="fonte-prezzo">
+      <span>Fonte: <b>Borsa Italiana</b></span>
+      <span>Prezzo rilevato il <b>28.VI.2026 &middot; 17:35</b></span>
+      <span>Stato: <span class="timbro verde" style="transform:rotate(-2deg)">Dati ufficiali</span></span>
+    </div>
+
+    <p style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);margin-top:24px;border-top:1px dotted rgba(110,90,54,.5);padding-top:14px">
+      Nota del contabile: questa scheda mostra solo l'anagrafica e il prezzo recuperati dalla fonte ufficiale.
+      L'iscrizione del carico (data, prezzo d'acquisto, quantità) è un passo successivo, trattato in un altro modulo.
+    </p>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Anagrafica consultata a regola d'arte &mdash; dati da fonte ufficiale</span>
+    <span class="fila"><span class="timbro verde">Borsa Italiana</span> PortfolIA &middot; US-007</span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>
