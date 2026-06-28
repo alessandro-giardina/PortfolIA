@@ -46,7 +46,7 @@ demoTest(
     });
 
     // 2. Rinomina — compila il form e salva
-    const input = page.getByLabel('Rinomina portafoglio');
+    const input = page.getByLabel('Rinomina conto');
     await expect(input).toBeVisible();
     await input.fill(nuovoNome);
 
@@ -66,7 +66,7 @@ demoTest(
 
     // 5. Dopo l'eliminazione viene reindirizzato alla dashboard
     await expect(page).toHaveURL('/', { timeout: 8000 });
-    await expect(page.getByText('Libro')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Libro Mastro' })).toBeVisible({ timeout: 8000 });
 
     // Il portafoglio non è più nell'elenco
     await expect(page.getByText(nuovoNome)).not.toBeVisible();
@@ -84,9 +84,9 @@ test.describe('US-006 — scenari funzionali', () => {
     const { id } = await createPortfolio(nome);
 
     await page.goto(`/portfolio/${id}`);
-    await expect(page.getByLabel('Rinomina portafoglio')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByLabel('Rinomina conto')).toBeVisible({ timeout: 8000 });
 
-    const input = page.getByLabel('Rinomina portafoglio');
+    const input = page.getByLabel('Rinomina conto');
     await input.fill('');
 
     await page.getByRole('button', { name: 'Salva' }).click();
@@ -104,9 +104,9 @@ test.describe('US-006 — scenari funzionali', () => {
     const { id: idB } = await createPortfolio(nomeB);
 
     await page.goto(`/portfolio/${idB}`);
-    await expect(page.getByLabel('Rinomina portafoglio')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByLabel('Rinomina conto')).toBeVisible({ timeout: 8000 });
 
-    const input = page.getByLabel('Rinomina portafoglio');
+    const input = page.getByLabel('Rinomina conto');
     await input.fill(nomeA);
 
     await page.getByRole('button', { name: 'Salva' }).click();
