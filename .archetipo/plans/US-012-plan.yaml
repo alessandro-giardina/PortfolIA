@@ -1,0 +1,99 @@
+schema: archetipo/plan/v2
+spec_code: US-012
+body: |-
+  # US-012: Inserire più carichi dello stesso titolo con prezzo medio di carico — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-06-28
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-003 — Gestione delle posizioni
+  **Priorità:** MEDIUM | **Punti:** 3
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio inserire più carichi dello stesso titolo nello stesso portafoglio,
+  in modo da vedere la quantità complessiva e il prezzo medio di carico corretto (FR-008).
+
+  **Criteri di Accettazione**
+  - [ ] È possibile registrare più carichi dello stesso titolo in un portafoglio
+  - [ ] Il prezzo medio di carico è calcolato come media ponderata sulle quantità
+  - [ ] La quantità totale del titolo riflette la somma dei carichi
+
+  ---
+
+  ## Soluzione Tecnica
+
+  Lo schema `positions` già supporta più righe per lo stesso ISIN all'interno di un portafoglio (nessun vincolo unico su `isin`): non è necessaria nessuna migrazione DB. La spec si risolve aggiungendo un endpoint di aggregazione server-side e aggiornando la vista della tabella nel frontend.
+
+  - **Nuovo endpoint aggregato** (`server/src/api/positions.ts`): `GET /api/portfolios/:id/positions/summary` calcola, tramite query SQL con GROUP BY + SUM, per ogni ISIN distinto nel portafoglio: `totalQuantity = Σ(quantity)`, `avgLoadPrice = Σ(load_price × quantity) / Σ(quantity)`, `totalLoadValue = avgLoadPrice × totalQuantity`. Risponde con un array di `PositionSummary[]` ordinato per ISIN. Registrare questa route *prima* di `GET /api/portfolios/:id/positions` in Fastify (il pattern `/summary` è più specifico e deve fare match per primo). 404 se il portafoglio non esiste.
+  - **Tipo condiviso** (`shared/types/index.ts`): aggiungere l'interfaccia `PositionSummary` (`{ isin: string; totalQuantity: number; avgLoadPrice: number; totalLoadValue: number }`). Questo tipo è usato dall'endpoint e dal frontend.
+  - **Frontend** (`client/src/pages/PortfolioDetailPage.tsx`): aggiungere stato `summaries: PositionSummary[]` e una funzione `fetchSummary()` che chiama `/api/portfolios/:id/positions/summary`; invocarla dopo ogni submit riuscito e al mount. La tabella "Titoli iscritti a conto" (section `data-testid="tabella-posizioni"`) viene aggiornata per mostrare *una riga per ISIN* con quantità totale, prezzo medio di carico (4 decimali) e controvalore totale. Mantenere sotto di essa la tabella ledger delle singole iscrizioni (già presente) come sezione separata "Registro carichi" per preservare l'audit trail. La sezione aggregata compare sopra, quella dei carichi singoli sotto.
+  - **Out of scope:** modifica/eliminazione posizioni (FR-009), calcolo del valore attuale e P&L (dipende da spec di riepilogo).
+
+  ---
+
+  ## Strategia di Test
+
+  Il rischio principale è la correttezza numerica della media ponderata: i test di integrazione la verificano con casi espliciti (stesso ISIN a prezzi e quantità diversi, più ISIN nello stesso portafoglio). L'E2E riproduce esattamente il flusso descritto in "Dimostra".
+
+  - **Integration (Vitest)** su `GET /api/portfolios/:id/positions/summary` (`server/tests/api.positions.summary.test.ts`): portafoglio senza posizioni → array vuoto; un carico singolo → avgLoadPrice = loadPrice, totalQuantity = quantity; due carichi stesso ISIN prezzi diversi → media ponderata corretta (verificata al centesimo); due carichi ISIN diversi → due righe indipendenti; 404 portafoglio non trovato.
+  - **Unit formula (Vitest)**: se la formula di media ponderata viene estratta in una funzione pura in `server/src/domain/`, aggiungere test unitari diretti sulla funzione.
+  - **E2E (Playwright)** su `e2e/US-012__carichi-multipli.spec.ts`: intercettazione di rete per determinismo.
+
+  ### Test E2E — Simulazione Utente
+
+  **Framework:** Playwright (config `playwright.config.ts` già presente; artefatti in `docs/test-results/US-012/`)
+  **Registrazione video:** Solo scenario demo; salvato in `docs/test-results/US-012/`
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Aggregazione due carichi stesso ISIN (demo, video) | L'utente apre un portafoglio, inserisce un primo carico (ISIN: IE00B4L5Y983, prezzo: 89.00, qty: 40), poi un secondo carico dello stesso ISIN (prezzo: 91.00, qty: 60); nella sezione "Titoli iscritti a conto" vede una sola riga con totalQuantity = 100 e avgLoadPrice = (89×40 + 91×60) / 100 = 90.20 |
+  | Carichi ISIN diversi non si aggregano | L'utente inserisce un carico ISIN A e un carico ISIN B; la tabella mostra due righe distinte con quantità e prezzi indipendenti |
+  | Coerenza dopo reload | L'utente inserisce due carichi dello stesso ISIN, la pagina viene ricaricata (re-fetch API), la riga aggregata è ancora corretta |
+
+  ---
+
+  _Piano generato tramite ARchetipo Planning — 2026-06-28_
+tasks:
+  - id: TASK-01
+    title: Aggiungere tipo PositionSummary ai tipi condivisi
+    description: 'In `shared/types/index.ts` aggiungere l''interfaccia `PositionSummary` ({ isin: string; totalQuantity: number; avgLoadPrice: number; totalLoadValue: number }). Questo tipo sarà usato dall''endpoint backend e dal frontend.'
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Implementare GET /api/portfolios/:id/positions/summary
+    description: 'In `server/src/api/positions.ts` aggiungere la route `GET /api/portfolios/:id/positions/summary` che calcola per ogni ISIN distinto: totalQuantity = Σ(quantity), avgLoadPrice = Σ(load_price × quantity) / Σ(quantity), totalLoadValue = avgLoadPrice × totalQuantity. Risponde con PositionSummary[] ordinato per ISIN. Registrare questa route PRIMA di GET /positions in `server/src/index.ts`. 404 se portafoglio non esiste.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Integration test GET /api/portfolios/:id/positions/summary
+    description: 'Creare `server/tests/api.positions.summary.test.ts` con DB in-memory. Casi: portafoglio senza posizioni → []; un carico singolo → avgLoadPrice = loadPrice esatto; due carichi stesso ISIN prezzi/qty diversi → media ponderata corretta (IE00B4L5Y983: 89.00×40 + 91.00×60 → avg=90.20, total=100); due ISIN diversi → due righe indipendenti; 404 portafoglio non trovato.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-03
+  - id: TASK-04
+    title: Aggiornare PortfolioDetailPage con vista aggregata per ISIN
+    description: 'In `client/src/pages/PortfolioDetailPage.tsx`: aggiungere stato `summaries: PositionSummary[]` e funzione `fetchSummary()` che chiama `/api/portfolios/:id/positions/summary`; invocarla al mount e dopo ogni submit riuscito. Aggiornare la sezione ''Titoli iscritti a conto'' (tabella data-testid=''tabella-posizioni'') per mostrare una riga per ISIN con totalQuantity, avgLoadPrice (4 decimali) e totalLoadValue. Mantenere la tabella ledger delle singole iscrizioni in una sezione separata ''Registro carichi'' sotto.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-04
+  - id: TASK-05
+    title: E2E Playwright del flusso carichi multipli stesso ISIN (demo + multi-ISIN + persistenza)
+    description: 'Creare `e2e/US-012__carichi-multipli.spec.ts` con intercettazione di rete. Scenario demo (video in docs/test-results/US-012/): inserisci due carichi dello stesso ISIN a prezzi diversi → tabella mostra una riga con qty totale e avgLoadPrice ponderato corretto. Scenario multi-ISIN: due ISIN diversi → due righe distinte. Scenario coerenza reload: after submit, re-fetch API, riga aggregata invariata.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    ref: TASK-05
