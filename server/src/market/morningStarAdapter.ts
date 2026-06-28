@@ -1,105 +1,58 @@
-import * as cheerio from 'cheerio';
 import { parseMorningStar } from './morningStarParser.js';
-import type { AdapterResult, AdapterOptions } from './borsaItalianaAdapter.js';
-import { USER_AGENT } from './borsaItalianaAdapter.js';
+import type { AdapterResult } from './borsaItalianaAdapter.js';
+import type { MorningStarRenderer } from './morningStarTypes.js';
+import { renderMorningStar } from './morningStarBrowser.js';
 
 /**
- * Adapter verso MorningStar (anti-corruption layer, fonte di backup).
+ * Adapter verso MorningStar (anti-corruption layer, fonte di backup — US-024).
  *
- * Espone lo stesso tipo di esito discriminato (`found` / `not-found` / `error`)
+ * Espone lo stesso esito discriminato (`found` / `not-found` / `error`)
  * dell'adapter di Borsa Italiana, così da essere intercambiabile senza
- * accoppiare il resto dell'app a un secondo scraper.
+ * accoppiare il resto dell'app a un secondo recuperatore.
  *
- * Buona cittadinanza: stesso User-Agent realistico di Borsa Italiana,
- * timeout per richiesta e al massimo due chiamate per ISIN (ricerca + scheda).
+ * La fonte è raggiungibile solo via browser headless (vedi `morningStarBrowser`),
+ * isolato dietro il seam iniettabile `MorningStarRenderer`: i test unitari
+ * iniettano un renderer mockato e non avviano mai un browser reale.
  */
 
-const BASE_URL = 'https://global.morningstar.com/it';
-const DEFAULT_TIMEOUT_MS = 8000;
+const DEFAULT_TIMEOUT_MS = 15000;
 
-function searchUrl(baseUrl: string, isin: string): string {
-  return `${baseUrl}/search/#?q=${encodeURIComponent(isin)}&page=1`;
-}
-
-/** Singola GET con User-Agent corretto e timeout via AbortController. */
-async function httpGet(url: string, fetchFn: typeof fetch, timeoutMs: number): Promise<string> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetchFn(url, {
-      headers: {
-        'User-Agent': USER_AGENT,
-        'Accept-Language': 'it-IT,it;q=0.9',
-      },
-      signal: controller.signal,
-    });
-    if (!res.ok) {
-      throw new Error(`Risposta HTTP ${res.status} dalla fonte MorningStar`);
-    }
-    return await res.text();
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-/**
- * Dalla pagina dei risultati di ricerca MorningStar estrae l'URL della scheda.
- *
- * MorningStar restituisce link di scheda che contengono l'ISIN nel percorso
- * (es. `/it/etf/scheda/IE00BJRHVJ28.html`). I link auto-referenziali alla
- * pagina di ricerca e i link canonici sono esclusi.
- */
-export function extractInstrumentUrl(searchHtml: string, baseUrl: string, isin: string): string | null {
-  const $ = cheerio.load(searchHtml);
-  let schedaWithIsin: string | null = null;
-  let scheda: string | null = null;
-  let withIsin: string | null = null;
-
-  // Pattern di link da escludere (auto-referenziali o navigazione sito).
-  const isSelfSearch = (href: string): boolean =>
-    /search[/#]/i.test(href) || /\/search\b/i.test(href);
-
-  $('a[href]').each((_, a) => {
-    const href = $(a).attr('href');
-    if (!href || isSelfSearch(href)) return;
-    const hasIsin = href.toUpperCase().includes(isin);
-    const hasScheda = /scheda/i.test(href);
-    if (hasScheda && hasIsin && !schedaWithIsin) schedaWithIsin = href;
-    if (hasScheda && !scheda) scheda = href;
-    if (hasIsin && !withIsin) withIsin = href;
-  });
-
-  const chosen = schedaWithIsin ?? scheda ?? withIsin;
-  if (!chosen) return null;
-  try {
-    return new URL(chosen, baseUrl).toString();
-  } catch {
-    return null;
-  }
+/** Opzioni dell'adapter MorningStar. */
+export interface MorningStarAdapterOptions {
+  /** Renderer iniettabile per i test; default = browser reale. */
+  renderer?: MorningStarRenderer;
+  /** Timeout per singola navigazione (ms). */
+  timeoutMs?: number;
 }
 
 /**
  * Recupera l'anagrafica di un titolo per ISIN da MorningStar.
- * Esegue al massimo due richieste (ricerca + scheda strumento).
  * Intercambiabile con `fetchSecurityByIsin` di Borsa Italiana.
  */
-export async function fetchSecurityByIsin(isin: string, options: AdapterOptions = {}): Promise<AdapterResult> {
-  const fetchFn = options.fetchFn ?? globalThis.fetch;
+export async function fetchSecurityByIsin(
+  isin: string,
+  options: MorningStarAdapterOptions = {},
+): Promise<AdapterResult> {
+  const renderer = options.renderer ?? renderMorningStar;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const baseUrl = options.baseUrl ?? BASE_URL;
   const normalized = isin.trim().toUpperCase();
 
   try {
-    const searchHtml = await httpGet(searchUrl(baseUrl, normalized), fetchFn, timeoutMs);
-    const instrumentUrl = extractInstrumentUrl(searchHtml, baseUrl, normalized);
-    if (!instrumentUrl) {
+    const bundle = await renderer(normalized, { timeoutMs });
+
+    // Nessuno strumento risolto per questo ISIN.
+    if (bundle === null) {
       return { status: 'not-found' };
     }
 
-    const pageHtml = await httpGet(instrumentUrl, fetchFn, timeoutMs);
-    const security = parseMorningStar(pageHtml, normalized);
+    // Anti-titolo-errato: la scheda risolta deve contenere l'ISIN richiesto.
+    if (!bundle.isinPresent) {
+      return { status: 'not-found' };
+    }
 
-    // Pagina non riconducibile a uno strumento: nessuna denominazione né prezzo.
+    const security = parseMorningStar(bundle, normalized);
+
+    // Scheda non riconducibile a uno strumento: nessuna denominazione né prezzo.
     if (security.name === null && security.price === null) {
       return { status: 'not-found' };
     }
@@ -110,4 +63,4 @@ export async function fetchSecurityByIsin(isin: string, options: AdapterOptions 
   }
 }
 
-export type { AdapterResult, AdapterOptions };
+export type { AdapterResult };

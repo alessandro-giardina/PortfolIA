@@ -3,10 +3,21 @@ import type { HealthResponse } from '@portfolia/shared';
 import { runMigrations } from './db/migrate.js';
 import { portfoliosRoutes } from './api/portfolios.js';
 import { securitiesRoutes } from './api/securities.js';
+import { closeMorningStarBrowser } from './market/morningStarBrowser.js';
 
 runMigrations();
 
 const fastify = Fastify({ logger: true });
+
+// Chiude il browser headless della fonte di backup allo shutdown (US-024).
+fastify.addHook('onClose', async () => {
+  await closeMorningStarBrowser();
+});
+for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+  process.once(signal, () => {
+    void fastify.close().then(() => process.exit(0));
+  });
+}
 
 fastify.get<{ Reply: HealthResponse }>('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };

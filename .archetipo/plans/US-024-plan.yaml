@@ -1,0 +1,129 @@
+schema: archetipo/plan/v2
+spec_code: US-024
+body: |
+  # US-024: Recupero anagrafica di backup MorningStar via browser headless e API JSON — Implementation Plan
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-06-28
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-002 — Ricerca titoli e dati di mercato
+  **Priorità:** HIGH | **Punti:** 5
+  **Sostituisce:** US-021
+
+  **User Story**
+  Come sviluppatore di PortfolIA, voglio che l'adapter di backup MorningStar recuperi l'anagrafica di un titolo per ISIN tramite un browser headless (Playwright) sul sito raggiungibile `www.morningstar.com`, intercettando le risposte JSON delle API `us-api.morningstar.com/sal-service`, in modo da rendere realmente funzionante il fallback di backup in produzione (lo scraping HTTP statico di US-021 è bloccato dal muro anti-bot Akamai).
+
+  **Criteri di Accettazione**
+  - Adapter riscritto con browser headless (flag anti-automazione + warm-up sulla home), stesso esito discriminato `found`/`not-found`/`error` intercambiabile con Borsa Italiana.
+  - Naviga su `www.morningstar.com`, risolve l'ISIN nella scheda strumento, popola i campi intercettando il JSON `sal-service` (+ denominazione da `h1`); campi non disponibili = `null`; testi in inglese accettati.
+  - Verifica che lo strumento risolto contenga l'ISIN richiesto prima di accettare `found`.
+  - Timeout/blocco/markup inatteso degradano in `not-found`/`error`, coperti da test con un nuovo seam iniettabile (renderer mockato), senza browser reale nei test unitari.
+  - Dipendenza browser dichiarata come runtime del server; costi noti documentati.
+  - US-021 dichiarata superata.
+
+  ---
+
+  ## Technical Solution
+
+  Isoliamo tutta la fragilità non deterministica del browser dietro un singolo seam, mantenendo il parser puro e il contratto adapter invariato, così che il fallback in `securities.ts` (US-022) continui a funzionare senza modifiche e i test unitari restino veloci e senza rete.
+
+  - **Nuovo seam `MorningStarRenderer`** (`server/src/market/morningStarBrowser.ts`): funzione `(isin) => Promise<MorningStarBundle | null>` che incapsula l'intero giro browser. Restituisce un *bundle* normalizzato `{ instrumentUrl, h1, isinPresent, sal }` dove `sal` raccoglie i payload JSON intercettati da `us-api.morningstar.com/sal-service`. Ritorna `null` quando nessuno strumento è risolto; lancia su blocco/timeout (mappato a `error` dall'adapter).
+  - **Flusso browser:** Chromium headless con `--disable-blink-features=AutomationControlled` e `navigator.webdriver` mascherato; navigazione di **warm-up** su `https://www.morningstar.com/` per acquisire il cookie Akamai; poi `GET /search?query=<ISIN>`; estrazione del primo link strumento `/(funds|etfs|stocks)/_/<secid>/quote`; navigazione alla scheda con **intercettazione** delle risposte `response` JSON `sal-service`; lettura di `h1` e verifica che il body/scheda contenga l'ISIN.
+  - **Ciclo di vita:** browser come **singleton lazy** condiviso, **un context nuovo per lookup** (isolamento cookie + warm-up), chiuso a fine lookup; browser chiuso allo shutdown del processo. Timeout per navigazione via opzione, default ~12s.
+  - **Parser puro riscritto** (`morningStarParser.ts`): `parseMorningStar(bundle, isin) => SecurityInfo`. Mappa dal JSON `sal-service`: `baseCurrency` → `currency`, `categoryName` → `segment`, `securityType`/segmento URL (`funds`/`etfs`/`stocks`) → `instrumentType`; `name` dall'`h1`. `price`/NAV: non esposto da un endpoint JSON pulito → best-effort dall'header DOM dello strumento, `null` se non interpretabile. `ticker`, `totalAnnualFees`, `dividendPolicy`, `issuer` → `null` quando non presenti (mai stimati, FR-006/ADR-003).
+  - **Adapter riscritto** (`morningStarAdapter.ts`): `fetchSecurityByIsin` usa il `renderer` iniettabile (default = renderer reale). `null` → `not-found`; `isinPresent === false` → `not-found` (anti-titolo-errato); `bundle` → parser; se `name` e `price` entrambi `null` → `not-found`; eccezioni → `error`. Mantiene `AdapterResult`/`AdapterOptions` esportati e la firma usata da `securities.ts`.
+  - **Dipendenza:** aggiunta di `playwright` a `server/package.json` come dependency runtime; costi (Chromium ~300MB, latenza ~8-12s a freddo, affidabilità best-effort) documentati in `CLAUDE.md`.
+  - **US-021 superata:** la riscrittura rimpiazza in-place il vecchio scraping HTTP statico (URL `#?q=` con fragment, `fetchFn`); il vecchio fixture HTML e i test basati su `fetchFn` vengono sostituiti.
+
+  ---
+
+  ## Test Strategy
+
+  La strategia separa nettamente la logica pura/deterministica (testata in CI) dal giro browser reale (verifica manuale live), così che `npm run check` resti verde e non dipendente dalla rete o da Akamai.
+
+  - **Unit parser** (`morningStarParser.test.ts`): con fixture JSON `sal-service` reali catturate, verifica la mappatura completa (`currency`, `segment`, `instrumentType`, `name`) e che i campi assenti risultino `null`.
+  - **Unit adapter** (`morningStarAdapter.test.ts` riscritto): renderer mockato per i casi `found`, `not-found` (renderer → null), `not-found` per ISIN-mismatch (`isinPresent=false`), `error` (renderer che lancia / timeout), e `not-found` quando `name` e `price` sono entrambi `null`.
+  - **Regressione fallback** (`securities` test esistenti): restano verdi — BI `found` non interroga MorningStar; BI `not-found` → MorningStar `found` con `dataSource = 'morningstar'`.
+  - **Smoke live manuale** (fuori dalla suite CI): script che esegue l'adapter reale (browser) contro `IE00BJRHVJ28` e stampa l'esito `found` + fonte; usato in fase di implement/verify per dimostrare il `Demonstrates`. Non aggiunto a Vitest per non rendere la CI flaky.
+
+  _Nessun nuovo E2E/registrazione video: la spec non introduce nuova UI (il badge fonte backup esiste già da US-022)._
+
+  ---
+
+  _Plan generated via ARchetipo Planning — 2026-06-28_
+tasks:
+  - id: TASK-01
+    title: Aggiungere Playwright come dipendenza runtime del server e documentare i costi
+    description: 'Aggiungere `playwright` a `server/package.json` (dependencies) e documentare in CLAUDE.md i costi noti: Chromium ~300MB, latenza ~8-12s a freddo per lookup di backup, affidabilità best-effort del challenge Akamai.'
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Definire il seam MorningStarRenderer e i tipi del bundle
+    description: Introdurre i tipi `MorningStarBundle` ({ instrumentUrl, h1, isinPresent, sal }) e `MorningStarRenderer = (isin) => Promise<MorningStarBundle | null>`, ed estendere le opzioni dell'adapter MorningStar con un `renderer` iniettabile (default = renderer reale).
+    type: Impl
+    status: DONE
+    ref: TASK-02
+  - id: TASK-03
+    title: Implementare il renderer reale con Chromium headless
+    description: 'Creare `server/src/market/morningStarBrowser.ts`: browser singleton lazy, context per lookup, flag anti-automazione + mascheramento webdriver, warm-up su www.morningstar.com, ricerca /search?query=ISIN, risoluzione link strumento /(funds|etfs|stocks)/_/<secid>/quote, intercettazione JSON sal-service, lettura h1 e verifica presenza ISIN; gestione timeout e chiusura risorse.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+    ref: TASK-03
+  - id: TASK-04
+    title: Riscrivere il parser MorningStar come funzione pura bundle→SecurityInfo
+    description: 'Riscrivere `morningStarParser.ts` per consumare il bundle: mappa baseCurrency→currency, categoryName→segment, securityType/segmento URL→instrumentType, name da h1; campi non disponibili (ticker, TER, dividendi, issuer) e prezzo non interpretabile → null, senza stime.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-04
+  - id: TASK-05
+    title: Unit test del parser con fixture JSON sal-service
+    description: 'Riscrivere `morningStarParser.test.ts` con fixture JSON sal-service reali catturate: verifica mappatura completa e campi assenti = null. Sostituisce l''approccio basato su fixture HTML.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    ref: TASK-05
+  - id: TASK-06
+    title: Riscrivere fetchSecurityByIsin per orchestrare renderer→verifica ISIN→parser
+    description: 'Riscrivere `morningStarAdapter.ts`: invoca il renderer, mappa null→not-found, isinPresent=false→not-found, eccezioni→error, applica il parser e degrada a not-found se name e price sono entrambi null; mantiene il contratto AdapterResult e la firma usata da securities.ts.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-03
+      - TASK-04
+    ref: TASK-06
+  - id: TASK-07
+    title: Riscrivere gli unit test dell'adapter con renderer mockato
+    description: 'Riscrivere `morningStarAdapter.test.ts` iniettando un renderer mockato: casi found, not-found (renderer→null), not-found per ISIN-mismatch, error (renderer che lancia/timeout), not-found per name+price entrambi null. Rimuovere i vecchi test basati su fetchFn e il fixture HTML obsoleto.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-06
+    ref: TASK-07
+  - id: TASK-08
+    title: Verifica di regressione del fallback in securities
+    description: 'Confermare che i test esistenti di securities restino verdi: BI found non interroga MorningStar; BI not-found → MorningStar found con dataSource ''morningstar''; doppio not-found → 404 trasparente. Adeguare i mock se la firma del fallback cambia.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-06
+    ref: TASK-08
+  - id: TASK-09
+    title: Script di smoke live manuale contro IE00BJRHVJ28
+    description: Aggiungere uno script eseguibile a mano (fuori dalla suite CI) che lancia l'adapter reale con browser contro IE00BJRHVJ28 e stampa l'esito found + fonte di backup; documentare come eseguirlo per la verifica del Demonstrates.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+      - TASK-06
+    ref: TASK-09
