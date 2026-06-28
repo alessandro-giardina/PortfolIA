@@ -7,3 +7,10 @@ data/
 
 # TypeScript incremental build info (generated)
 *.tsbuildinfo
+
+# Playwright: artefatti di run (rumore, rigenerati a ogni esecuzione).
+# Versionati di proposito solo i video demo dei singoli spec (review gate).
+docs/test-results/**/.last-run.json
+docs/test-results/.last-run.json
+docs/test-results/**/error-context.md
+docs/test-results/**/trace.zip
