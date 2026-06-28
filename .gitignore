@@ -8,6 +8,9 @@ data/
 # TypeScript incremental build info (generated)
 *.tsbuildinfo
 
+# SQLite database locale (generato a runtime)
+**/*.db
+
 # Playwright: artefatti di run (rumore, rigenerati a ogni esecuzione).
 # Versionati di proposito solo i video demo dei singoli spec (review gate).
 docs/test-results/**/.last-run.json
