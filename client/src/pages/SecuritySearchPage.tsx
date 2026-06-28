@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { isValidIsin, normalizeIsin } from '@portfolia/shared';
 import type { SecurityInfo, SecurityLookupResponse, RefetchConfirmation } from '@portfolia/shared';
 // DataSource è parte della risposta API; 'borsaitaliana' è il default implicito.
 type DataSource = 'borsaitaliana' | 'morningstar';
 import Foglio, { dataRegistro } from '../components/Foglio.js';
+import PortfolioSelectDialog from '../components/PortfolioSelectDialog.js';
 
 type Status = 'idle' | 'loading' | 'found' | 'notfound' | 'error';
 
@@ -47,6 +48,7 @@ function campiAnagrafica(security: SecurityInfo): { label: string; value: string
 }
 
 export default function SecuritySearchPage() {
+  const navigate = useNavigate();
   const [isin, setIsin] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [security, setSecurity] = useState<SecurityInfo | null>(null);
@@ -55,6 +57,21 @@ export default function SecuritySearchPage() {
   const [dataSource, setDataSource] = useState<DataSource>('borsaitaliana');
   const [esito, setEsito] = useState<string | null>(null);
   const [searchedIsin, setSearchedIsin] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  function handleDialogConfirm(portfolioId: number) {
+    setDialogOpen(false);
+    navigate(`/portfolio/${portfolioId}`, {
+      state: {
+        prefill: {
+          isin: security?.isin ?? '',
+          name: security?.name ?? null,
+          price: security?.price ?? null,
+          currency: security?.currency ?? null,
+        },
+      },
+    });
+  }
 
   async function lookup(force: boolean) {
     const normalized = normalizeIsin(isin);
@@ -275,6 +292,17 @@ export default function SecuritySearchPage() {
               </span>
             )}
           </div>
+          <div className="bottoni" style={{ marginTop: '28px' }}>
+            <button
+              type="button"
+              className="bottone"
+              data-testid="btn-aggiungi-portafoglio"
+              aria-haspopup="dialog"
+              onClick={() => setDialogOpen(true)}
+            >
+              ⊕&ensp;Aggiungi a Portafoglio
+            </button>
+          </div>
         </>
       )}
 
@@ -296,6 +324,15 @@ export default function SecuritySearchPage() {
             </p>
           </div>
         </>
+      )}
+
+      {dialogOpen && status === 'found' && security && (
+        <PortfolioSelectDialog
+          isin={security.isin}
+          name={security.name}
+          onConfirm={handleDialogConfirm}
+          onClose={() => setDialogOpen(false)}
+        />
       )}
     </Foglio>
   );

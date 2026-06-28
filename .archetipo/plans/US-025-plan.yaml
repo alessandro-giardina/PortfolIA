@@ -1,0 +1,149 @@
+schema: archetipo/plan/v2
+spec_code: US-025
+body: |-
+  # US-025: Aggiungere un titolo ricercato a un portafoglio — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-06-28
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-003 — Gestione delle posizioni
+  **Priorità:** HIGH | **Punti:** 3
+
+  **User Story**
+  Come Alessandro, investitore-proprietario, voglio poter aggiungere un titolo appena trovato nella ricerca direttamente a uno dei miei portafogli, in modo da avviare il carico senza dover ricopiare manualmente ISIN, nome e prezzo.
+
+  **Criteri di Accettazione**
+  - Il bottone "Aggiungi a Portafoglio" è visibile accanto alla sezione "Titolo Trovato" solo quando la ricerca ha prodotto un risultato valido
+  - Il dialog mostra la lista di tutti i portafogli esistenti e richiede una selezione esplicita prima di procedere
+  - Confermando la selezione, la navigazione porta a `PortfolioDetailPage` del portafoglio scelto
+  - Il modulo di carico titolo in `PortfolioDetailPage` è pre-compilato con ISIN, nome del titolo e prezzo corrente recuperati dalla ricerca
+  - Se non esistono portafogli, il dialog mostra un messaggio che invita a crearne uno prima di procedere
+
+  ---
+
+  ## Soluzione Tecnica
+
+  Il flusso è interamente frontend: nessuna modifica al backend è necessaria. La comunicazione tra `SecuritySearchPage` e `PortfolioDetailPage` avviene tramite React Router `useNavigate` con `state`, che trasporta i dati del titolo (ISIN, nome, prezzo) senza esporli nell'URL.
+
+  ### Componenti coinvolti
+
+  - **`client/src/pages/SecuritySearchPage.tsx`**: aggiunge il bottone "Aggiungi a Portafoglio" (visibile solo quando `status === 'found'`) e il componente dialog di selezione portafoglio inline.
+  - **Dialog di selezione portafoglio**: componente React inline (o file separato `PortfolioSelectDialog.tsx`) che al momento dell'apertura chiama `GET /api/portfolios`, mostra la lista con selezione radio, gestisce il caso zero-portafogli, e su conferma esegue `navigate('/portfolio/:id', { state: { prefill } })`.
+  - **`client/src/pages/PortfolioDetailPage.tsx`**: aggiunge un `useEffect` che legge `useLocation().state` al primo mount e, se presenti dati di pre-popolamento, imposta `isin`, `loadPrice` e lascia vuota la data (l'utente deve indicare la data di acquisto).
+
+  ### Meccanismo di pre-popolamento
+
+  - Il campo ISIN viene impostato con l'ISIN del titolo trovato (già validato e normalizzato).
+  - Il campo Prezzo di acquisto viene impostato con il prezzo corrente del titolo (`security.price`).
+  - Il campo Data di carico viene lasciato vuoto: la data di acquisto è soggettiva e deve essere inserita dall'utente.
+  - Il campo Quantità viene lasciato vuoto.
+  - Lo state viene consumato una sola volta: dopo il pre-popolamento viene cancellato con `window.history.replaceState({}, '')` per evitare che una ricarica della pagina ripopoli il form.
+
+  ### Interfaccia dati pre-popolamento (navigation state)
+
+  ```typescript
+  interface PrefillState {
+    isin: string;
+    name: string | null;
+    price: number | null;
+    currency: string | null;
+  }
+  ```
+
+  ### Gestione zero-portafogli
+
+  Se `GET /api/portfolios` restituisce un array vuoto, il dialog non mostra righe ma un messaggio: "Non hai ancora nessun portafoglio. Torna alla dashboard e creane uno prima di procedere."
+
+  ### Styling e accessibilità
+
+  - Il bottone "Aggiungi a Portafoglio" segue il pattern `className="bottone"` già presente nel progetto.
+  - Il dialog segue il pattern già definito nel mockup esistente in `docs/mockups/US-025/`: overlay con backdrop, focus trap (Escape per chiudere), `role="dialog"` e `aria-modal="true"`.
+  - Il bottone "Conferma" è disabilitato se nessun portafoglio è selezionato.
+
+  ---
+
+  ## Strategia di Test
+
+  La copertura si concentra sul percorso completo (end-to-end) e sulla logica di pre-popolamento del form.
+
+  - **Test E2E (Playwright)**: percorso demo completo con video; scenario zero-portafogli; verifica che il form sia pre-compilato correttamente dopo la navigazione.
+  - **Nessun test di unità aggiuntivo** sul backend (nessuna modifica al backend).
+  - **Verifica regressione**: i test E2E esistenti di US-011 (aggiungi posizione) non devono essere compromessi dal pre-popolamento (lo state è opzionale).
+
+  ### Test E2E — Simulazione utente
+
+  **Framework:** Playwright (già configurato nel progetto, `playwright.config.ts`)
+  **Video:** solo scenario demo; altri scenari non registrano video
+
+  | Scenario | Flusso utente |
+  |---|---|
+  | Demo (con video) | Cerca ISIN valido → titolo trovato → clic "Aggiungi a Portafoglio" → dialog aperto → seleziona portafoglio → clic "Conferma" → navigazione a PortfolioDetailPage → form pre-compilato con ISIN e prezzo |
+  | Zero portafogli | Cerca ISIN valido → apri dialog → messaggio "nessun portafoglio" visibile, bottone Conferma assente o disabilitato |
+  | Chiudi dialog senza navigare | Apri dialog → clic Annulla → rimane sulla pagina di ricerca, il titolo è ancora visibile |
+
+  > Nota: il video è salvato in `docs/test-results/US-025/` (configurato tramite `outputDir` nel test demo, seguendo il pattern degli altri spec E2E del progetto).
+
+  ---
+
+  > Mockup di riferimento disponibili in `docs/mockups/US-025/`
+
+  _Piano generato tramite ARchetipo Planning — 2026-06-28_
+tasks:
+  - id: TASK-01
+    title: Aggiungere bottone 'Aggiungi a Portafoglio' in SecuritySearchPage
+    description: Nel blocco `status === 'found'` di SecuritySearchPage.tsx, aggiungere un bottone con `data-testid="btn-aggiungi-portafoglio"` e `className="bottone"` visibile solo quando la ricerca ha prodotto un risultato valido. Al clic apre il dialog di selezione portafoglio (da implementare in TASK-02).
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Implementare il dialog di selezione portafoglio (PortfolioSelectDialog)
+    description: Creare il componente React del dialog (inline in SecuritySearchPage o file separato `client/src/components/PortfolioSelectDialog.tsx`). Al momento dell'apertura chiama `GET /api/portfolios`. Mostra la lista con selezione radio (nessuna pre-selezionata); gestisce il caso zero-portafogli con messaggio esplicativo; il bottone Conferma è disabilitato se nessun portafoglio è selezionato. Chiudibile con Escape, clic fuori o bottone Annulla. Usa `role="dialog"`, `aria-modal="true"` e segue l'estetica del mockup in `docs/mockups/US-025/`.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Navigazione con state verso PortfolioDetailPage al clic su Conferma
+    description: 'Nel gestore del bottone Conferma del dialog, usare `useNavigate` di React Router per navigare verso `/portfolio/:id` con `state: { prefill: { isin, name, price, currency } }`. Il tipo `PrefillState` può essere definito in `shared/types/index.ts` o localmente nel client.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-03
+  - id: TASK-04
+    title: Pre-popolamento form di carico in PortfolioDetailPage da navigation state
+    description: In PortfolioDetailPage.tsx, leggere `useLocation().state` al primo mount tramite `useEffect`. Se è presente un oggetto `prefill` con `isin` e/o `price`, impostare i rispettivi campi del form (`setIsin`, `setLoadPrice`). Dopo il pre-popolamento, cancellare lo state dalla history con `window.history.replaceState({}, document.title)` per evitare re-populate su ricarica pagina. Il campo data e quantità restano vuoti.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-03
+    ref: TASK-04
+  - id: TASK-05
+    title: Test E2E — Scenario demo con video (percorso completo)
+    description: 'Creare `e2e/US-025__aggiungi-titolo-a-portafoglio.spec.ts`. Lo scenario demo usa `video: ''on''` e `outputDir: ''docs/test-results/US-025/''`. Flusso: crea portafoglio via API → naviga a /ricerca → cerca ISIN valido (IE00B4L5Y983) → attende status ''found'' → clic btn-aggiungi-portafoglio → seleziona portafoglio nel dialog → clic Conferma → verifica navigazione a /portfolio/:id → verifica che input-isin e input-prezzo siano pre-compilati. Cleanup: elimina portafoglio via API.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    ref: TASK-05
+  - id: TASK-06
+    title: Test E2E — Scenario zero-portafogli
+    description: 'Scenario senza video: garantire che non esistano portafogli prima del test (elimina tutti via API se necessario) → cerca ISIN valido → apri dialog → verifica che sia visibile il messaggio ''nessun portafoglio'' e che il bottone Conferma sia disabilitato o assente.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    ref: TASK-06
+  - id: TASK-07
+    title: Test E2E — Scenario chiudi dialog senza navigare
+    description: 'Scenario senza video: cerca ISIN valido → apri dialog → clic Annulla → verifica che la pagina di ricerca sia ancora visibile con il titolo trovato e che non sia avvenuta alcuna navigazione.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    ref: TASK-07
