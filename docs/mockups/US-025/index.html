@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Ricerca Titoli + Aggiungi a Portafoglio (US-025)</title>
+  <meta name="description" content="Mockup US-025: risultato ricerca ISIN con bottone Aggiungi a Portafoglio e dialog di selezione portafoglio.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<!-- ================================================================
+     DIALOG: Selezione Portafoglio (overlay, visibile via JS)
+     ================================================================ -->
+<div class="overlay-dialog" id="overlay-portafogli" role="dialog" aria-modal="true" aria-labelledby="dialog-titolo">
+  <div class="dialog-portafoglio">
+
+    <div class="dialog-intestazione">
+      <div>
+        <div class="titolo-dialog" id="dialog-titolo">Scegli un Portafoglio</div>
+        <div class="sottotitolo-dialog">iShares Core MSCI World &middot; IE00B4L5Y983</div>
+      </div>
+      <button class="chiudi-dialog" id="btn-chiudi-dialog" aria-label="Chiudi">&#x2715;</button>
+    </div>
+
+    <div class="dialog-corpo">
+      <p class="nota-dialog">
+        Seleziona il portafoglio di destinazione. Il modulo di carico sarà
+        pre-compilato con ISIN, nome e prezzo corrente del titolo.
+      </p>
+
+      <div class="lista-portafogli" role="listbox" aria-label="Portafogli disponibili">
+
+        <div class="riga-portafoglio selezionata" data-nome="Lungo Periodo" data-url="portafoglio-precompilato.html" role="option" aria-selected="true" tabindex="0">
+          <div class="radio-custom" aria-hidden="true"></div>
+          <div class="nome-portafoglio">Lungo Periodo</div>
+          <div class="meta-portafoglio">
+            <div>3 posizioni</div>
+            <div>aperto 12.I.2026</div>
+          </div>
+        </div>
+
+        <div class="riga-portafoglio" data-nome="ETF Globale" data-url="portafoglio-precompilato.html" role="option" aria-selected="false" tabindex="0">
+          <div class="radio-custom" aria-hidden="true"></div>
+          <div class="nome-portafoglio">ETF Globale</div>
+          <div class="meta-portafoglio">
+            <div>7 posizioni</div>
+            <div>aperto 3.III.2025</div>
+          </div>
+        </div>
+
+        <div class="riga-portafoglio" data-nome="Speculativo" data-url="portafoglio-precompilato.html" role="option" aria-selected="false" tabindex="0">
+          <div class="radio-custom" aria-hidden="true"></div>
+          <div class="nome-portafoglio">Speculativo</div>
+          <div class="meta-portafoglio">
+            <div>1 posizione</div>
+            <div>aperto 18.XI.2025</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="dialog-bottoni">
+        <button class="bottone secondario" id="btn-annulla-dialog">Annulla</button>
+        <button class="bottone ottone-btn" id="btn-conferma-dialog">Conferma &rarr;</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ================================================================
+     PAGINA: Ricerca Titoli
+     ================================================================ -->
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Anagrafica strumenti &middot; ricerca per codice</p>
+      <h1>Cerca <span class="corsivo">un Titolo</span></h1>
+      <p class="sottotesto">Inserisci il codice ISIN per recuperare anagrafica e prezzo corrente</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Consultazione del <b>28.VI.2026</b></div>
+      <div>Fonte: <b>Borsa Italiana</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a class="attiva">Ricerca titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <!-- Sezione: Ricerca per ISIN -->
+    <div class="sezione-titolo">
+      Ricerca per ISIN
+      <span class="nota">il dato proviene da Borsa Italiana &middot; fonte di backup: MorningStar</span>
+    </div>
+
+    <div class="ricerca-isin">
+      <div class="campo-isin">
+        <label for="isin">Codice ISIN</label>
+        <input
+          id="isin"
+          type="text"
+          value="IE00B4L5Y983"
+          placeholder="es. IT0003128367"
+          autocomplete="off"
+          spellcheck="false"
+        >
+      </div>
+      <button class="bottone" id="btn-cerca">Recupera anagrafica</button>
+    </div>
+
+    <!-- Riga esito con timbro TROVATO -->
+    <div class="riga-esito">
+      <span class="timbro verde">Titolo trovato</span>
+      <span>iShares Core MSCI World UCITS ETF &middot; <strong style="font-family:'Courier Prime',monospace;font-style:normal;">€&thinsp;94,55</strong></span>
+    </div>
+
+    <!-- Sezione: Anagrafica recuperata -->
+    <div class="sezione-titolo" style="margin-top:28px;">
+      Anagrafica recuperata
+      <span class="nota">rilevazione del 28.VI.2026 alle 17:32</span>
+    </div>
+
+    <div class="anagrafica">
+      <div class="voce-def">
+        <span class="et">Denominazione</span>
+        <span class="dato">iShares Core MSCI World UCITS ETF</span>
+      </div>
+      <div class="voce-def">
+        <span class="et">Prezzo attuale</span>
+        <span class="dato" style="font-weight:700;font-size:18px;">€&thinsp;94,55</span>
+      </div>
+      <div class="voce-def">
+        <span class="et">Ticker</span>
+        <span class="dato">SWDA</span>
+      </div>
+      <div class="voce-def">
+        <span class="et">ISIN</span>
+        <span class="dato" style="letter-spacing:.08em;">IE00B4L5Y983</span>
+      </div>
+      <div class="voce-def">
+        <span class="et">Tipo strumento</span>
+        <span class="dato">ETF azionario</span>
+      </div>
+      <div class="voce-def">
+        <span class="et">Emittente</span>
+        <span class="dato">iShares (BlackRock)</span>
+      </div>
+      <div class="voce-def">
+        <span class="et">Valuta</span>
+        <span class="dato">EUR</span>
+      </div>
+      <div class="voce-def">
+        <span class="et">Borsa</span>
+        <span class="dato">Borsa Italiana</span>
+      </div>
+    </div>
+
+    <!-- Azioni: Aggiungi a Portafoglio + Nuova Ricerca -->
+    <div class="bottoni" style="margin-top:28px;">
+      <button class="bottone ottone-btn" id="btn-aggiungi" aria-haspopup="dialog">
+        &#x2295;&ensp;Aggiungi a Portafoglio
+      </button>
+      <button class="bottone secondario" id="btn-nuova-ricerca">
+        Nuova ricerca
+      </button>
+    </div>
+
+    <p style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);font-size:13.5px;margin-top:18px;border-top:1px dotted rgba(110,90,54,.4);padding-top:12px;">
+      Il bottone <em>Aggiungi a Portafoglio</em> appare solo a ricerca andata a buon fine.
+      Premendolo si apre il registro di selezione portafoglio &mdash; il carico non viene iscritto
+      prima della conferma sul modulo successivo.
+    </p>
+
+    <div class="nav-mockup">
+      Schermate mockup US-025 &nbsp;&rarr;&nbsp;
+      <a href="index.html">Ricerca + Dialog (questa pagina)</a>
+      &middot;
+      <a href="portafoglio-precompilato.html">Modulo di carico pre-compilato</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Ogni consultazione è registrata con fonte e orario di rilevazione</span>
+    <span>PortfolIA &middot; US-025 mockup &middot; schermata 1 di 2</span>
+  </footer>
+
+</div><!-- /foglio -->
+
+<script src="app.js"></script>
+</body>
+</html>
