@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-022
+title: Fallback su MorningStar quando Borsa Italiana non basta
+epic:
+  code: EP-002
+  title: Ricerca titoli e dati di mercato
+priority: HIGH
+points: 3
+status: TODO
+blocked_by:
+  - US-021
+body: |-
+  #### US-022: Fallback su MorningStar quando Borsa Italiana non basta
+
+  **Epic:** EP-002 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** US-021
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che quando un ISIN non viene trovato su Borsa Italiana (o la fonte è irraggiungibile) PortfolIA interroghi automaticamente MorningStar come backup e mi mostri da quale fonte arrivano i dati,
+  in modo da recuperare anche i titoli che Borsa Italiana non conosce, continuando a fidarmi della provenienza dei numeri.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, cercando un ISIN che Borsa Italiana non conosce (es. `IE00BJRHVJ28`) l'utente vede comunque i dati del titolo recuperati da MorningStar, con un'indicazione esplicita che la fonte è quella di backup; se nessuna delle due fonti trova il titolo, vede il messaggio trasparente di "dato non disponibile".
+
+  **Criteri di Accettazione**
+  - [ ] Quando Borsa Italiana restituisce `not-found` oppure `error` (timeout/rete), il sistema interroga automaticamente l'adapter MorningStar come fonte di backup
+  - [ ] Se MorningStar trova il titolo, i suoi dati sono mostrati nella vista di ricerca con un'indicazione esplicita che la fonte è quella di backup (MorningStar) anziché Borsa Italiana
+  - [ ] Se nessuna delle due fonti trova il titolo, l'utente vede "dato non disponibile" senza valori inventati e senza errore bloccante
+  - [ ] L'orchestrazione del fallback non interroga MorningStar quando Borsa Italiana ha già restituito un esito `found`
+history:
+  - status: TODO
+    at: "2026-06-28T09:22:32Z"

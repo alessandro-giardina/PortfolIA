@@ -1,0 +1,31 @@
+schema: archetipo/spec/v2
+code: US-021
+title: Adapter di backup MorningStar per ISIN
+epic:
+  code: EP-002
+  title: Ricerca titoli e dati di mercato
+priority: HIGH
+points: 5
+status: TODO
+body: |-
+  #### US-021: Adapter di backup MorningStar per ISIN
+
+  **Epic:** EP-002 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come sviluppatore di PortfolIA,
+  voglio un adapter dedicato che recuperi da MorningStar (`https://global.morningstar.com/it`) l'anagrafica e il prezzo di un titolo dato il suo ISIN, isolato dietro la stessa interfaccia dell'adapter di Borsa Italiana,
+  in modo da poter usare MorningStar come fonte di backup intercambiabile senza accoppiare il resto dell'app a un secondo scraper.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, dato un ISIN che esiste su MorningStar (es. `IE00BJRHVJ28`), l'adapter — interrogato in isolamento nei test con HTML di fixture — esegue il percorso ricerca → scheda strumento e restituisce un esito `found` con lo stesso set di campi dell'adapter di Borsa Italiana; un ISIN inesistente produce `not-found` e un guasto di rete produce `error`, senza dati inventati.
+
+  **Criteri di Accettazione**
+  - [ ] La logica di scraping di MorningStar è isolata in un adapter dedicato (anti-corruption layer) che espone lo stesso tipo di esito discriminato (`found` / `not-found` / `error`) dell'adapter di Borsa Italiana
+  - [ ] Dato un ISIN valido, l'adapter prova a popolare denominazione, prezzo attuale, ticker, tipo strumento, commissioni totali annue, valuta, emittente, segmento e politica di distribuzione dividendi; i campi non esposti da MorningStar sono marcati "dato non disponibile" senza essere stimati
+  - [ ] L'adapter rispetta le regole di Buona Cittadinanza già adottate per Borsa Italiana: User-Agent realistico, timeout per richiesta e basso volume di richieste verso la fonte
+  - [ ] Timeout, errori di rete e markup malformato degradano in modo trasparente in `not-found` / `error` e sono coperti da test con HTML di fixture
+history:
+  - status: TODO
+    at: "2026-06-28T09:22:32Z"
