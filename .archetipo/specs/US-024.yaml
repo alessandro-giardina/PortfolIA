@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-024
+title: Recupero anagrafica di backup MorningStar via browser headless e API JSON
+epic:
+  code: EP-002
+  title: Ricerca titoli e dati di mercato
+priority: HIGH
+points: 5
+status: TODO
+body: |
+  #### US-024: Recupero anagrafica di backup MorningStar via browser headless e API JSON
+
+  **Epic:** EP-002 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** -
+  **Sostituisce:** US-021
+
+  **User Story**
+  Come sviluppatore di PortfolIA,
+  voglio che l'adapter di backup MorningStar recuperi l'anagrafica di un titolo per ISIN tramite un browser headless (Playwright) sul sito raggiungibile `www.morningstar.com`, intercettando le risposte JSON delle API `us-api.morningstar.com/sal-service`,
+  in modo da rendere realmente funzionante il fallback di backup in produzione, dove lo scraping HTTP statico di US-021 è bloccato dal muro anti-bot Akamai e quindi non recupera nulla.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, cercando un ISIN presente solo su MorningStar (es. `IE00BJRHVJ28`) l'adapter — eseguito dal vivo contro la fonte reale — restituisce un esito `found` con denominazione (da `h1`) e i campi strutturati estratti dal JSON (valuta, categoria/segmento, domicilio, data di riferimento); i campi non esposti restano `null`. Lo stesso ISIN, che prima dava "Titolo non reperito", ora viene recuperato via fallback nella vista di ricerca con badge fonte di backup. Un ISIN inesistente su entrambe le fonti dà `not-found`; un guasto/blocco della fonte dà `error`, senza dati inventati.
+
+  **Criteri di Accettazione**
+  - [ ] L'adapter MorningStar è riscritto per usare un browser headless (Chromium via Playwright) con flag anti-automazione e una navigazione di warm-up sulla home, unico modo per superare il challenge Akamai; resta isolato dietro lo stesso tipo di esito discriminato (`found` / `not-found` / `error`) intercambiabile con Borsa Italiana
+  - [ ] L'adapter naviga su `www.morningstar.com`, risolve l'ISIN nella scheda strumento e popola i campi anagrafici intercettando le risposte JSON di `us-api.morningstar.com/sal-service` (più la denominazione dall'`h1`); i campi non disponibili sono dichiarati `null` ("dato non disponibile") senza essere stimati — è accettato che i testi tornino in inglese
+  - [ ] Prima di accettare un esito `found`, l'adapter verifica che la pagina/risposta dello strumento contenga l'ISIN richiesto, evitando di restituire un titolo errato
+  - [ ] Timeout, blocco anti-bot e markup/JSON inattesi degradano in modo trasparente in `not-found` / `error` e sono coperti da test tramite un nuovo seam iniettabile (un "page renderer"/risposte JSON mockate), senza avviare un browser reale nei test unitari
+  - [ ] La dipendenza dal browser headless è dichiarata come dipendenza runtime del server (non più solo devDependency E2E); i costi noti (Chromium ~300MB, latenza ~8-12s a freddo, affidabilità best-effort del challenge) sono documentati per chi opera l'app
+  - [ ] US-021 è dichiarata superata da questa spec (la sua implementazione a scraping HTTP statico viene rimpiazzata)
+history:
+  - status: TODO
+    at: "2026-06-28T15:32:17Z"
