@@ -142,19 +142,30 @@ export const renderMorningStar: MorningStarRenderer = async (isin, { timeoutMs }
   }
 };
 
-/** Best-effort: cerca il testo del prezzo/NAV tra alcuni selettori plausibili. */
+/**
+ * Estrae il NAV/prezzo dall'header della scheda agganciandolo per etichetta.
+ *
+ * Nella riga "Overview" MorningStar rende il valore in uno
+ * `span.mdc-data-point--number` la cui etichetta adiacente è "NAV / 1-Day Return"
+ * (o "NAV"). Aggancio per etichetta — non per posizione — così altri numeri della
+ * pagina (rendimenti, dimensioni) non vengono scambiati per il prezzo.
+ */
 async function extractPriceText(page: import('playwright').Page): Promise<string | null> {
-  const selectors = [
-    '[data-testid*="last-price"]',
-    '[class*="last-price"]',
-    '[class*="lastPrice"]',
-    '.mdc-security-header__last-price',
-  ];
-  for (const sel of selectors) {
-    const text = await page
-      .$eval(sel, (el) => el.textContent?.trim() ?? null)
-      .catch(() => null);
-    if (text && /\d/.test(text)) return text;
-  }
-  return null;
+  return page
+    .evaluate(() => {
+      const numbers = Array.from(
+        document.querySelectorAll('span.mdc-data-point--number, span.mdc-number'),
+      );
+      for (const span of numbers) {
+        const text = span.textContent?.trim() ?? '';
+        if (!/\d/.test(text)) continue;
+        const label =
+          span.parentElement?.previousElementSibling?.textContent?.trim() ??
+          span.closest('div,section,li')?.previousElementSibling?.textContent?.trim() ??
+          '';
+        if (/^NAV\b/i.test(label)) return text;
+      }
+      return null;
+    })
+    .catch(() => null);
 }
