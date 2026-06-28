@@ -1,0 +1,32 @@
+schema: archetipo/plan/v2
+spec_code: US-008
+body: "# US-008: Gestione trasparente di ISIN non trovato o dati non disponibili — Piano di Implementazione\n\n**Generato da:** ARchetipo Planning Team  \n**Data:** 2026-06-28\n\n---\n\n## Spec\n\n**Epic:** EP-002 — Ricerca titoli e dati di mercato  \n**Priorità:** HIGH | **Punti:** 1\n\n**User Story**  \nCome Giulia, investitrice prudente, voglio che i messaggi di \"dato non disponibile\" non nominino una fonte specifica e siano verificati lungo l'intero flusso a due fonti, in modo da fidarmi del fatto che un titolo è dichiarato non reperibile solo dopo che entrambe le fonti sono state interrogate, senza mai vedere valori inventati (FR-006, ADR-003).\n\n**Criteri di Accettazione**\n- [ ] I messaggi di esito della ricerca (sottotesto, nota di sezione, \"non trovato\", riquadro vuoto) non nominano una fonte specifica e restano validi sia per la fonte primaria sia per quella di backup\n- [ ] Un ISIN non trovato su nessuna fonte (dopo il fallback su MorningStar) mostra \"dato non disponibile\" senza dati inventati — verificato da un test end-to-end\n- [ ] Il guasto (timeout/errore) di entrambe le fonti degrada in modo trasparente senza bloccare l'app — verificato da un test\n- [ ] La dichiarazione \"dato non disponibile\" per i campi anagrafici nulli, già presente, è confermata invariata dal test di regressione\n\n---\n\n## Soluzione Tecnica\n\nUS-008 è una spec di verifica e trasparenza: l'infrastruttura a due fonti con fallback (`fetchWithFallback`, `morningStarAdapter`, `dataSource` nel frontend) è già completamente implementata dalle spec US-021 e US-022. Il deliverable di questa spec è un layer di test di regressione che certifica la conformità ai criteri di trasparenza come invariante non-rompibile.\n\n**Audit della copy del frontend:** Da analisi del codice in `client/src/pages/SecuritySearchPage.tsx`, i messaggi di esito risultano già conformi:\n- Sottotesto (riga 135): `\"Digita il codice ISIN e recupera i dati ufficiali dalla fonte disponibile\"` — source-neutral ✓\n- Nota sezione caricamento (riga 246): `\"dati ufficiali alla fonte\"` — source-neutral ✓\n- Messaggio errore 502 (riga 92): `\"La fonte ufficiale non è al momento raggiungibile\"` — source-neutral ✓\n- Riquadro vuoto \"non trovato\" (righe 284-298): cita `\"fonte ufficiale\"` senza nominare Borsa Italiana ✓\n- Attribution badge (riga 268): `<b>Borsa Italiana</b>` è intenzionale — mostra la provenienza del dato (funzionalità US-022, non un messaggio di esito) ✓\n\nNessuna modifica al codice applicativo è quindi necessaria. Il piano si concentra esclusivamente sull'aggiunta di test.\n\n**Componenti interessati:**\n- `server/tests/api.securities.test.ts` — aggiunta del caso \"entrambe le fonti in errore\" (unit/integration Vitest)\n- `e2e/US-008__trasparenza-dati.spec.ts` — nuovo file Playwright con tre scenari\n- `playwright.config.ts` — aggiornamento `outputDir` a `docs/test-results/US-008/`\n\n---\n\n## Strategia di Test\n\nLa spec richiede esclusivamente test — nessuna implementazione di codice applicativo.\n\n**Test unitari/integrazione (Vitest, `api.securities.test.ts`):**\n- Caso \"entrambe le fonti in errore\": `fetchSecurity` restituisce `error`, `fetchSecurityFallback` restituisce `error` → l'endpoint risponde 502 senza bloccare il processo.\n- Questo caso è assente dalla suite esistente e copre direttamente il criterio \"guasto di entrambe le fonti degrada in modo trasparente\".\n\n**Test e2e (Playwright, `e2e/US-008__trasparenza-dati.spec.ts`):**  \nTutte le chiamate `/api/securities/*` sono intercettate via `page.route()` — nessuna dipendenza da rete reale.\n\n### Test E2E — Simulazione Utente\n\n**Framework:** Playwright (già configurato)  \n**Video:** Solo scenario demo (scenario 1); gli altri due girano senza video.\n\n| Scenario | Descrizione del flusso utente |\n|---|---|\n| Demo (con video): ISIN assente su entrambe le fonti | L'utente naviga a /ricerca, inserisce un ISIN, l'API mock risponde 404; il timbro \"Dato non disponibile\" appare senza dati inventati, senza blocchi 502 |\n| Guasto di entrambe le fonti (502) | L'utente esegue una ricerca, l'API mock risponde 502; la pagina mostra il messaggio di errore source-neutral senza bloccare l'app |\n| Regressione campi anagrafici nulli | L'API mock risponde 200 con campi `null`; ogni campo mostra \"Dato non disponibile\" — nessun campo mostra un valore inventato o vuoto silenzioso |\n\n_Piano generato via ARchetipo Planning — 2026-06-28_"
+tasks:
+  - id: TASK-01
+    title: Aggiungere il caso 'entrambe le fonti in errore' a api.securities.test.ts
+    description: 'In `server/tests/api.securities.test.ts`, aggiungere un test `buildApp` con `result = { status: ''error'' }` e `fallbackResult = { status: ''error'' }` e verificare che l''endpoint risponda 502. Questo copre il criterio del guasto trasparente di entrambe le fonti.'
+    type: Test
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Creare e2e/US-008__trasparenza-dati.spec.ts con tre scenari Playwright
+    description: 'Nuovo file Playwright con: (1) scenario demo con video — ISIN assente su entrambe le fonti → timbro ''Dato non disponibile'' dopo fallback; (2) guasto 502 di entrambe le fonti → messaggio source-neutral senza blocco; (3) regressione campi anagrafici nulli → ogni campo mostra ''Dato non disponibile''. Tutti i test usano `page.route(''**/api/securities/**'', ...)` per intercettare le chiamate.'
+    type: Test
+    status: DONE
+    ref: TASK-02
+  - id: TASK-03
+    title: 'Aggiornare playwright.config.ts: outputDir → docs/test-results/US-008/'
+    description: 'Modificare `playwright.config.ts` impostando `outputDir: ''docs/test-results/US-008/''` in modo che il video del demo scenario sia salvato nella directory corretta per questa spec.'
+    type: Impl
+    status: DONE
+    ref: TASK-03
+  - id: TASK-04
+    title: 'Verifica finale: npm run check + npx playwright test passano'
+    description: Eseguire `npm run check` (lint + typecheck + Vitest) e `npx playwright test` per confermare che tutti i test passano, inclusi i nuovi, e che nessun test esistente è rotto.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+      - TASK-03
+    ref: TASK-04

@@ -6,7 +6,7 @@ epic:
   title: Ricerca titoli e dati di mercato
 priority: HIGH
 points: 1
-status: TODO
+status: REVIEW
 blocked_by:
   - US-007
   - US-022
@@ -33,3 +33,9 @@ body: |
 history:
   - status: TODO
     at: "2026-06-26T15:47:52Z"
+  - status: PLANNED
+    at: "2026-06-28T14:19:07Z"
+  - status: IN PROGRESS
+    at: "2026-06-28T14:19:45Z"
+  - status: REVIEW
+    at: "2026-06-28T14:34:14Z"

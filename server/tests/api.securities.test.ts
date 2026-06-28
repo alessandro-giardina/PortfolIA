@@ -280,3 +280,21 @@ describe('Fallback MorningStar', () => {
     expect(fetchSecurityFallback).toHaveBeenCalledTimes(1);
   });
 });
+
+// US-008: Trasparenza dei dati mancanti — guasto trasparente di entrambe le fonti
+describe('US-008 — guasto trasparente di entrambe le fonti', () => {
+  it('entrambe le fonti in errore (network) → 502 senza dati inventati', async () => {
+    const { fastify, fetchSecurity, fetchSecurityFallback } = await buildApp({
+      result: { status: 'error', reason: 'network' },
+      fallbackResult: { status: 'error', reason: 'network' },
+    });
+    const res = await fastify.inject({ method: 'GET', url: '/api/securities/IE00BJRHVJ28' });
+    expect(res.statusCode).toBe(502);
+    // Entrambe le fonti interrogate prima di restituire l'errore.
+    expect(fetchSecurity).toHaveBeenCalledTimes(1);
+    expect(fetchSecurityFallback).toHaveBeenCalledTimes(1);
+    // Nessun campo anagrafico inventato nella risposta.
+    const body = res.json<{ error: string }>();
+    expect(body).not.toHaveProperty('security');
+  });
+});

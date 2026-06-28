@@ -13,6 +13,13 @@
  */
 import { test, expect } from '@playwright/test';
 
+// Video e slow-mo applicati a tutti i test del file (demo e regressione).
+test.use({
+  video: 'on',
+  launchOptions: { slowMo: 300 },
+  viewport: { width: 1280, height: 720 },
+});
+
 // ─── Fixture ────────────────────────────────────────────────────────────────
 
 const ETF_MORNINGSTAR = {
@@ -35,47 +42,39 @@ const ETF_MORNINGSTAR = {
 
 // ─── TASK-05: Scenario demo — ISIN trovato su MorningStar (backup) ───────────
 
-test.describe('demo: ISIN trovato su MorningStar come fonte di backup', () => {
-  test.use({
-    video: 'on',
-    launchOptions: { slowMo: 300 },
-    viewport: { width: 1280, height: 720 },
-  });
-
-  test('demo: badge MorningStar (backup) visibile per ISIN non su Borsa Italiana', async ({ page }) => {
-    await page.route('**/api/securities/**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(ETF_MORNINGSTAR),
-      });
+test('demo: badge MorningStar (backup) visibile per ISIN non su Borsa Italiana', async ({ page }) => {
+  await page.route('**/api/securities/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(ETF_MORNINGSTAR),
     });
-
-    // Stato iniziale: dashboard del libro mastro.
-    await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Libro Mastro' })).toBeVisible({ timeout: 8000 });
-
-    // L'utente naviga alla Ricerca titoli.
-    await page.getByRole('link', { name: 'Ricerca titoli' }).click();
-    await expect(page).toHaveURL('/ricerca');
-    await expect(page.getByRole('heading', { name: /Cerca un titolo/ })).toBeVisible();
-
-    // Inserisce un ISIN che Borsa Italiana non conosce.
-    await page.getByLabel('Codice ISIN del titolo').fill('IE00BJRHVJ28');
-
-    // Avvia il recupero.
-    await page.getByRole('button', { name: 'Recupera anagrafica' }).click();
-
-    // I dati del titolo sono visibili (recuperati dal backup MorningStar).
-    await expect(page.getByText('Titolo trovato')).toBeVisible({ timeout: 8000 });
-    await expect(page.getByText('iShares MSCI EM IMI ESG Screened UCITS ETF').first()).toBeVisible();
-
-    // Il badge MorningStar (backup) è esplicitamente visibile.
-    await expect(page.getByText('MorningStar (backup)')).toBeVisible();
-
-    // Trattiene lo stato finale per la registrazione video.
-    await page.waitForTimeout(1500);
   });
+
+  // Stato iniziale: dashboard del libro mastro.
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Libro Mastro' })).toBeVisible({ timeout: 8000 });
+
+  // L'utente naviga alla Ricerca titoli.
+  await page.getByRole('link', { name: 'Ricerca titoli' }).click();
+  await expect(page).toHaveURL('/ricerca');
+  await expect(page.getByRole('heading', { name: /Cerca un titolo/ })).toBeVisible();
+
+  // Inserisce un ISIN che Borsa Italiana non conosce.
+  await page.getByLabel('Codice ISIN del titolo').fill('IE00BJRHVJ28');
+
+  // Avvia il recupero.
+  await page.getByRole('button', { name: 'Recupera anagrafica' }).click();
+
+  // I dati del titolo sono visibili (recuperati dal backup MorningStar).
+  await expect(page.getByText('Titolo trovato')).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText('iShares MSCI EM IMI ESG Screened UCITS ETF').first()).toBeVisible();
+
+  // Il badge MorningStar (backup) è esplicitamente visibile.
+  await expect(page.getByText('MorningStar (backup)')).toBeVisible();
+
+  // Trattiene lo stato finale per la registrazione video.
+  await page.waitForTimeout(1500);
 });
 
 // ─── TASK-06: Nessuna fonte disponibile → "Dato non disponibile" ─────────────
