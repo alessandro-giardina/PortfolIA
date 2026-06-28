@@ -65,6 +65,21 @@ describe('parseSecurity', () => {
     expect(info.currency).toBe('EUR');
   });
 
+  it('azione: prezzo letto dall\'intestazione di sintesi (-formatPrice), senza riga di tabella', () => {
+    // Layout reale delle schede azioni: il prezzo è solo nell'header, non in tabella.
+    const html =
+      '<h1>Brunello Cucinelli</h1>' +
+      '<div class="summary-value">' +
+      '<span class="t-text -black-warm-60 -formatPrice"><strong>81,92</strong></span>' +
+      '<span class="t-text -percPrice"><strong>+0,96%</strong></span>' +
+      '</div>' +
+      '<table><tr><th>Codice Alfanumerico</th><td>BC</td></tr></table>';
+    const info = parseSecurity(html, 'IT0004764699');
+    expect(info.name).toBe('Brunello Cucinelli');
+    expect(info.price).toBe(81.92);
+    expect(info.ticker).toBe('BC');
+  });
+
   it('prezzo con separatore delle migliaia in formato italiano', () => {
     const html = '<h1>Bond</h1><table><tr><th>Prezzo Ufficiale</th><td>1.234,55</td></tr></table>';
     const info = parseSecurity(html, 'IT0000000111');

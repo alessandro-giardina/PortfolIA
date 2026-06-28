@@ -41,8 +41,12 @@ export function parseSecurity(html: string, isin: string): SecurityInfo {
     cleanField(normText($('h1').first().text())) ??
     lookup(['denominazione', 'strumento', 'nome', 'descrizione']);
 
+  // Le schede azioni espongono il prezzo solo nell'intestazione di sintesi
+  // (`<span class="… -formatPrice"><strong>81,92</strong></span>`), senza righe
+  // di tabella; gli ETF lo hanno come riga etichettata. Si tenta nell'ordine.
   const priceRaw =
     cleanField(normText($('[data-price]').first().text())) ??
+    cleanField(normText($('.summary-value [class*="formatPrice"]').first().text())) ??
     lookup([
       'prezzo ufficiale',
       'prezzo di riferimento',

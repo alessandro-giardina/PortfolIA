@@ -49,6 +49,41 @@ describe('fetchSecurityByIsin', () => {
     }
   });
 
+  it('ignora i link auto-referenziali alla ricerca e segue la scheda (regressione US-007)', async () => {
+    // Riproduce la pagina reale di Borsa Italiana: diversi link a
+    // `searchengine/search.html` contenenti l'ISIN PRECEDONO nel DOM il link
+    // alla scheda. Sceglierli ri-scaricherebbe la ricerca (denominazione "Cerca").
+    const isin = 'IT0004764699';
+    const searchResults =
+      `<html><body>` +
+      `<a href="${BASE}/borsa/searchengine/search.html?q=${isin}">Cerca</a>` +
+      `<a href="/borsa/searchengine/quotes/search.html?q=${isin.toLowerCase()}&lang=it">Dati</a>` +
+      `<a href="/borsa/search/scheda.html?code=${isin}&mic=MTAA&lang=it">Brunello Cucinelli</a>` +
+      `</body></html>`;
+    const requested: string[] = [];
+    const fetchFn = vi.fn(async (url: string | URL) => {
+      const u = String(url);
+      requested.push(u);
+      if (u.includes('searchengine') && u.includes('search.html')) {
+        return htmlResponse(searchResults);
+      }
+      // La scheda restituisce un'anagrafica valida (riuso del fixture ETF).
+      return htmlResponse(fixture('etf-ishares.html'));
+    });
+
+    const result = await fetchSecurityByIsin(isin, {
+      fetchFn: fetchFn as unknown as typeof fetch,
+      baseUrl: BASE,
+    });
+
+    expect(result.status).toBe('found');
+    if (result.status === 'found') {
+      expect(result.security.name).toBe('iShares Core MSCI World UCITS ETF');
+    }
+    // La seconda richiesta deve puntare alla scheda, non di nuovo alla ricerca.
+    expect(requested[1]).toContain('/borsa/search/scheda.html');
+  });
+
   it('ricerca senza risultati → status not-found (una sola richiesta)', async () => {
     const fetchFn = vi.fn(async () => htmlResponse('<html><body>Nessun risultato</body></html>'));
     const result = await fetchSecurityByIsin('US0378331005', {

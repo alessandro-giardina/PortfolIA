@@ -59,25 +59,35 @@ async function httpGet(url: string, fetchFn: typeof fetch, timeoutMs: number): P
 
 /**
  * Dalla pagina dei risultati di ricerca estrae l'URL della scheda strumento.
- * Preferisce il link che contiene l'ISIN, poi un qualsiasi link a una "scheda".
+ *
+ * La pagina di ricerca contiene molti link auto-referenziali alla ricerca
+ * stessa (canonical, toggle lingua, tab) che includono l'ISIN e precedono nel
+ * DOM il link alla scheda: sceglierli porterebbe a ri-scaricare la pagina di
+ * ricerca (denominazione "Cerca", nessun dato). Per questo i link verso
+ * `searchengine/search` sono esclusi. Ordine di preferenza:
+ *   1. link a una "scheda" che contiene anche l'ISIN (caso ideale);
+ *   2. un qualsiasi link a una "scheda";
+ *   3. un link che contiene l'ISIN ma non punta alla ricerca.
  */
 function extractInstrumentUrl(searchHtml: string, baseUrl: string, isin: string): string | null {
   const $ = cheerio.load(searchHtml);
+  let schedaWithIsin: string | null = null;
+  let scheda: string | null = null;
   let withIsin: string | null = null;
-  let withScheda: string | null = null;
+
+  const isSelfSearch = (href: string): boolean => /searchengine\/[^/]*search\.html/i.test(href);
 
   $('a[href]').each((_, a) => {
     const href = $(a).attr('href');
-    if (!href) return;
-    if (!withIsin && href.toUpperCase().includes(isin)) {
-      withIsin = href;
-    }
-    if (!withScheda && /scheda/i.test(href)) {
-      withScheda = href;
-    }
+    if (!href || isSelfSearch(href)) return;
+    const hasIsin = href.toUpperCase().includes(isin);
+    const hasScheda = /scheda/i.test(href);
+    if (hasScheda && hasIsin && !schedaWithIsin) schedaWithIsin = href;
+    if (hasScheda && !scheda) scheda = href;
+    if (hasIsin && !withIsin) withIsin = href;
   });
 
-  const chosen = withIsin ?? withScheda;
+  const chosen = schedaWithIsin ?? scheda ?? withIsin;
   if (!chosen) return null;
   try {
     return new URL(chosen, baseUrl).toString();
