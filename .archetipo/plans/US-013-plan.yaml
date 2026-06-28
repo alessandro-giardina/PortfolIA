@@ -1,0 +1,57 @@
+schema: archetipo/plan/v2
+spec_code: US-013
+body: "# US-013: Modificare o rimuovere una posizione/carico — Piano di Implementazione\n\n**Generato da:** ARchetipo Planning Team  \n**Data:** 2026-06-28\n\n---\n\n## Spec\n\n**Epic:** EP-003 — Gestione delle posizioni  \n**Priorità:** MEDIUM | **Punti:** 2\n\n**User Story**  \nCome Alessandro, investitore-proprietario,  \nvoglio modificare o rimuovere un carico inserito,  \nin modo da correggere errori e mantenere accurati i dati del portafoglio (FR-009).\n\n**Criteri di Accettazione**\n- L'utente può modificare data, prezzo o quantità di un carico esistente\n- L'utente può rimuovere un carico previa conferma\n- Quantità totale e prezzo medio di carico si aggiornano coerentemente dopo modifica/rimozione\n\n---\n\n## Soluzione Tecnica\n\nL'implementazione estende la risorsa REST `positions` con due nuovi endpoint (PATCH e DELETE) sul singolo carico, senza alcuna migrazione del database — la tabella `positions` è già completa. Il frontend aggiunge azioni inline nella tabella \"Registro carichi\" già presente in `PortfolioDetailPage`, riciclando i pattern di fetch/aggiornamento già stabiliti da US-011 e US-012.\n\n### Backend — Nuovi endpoint\n\n- **`PATCH /api/portfolios/:portfolioId/positions/:positionId`**: aggiornamento parziale del carico. Accetta un body con i soli campi da modificare (`load_date?`, `load_price?`, `quantity?`). Validazione identica a POST per ogni campo presente. Restituisce la `Position` aggiornata (200) o 404 se il carico non esiste nel portafoglio indicato. Implementato in `server/src/api/positions.ts` con Drizzle `.update().set({...}).where(...)`.\n- **`DELETE /api/portfolios/:portfolioId/positions/:positionId`**: cancellazione del singolo carico. Restituisce 204 No Content. 404 se il carico non esiste o appartiene a un altro portafoglio.\n\n### Tipi condivisi\n\n- Aggiungere `UpdatePositionRequest` in `shared/types/index.ts`: `{ load_date?: string; load_price?: number; quantity?: number; }` con almeno un campo obbligatorio (validazione backend).\n\n### Frontend — Azioni inline\n\n- Aggiungere colonna \"Azioni\" alla tabella \"Registro carichi\" in `PortfolioDetailPage`.\n- Bottone **Modifica**: apre un form inline sulla riga (o un componente `EditPositionForm` separato) precompilato con i valori correnti; al submit chiama PATCH e ri-fetcha `positions` + `summary`.\n- Bottone **Rimuovi**: mostra `window.confirm` (\"Rimuovere questo carico? L'operazione è irreversibile.\"); in caso affermativo chiama DELETE e ri-fetcha entrambe le liste.\n- Gli errori di risposta API vengono mostrati inline sulla riga.\n- Dopo ogni operazione, il summary aggregato per ISIN si aggiorna automaticamente (ri-fetch di `/positions/summary`).\n\n---\n\n## Strategia di Test\n\nI test di integrazione coprono tutti i casi di validazione e di business logic per PATCH e DELETE; l'E2E demo copre il flusso completo visibile all'utente.\n\n- Test integration per PATCH: 200 modifica valida (ogni campo singolo + combinati), 400 body vuoto, 400 campo invalido, 404 position non trovata, 404 portafoglio non trovato\n- Test integration per DELETE: 204 cancellazione ok, 404 position non trovata, 404 portafoglio non trovato, 404 position di altro portafoglio\n- Verifica aggregazione: dopo PATCH/DELETE il GET summary restituisce valori coerenti\n- Test integration nei file esistenti `server/tests/api.positions.test.ts` e `server/tests/api.positions.summary.test.ts` (o nuovo file `api.positions.edit.test.ts` per chiarezza)\n\n### Test E2E — Simulazione utente\n\n**Framework:** Playwright (già configurato in `playwright.config.ts`)  \n**Registrazione video:** solo scenario demo (campo `Dimostra` della spec)  \n**Video salvato in:** `docs/test-results/US-013/`\n\n| Scenario | Descrizione del flusso utente |\n|---|---|\n| **demo (con video)** | Apri portafoglio → scheda Carico titoli → inserisci due carichi dello stesso ISIN → clicca Modifica sul primo → cambia prezzo e quantità → salva → verifica che il summary si aggiorni (quantità totale e prezzo medio) → clicca Rimuovi sul secondo → conferma → verifica che la riga scompaia e il summary si aggiorni |\n| **modifica validazione** | Apri form modifica → svuota prezzo (= 0) → salva → verifica messaggio errore inline |\n| **rimozione annullata** | Clicca Rimuovi → annulla il confirm → verifica che la riga rimanga visibile |\n| **persistenza dopo riavvio** | Modifica un carico → ricarica la pagina → verifica che i dati modificati siano ancora presenti |\n\n---\n\n_Piano generato via ARchetipo Planning — 2026-06-28_"
+tasks:
+  - id: TASK-01
+    title: Aggiungere UpdatePositionRequest ai tipi condivisi
+    description: In `shared/types/index.ts` aggiungere l'interfaccia `UpdatePositionRequest` con i campi opzionali `load_date?`, `load_price?`, `quantity?`. Ricostruire il pacchetto shared (`npm run build` nella cartella shared) per aggiornare i tipi distribuiti.
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Implementare PATCH /api/portfolios/:portfolioId/positions/:positionId
+    description: In `server/src/api/positions.ts` aggiungere la route PATCH. Validare ogni campo presente nel body con la stessa logica di POST (ISO date, prezzo positivo, quantità intera positiva). Verificare che il carico esista e appartenga al portafoglio. Usare Drizzle `.update().set({...}).where(...)` per l'aggiornamento parziale. Restituire la Position aggiornata (200) o 404.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Implementare DELETE /api/portfolios/:portfolioId/positions/:positionId
+    description: In `server/src/api/positions.ts` aggiungere la route DELETE. Verificare che il carico esista e appartenga al portafoglio specificato. Eliminare la riga con Drizzle. Restituire 204 No Content o 404.
+    type: Impl
+    status: DONE
+    ref: TASK-03
+  - id: TASK-04
+    title: Test integration PATCH positions
+    description: 'In `server/tests/api.positions.edit.test.ts` (nuovo file) scrivere i test per PATCH: 200 con modifica di ciascun campo singolo, 200 con più campi insieme, 400 body vuoto, 400 prezzo non positivo, 400 quantità decimale, 404 position non trovata, 404 portafoglio non trovato. Verificare che il GET summary restituisca valori aggiornati dopo PATCH.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-04
+  - id: TASK-05
+    title: Test integration DELETE positions
+    description: 'Nello stesso file `api.positions.edit.test.ts` aggiungere i test per DELETE: 204 cancellazione ok, 404 position non trovata, 404 portafoglio non trovato, 404 position di un altro portafoglio. Verificare che dopo DELETE il GET summary escluda la posizione rimossa.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+    ref: TASK-05
+  - id: TASK-06
+    title: Aggiungere azioni inline Modifica/Rimuovi al Registro carichi
+    description: 'In `client/src/pages/PortfolioDetailPage.tsx` aggiungere una colonna Azioni alla tabella tabella-registro-carichi. Bottone Rimuovi: chiama `window.confirm` poi DELETE, poi ri-fetcha positions e summary. Bottone Modifica: apre form inline sulla riga (state `editingPositionId`) precompilato con i valori correnti; al submit chiama PATCH, chiude il form, ri-fetcha. Gli errori API si mostrano inline sulla riga con attributo `data-testid`.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+      - TASK-03
+    ref: TASK-06
+  - id: TASK-07
+    title: 'Test E2E US-013: modifica e rimozione carico'
+    description: 'Creare `e2e/US-013__modifica-rimuovi-posizione.spec.ts`. Scenario demo (con video, salvato in `docs/test-results/US-013/`): inserisci due carichi → modifica il primo → verifica summary aggiornato → rimuovi il secondo → verifica scomparsa. Scenari aggiuntivi (senza video): validazione form modifica, annullamento confirm rimozione, persistenza dati modificati dopo ricarica.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-06
+    ref: TASK-07
