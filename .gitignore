@@ -4,3 +4,6 @@ data/
 
 # Claude Code personal settings (hook locale)
 .claude/settings.local.json
+
+# TypeScript incremental build info (generated)
+*.tsbuildinfo
