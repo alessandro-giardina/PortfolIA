@@ -1,0 +1,59 @@
+schema: archetipo/plan/v2
+spec_code: US-011
+body: "# US-011: Aggiungere un titolo a un portafoglio con un carico — Piano di Implementazione\n\n**Generato da:** ARchetipo Planning Team\n**Data:** 2026-06-28\n\n---\n\n## Spec\n\n**Epic:** EP-003 — Gestione delle posizioni\n**Priorità:** HIGH | **Punti:** 3\n\n**User Story**\nCome Alessandro, investitore-proprietario,\nvoglio aggiungere un titolo a un portafoglio indicando data di carico, prezzo di acquisto e quantità,\nin modo da registrare le mie posizioni e poterne seguire il rendimento (FR-007).\n\n**Criteri di Accettazione**\n- [ ] L'utente può aggiungere a un portafoglio un titolo specificando ISIN, data di carico, prezzo di acquisto e quantità\n- [ ] Valori non validi (quantità o prezzo non positivi, data assente) sono rifiutati con messaggio chiaro\n- [ ] La posizione aggiunta è persistita ed è visibile nel portafoglio dopo il riavvio\n\n---\n\n## Soluzione Tecnica\n\nIntroduciamo la tabella `positions` nel database SQLite e un endpoint `POST /api/portfolios/:id/positions` con validazione autoritativa backend, poi aggiorniamo la `PortfolioDetailPage` con il form di carico titolo e la tabella delle posizioni iscritte — riusando integralmente il componente `Foglio` e lo stile libro mastro.\n\n- **Schema DB e migrazione** (`server/src/db/schema.ts` + nuova migrazione Drizzle): nuova tabella `positions` con campi `id` (PK autoincrement), `portfolio_id` (FK su `portfolios.id` con ON DELETE CASCADE), `isin` (TEXT NOT NULL, normalizzato maiuscolo), `load_date` (TEXT NOT NULL, formato ISO-8601 `YYYY-MM-DD`), `load_price` (REAL NOT NULL, >0), `quantity` (INTEGER NOT NULL, >0), `created_at` (INTEGER, unixepoch). Nessuna FK verso `securities`: l'ISIN viene salvato direttamente senza richiedere la presenza in cache (la ricerca anagrafica è separata e la posizione può essere inserita anche se il titolo non è ancora in cache). Tipo condiviso `Position` aggiunto in `shared/types/index.ts`.\n- **Endpoint backend** (`server/src/api/positions.ts`, registrato in `server/src/index.ts`): `POST /api/portfolios/:id/positions` riceve body `{ isin, load_date, load_price, quantity }`. Validazione autoritativa: portafoglio esistente (404 se non trovato), ISIN valido tramite `isValidIsin` da shared (400 su formato non valido), `load_date` presente e formato `YYYY-MM-DD` (400 su assenza o formato errato), `load_price` numero positivo (400 su ≤0 o NaN), `quantity` intero positivo (400 su ≤0 o non intero). Risposta 201 con la posizione creata. L'ISIN viene normalizzato (`normalizeIsin`) prima del salvataggio. `GET /api/portfolios/:id/positions` per listare le posizioni del portafoglio (usato dal frontend dopo il submit).\n- **Tipi condivisi** (`shared/types/index.ts`): aggiungere `Position` (`{ id, portfolioId, isin, loadDate, loadPrice, quantity, createdAt }`), `CreatePositionRequest` (`{ isin, load_date, load_price, quantity }`) e `PositionValidationError` per i messaggi d'errore strutturati.\n- **Frontend** (`client/src/pages/PortfolioDetailPage.tsx`): attivare la linguetta \"Carico titoli\" (attualmente disabilitata); aggiungere due sezioni alla pagina di dettaglio portafoglio: (1) form di iscrizione carico con campi ISIN, data di carico, prezzo di acquisto (€) e quantità seguendo i mockup in `docs/mockups/US-011/`; gestione degli errori di validazione inline per ogni campo; (2) tabella delle posizioni iscritte (ISIN, quantità, prezzo medio di carico) aggiornata dopo ogni submit riuscito. Il form segue le convenzioni libro mastro già usate in `SecuritySearchPage.tsx` e `PortfolioDetailPage.tsx` (classi `form-gestione`, `riga-modulo`, `campo`, `errore-campo`).\n- **Out of scope:** calcolo del prezzo medio su carichi multipli (FR-008), modifica/eliminazione posizioni (FR-009), visualizzazione del valore attuale e P&L (dipende dalle user story di riepilogo).\n\n---\n\n## Strategia di Test\n\nIl rischio principale è la validazione backend (edge case su tipi numerici e formato data) e la persistenza; i test di integrazione coprono tutti i percorsi di errore; l'E2E verifica il flusso utente end-to-end con intercettazione di rete.\n\n- **Unit (Vitest)** sui tipi condivisi e sulla validazione ISIN: nessuna nuova logica pura aggiunta, riuso della funzione già testata in `isin.test.ts`.\n- **Integration (Vitest)** sull'endpoint `POST /api/portfolios/:id/positions` con DB in-memory: 201 su carico valido (verifica dati persistiti), 404 su portafoglio non trovato, 400 su ISIN malformato, 400 su `load_date` assente o formato errato, 400 su `load_price` ≤0 o non numerico, 400 su `quantity` ≤0 o non intero. File: `server/tests/api.positions.test.ts`.\n- **Integration (Vitest)** su `GET /api/portfolios/:id/positions`: lista vuota per portafoglio senza posizioni, lista con posizioni dopo un POST. Aggiunto nello stesso file.\n\n### Test E2E — Simulazione Utente\n\n**Framework:** Playwright (config `playwright.config.ts` già presente; artefatti in `docs/test-results/US-011/`)\n**Registrazione video:** Solo scenario demo; salvato in `docs/test-results/US-011/`\n\nLe chiamate verso `/api/portfolios/:id/positions` e `/api/portfolios/:id` sono intercettate a livello di rete (route fulfillment) per determinismo; nessuna dipendenza da DB reale nell'E2E.\n\n| Scenario | Descrizione del flusso utente |\n|---|---|\n| Iscrizione carico (demo, video) | L'utente apre la pagina di un portafoglio, compila il form carico titolo (ISIN, data, prezzo, quantità), preme \"Iscrive nel registro\" e vede la posizione comparire nella tabella delle posizioni iscritte |\n| Validazione errori | L'utente lascia il prezzo a zero e la data vuota, preme il pulsante di submit e vede i messaggi di errore inline chiari per ciascun campo non valido |\n| Persistenza | L'utente inserisce un carico, poi ricarica la pagina (simulata via re-fetch dell'API) e la posizione è ancora visibile nella tabella |\n\n---\n\n> \U0001F3A8 I mockup per questa spec sono disponibili in `docs/mockups/US-011/`\n\n_Piano generato tramite ARchetipo Planning — 2026-06-28_"
+tasks:
+  - id: TASK-01
+    title: Aggiungere tipo Position e CreatePositionRequest ai tipi condivisi
+    description: In `shared/types/index.ts` aggiungere l'interfaccia `Position` ({ id, portfolioId, isin, loadDate, loadPrice, quantity, createdAt }) e `CreatePositionRequest` ({ isin, load_date, load_price, quantity }). Questi tipi saranno usati end-to-end da endpoint backend e pagina React.
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Aggiungere tabella positions allo schema Drizzle e generare la migrazione
+    description: In `server/src/db/schema.ts` aggiungere la tabella `positions` con FK su `portfolios.id` (ON DELETE CASCADE), colonne isin TEXT, load_date TEXT (ISO-8601), load_price REAL, quantity INTEGER, created_at INTEGER. Generare la migrazione corrispondente con `drizzle-kit generate`.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Implementare POST /api/portfolios/:id/positions con validazione completa
+    description: 'Creare `server/src/api/positions.ts` con la route `POST /api/portfolios/:id/positions`. Validazione: portafoglio esistente (404), ISIN via `isValidIsin` (400), load_date presente e formato YYYY-MM-DD (400), load_price numero >0 (400), quantity intero >0 (400). Risposta 201 con la posizione creata. L''ISIN è normalizzato prima del salvataggio.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-03
+  - id: TASK-04
+    title: Implementare GET /api/portfolios/:id/positions per listare le posizioni
+    description: Nello stesso file `server/src/api/positions.ts` aggiungere la route `GET /api/portfolios/:id/positions` che restituisce tutte le posizioni del portafoglio ordinate per `created_at` DESC. 404 se il portafoglio non esiste, 200 con array (eventualmente vuoto). Registrare entrambe le route in `server/src/index.ts`.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-04
+  - id: TASK-05
+    title: Integration test POST e GET /api/portfolios/:id/positions
+    description: 'Creare `server/tests/api.positions.test.ts` con DB in-memory. Test per POST: 201 carico valido (dati persistiti), 404 portafoglio non trovato, 400 ISIN malformato, 400 load_date assente o formato errato, 400 load_price <=0 o non numerico, 400 quantity <=0 o non intero. Test per GET: lista vuota, lista con posizioni dopo POST.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+      - TASK-04
+    ref: TASK-05
+  - id: TASK-06
+    title: Aggiornare PortfolioDetailPage con form carico titolo e tabella posizioni
+    description: 'In `client/src/pages/PortfolioDetailPage.tsx`: attivare la linguetta ''Carico titoli''; aggiungere il form di iscrizione carico (ISIN, data, prezzo, quantità) con gestione errori inline seguendo i mockup in `docs/mockups/US-011/` e le convenzioni libro mastro esistenti; aggiungere la tabella delle posizioni iscritte (ISIN, quantità, prezzo di carico) popolata tramite GET /api/portfolios/:id/positions, aggiornata dopo ogni submit riuscito.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-04
+    ref: TASK-06
+  - id: TASK-07
+    title: E2E Playwright del flusso carico titolo (demo + validazione + persistenza)
+    description: 'Creare `e2e/US-011__aggiungi-posizione.spec.ts` con intercettazione di rete. Scenario demo (con video in docs/test-results/US-011/): apri portafoglio → compila form → submit → posizione compare in tabella. Scenario validazione: prezzo zero e data vuota → messaggi errore inline. Scenario persistenza: inserisci carico → ricarica pagina (re-fetch API) → posizione ancora visibile.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-06
+    ref: TASK-07

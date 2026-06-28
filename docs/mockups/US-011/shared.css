@@ -1,0 +1,567 @@
+/* ============================================================
+   PortfolIA — US-011: Aggiungere un titolo a un portafoglio
+   Stile: libro mastro contabile, anni Trenta.
+   Coerente con ledger.css + mockup US-005, US-007.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@600;700;900&display=swap');
+
+:root {
+  /* Carta e supporti */
+  --carta:        #f1e7cf;
+  --carta-chiara: #f7efda;
+  --carta-scura:  #e7d9b8;
+  --verde-mastro: #2c3a2c;
+  --verde-panno:  #38492f;
+  --verde-tenue:  #d7ddc4;
+
+  /* Inchiostri */
+  --inchiostro:   #221c14;
+  --inchiostro-2: #3b3120;
+  --seppia:       #6e5a36;
+  --rosso-margine:#9e2b25;
+  --rosso-vivo:   #b8362c;
+  --carminio:     #8d231f;
+  --blu-riga:     #8a9bb0;
+  --ottone:       #9c7d34;
+  --ottone-chiaro:#d9bf78;
+  --verde-attivo: #2f6b3a;
+  --rosso-perdita:#9e2b25;
+
+  --ombra-pagina: 0 22px 50px -20px rgba(34,28,20,.55);
+  --filetto:      1.5px solid var(--inchiostro);
+  --filetto-fine: 1px solid rgba(34,28,20,.32);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  margin: 0;
+  font-family: 'IM Fell English', Georgia, serif;
+  color: var(--inchiostro);
+  font-size: 17px;
+  line-height: 1.5;
+  background-color: #3a4438;
+  background-image:
+    radial-gradient(circle at 50% -10%, #4a5645 0%, #313a30 60%, #232a23 100%);
+  min-height: 100vh;
+  padding: 32px 18px 80px;
+}
+
+/* ---------- Foglio ---------- */
+.foglio {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+  background-color: var(--carta);
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(110,90,54,.10), transparent 22%),
+    radial-gradient(circle at 88% 78%, rgba(110,90,54,.12), transparent 26%),
+    radial-gradient(circle at 70% 8%,  rgba(158,43,37,.05), transparent 16%),
+    repeating-linear-gradient(0deg, rgba(34,28,20,.014) 0 2px, transparent 2px 4px);
+  box-shadow: var(--ombra-pagina);
+  border: 1px solid #c9b78e;
+  overflow: hidden;
+}
+
+/* rigatura orizzontale */
+.foglio::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0 33px,
+    rgba(138,155,176,.28) 33px 34px
+  );
+  mix-blend-mode: multiply;
+  opacity: .5;
+  z-index: 0;
+}
+
+/* margine rosso a sinistra */
+.foglio::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 64px;
+  width: 0;
+  border-left: 1.5px solid var(--rosso-margine);
+  box-shadow: 2px 0 0 -1px rgba(158,43,37,.35);
+  z-index: 1;
+}
+
+.foglio > * { position: relative; z-index: 2; }
+
+/* ---------- Testata ---------- */
+.testata {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 30px 40px 18px 90px;
+  border-bottom: 3px double var(--inchiostro);
+  background: linear-gradient(180deg, rgba(56,73,47,.06), transparent);
+}
+
+.marchio {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 13px;
+  letter-spacing: .32em;
+  color: var(--seppia);
+  text-transform: uppercase;
+  margin: 0 0 4px;
+}
+
+.testata h1 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(30px, 5vw, 52px);
+  line-height: .98;
+  margin: 0;
+  letter-spacing: .01em;
+  color: var(--inchiostro);
+}
+.testata h1 .corsivo {
+  font-style: italic;
+  font-weight: 700;
+  color: var(--carminio);
+}
+
+.testata .sottotesto {
+  font-style: italic;
+  color: var(--seppia);
+  margin: 6px 0 0;
+  font-size: 15px;
+}
+
+.colonna-registro {
+  text-align: right;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  color: var(--inchiostro-2);
+  line-height: 1.7;
+  white-space: nowrap;
+}
+.colonna-registro b { letter-spacing: .04em; }
+
+/* ---------- Linguette ---------- */
+.linguette {
+  display: flex;
+  gap: 0;
+  padding: 0 40px 0 90px;
+  margin-top: -1px;
+  border-bottom: var(--filetto);
+  background: linear-gradient(180deg, transparent, rgba(34,28,20,.03));
+}
+.linguette a {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 13px;
+  text-decoration: none;
+  color: var(--seppia);
+  padding: 12px 20px 10px;
+  border: var(--filetto-fine);
+  border-bottom: none;
+  margin-right: 6px;
+  background: var(--carta-scura);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  top: 1px;
+  transition: background .15s, color .15s;
+}
+.linguette a:hover { color: var(--inchiostro); background: var(--carta-chiara); }
+.linguette a.attiva {
+  color: var(--inchiostro);
+  background: var(--carta);
+  border-bottom: 2px solid var(--carta);
+  box-shadow: 0 -2px 0 var(--rosso-margine);
+  font-weight: 700;
+}
+.linguette a.disabilitata { pointer-events: none; opacity: .4; }
+
+/* ---------- Corpo ---------- */
+.corpo { padding: 26px 40px 48px 90px; }
+
+/* ---------- Intestazione sezione ---------- */
+.sezione-titolo {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  font-size: 14px;
+  color: var(--inchiostro);
+  margin: 34px 0 14px;
+  padding-bottom: 6px;
+  border-bottom: var(--filetto);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sezione-titolo:first-child { margin-top: 6px; }
+.sezione-titolo .nota {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  color: var(--seppia);
+}
+
+/* ---------- Riquadro modulo ---------- */
+.riquadro-modulo {
+  border: 2px solid var(--inchiostro);
+  background: rgba(247,239,218,.55);
+}
+.riquadro-modulo .intestazione-modulo {
+  padding: 12px 18px;
+  background: var(--verde-mastro);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.riquadro-modulo .intestazione-modulo span {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 12.5px;
+  color: var(--carta-chiara);
+}
+.riquadro-modulo .intestazione-modulo .num-modulo {
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  color: rgba(241,231,207,.65);
+  letter-spacing: .05em;
+}
+.riquadro-modulo .corpo-modulo { padding: 18px 22px 22px; }
+
+/* ---------- Righe del modulo a due colonne ---------- */
+.riga-modulo {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  border-bottom: 1px solid rgba(138,155,176,.6);
+}
+.riga-modulo:last-of-type { border-bottom: none; }
+.riga-modulo label {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: 12.5px;
+  color: var(--inchiostro);
+  background: var(--verde-tenue);
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  border-right: 1px solid rgba(34,28,20,.22);
+}
+.riga-modulo label .sotto-etichetta {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11.5px;
+  color: var(--seppia);
+}
+
+.campo {
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.campo input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: 'Courier Prime', monospace;
+  font-size: 16px;
+  color: var(--inchiostro);
+  padding: 6px 2px;
+  border-bottom: 1.5px dotted rgba(34,28,20,.45);
+  min-width: 0;
+}
+.campo input:focus {
+  outline: none;
+  border-bottom-color: var(--rosso-margine);
+  background: rgba(156,125,52,.08);
+}
+.campo input::placeholder { color: rgba(110,90,54,.6); font-style: italic; }
+.campo input:disabled { opacity: .55; cursor: not-allowed; }
+
+/* prefisso unità (€ , qty) */
+.campo .unita {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 13px;
+  letter-spacing: .06em;
+  color: var(--seppia);
+  flex-shrink: 0;
+}
+
+/* errore campo */
+.errore-campo {
+  display: none;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--carminio);
+  width: 100%;
+  margin-top: 4px;
+  padding-left: 2px;
+}
+.errore-campo::before { content: "✗ "; font-style: normal; font-size: 11px; }
+.errore-campo.visibile { display: block; }
+.campo.con-errore input {
+  border-bottom: 2px solid var(--carminio);
+  background: rgba(141,35,31,.05);
+}
+.riga-modulo.con-errore { background: rgba(141,35,31,.04); }
+
+.nota-contabile {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  color: var(--seppia);
+  font-size: 13px;
+  margin-top: 16px;
+  border-top: 1px dotted rgba(110,90,54,.4);
+  padding-top: 12px;
+}
+
+/* ---------- Pulsanti ---------- */
+.bottoni { display: flex; gap: 14px; margin-top: 22px; flex-wrap: wrap; align-items: center; }
+.bottone {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 14px;
+  padding: 12px 26px;
+  border: 2px solid var(--inchiostro);
+  background: var(--verde-mastro);
+  color: var(--carta-chiara);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 3px 3px 0 rgba(34,28,20,.25);
+  transition: transform .12s, box-shadow .12s;
+}
+.bottone:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 rgba(34,28,20,.3); }
+.bottone:active { transform: translate(2px,2px); box-shadow: 0 0 0 rgba(34,28,20,.3); }
+.bottone:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 rgba(34,28,20,.25); }
+.bottone.secondario {
+  background: var(--carta-chiara);
+  color: var(--inchiostro);
+}
+.bottone.rosso { background: var(--carminio); }
+
+/* ---------- Avviso successo (flash banner) ---------- */
+.avviso-successo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 2px solid var(--verde-attivo);
+  background: rgba(47,107,58,.07);
+  padding: 14px 18px;
+  margin-bottom: 24px;
+}
+.avviso-successo .timbro-ok {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 2px solid var(--verde-attivo);
+  color: var(--verde-attivo);
+  border-radius: 3px;
+  transform: rotate(1deg);
+  background: rgba(47,107,58,.05);
+  flex-shrink: 0;
+}
+.avviso-successo p {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--inchiostro);
+  margin: 0;
+}
+.avviso-successo p b {
+  font-style: normal;
+  font-family: 'Courier Prime', monospace;
+  letter-spacing: .04em;
+}
+
+/* ---------- Tabella mastro (posizioni in portafoglio) ---------- */
+.tabella-scroll { overflow-x: auto; }
+
+.mastro {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Courier Prime', monospace;
+  font-size: 14px;
+  background: rgba(247,239,218,.4);
+  border: 2px solid var(--inchiostro);
+}
+.mastro thead th {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--carta-chiara);
+  background: var(--verde-mastro);
+  padding: 9px 12px;
+  text-align: right;
+  border-left: 1px solid rgba(247,239,218,.22);
+  border-bottom: 2px solid var(--inchiostro);
+  white-space: nowrap;
+}
+.mastro thead th:first-child { text-align: left; }
+
+.mastro tbody td {
+  padding: 11px 12px;
+  text-align: right;
+  border-left: 1px solid rgba(34,28,20,.18);
+  border-bottom: 1px solid rgba(138,155,176,.5);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.mastro tbody td:first-child { text-align: left; }
+.mastro tbody tr:nth-child(even) { background: rgba(215,221,196,.42); }
+
+/* riga appena iscritta — evidenza contabile (ottone) */
+.mastro tbody tr.riga-nuova {
+  background: rgba(156,125,52,.14);
+  animation: sottolineatura-nuova 2.5s ease-out forwards;
+}
+@keyframes sottolineatura-nuova {
+  0%   { background: rgba(156,125,52,.32); }
+  100% { background: rgba(156,125,52,.14); }
+}
+.mastro tbody tr.riga-nuova td:first-child {
+  border-left: 3px solid var(--ottone);
+}
+
+.mastro .voce {
+  font-family: 'IM Fell English', serif;
+  font-size: 16px;
+  color: var(--inchiostro);
+}
+.mastro .voce small {
+  display: block;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  color: var(--seppia);
+  letter-spacing: .05em;
+}
+
+.mastro tfoot td {
+  font-family: 'IM Fell English SC', serif;
+  letter-spacing: .06em;
+  background: var(--verde-tenue);
+  border-top: 3px double var(--inchiostro);
+  padding: 12px;
+  text-align: right;
+  font-size: 14px;
+}
+.mastro tfoot td:first-child { text-align: left; text-transform: uppercase; }
+
+/* stato vuoto tabella */
+.mastro .riga-vuota td {
+  padding: 48px 12px;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  color: var(--seppia);
+  text-align: center;
+  background: repeating-linear-gradient(45deg, transparent 0 8px, rgba(158,43,37,.04) 8px 16px);
+}
+
+/* numeri */
+.cifra { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.euro::before { content: "€\00a0"; color: var(--seppia); }
+.guadagno { color: var(--verde-attivo); font-weight: 700; }
+.perdita  { color: var(--rosso-perdita); font-weight: 700; }
+.guadagno::before { content: "▲\00a0"; font-size: .8em; }
+.perdita::before  { content: "▼\00a0"; font-size: .8em; }
+
+/* ---------- Timbri ---------- */
+.timbro {
+  display: inline-block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 2px solid var(--rosso-vivo);
+  color: var(--rosso-vivo);
+  border-radius: 3px;
+  transform: rotate(-4deg);
+  opacity: .82;
+  background: rgba(184,54,44,.05);
+  box-shadow: inset 0 0 0 1px rgba(184,54,44,.25);
+}
+.timbro.verde {
+  border-color: var(--verde-attivo);
+  color: var(--verde-attivo);
+  background: rgba(47,107,58,.05);
+  box-shadow: inset 0 0 0 1px rgba(47,107,58,.25);
+  transform: rotate(1deg);
+}
+
+/* ---------- Messaggi globali ---------- */
+.messaggio {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 15px;
+  margin: 16px 0;
+}
+.messaggio.errore { color: var(--carminio); }
+.messaggio.attesa { color: var(--seppia); }
+
+/* ---------- Piè di pagina ---------- */
+.pie {
+  padding: 18px 40px 26px 90px;
+  border-top: 3px double var(--inchiostro);
+  font-family: 'Courier Prime', monospace;
+  font-size: 11.5px;
+  color: var(--seppia);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pie .firma { font-family: 'IM Fell English', serif; font-style: italic; font-size: 14px; }
+
+/* ---------- Navigazione mockup ---------- */
+.nav-mockup {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px dotted rgba(110,90,54,.4);
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  letter-spacing: .12em;
+  color: var(--seppia);
+  text-transform: uppercase;
+}
+.nav-mockup a {
+  color: var(--rosso-margine);
+  text-decoration: none;
+  margin: 0 10px;
+}
+.nav-mockup a:hover { text-decoration: underline; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 760px) {
+  body { padding: 14px 6px 50px; }
+  .foglio::before { left: 30px; }
+  .testata, .linguette, .pie { padding-left: 44px; }
+  .corpo { padding-left: 44px; padding-right: 20px; }
+  .testata { flex-direction: column; align-items: flex-start; }
+  .colonna-registro { text-align: left; }
+  .riga-modulo { grid-template-columns: 1fr; }
+  .riga-modulo label { border-right: none; border-bottom: 1px solid rgba(34,28,20,.2); }
+}

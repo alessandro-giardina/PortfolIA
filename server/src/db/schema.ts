@@ -35,3 +35,24 @@ export const securities = sqliteTable('securities', {
 });
 
 export type SecurityRow = typeof securities.$inferSelect;
+
+/**
+ * Posizioni (carichi titolo) all'interno di un portafoglio.
+ * `load_date` è in formato TEXT ISO-8601 (YYYY-MM-DD).
+ * FK su portfolios.id con ON DELETE CASCADE.
+ */
+export const positions = sqliteTable('positions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  portfolio_id: integer('portfolio_id')
+    .notNull()
+    .references(() => portfolios.id, { onDelete: 'cascade' }),
+  isin: text('isin').notNull(),
+  load_date: text('load_date').notNull(),
+  load_price: real('load_price').notNull(),
+  quantity: integer('quantity').notNull(),
+  created_at: integer('created_at')
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export type PositionRow = typeof positions.$inferSelect;

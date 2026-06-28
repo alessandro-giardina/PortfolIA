@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Carico titolo (US-011)</title>
+  <meta name="description" content="Mockup US-011: form per aggiungere un titolo a un portafoglio con ISIN, data di carico, prezzo e quantità.">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* Divisore a doppia riga tra le due sezioni principali */
+    .divisore-sezione {
+      border: none;
+      border-top: 3px double var(--inchiostro);
+      margin: 40px 0 0;
+      opacity: .35;
+    }
+
+    /* Contatore posizioni in intestazione sezione */
+    .contatore-posizioni {
+      font-family: 'Courier Prime', monospace;
+      font-size: 13px;
+      letter-spacing: .04em;
+      color: var(--seppia);
+      background: var(--verde-tenue);
+      border: 1px solid rgba(34,28,20,.2);
+      padding: 3px 10px;
+      font-style: normal;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- ===== TESTATA ===== -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; partita singola</p>
+      <h1>Conto <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">Carico titoli &middot; iscrizione nuova posizione</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>001</b></div>
+      <div>Aperto il <b>12.I.2026</b></div>
+    </div>
+  </header>
+
+  <!-- ===== LINGUETTE ===== -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="posizioni.html">Riepilogo</a>
+    <a class="attiva">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <!-- ===== CORPO ===== -->
+  <main class="corpo">
+
+    <!-- Sezione: modulo iscrizione -->
+    <div class="sezione-titolo">
+      Iscrizione nuova posizione
+      <span class="nota">FR-007 &middot; compila tutti i campi obbligatori</span>
+    </div>
+
+    <div class="riquadro-modulo">
+      <div class="intestazione-modulo">
+        <span>Modulo di carico titolo</span>
+        <span class="num-modulo">MOD/CPC-001 &middot; rev. I</span>
+      </div>
+
+      <div class="corpo-modulo">
+        <form id="form-carico" novalidate>
+
+          <!-- ISIN -->
+          <div class="riga-modulo" id="riga-isin">
+            <label for="isin">
+              ISIN
+              <span class="sotto-etichetta">12 caratteri alfanumerici</span>
+            </label>
+            <div class="campo" id="campo-isin">
+              <input
+                id="isin"
+                type="text"
+                maxlength="12"
+                placeholder="es. IE00BJRHVJ28"
+                autocomplete="off"
+                spellcheck="false"
+                style="text-transform:uppercase;letter-spacing:.1em;"
+                value=""
+              >
+              <span class="errore-campo" id="err-isin">Inserire un codice ISIN valido (12 caratteri)</span>
+            </div>
+          </div>
+
+          <!-- Data di carico -->
+          <div class="riga-modulo" id="riga-data">
+            <label for="data-carico">
+              Data di carico
+              <span class="sotto-etichetta">data di acquisto</span>
+            </label>
+            <div class="campo" id="campo-data">
+              <input
+                id="data-carico"
+                type="date"
+                value=""
+              >
+              <span class="errore-campo" id="err-data">La data di carico è obbligatoria</span>
+            </div>
+          </div>
+
+          <!-- Prezzo di acquisto -->
+          <div class="riga-modulo" id="riga-prezzo">
+            <label for="prezzo">
+              Prezzo di acquisto
+              <span class="sotto-etichetta">per singola quota, in euro</span>
+            </label>
+            <div class="campo" id="campo-prezzo">
+              <span class="unita">EUR</span>
+              <input
+                id="prezzo"
+                type="number"
+                min="0.0001"
+                step="0.0001"
+                placeholder="0,0000"
+              >
+              <span class="errore-campo" id="err-prezzo">Il prezzo deve essere un valore positivo</span>
+            </div>
+          </div>
+
+          <!-- Quantità -->
+          <div class="riga-modulo" id="riga-quantita">
+            <label for="quantita">
+              Quantità
+              <span class="sotto-etichetta">numero intero di quote</span>
+            </label>
+            <div class="campo" id="campo-quantita">
+              <span class="unita">QTÀ</span>
+              <input
+                id="quantita"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="0"
+              >
+              <span class="errore-campo" id="err-quantita">La quantità deve essere un intero positivo</span>
+            </div>
+          </div>
+
+        </form>
+
+        <p class="nota-contabile">
+          Il controvalore di carico sarà calcolato automaticamente come prodotto di prezzo &times; quantità
+          e iscritto nel registro al momento del salvataggio.
+        </p>
+
+        <div class="bottoni">
+          <button type="submit" form="form-carico" class="bottone" id="btn-iscrive">
+            Iscrive nel registro
+          </button>
+          <button type="button" class="bottone secondario" id="btn-annulla">
+            Annulla
+          </button>
+        </div>
+      </div><!-- /corpo-modulo -->
+    </div><!-- /riquadro-modulo -->
+
+    <!-- Divisore -->
+    <hr class="divisore-sezione">
+
+    <!-- Sezione: posizioni già iscritte (tabella vuota — stato iniziale) -->
+    <div class="sezione-titolo" style="margin-top:32px;">
+      Titoli iscritti a conto
+      <span class="contatore-posizioni" id="contatore">0 posizioni</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro" id="tabella-posizioni">
+        <thead>
+          <tr>
+            <th>Titolo</th>
+            <th>Data carico</th>
+            <th>Prezzo carico</th>
+            <th>Quantità</th>
+            <th>Controvalore carico</th>
+            <th>Valore attuale</th>
+            <th>Differenza</th>
+          </tr>
+        </thead>
+        <tbody id="corpo-tabella">
+          <tr class="riga-vuota">
+            <td colspan="7">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                <span style="font-family:'Playfair Display',serif;font-size:20px;font-style:normal;font-weight:700;opacity:.45;">Nessuna posizione iscritta</span>
+                <span style="font-size:14px;">Compila il modulo sopra per registrare il primo titolo del portafoglio.</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot id="piede-tabella" style="display:none;">
+          <tr>
+            <td colspan="4">Totale portafoglio</td>
+            <td id="tot-carico" class="cifra">€&nbsp;—</td>
+            <td id="tot-attuale" class="cifra">€&nbsp;—</td>
+            <td id="tot-diff" class="cifra">—</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div><!-- /tabella-scroll -->
+
+    <!-- navigazione mockup -->
+    <div class="nav-mockup">
+      Schermate mockup US-011 &nbsp;&rarr;&nbsp;
+      <a href="index.html">Carico titolo (stato vuoto)</a>
+      &middot;
+      <a href="con-errori.html">Errori di validazione</a>
+      &middot;
+      <a href="posizioni.html">Posizioni iscritte</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto &mdash; A. Giardina, contabile in proprio</span>
+    <span>PortfolIA &middot; US-011 mockup &middot; schermata 1 di 3</span>
+  </footer>
+
+</div><!-- /foglio -->
+
+<script src="app.js"></script>
+</body>
+</html>

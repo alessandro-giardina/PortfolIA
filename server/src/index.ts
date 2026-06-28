@@ -3,6 +3,7 @@ import type { HealthResponse } from '@portfolia/shared';
 import { runMigrations } from './db/migrate.js';
 import { portfoliosRoutes } from './api/portfolios.js';
 import { securitiesRoutes } from './api/securities.js';
+import { positionsRoutes } from './api/positions.js';
 import { closeMorningStarBrowser } from './market/morningStarBrowser.js';
 
 runMigrations();
@@ -25,6 +26,7 @@ fastify.get<{ Reply: HealthResponse }>('/health', async () => {
 
 await fastify.register(portfoliosRoutes);
 await fastify.register(securitiesRoutes());
+await fastify.register(positionsRoutes);
 
 const start = async () => {
   try {

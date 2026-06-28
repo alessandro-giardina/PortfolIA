@@ -818,3 +818,106 @@ body {
   .anagrafica { grid-template-columns: 1fr; }
   .ricerca-isin { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   US-011 — Carico titoli: form posizione + tabella posizioni
+   ============================================================ */
+
+/* Divisore a doppia riga tra form e tabella */
+.divisore-sezione {
+  border: none;
+  border-top: 3px double var(--inchiostro);
+  margin: 40px 0 0;
+  opacity: .35;
+}
+
+/* Contatore posizioni nell'intestazione sezione */
+.contatore-posizioni {
+  font-family: 'Courier Prime', monospace;
+  font-size: 13px;
+  color: var(--seppia);
+  background: var(--verde-tenue);
+  border: 1px solid rgba(34,28,20,.2);
+  padding: 3px 10px;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+/* Banner successo iscrizione */
+.avviso-successo {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border: 2px solid var(--verde-attivo);
+  background: rgba(59,100,30,.06);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.avviso-successo p {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--inchiostro);
+  margin: 0;
+}
+.timbro-ok {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 2px solid var(--verde-attivo);
+  color: var(--verde-attivo);
+  border-radius: 3px;
+  transform: rotate(-2deg);
+  background: rgba(59,100,30,.05);
+  flex-shrink: 0;
+}
+
+/* Banner errori di validazione (sommario) */
+.banner-errore {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border: 2px solid var(--carminio);
+  background: rgba(141,35,31,.06);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.banner-errore p {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--inchiostro);
+  margin: 0;
+}
+.banner-errore ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--carminio);
+}
+.banner-errore ul li { margin-bottom: 4px; }
+.timbro-ko {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 2px solid var(--carminio);
+  color: var(--carminio);
+  border-radius: 3px;
+  transform: rotate(-2deg);
+  background: rgba(141,35,31,.05);
+  flex-shrink: 0;
+}
+
+/* Riga nuova evidenziata nella tabella posizioni */
+.mastro tbody tr.riga-nuova {
+  background: rgba(59,100,30,.10);
+}
+.mastro tbody tr.riga-nuova td {
+  border-bottom: 2px solid rgba(59,100,30,.3);
+}

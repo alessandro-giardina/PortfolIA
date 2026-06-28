@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Posizioni iscritte (US-011)</title>
+  <meta name="description" content="Mockup US-011: portafoglio con tre posizioni iscritte, con avviso di successo dopo l'ultima iscrizione.">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .divisore-sezione {
+      border: none;
+      border-top: 3px double var(--inchiostro);
+      margin: 40px 0 0;
+      opacity: .35;
+    }
+    .contatore-posizioni {
+      font-family: 'Courier Prime', monospace;
+      font-size: 13px;
+      color: var(--seppia);
+      background: var(--verde-tenue);
+      border: 1px solid rgba(34,28,20,.2);
+      padding: 3px 10px;
+    }
+
+    /* Form collassato — ancora presente ma compatto dopo iscrizione */
+    .modulo-collassato {
+      border: 2px solid var(--inchiostro);
+      background: rgba(247,239,218,.55);
+    }
+    .modulo-collassato .intestazione-collassata {
+      padding: 12px 18px;
+      background: var(--verde-mastro);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .modulo-collassato .intestazione-collassata span {
+      font-family: 'IM Fell English SC', serif;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: 12.5px;
+      color: var(--carta-chiara);
+    }
+    .modulo-collassato .intestazione-collassata .apri-link {
+      font-family: 'IM Fell English SC', serif;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      font-size: 11px;
+      color: var(--ottone-chiaro);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--ottone-chiaro);
+      opacity: .8;
+    }
+    .modulo-collassato .intestazione-collassata .apri-link:hover { opacity: 1; }
+    .modulo-collapsato-nota {
+      padding: 10px 18px;
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--seppia);
+    }
+  </style>
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- ===== TESTATA ===== -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; partita singola</p>
+      <h1>Conto <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">Carico titoli &middot; posizioni iscritte nel registro</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>001</b></div>
+      <div>Aperto il <b>12.I.2026</b></div>
+    </div>
+  </header>
+
+  <!-- ===== LINGUETTE ===== -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a class="attiva">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <!-- ===== CORPO ===== -->
+  <main class="corpo">
+
+    <!-- ===== AVVISO SUCCESSO ===== -->
+    <div class="avviso-successo" role="status">
+      <span class="timbro-ok">Iscritto</span>
+      <p>
+        Posizione <b>IE00B4L5Y983</b> iscritta nel registro con successo.
+        Controvalore di carico: <b class="euro cifra">2&thinsp;250,00</b>.
+      </p>
+    </div>
+
+    <!-- ===== SEZIONE: modulo collassato ===== -->
+    <div class="sezione-titolo">
+      Iscrizione nuova posizione
+      <span class="nota">apri il modulo per aggiungere un altro titolo</span>
+    </div>
+
+    <div class="modulo-collassato" id="modulo-wrapper">
+      <div class="intestazione-collassata" id="toggle-modulo">
+        <span>Modulo di carico titolo &mdash; collassato</span>
+        <a class="apri-link" href="index.html">&#9660; Apri modulo</a>
+      </div>
+      <p class="modulo-collapsato-nota">
+        Il modulo è stato azzerato dopo l&rsquo;iscrizione.
+        Aprilo di nuovo per aggiungere un ulteriore titolo al portafoglio.
+      </p>
+    </div>
+
+    <!-- ===== DIVISORE ===== -->
+    <hr class="divisore-sezione">
+
+    <!-- ===== SEZIONE: posizioni iscritte ===== -->
+    <div class="sezione-titolo" style="margin-top:32px;">
+      Titoli iscritti a conto
+      <span class="contatore-posizioni">3 posizioni</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Titolo</th>
+            <th>Data carico</th>
+            <th>Prezzo carico</th>
+            <th>Quantità</th>
+            <th>Controvalore carico</th>
+            <th>Valore attuale</th>
+            <th>Differenza</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- Posizione 1 — vecchia -->
+          <tr>
+            <td>
+              <span class="voce">
+                iShares Core MSCI World
+                <small>IE00B4L5Y983 &middot; UCITS ETF</small>
+              </span>
+            </td>
+            <td class="cifra">15.III.2025</td>
+            <td class="cifra euro">89,4200</td>
+            <td class="cifra">40</td>
+            <td class="cifra euro">3&thinsp;576,80</td>
+            <td class="cifra euro">3&thinsp;820,40</td>
+            <td class="cifra guadagno">243,60</td>
+          </tr>
+
+          <!-- Posizione 2 — vecchia -->
+          <tr>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00B3RBWM25 &middot; UCITS ETF</small>
+              </span>
+            </td>
+            <td class="cifra">02.VI.2025</td>
+            <td class="cifra euro">115,2000</td>
+            <td class="cifra">20</td>
+            <td class="cifra euro">2&thinsp;304,00</td>
+            <td class="cifra euro">2&thinsp;190,80</td>
+            <td class="cifra perdita">-113,20</td>
+          </tr>
+
+          <!-- Posizione 3 — NUOVA (evidenziata) -->
+          <tr class="riga-nuova">
+            <td>
+              <span class="voce">
+                iShares Core MSCI World
+                <small>IE00B4L5Y983 &middot; UCITS ETF</small>
+              </span>
+            </td>
+            <td class="cifra">28.VI.2026</td>
+            <td class="cifra euro">90,0000</td>
+            <td class="cifra">25</td>
+            <td class="cifra euro">2&thinsp;250,00</td>
+            <td class="cifra euro">2&thinsp;250,00</td>
+            <td class="cifra" style="color:var(--seppia);font-style:italic;">— invariato</td>
+          </tr>
+
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">Totale portafoglio</td>
+            <td class="cifra euro">8&thinsp;130,80</td>
+            <td class="cifra euro">8&thinsp;261,20</td>
+            <td class="cifra guadagno">130,40</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div><!-- /tabella-scroll -->
+
+    <!-- navigazione mockup -->
+    <div class="nav-mockup">
+      Schermate mockup US-011 &nbsp;&rarr;&nbsp;
+      <a href="index.html">Carico titolo (stato vuoto)</a>
+      &middot;
+      <a href="con-errori.html">Errori di validazione</a>
+      &middot;
+      <a href="posizioni.html">Posizioni iscritte</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto &mdash; A. Giardina, contabile in proprio</span>
+    <span>PortfolIA &middot; US-011 mockup &middot; schermata 3 di 3</span>
+  </footer>
+
+</div><!-- /foglio -->
+
+</body>
+</html>

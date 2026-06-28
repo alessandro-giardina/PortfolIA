@@ -125,3 +125,48 @@ export function isValidIsin(value: string): boolean {
 export function normalizeIsin(value: string): string {
   return value.trim().toUpperCase();
 }
+
+/**
+ * Posizione (carico titolo) all'interno di un portafoglio.
+ * `loadDate` è in formato ISO-8601 (YYYY-MM-DD).
+ */
+export interface Position {
+  id: number;
+  portfolioId: number;
+  isin: string;
+  loadDate: string;
+  loadPrice: number;
+  quantity: number;
+  createdAt: number;
+}
+
+/** Payload per creare una nuova posizione tramite POST /api/portfolios/:id/positions. */
+export interface CreatePositionRequest {
+  isin: string;
+  load_date: string;
+  load_price: number;
+  quantity: number;
+}
+
+/** Payload per modificare una posizione esistente tramite PATCH /api/portfolios/:portfolioId/positions/:positionId. Tutti i campi sono opzionali. */
+export interface UpdatePositionRequest {
+  load_date?: string;
+  load_price?: number;
+  quantity?: number;
+}
+
+/**
+ * Vista aggregata per ISIN di un portafoglio.
+ * Aggrega tutti i carichi dello stesso ISIN calcolando la quantità totale
+ * e il prezzo medio di carico ponderato (FR-008).
+ */
+export interface PositionSummary {
+  /** Codice ISIN normalizzato. */
+  isin: string;
+  /** Somma delle quantità di tutti i carichi: Σ(quantity). */
+  totalQuantity: number;
+  /** Prezzo medio di carico ponderato: Σ(load_price × quantity) / Σ(quantity). */
+  avgLoadPrice: number;
+  /** Controvalore totale di carico: avgLoadPrice × totalQuantity. */
+  totalLoadValue: number;
+}
