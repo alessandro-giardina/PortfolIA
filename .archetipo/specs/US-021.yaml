@@ -6,7 +6,7 @@ epic:
   title: Ricerca titoli e dati di mercato
 priority: HIGH
 points: 5
-status: REVIEW
+status: DONE
 body: |-
   #### US-021: Adapter di backup MorningStar per ISIN
 
@@ -35,3 +35,5 @@ history:
     at: "2026-06-28T09:45:02Z"
   - status: REVIEW
     at: "2026-06-28T10:29:28Z"
+  - status: DONE
+    at: "2026-06-28T16:06:28Z"

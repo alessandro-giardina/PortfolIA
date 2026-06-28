@@ -6,7 +6,7 @@ epic:
   title: Ricerca titoli e dati di mercato
 priority: HIGH
 points: 5
-status: REVIEW
+status: DONE
 body: |
   #### US-024: Recupero anagrafica di backup MorningStar via browser headless e API JSON
 
@@ -38,3 +38,5 @@ history:
     at: "2026-06-28T15:38:24Z"
   - status: REVIEW
     at: "2026-06-28T15:50:52Z"
+  - status: DONE
+    at: "2026-06-28T16:06:28Z"
