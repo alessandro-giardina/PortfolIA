@@ -6,7 +6,7 @@ epic:
   title: Ricerca titoli e dati di mercato
 priority: HIGH
 points: 5
-status: REVIEW
+status: DONE
 scope: MVP
 body: |-
   #### US-007: Recuperare anagrafica e prezzo di un titolo per ISIN
@@ -36,3 +36,5 @@ history:
     at: "2026-06-28T07:30:02Z"
   - status: REVIEW
     at: "2026-06-28T08:01:07Z"
+  - status: DONE
+    at: "2026-06-28T08:48:48Z"
