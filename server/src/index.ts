@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import type { HealthResponse } from '@portfolia/shared';
 import { runMigrations } from './db/migrate.js';
 import { portfoliosRoutes } from './api/portfolios.js';
+import { securitiesRoutes } from './api/securities.js';
 
 runMigrations();
 
@@ -12,6 +13,7 @@ fastify.get<{ Reply: HealthResponse }>('/health', async () => {
 });
 
 await fastify.register(portfoliosRoutes);
+await fastify.register(securitiesRoutes());
 
 const start = async () => {
   try {

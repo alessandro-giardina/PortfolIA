@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { Portfolio } from '@portfolia/shared';
 import CreatePortfolioForm from '../components/CreatePortfolioForm.js';
 import Foglio, { dataRegistro } from '../components/Foglio.js';
@@ -29,7 +29,7 @@ export default function DashboardPage() {
     <>
       <a href="/" className="attiva">Portafogli</a>
       <a className="disabilitata">Riepilogo</a>
-      <a className="disabilitata">Carico titoli</a>
+      <Link to="/ricerca">Ricerca titoli</Link>
       <a className="disabilitata">Scheda titolo</a>
     </>
   );

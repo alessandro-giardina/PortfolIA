@@ -6,83 +6,95 @@ tasks:
     title: Definire tipi condivisi SecurityInfo, lookup response e validazione ISIN
     description: Aggiungere in shared/types l'interfaccia SecurityInfo (campi anagrafici nullable) e il wrapper SecurityLookupResponse ({ security, fromCache, confirmation? } con kind 'intra-session'|'no-session', lastFetchedAt, message), più una utility di validazione del formato ISIN riutilizzabile da backend e client.
     type: Impl
-    status: TODO
+    status: DONE
+    ref: TASK-01
   - id: TASK-02
     title: Aggiungere tabella cache anagrafica securities (schema + migrazione)
     description: Estendere lo schema Drizzle con una tabella securities (isin chiave, campi anagrafici, fetched_at) per la cache locale SQLite e generare la migrazione corrispondente.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
+    ref: TASK-02
   - id: TASK-03
     title: Implementare parser Borsa Italiana (HTML→SecurityInfo)
     description: Aggiungere la dipendenza cheerio al server e implementare server/src/market/parser.ts come funzione pura che mappa l'HTML della scheda strumento in SecurityInfo, marcando come null i campi assenti.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
+    ref: TASK-03
   - id: TASK-04
     title: Unit test del parser e della validazione ISIN
     description: Testare parser.ts contro fixture HTML salvate (azione ed ETF) verificando estrazione di tutti i campi e gestione dei dati mancanti; testare la validazione del formato ISIN con casi validi e non validi.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
+    ref: TASK-04
   - id: TASK-05
     title: Implementare borsaItalianaAdapter (fetch + anti-corruption layer)
     description: 'Implementare server/src/market/borsaItalianaAdapter.ts: fetch con User-Agent corretto verso searchengine/search.html?q=<ISIN> e scheda strumento, richieste a basso volume, e ritorno tipizzato (trovato/non trovato/parziale) con gestione degradante di timeout ed errori di rete.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
+    ref: TASK-05
   - id: TASK-06
     title: Integration test dell'adapter con fetch mockato
     description: Testare l'adapter con fetch mockato per ISIN trovato, non trovato, errore/timeout di rete e markup malformato, verificando la degradazione trasparente e l'invio dello User-Agent corretto.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-05
+    ref: TASK-06
   - id: TASK-07
     title: Implementare helper di dominio orari di mercato e classificazione ri-recupero
     description: 'Creare server/src/domain/marketHours.ts come funzioni pure (Europe/Rome, DST-aware): isMarketOpen(now), presenza di una sessione nell''intervallo (fetched_at, now], e classifyRefetch(fetchedAt, now) → ''none'' | ''intra-session'' | ''no-session'' con il messaggio associato. Tempo passato come parametro (no orologio interno). Festivi ignorati per l''MVP.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
+    ref: TASK-07
   - id: TASK-08
     title: Unit test dell'helper orari di mercato
     description: 'Testare marketHours.ts: confini 9:00/17:30, giorni feriali vs weekend, DST, ripetizione intra-sessione, sessione trascorsa e i casi senza sessione nel mezzo (lun 19:00→mar 03:00; ven 18:00→dom 14:00), iniettando il tempo.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-07
+    ref: TASK-08
   - id: TASK-09
     title: Esporre endpoint GET /api/securities/:isin con guardia buona cittadinanza
     description: 'Aggiungere la route che valida l''ISIN (400 se malformato), consulta la cache; se esiste fetched_at applica classifyRefetch: su ''intra-session''/''no-session'' e senza force restituisce la cache + confirmation SENZA chiamare la fonte, mentre con ?force=true (o ''none''/cache miss) invoca l''adapter, persiste e aggiorna fetched_at; restituisce 200/400/404/502 strutturati. Registrare in server/src/index.ts.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
       - TASK-05
       - TASK-07
+    ref: TASK-09
   - id: TASK-10
     title: Integration test dell'endpoint securities (inclusa la guardia)
     description: 'Testare GET /api/securities/:isin per 200 (anagrafica), 400 (ISIN malformato), 404 (non trovato), 502 (errore fonte), hit/miss cache, e la guardia: intra-session → advisory soft senza chiamata alla fonte, no-session → advisory forte senza chiamata, force=true → bypass con nuovo scraping, sessione trascorsa → recupero fresco.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-09
+    ref: TASK-10
   - id: TASK-11
     title: Implementare la vista Ricerca per ISIN con dialog di conferma (frontend)
     description: Creare client/src/pages/SecuritySearchPage.tsx con rotta /ricerca e linguetta in navigazione, riusando il componente Foglio e lo stile Libro Mastro; implementare campo ISIN, azione di recupero e i tre stati (caricamento, trovato, non trovato/dato assente) seguendo i mockup in docs/mockups/US-007/. Quando la risposta porta confirmation, mostrare il relativo messaggio con 'Procedi comunque' / 'Annulla'; su conferma richiamare con ?force=true.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-09
+    ref: TASK-11
   - id: TASK-12
     title: E2E Playwright della ricerca per ISIN (demo + conferma)
     description: 'Aggiungere i test E2E con intercettazione di rete delle risposte /api/securities/:isin: scenario demo (ISIN valido → scheda anagrafica completa, video in docs/test-results/US-007/), scenario ISIN non trovato (messaggio ''Dato non disponibile'') e scenario di conferma ri-ricerca (advisory mostrata → ''Procedi comunque'' → recupero forzato).'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-11
+    ref: TASK-12
