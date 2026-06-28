@@ -94,6 +94,38 @@ describe('fetchSecurityByIsin', () => {
     expect(fetchFn).toHaveBeenCalledTimes(1);
   });
 
+  it('ISIN inesistente: pagina di ricerca reale con tab searchengine ma zero risultati → not-found (regressione fallback)', async () => {
+    // Riproduce la pagina reale di Borsa Italiana per un ISIN assente: 200 OK,
+    // "Risultati totali: 0" / "Nessun Risultato Trovato", NESSUNA scheda, ma
+    // diversi link auto-referenziali ai tab della ricerca (Documenti, Notizie,
+    // Quotazioni…) che contengono l'ISIN sotto `/searchengine/.../search.html`.
+    // Prima del fix questi venivano scelti come "strumento", ri-scaricati, e il
+    // parser leggeva l'<h1> "Cerca" → falso "trovato" che bloccava il fallback
+    // su MorningStar. Ora la ricerca a vuoto deve restituire not-found.
+    const isin = 'IE00BJRHVJ28';
+    const lower = isin.toLowerCase();
+    const noResultsPage =
+      `<html><body>` +
+      `<h1>Cerca</h1>` +
+      `<a href="https://www.borsaitaliana.it/borsa/searchengine/search.html?q=${isin}">Cerca</a>` +
+      `<a href="/borsa/searchengine/documents/search.html?q=${lower}&lang=it">Documenti</a>` +
+      `<a href="/borsa/searchengine/news/search.html?q=${lower}&lang=it">Notizie</a>` +
+      `<a href="/borsa/searchengine/quotes/search.html?q=${lower}&lang=it">Quotazioni</a>` +
+      `<span>Risultati totali: 0</span>` +
+      `<div class="l-box -ptb">Nessun Risultato Trovato</div>` +
+      `</body></html>`;
+    const fetchFn = vi.fn(async () => htmlResponse(noResultsPage));
+
+    const result = await fetchSecurityByIsin(isin, {
+      fetchFn: fetchFn as unknown as typeof fetch,
+      baseUrl: BASE,
+    });
+
+    expect(result.status).toBe('not-found');
+    // Nessuna seconda richiesta: la pagina a zero risultati è riconosciuta subito.
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+  });
+
   it('scheda con markup malformato → not-found (degradazione trasparente)', async () => {
     const isin = 'IT0000000111';
     const fetchFn = vi.fn(async (url: string | URL) => {

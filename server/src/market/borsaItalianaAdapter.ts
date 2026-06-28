@@ -58,13 +58,28 @@ async function httpGet(url: string, fetchFn: typeof fetch, timeoutMs: number): P
 }
 
 /**
+ * `true` se la pagina di ricerca dichiara zero risultati.
+ *
+ * Per un ISIN inesistente Borsa Italiana risponde comunque con 200 e una pagina
+ * di ricerca che riporta "Risultati totali: 0" / "Nessun Risultato Trovato".
+ * Intercettarlo qui evita una seconda richiesta inutile e — soprattutto —
+ * impedisce di scambiare la pagina di ricerca per uno strumento (FR-006).
+ */
+function searchIndicatesNoResults(searchHtml: string): boolean {
+  const text = cheerio.load(searchHtml).text().replace(/\s+/g, ' ').toLowerCase();
+  return text.includes('nessun risultato') || /risultati totali:\s*0\b/.test(text);
+}
+
+/**
  * Dalla pagina dei risultati di ricerca estrae l'URL della scheda strumento.
  *
- * La pagina di ricerca contiene molti link auto-referenziali alla ricerca
- * stessa (canonical, toggle lingua, tab) che includono l'ISIN e precedono nel
- * DOM il link alla scheda: sceglierli porterebbe a ri-scaricare la pagina di
- * ricerca (denominazione "Cerca", nessun dato). Per questo i link verso
- * `searchengine/search` sono esclusi. Ordine di preferenza:
+ * La pagina di ricerca contiene molti link auto-referenziali al sotto-sistema di
+ * ricerca (canonical, toggle lingua, tab "Documenti/Notizie/Pagine/Quotazioni"):
+ * tutti includono l'ISIN e precedono nel DOM l'eventuale link alla scheda.
+ * Sceglierli porterebbe a ri-scaricare una pagina di ricerca (denominazione
+ * "Cerca", nessun dato). Vivono tutti sotto `/searchengine/`, mentre la scheda
+ * reale sta sotto `/borsa/search/scheda.html`: per questo ogni link
+ * `/searchengine/` è escluso. Ordine di preferenza:
  *   1. link a una "scheda" che contiene anche l'ISIN (caso ideale);
  *   2. un qualsiasi link a una "scheda";
  *   3. un link che contiene l'ISIN ma non punta alla ricerca.
@@ -75,7 +90,7 @@ function extractInstrumentUrl(searchHtml: string, baseUrl: string, isin: string)
   let scheda: string | null = null;
   let withIsin: string | null = null;
 
-  const isSelfSearch = (href: string): boolean => /searchengine\/[^/]*search\.html/i.test(href);
+  const isSelfSearch = (href: string): boolean => /\/searchengine\//i.test(href);
 
   $('a[href]').each((_, a) => {
     const href = $(a).attr('href');
@@ -108,6 +123,9 @@ export async function fetchSecurityByIsin(isin: string, options: AdapterOptions 
 
   try {
     const searchHtml = await httpGet(searchUrl(baseUrl, normalized), fetchFn, timeoutMs);
+    if (searchIndicatesNoResults(searchHtml)) {
+      return { status: 'not-found' };
+    }
     const instrumentUrl = extractInstrumentUrl(searchHtml, baseUrl, normalized);
     if (!instrumentUrl) {
       return { status: 'not-found' };
