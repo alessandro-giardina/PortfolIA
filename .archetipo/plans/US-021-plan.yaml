@@ -1,0 +1,42 @@
+schema: archetipo/plan/v2
+spec_code: US-021
+body: "# US-021: Adapter di backup MorningStar per ISIN — Piano di Implementazione\n\n**Generato da:** ARchetipo Planning Team  \n**Data:** 2026-06-28\n\n---\n\n## Spec\n\n**Epic:** EP-002 — Ricerca titoli e dati di mercato  \n**Priorità:** HIGH | **Punti:** 5\n\n**User Story**  \nCome sviluppatore di PortfolIA, voglio un adapter dedicato che recuperi da MorningStar (`https://global.morningstar.com/it`) l'anagrafica e il prezzo di un titolo dato il suo ISIN, isolato dietro la stessa interfaccia dell'adapter di Borsa Italiana, in modo da poter usare MorningStar come fonte di backup intercambiabile senza accoppiare il resto dell'app a un secondo scraper.\n\n**Criteri di Accettazione**\n- La logica di scraping di MorningStar è isolata in un adapter dedicato (anti-corruption layer) che espone lo stesso tipo di esito discriminato (`found` / `not-found` / `error`) dell'adapter di Borsa Italiana\n- Dato un ISIN valido, l'adapter prova a popolare denominazione, prezzo attuale, ticker, tipo strumento, commissioni totali annue, valuta, emittente, segmento e politica di distribuzione dividendi; i campi non esposti da MorningStar sono marcati \"dato non disponibile\" senza essere stimati\n- L'adapter rispetta le regole di Buona Cittadinanza già adottate per Borsa Italiana: User-Agent realistico, timeout per richiesta e basso volume di richieste verso la fonte\n- Timeout, errori di rete e markup malformato degradano in modo trasparente in `not-found` / `error` e sono coperti da test con HTML di fixture\n\n---\n\n## Soluzione Tecnica\n\nL'adapter MorningStar replica fedelmente la struttura di `borsaItalianaAdapter.ts` (ADR-002): stesso contratto `AdapterResult`/`AdapterOptions`, stesso helper `httpGet` con `AbortController`, stesso flow in due richieste (ricerca → scheda strumento). La logica di parsing HTML è estratta in una funzione pura separata (`morningStarParser.ts`) che usa cheerio con un label-lookup tollerante, consentendo test unitari del solo parsing indipendentemente dall'HTTP.\n\n- **Struttura file:** `server/src/market/morningStarAdapter.ts` (adapter) + `server/src/market/morningStarParser.ts` (parser puro)\n- **Interfaccia condivisa:** `AdapterResult` e `AdapterOptions` importati da `borsaItalianaAdapter.ts` — nessuna duplicazione di tipi\n- **URL MorningStar:** ricerca via `https://global.morningstar.com/it/search?q={ISIN}`; estrazione del link alla scheda strumento dai risultati HTML con logica analoga a `extractInstrumentUrl` (filtrando i link auto-referenziali alla ricerca)\n- **Parser:** funzione `parseMorningStar(html, isin): SecurityInfo` con label-lookup normalizzato (minuscolo, senza accenti) sulle etichette in italiano di MorningStar; i campi assenti restituiscono `null`\n- **Buona cittadinanza:** User-Agent realistico, timeout di 8 s per richiesta, massimo 2 richieste per ISIN (stessa policy di Borsa Italiana)\n- **Degradazione:** risposta HTTP non-ok, markup senza link alla scheda → `not-found`; eccezioni di rete/timeout → `error`; scheda con nome e prezzo entrambi `null` → `not-found`\n\n---\n\n## Strategia di Test\n\nSuite unit-only in `server/tests/morningStarAdapter.test.ts` con HTML di fixture e `vi.fn` iniettato tramite `fetchFn` — pattern identico a `borsaItalianaAdapter.test.ts`. Il parser puro `morningStarParser.ts` è testabile direttamente senza mock HTTP.\n\n- **6 casi per l'adapter:** ISIN trovato (verifica campi + User-Agent su entrambe le richieste), ricerca senza risultati → `not-found` (1 sola richiesta), markup scheda malformato → `not-found`, errore di rete → `error` con `reason`, timeout/abort → `error`, HTTP 5xx → `error`\n- **Fixture HTML:** `server/tests/fixtures/morningstar-search.html` (pagina risultati con link alla scheda) e `server/tests/fixtures/morningstar-etf.html` (scheda strumento con tutti i campi)\n- **Test parser puro:** casi con fixture completa (tutti i campi), fixture parziale (campi mancanti → `null`), fixture vuota → tutti `null`\n- Nessun test E2E: spec senza superficie UI, adapter usato in isolamento\n"
+tasks:
+  - id: TASK-01
+    title: Creare fixture HTML MorningStar (search + scheda strumento)
+    description: 'Creare `server/tests/fixtures/morningstar-search.html` (pagina risultati di ricerca con link alla scheda) e `server/tests/fixtures/morningstar-etf.html` (scheda strumento ETF con tutti i campi: nome, prezzo, ticker, tipologia, TER, valuta, emittente, segmento, politica dividendi). Le fixture devono avere struttura HTML semanticamente realistica per MorningStar in italiano.'
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Implementare morningStarParser.ts (parser puro HTML → SecurityInfo)
+    description: 'Creare `server/src/market/morningStarParser.ts` con funzione esportata `parseMorningStar(html: string, isin: string): SecurityInfo`. Usare cheerio con label-lookup tollerante (minuscolo, senza accenti) sulle etichette MorningStar in italiano. Campi assenti → `null`. Importare `SecurityInfo` da `@portfolia/shared`.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Test unitari per morningStarParser.ts
+    description: 'Creare `server/tests/morningStarParser.test.ts` con 3 casi: fixture completa (tutti i campi popolati), fixture parziale (campi assenti → `null`), fixture vuota (tutti `null`). Verificare che il parsing sia determinista e non stimi mai un campo mancante.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-03
+  - id: TASK-04
+    title: Implementare morningStarAdapter.ts (adapter HTTP + flow ricerca→scheda)
+    description: 'Creare `server/src/market/morningStarAdapter.ts` con funzione esportata `fetchSecurityByIsin(isin, options)`. Importare `AdapterResult`, `AdapterOptions` e `USER_AGENT` da `borsaItalianaAdapter.ts`. Implementare: `httpGet` con User-Agent e `AbortController`, `extractInstrumentUrl` per MorningStar (filtra link auto-referenziali), flow ricerca→scheda, degradazione trasparente in `not-found`/`error`.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-04
+  - id: TASK-05
+    title: Test unitari per morningStarAdapter.ts (6 casi)
+    description: 'Creare `server/tests/morningStarAdapter.test.ts` con: (1) ISIN trovato → `found` con campi corretti e User-Agent su entrambe le chiamate, (2) ricerca senza link scheda → `not-found` (1 sola richiesta), (3) scheda con markup malformato → `not-found`, (4) errore di rete → `error` con `reason`, (5) timeout/abort → `error`, (6) HTTP 5xx → `error`. Usare `vi.fn` e fixture HTML da TASK-01.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    ref: TASK-05
