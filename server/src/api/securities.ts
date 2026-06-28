@@ -5,9 +5,19 @@ import { securities, type SecurityRow } from '../db/schema.js';
 import { isValidIsin, normalizeIsin } from '@portfolia/shared';
 import type { SecurityInfo, SecurityLookupResponse } from '@portfolia/shared';
 import { fetchSecurityByIsin, type AdapterResult } from '../market/borsaItalianaAdapter.js';
+import { fetchSecurityByIsin as fetchSecurityByIsinMorningStar } from '../market/morningStarAdapter.js';
 import { classifyRefetch } from '../domain/marketHours.js';
 
 type Db = typeof defaultDb;
+
+/**
+ * Risultato arricchito della funzione fetchWithFallback.
+ * Aggiunge `dataSource` per sapere da quale fonte proviene il titolo trovato.
+ */
+type FallbackResult =
+  | { status: 'found'; security: SecurityInfo; dataSource: 'borsaitaliana' | 'morningstar' }
+  | { status: 'not-found' }
+  | { status: 'error'; reason?: string };
 
 /**
  * Dipendenze iniettabili dell'endpoint securities.
@@ -17,7 +27,35 @@ type Db = typeof defaultDb;
 export interface SecuritiesDeps {
   db?: Db;
   fetchSecurity?: (isin: string) => Promise<AdapterResult>;
+  fetchSecurityFallback?: (isin: string) => Promise<AdapterResult>;
   now?: () => Date;
+}
+
+/**
+ * Orchestra i due adapter in sequenza: Borsa Italiana prima, MorningStar come
+ * backup quando BI restituisce `not-found` o `error`.
+ * Non interroga mai MorningStar quando BI ha già trovato il titolo.
+ */
+async function fetchWithFallback(
+  isin: string,
+  fetchPrimary: (isin: string) => Promise<AdapterResult>,
+  fetchBackup: (isin: string) => Promise<AdapterResult>,
+): Promise<FallbackResult> {
+  const primary = await fetchPrimary(isin);
+  if (primary.status === 'found') {
+    return { status: 'found', security: primary.security, dataSource: 'borsaitaliana' };
+  }
+
+  // BI non ha trovato il titolo o è irraggiungibile → prova il backup.
+  const backup = await fetchBackup(isin);
+  if (backup.status === 'found') {
+    return { status: 'found', security: backup.security, dataSource: 'morningstar' };
+  }
+  if (backup.status === 'not-found') {
+    return { status: 'not-found' };
+  }
+  // Entrambi in errore: propaga l'errore.
+  return { status: 'error', reason: backup.reason };
 }
 
 function rowToSecurity(row: SecurityRow): SecurityInfo {
@@ -82,6 +120,7 @@ function upsertSecurity(db: Db, sec: SecurityInfo, fetchedAt: number): void {
 export function securitiesRoutes(deps: SecuritiesDeps = {}) {
   const db = deps.db ?? defaultDb;
   const fetchSecurity = deps.fetchSecurity ?? ((isin: string) => fetchSecurityByIsin(isin));
+  const fetchSecurityFallback = deps.fetchSecurityFallback ?? ((isin: string) => fetchSecurityByIsinMorningStar(isin));
   const now = deps.now ?? (() => new Date());
 
   return async function (fastify: FastifyInstance): Promise<void> {
@@ -124,10 +163,10 @@ export function securitiesRoutes(deps: SecuritiesDeps = {}) {
         }
       }
 
-      const result = await fetchSecurity(isin);
+      const result = await fetchWithFallback(isin, fetchSecurity, fetchSecurityFallback);
       if (result.status === 'not-found') {
         return reply.status(404).send({
-          error: `Nessuna corrispondenza su Borsa Italiana per ${isin}.`,
+          error: `Nessuna corrispondenza disponibile per ${isin}.`,
         });
       }
       if (result.status === 'error') {
@@ -141,6 +180,7 @@ export function securitiesRoutes(deps: SecuritiesDeps = {}) {
         security: result.security,
         fromCache: false,
         lastFetchedAt: nowSeconds,
+        dataSource: result.dataSource,
       };
       return reply.status(200).send(response);
     });

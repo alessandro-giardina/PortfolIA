@@ -1,0 +1,133 @@
+schema: archetipo/plan/v2
+spec_code: US-022
+body: |-
+  # US-022: Fallback su MorningStar quando Borsa Italiana non basta — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-06-28
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-002 — Ricerca titoli e dati di mercato
+  **Priorità:** HIGH | **Punti:** 3
+
+  **User Story**
+  Come Alessandro, investitore-proprietario, voglio che quando un ISIN non viene trovato su Borsa Italiana (o la fonte è irraggiungibile) PortfolIA interroghi automaticamente MorningStar come backup e mi mostri da quale fonte arrivano i dati, in modo da recuperare anche i titoli che Borsa Italiana non conosce, continuando a fidarmi della provenienza dei numeri.
+
+  **Criteri di Accettazione**
+  - Quando Borsa Italiana restituisce `not-found` oppure `error` (timeout/rete), il sistema interroga automaticamente l'adapter MorningStar come fonte di backup
+  - Se MorningStar trova il titolo, i suoi dati sono mostrati nella vista di ricerca con un'indicazione esplicita che la fonte è quella di backup (MorningStar) anziché Borsa Italiana
+  - Se nessuna delle due fonti trova il titolo, l'utente vede "dato non disponibile" senza valori inventati e senza errore bloccante
+  - L'orchestrazione del fallback non interroga MorningStar quando Borsa Italiana ha già restituito un esito `found`
+
+  ---
+
+  ## Soluzione Tecnica
+
+  L'orchestrazione del fallback è implementata interamente nel layer API (`securities.ts`) tramite una nuova funzione `fetchWithFallback` che chiama in sequenza i due adapter. Il tipo condiviso `SecurityLookupResponse` acquisisce un campo `dataSource` che il client usa per mostrare il badge di fonte di backup.
+
+  ### Estensioni al tipo condiviso (`shared/types/index.ts`)
+
+  - Aggiungere `dataSource: 'borsaitaliana' | 'morningstar'` a `SecurityLookupResponse`. È metadata di risposta, non persistita nel DB.
+
+  ### Logica di fallback (`server/src/api/securities.ts`)
+
+  - Nuova funzione privata `fetchWithFallback(isin, fetchPrimary, fetchBackup)` che:
+    1. Chiama `fetchPrimary(isin)` (Borsa Italiana)
+    2. Se il risultato è `found` → restituisce `{ result, source: 'borsaitaliana' }`
+    3. Se il risultato è `not-found` o `error` → chiama `fetchBackup(isin)`
+    4. Se il backup è `found` → restituisce `{ result, source: 'morningstar' }`
+    5. Se entrambi falliscono → propaga `not-found` o `error` (priorità `not-found` se almeno uno è `not-found`)
+  - `SecuritiesDeps` acquisisce `fetchSecurityFallback?: (isin: string) => Promise<AdapterResult>` (default: `morningStarAdapter.fetchSecurityByIsin`)
+  - L'endpoint popola `dataSource` nella `SecurityLookupResponse`
+  - La cache (`upsertSecurity`) non cambia — si persistono i dati indipendentemente dalla fonte
+
+  ### UI (`client/src/pages/SecuritySearchPage.tsx`)
+
+  - Leggere `body.dataSource` dalla risposta
+  - Il blocco `fonte-prezzo` mostra:
+    - Fonte: **Borsa Italiana** (caso corrente)
+    - Fonte: **MorningStar** `(backup)` quando `dataSource === 'morningstar'`
+  - Il sottotesto del form aggiornato da "dati ufficiali da Borsa Italiana" a formulazione neutrale (es. "dati da fonte ufficiale")
+  - Nessun nuovo componente — solo aggiornamento condizionale nel blocco esistente
+
+  ---
+
+  ## Strategia di Test
+
+  La logica di fallback è testata a livello di integrazione API (Vitest, `api.securities.test.ts`) con adapter mock iniettati. Il comportamento visibile dell'utente è verificato da un test e2e Playwright con intercettazione di rete.
+
+  ### Test unitari / integrazione (Vitest)
+
+  - **6 nuovi casi** in `server/tests/api.securities.test.ts`:
+    1. BI `found` → risposta 200 con `dataSource: 'borsaitaliana'`; MS non chiamato
+    2. BI `not-found` → MS `found` → risposta 200 con `dataSource: 'morningstar'`
+    3. BI `error` → MS `found` → risposta 200 con `dataSource: 'morningstar'`
+    4. BI `not-found`, MS `not-found` → 404
+    5. BI `error`, MS `not-found` → 404 (non 502, perché almeno una fonte ha risposto "non trovato")
+    6. BI `error`, MS `error` → 502
+
+  ### E2E Tests — Simulazione utente
+
+  **Framework:** Playwright (già configurato, `playwright.config.ts`)
+  **Video recording:** Solo scenario demo (US-022), salvato in `docs/test-results/US-022/`
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Demo: ISIN solo su MorningStar | L'utente inserisce `IE00BJRHVJ28` (ISIN non presente su BI), clicca Recupera — vede i dati del titolo con badge "MorningStar (backup)" nella sezione fonte |
+  | Nessuna fonte disponibile | L'utente inserisce un ISIN inesistente su entrambe le fonti — vede il timbro "Dato non disponibile" senza errore bloccante |
+
+  I test e2e utilizzano `page.route()` di Playwright per intercettare le chiamate a `GET /api/securities/:isin` e restituire risposte fixture pre-costruite, evitando richieste reali alla rete.
+
+  ---
+
+  _Piano generato via ARchetipo Planning — 2026-06-28_
+tasks:
+  - id: TASK-01
+    title: Aggiungere dataSource a SecurityLookupResponse (shared types)
+    description: 'In `shared/types/index.ts`, aggiungere il campo `dataSource: ''borsaitaliana'' | ''morningstar''` all''interfaccia `SecurityLookupResponse`. Ricostruire il pacchetto shared (`npm run build --workspace=shared`) per propagare il tipo a client e server.'
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Implementare fetchWithFallback in securities.ts
+    description: 'In `server/src/api/securities.ts`, aggiungere la funzione privata `fetchWithFallback(isin, fetchPrimary, fetchBackup)` che orchestra i due adapter in sequenza: BI first, MS su not-found/error, propagazione corretta del risultato finale con campo `source`. Estendere `SecuritiesDeps` con `fetchSecurityFallback` (default: `morningStarAdapter.fetchSecurityByIsin`). L''endpoint passa `dataSource` nella risposta 200.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Test unitari per la logica di fallback (6 casi)
+    description: 'In `server/tests/api.securities.test.ts`, aggiungere un describe block `Fallback MorningStar` con 6 test che iniettano mock distinti per `fetchSecurity` e `fetchSecurityFallback`: BI found (MS non chiamato), BI not-found→MS found, BI error→MS found, entrambi not-found→404, BI error+MS not-found→404, entrambi error→502. Verificare anche `dataSource` nella risposta.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-03
+  - id: TASK-04
+    title: Aggiornare SecuritySearchPage per mostrare la fonte di backup
+    description: 'In `client/src/pages/SecuritySearchPage.tsx`, aggiungere state `dataSource` letto da `body.dataSource`. Nel blocco `fonte-prezzo`, mostrare condizionalmente "Fonte: MorningStar (backup)" quando `dataSource === ''morningstar''` e "Fonte: Borsa Italiana" altrimenti. Aggiornare il sottotesto del form da formulazione Borsa-Italiana-specifica a formulazione neutrale.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-04
+  - id: TASK-05
+    title: 'Test e2e Playwright: ISIN solo su MorningStar (scenario demo)'
+    description: 'Creare `e2e/fallback-morningstar.spec.ts`. Usare `page.route(''/api/securities/*'')` per intercettare la chiamata e restituire una risposta fixture con `dataSource: ''morningstar''` e dati di un ETF. Verificare che il badge ''MorningStar (backup)'' sia visibile nel DOM. Aggiornare `playwright.config.ts` per abilitare video recording (solo questo test) con output in `docs/test-results/US-022/`.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    ref: TASK-05
+  - id: TASK-06
+    title: 'Test e2e Playwright: nessuna fonte disponibile'
+    description: Nello stesso file `e2e/fallback-morningstar.spec.ts`, aggiungere uno scenario che intercetta la chiamata API e restituisce 404. Verificare che il timbro 'Dato non disponibile' sia visibile senza errore bloccante. Questo scenario NON registra video.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-05
+    ref: TASK-06

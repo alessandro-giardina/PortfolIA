@@ -33,6 +33,7 @@ const FOUND: SecurityInfo = {
 
 interface BuildOpts {
   result?: AdapterResult;
+  fallbackResult?: AdapterResult;
   now?: Date;
 }
 
@@ -43,12 +44,13 @@ async function buildApp(opts: BuildOpts = {}) {
   migrate(db, { migrationsFolder: MIGRATIONS_DIR });
 
   const fetchSecurity = vi.fn(async () => opts.result ?? ({ status: 'found', security: FOUND } as AdapterResult));
+  const fetchSecurityFallback = vi.fn(async () => opts.fallbackResult ?? ({ status: 'not-found' } as AdapterResult));
   const now = opts.now ?? new Date('2026-06-30T10:00:00+02:00');
 
   const fastify = Fastify();
-  await fastify.register(securitiesRoutes({ db, fetchSecurity, now: () => now }));
+  await fastify.register(securitiesRoutes({ db, fetchSecurity, fetchSecurityFallback, now: () => now }));
   await fastify.ready();
-  return { fastify, fetchSecurity, db };
+  return { fastify, fetchSecurity, fetchSecurityFallback, db };
 }
 
 afterEach(() => {
@@ -84,8 +86,11 @@ describe('GET /api/securities/:isin', () => {
     expect(res.json<{ error: string }>().error).toMatch(/nessuna corrispondenza/i);
   });
 
-  it('errore della fonte → 502', async () => {
-    const { fastify } = await buildApp({ result: { status: 'error', reason: 'timeout' } });
+  it('errore di entrambe le fonti → 502', async () => {
+    const { fastify } = await buildApp({
+      result: { status: 'error', reason: 'timeout' },
+      fallbackResult: { status: 'error', reason: 'timeout' },
+    });
     const res = await fastify.inject({ method: 'GET', url: '/api/securities/IE00BMVB5S82' });
     expect(res.statusCode).toBe(502);
   });
@@ -185,5 +190,93 @@ describe('GET /api/securities/:isin', () => {
     expect(body.fromCache).toBe(false);
     expect(body.confirmation).toBeUndefined();
     expect(fetchSecurity2).toHaveBeenCalledTimes(1);
+  });
+});
+
+const FOUND_MS: SecurityInfo = {
+  isin: 'IE00BJRHVJ28',
+  name: 'iShares MSCI EM IMI ESG Screened UCITS ETF',
+  price: 5.42,
+  ticker: 'EMIM',
+  instrumentType: 'ETF azionario',
+  totalAnnualFees: '0,18% (TER)',
+  currency: 'EUR',
+  issuer: 'iShares (BlackRock)',
+  segment: null,
+  dividendPolicy: 'ad accumulazione',
+};
+
+describe('Fallback MorningStar', () => {
+  it('BI found → MorningStar non viene chiamato, dataSource=borsaitaliana', async () => {
+    const { fastify, fetchSecurity, fetchSecurityFallback } = await buildApp({
+      result: { status: 'found', security: FOUND },
+    });
+    const res = await fastify.inject({ method: 'GET', url: '/api/securities/IE00BMVB5S82' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<SecurityLookupResponse>();
+    expect(body.dataSource).toBe('borsaitaliana');
+    expect(body.security.isin).toBe('IE00BMVB5S82');
+    expect(fetchSecurity).toHaveBeenCalledTimes(1);
+    expect(fetchSecurityFallback).not.toHaveBeenCalled();
+  });
+
+  it('BI not-found → MorningStar found, dataSource=morningstar', async () => {
+    const { fastify, fetchSecurity, fetchSecurityFallback } = await buildApp({
+      result: { status: 'not-found' },
+      fallbackResult: { status: 'found', security: FOUND_MS },
+    });
+    const res = await fastify.inject({ method: 'GET', url: '/api/securities/IE00BJRHVJ28' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<SecurityLookupResponse>();
+    expect(body.dataSource).toBe('morningstar');
+    expect(body.security.isin).toBe('IE00BJRHVJ28');
+    expect(fetchSecurity).toHaveBeenCalledTimes(1);
+    expect(fetchSecurityFallback).toHaveBeenCalledTimes(1);
+  });
+
+  it('BI error → MorningStar found, dataSource=morningstar', async () => {
+    const { fastify, fetchSecurity, fetchSecurityFallback } = await buildApp({
+      result: { status: 'error', reason: 'timeout' },
+      fallbackResult: { status: 'found', security: FOUND_MS },
+    });
+    const res = await fastify.inject({ method: 'GET', url: '/api/securities/IE00BJRHVJ28' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<SecurityLookupResponse>();
+    expect(body.dataSource).toBe('morningstar');
+    expect(fetchSecurity).toHaveBeenCalledTimes(1);
+    expect(fetchSecurityFallback).toHaveBeenCalledTimes(1);
+  });
+
+  it('entrambi not-found → 404 senza valori inventati', async () => {
+    const { fastify, fetchSecurity, fetchSecurityFallback } = await buildApp({
+      result: { status: 'not-found' },
+      fallbackResult: { status: 'not-found' },
+    });
+    const res = await fastify.inject({ method: 'GET', url: '/api/securities/IE00BJRHVJ28' });
+    expect(res.statusCode).toBe(404);
+    expect(fetchSecurity).toHaveBeenCalledTimes(1);
+    expect(fetchSecurityFallback).toHaveBeenCalledTimes(1);
+  });
+
+  it('BI error + MS not-found → 404', async () => {
+    const { fastify, fetchSecurity, fetchSecurityFallback } = await buildApp({
+      result: { status: 'error', reason: 'network' },
+      fallbackResult: { status: 'not-found' },
+    });
+    const res = await fastify.inject({ method: 'GET', url: '/api/securities/IE00BJRHVJ28' });
+    expect(res.statusCode).toBe(404);
+    expect(fetchSecurity).toHaveBeenCalledTimes(1);
+    expect(fetchSecurityFallback).toHaveBeenCalledTimes(1);
+  });
+
+  it('entrambi error → 502', async () => {
+    const { fastify, fetchSecurity, fetchSecurityFallback } = await buildApp({
+      result: { status: 'error', reason: 'timeout BI' },
+      fallbackResult: { status: 'error', reason: 'timeout MS' },
+    });
+    const res = await fastify.inject({ method: 'GET', url: '/api/securities/IE00BJRHVJ28' });
+    expect(res.statusCode).toBe(502);
+    expect(fetchSecurity).toHaveBeenCalledTimes(1);
+    expect(fetchSecurityFallback).toHaveBeenCalledTimes(1);
   });
 });

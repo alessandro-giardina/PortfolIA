@@ -75,6 +75,15 @@ export interface SecurityLookupResponse {
   lastFetchedAt: number | null;
   /** Presente solo quando la guardia richiede conferma esplicita. */
   confirmation?: RefetchConfirmation;
+  /**
+   * Fonte da cui provengono i dati del titolo.
+   * - `'borsaitaliana'`: fonte primaria (default).
+   * - `'morningstar'`: fonte di backup, attivata quando Borsa Italiana non
+   *   trova il titolo o è irraggiungibile.
+   * Assente nelle risposte dalla cache (fromCache=true) che non hanno
+   * ancora questo campo: il client tratta l'assenza come `'borsaitaliana'`.
+   */
+  dataSource?: 'borsaitaliana' | 'morningstar';
 }
 
 /**

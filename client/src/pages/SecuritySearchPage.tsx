@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { isValidIsin, normalizeIsin } from '@portfolia/shared';
 import type { SecurityInfo, SecurityLookupResponse, RefetchConfirmation } from '@portfolia/shared';
+// DataSource è parte della risposta API; 'borsaitaliana' è il default implicito.
+type DataSource = 'borsaitaliana' | 'morningstar';
 import Foglio, { dataRegistro } from '../components/Foglio.js';
 
 type Status = 'idle' | 'loading' | 'found' | 'notfound' | 'error';
@@ -50,6 +52,7 @@ export default function SecuritySearchPage() {
   const [security, setSecurity] = useState<SecurityInfo | null>(null);
   const [lastFetchedAt, setLastFetchedAt] = useState<number | null>(null);
   const [confirmation, setConfirmation] = useState<RefetchConfirmation | null>(null);
+  const [dataSource, setDataSource] = useState<DataSource>('borsaitaliana');
   const [esito, setEsito] = useState<string | null>(null);
   const [searchedIsin, setSearchedIsin] = useState('');
 
@@ -66,6 +69,7 @@ export default function SecuritySearchPage() {
     setStatus('loading');
     setConfirmation(null);
     setEsito(null);
+    setDataSource('borsaitaliana');
     setSearchedIsin(normalized);
 
     try {
@@ -98,6 +102,7 @@ export default function SecuritySearchPage() {
       setSecurity(body.security);
       setLastFetchedAt(body.lastFetchedAt);
       setConfirmation(body.confirmation ?? null);
+      setDataSource(body.dataSource ?? 'borsaitaliana');
       setStatus('found');
     } catch {
       setStatus('error');
@@ -127,13 +132,13 @@ export default function SecuritySearchPage() {
       marchio="Ricerca titoli · anagrafica e prezzo"
       titolo="Cerca un titolo "
       titoloCorsivo="per ISIN"
-      sottotesto="Digita il codice ISIN e recupera i dati ufficiali da Borsa Italiana"
+      sottotesto="Digita il codice ISIN e recupera i dati ufficiali dalla fonte disponibile"
       registro={registro}
       linguette={linguette}
     >
       <div className="sezione-titolo">
         Ricerca per ISIN
-        <span className="nota">il dato proviene da Borsa Italiana — nessun valore inventato</span>
+        <span className="nota">il dato proviene dalla fonte ufficiale — nessun valore inventato</span>
       </div>
 
       <form
@@ -177,7 +182,7 @@ export default function SecuritySearchPage() {
         {status === 'notfound' && (
           <>
             <span className="timbro mancante">Dato non disponibile</span>
-            nessuna corrispondenza su Borsa Italiana per{' '}
+            nessuna corrispondenza disponibile per{' '}
             <b style={{ fontFamily: "'Courier Prime'", fontStyle: 'normal' }}>{searchedIsin}</b>
           </>
         )}
@@ -254,7 +259,15 @@ export default function SecuritySearchPage() {
           </div>
           <div className="fonte-prezzo">
             <span>
-              Fonte: <b>Borsa Italiana</b>
+              {dataSource === 'morningstar' ? (
+                <>
+                  Fonte: <b>MorningStar (backup)</b>
+                </>
+              ) : (
+                <>
+                  Fonte: <b>Borsa Italiana</b>
+                </>
+              )}
             </span>
             {formatRilevazione(lastFetchedAt) && (
               <span>
