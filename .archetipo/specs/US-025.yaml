@@ -1,0 +1,32 @@
+schema: archetipo/spec/v2
+code: US-025
+title: Aggiungere un titolo ricercato a un portafoglio
+epic:
+  code: EP-003
+  title: Gestione delle posizioni
+priority: HIGH
+points: 3
+status: TODO
+body: |-
+  #### US-025: Aggiungere un titolo ricercato a un portafoglio
+
+  **Epic:** EP-003 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio poter aggiungere un titolo appena trovato nella ricerca direttamente a uno dei miei portafogli,
+  in modo da avviare il carico senza dover ricopiare manualmente ISIN, nome e prezzo.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, nella pagina di ricerca titoli, quando un titolo è trovato ("Titolo Trovato"), compare il bottone "Aggiungi a Portafoglio"; premendolo si apre un dialog con la lista dei portafogli disponibili; selezionando e confermando un portafoglio, l'utente viene portato alla pagina del portafoglio con il modulo di carico pre-compilato con ISIN, nome del titolo e prezzo corrente.
+
+  **Criteri di Accettazione**
+  - [ ] Il bottone "Aggiungi a Portafoglio" è visibile accanto alla sezione "Titolo Trovato" solo quando la ricerca ha prodotto un risultato valido
+  - [ ] Il dialog mostra la lista di tutti i portafogli esistenti e richiede una selezione esplicita prima di procedere
+  - [ ] Confermando la selezione, la navigazione porta a `PortfolioDetailPage` del portafoglio scelto
+  - [ ] Il modulo di carico titolo in `PortfolioDetailPage` è pre-compilato con ISIN, nome del titolo e prezzo corrente recuperati dalla ricerca
+  - [ ] Se non esistono portafogli, il dialog mostra un messaggio che invita a crearne uno prima di procedere
+history:
+  - status: TODO
+    at: "2026-06-28T20:19:59Z"
