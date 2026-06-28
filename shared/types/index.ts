@@ -170,3 +170,26 @@ export interface PositionSummary {
   /** Controvalore totale di carico: avgLoadPrice × totalQuantity. */
   totalLoadValue: number;
 }
+
+/**
+ * Vista arricchita per ISIN di un portafoglio (FR-013).
+ * Aggrega tutti i carichi e, quando disponibile dalla cache securities,
+ * arricchisce con il prezzo corrente e calcola la differenza rispetto al carico.
+ * I campi derivati dal prezzo corrente sono nullable: null = dato non in cache.
+ */
+export interface EnrichedPositionSummary {
+  /** Codice ISIN normalizzato. */
+  isin: string;
+  /** Denominazione ufficiale del titolo (dalla cache securities), null se non disponibile. */
+  name: string | null;
+  /** Somma delle quantità di tutti i carichi: Σ(quantity). */
+  totalQuantity: number;
+  /** Prezzo medio di carico ponderato: Σ(load_price × quantity) / Σ(quantity). */
+  avgLoadPrice: number;
+  /** Prezzo corrente dalla cache securities, null se non in cache. */
+  currentPrice: number | null;
+  /** Valore attuale: currentPrice × totalQuantity, null se currentPrice è null. */
+  currentValue: number | null;
+  /** Differenza rispetto al carico: currentValue − (avgLoadPrice × totalQuantity), null se currentPrice è null. */
+  difference: number | null;
+}

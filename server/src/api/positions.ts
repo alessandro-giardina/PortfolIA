@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, desc, sql, and } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { portfolios, positions } from '../db/schema.js';
-import type { Position, CreatePositionRequest, UpdatePositionRequest, PositionSummary } from '@portfolia/shared';
+import { portfolios, positions, securities } from '../db/schema.js';
+import type { Position, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary } from '@portfolia/shared';
 import { isValidIsin, normalizeIsin } from '@portfolia/shared';
 
 /** Mappa una PositionRow Drizzle nell'interfaccia condivisa Position. */
@@ -82,6 +82,64 @@ export async function positionsRoutes(fastify: FastifyInstance): Promise<void> {
       .get();
 
     return reply.status(201).send(toPosition(row));
+  });
+
+  /**
+   * GET /api/portfolios/:id/positions/enriched
+   * Restituisce la vista aggregata per ISIN arricchita con il prezzo corrente
+   * dalla cache securities (LEFT JOIN). Calcola currentValue e difference
+   * lato server. I campi derivati dal prezzo corrente sono null se l'ISIN
+   * non è in cache.
+   * Deve essere registrata PRIMA di /summary e /positions per evitare conflitti Fastify.
+   */
+  fastify.get<{
+    Params: { id: string };
+    Reply: EnrichedPositionSummary[] | { error: string };
+  }>('/api/portfolios/:id/positions/enriched', async (request, reply) => {
+    const portfolioId = Number(request.params.id);
+    if (!Number.isInteger(portfolioId) || portfolioId <= 0) {
+      return reply.status(404).send({ error: 'Portafoglio non trovato.' });
+    }
+
+    // Verifica esistenza portafoglio
+    const portfolio = db.select().from(portfolios).where(eq(portfolios.id, portfolioId)).get();
+    if (!portfolio) {
+      return reply.status(404).send({ error: 'Portafoglio non trovato.' });
+    }
+
+    // Aggregazione per ISIN con LEFT JOIN sulla cache securities
+    const rows = db
+      .select({
+        isin: positions.isin,
+        name: securities.name,
+        totalQuantity: sql<number>`SUM(${positions.quantity})`,
+        weightedSum: sql<number>`SUM(${positions.load_price} * ${positions.quantity})`,
+        currentPrice: securities.price,
+      })
+      .from(positions)
+      .leftJoin(securities, eq(positions.isin, securities.isin))
+      .where(eq(positions.portfolio_id, portfolioId))
+      .groupBy(positions.isin, securities.name, securities.price)
+      .orderBy(positions.isin)
+      .all();
+
+    const result: EnrichedPositionSummary[] = rows.map((row) => {
+      const avgLoadPrice = row.totalQuantity > 0 ? row.weightedSum / row.totalQuantity : 0;
+      const currentPrice = row.currentPrice ?? null;
+      const currentValue = currentPrice !== null ? currentPrice * row.totalQuantity : null;
+      const difference = currentValue !== null ? currentValue - avgLoadPrice * row.totalQuantity : null;
+      return {
+        isin: row.isin,
+        name: row.name ?? null,
+        totalQuantity: row.totalQuantity,
+        avgLoadPrice,
+        currentPrice,
+        currentValue,
+        difference,
+      };
+    });
+
+    return result;
   });
 
   /**

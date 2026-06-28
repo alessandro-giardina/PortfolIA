@@ -1,0 +1,137 @@
+schema: archetipo/plan/v2
+spec_code: US-017
+body: |-
+  # US-017: Visualizzare la tabella dei titoli del portafoglio — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-06-28
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-005 — Visualizzazione dei titoli
+  **Priorità:** HIGH | **Punti:** 3
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio vedere i titoli di un portafoglio in una tabella sintetica,
+  in modo da avere a colpo d'occhio la composizione e la differenza rispetto al carico (FR-013).
+
+  **Criteri di Accettazione**
+  - La tabella mostra per ogni titolo: ISIN, descrizione, quantità, valore attuale, valore medio di carico e differenza
+  - La differenza riflette il confronto tra valore attuale e valore medio di carico
+  - Un portafoglio senza titoli mostra uno stato vuoto chiaro
+
+  ---
+
+  ## Soluzione Tecnica
+
+  La soluzione arricchisce la scheda "Riepilogo" di `PortfolioDetailPage` — attualmente un placeholder — con una tabella dei titoli alimentata da un nuovo endpoint backend che aggrega le posizioni e le arricchisce con i dati dalla cache `securities`.
+
+  ### Nuovo endpoint: `GET /api/portfolios/:id/positions/enriched`
+
+  L'endpoint esegue un LEFT JOIN tra la tabella `positions` (aggregata per ISIN) e la tabella `securities`:
+  - Aggrega `positions` per ISIN: `SUM(quantity)` e media ponderata `SUM(load_price * quantity) / SUM(quantity)`
+  - LEFT JOIN con `securities` per recuperare `name` e `price` corrente
+  - Restituisce per ogni ISIN: `isin`, `name` (null se non in cache), `totalQuantity`, `avgLoadPrice`, `currentPrice` (null se non in cache), `currentValue` (null se price null), `difference` (null se price null)
+  - `difference = (currentPrice − avgLoadPrice) × totalQuantity`
+
+  ### Tipo condiviso: `EnrichedPositionSummary`
+
+  Aggiunto in `shared/types/index.ts`:
+  ```typescript
+  export interface EnrichedPositionSummary {
+    isin: string;
+    name: string | null;           // dalla cache securities, null se non ancora recuperato
+    totalQuantity: number;
+    avgLoadPrice: number;           // prezzo medio ponderato di carico
+    currentPrice: number | null;    // prezzo attuale dalla cache, null se non disponibile
+    currentValue: number | null;    // currentPrice * totalQuantity
+    difference: number | null;      // currentValue - (avgLoadPrice * totalQuantity)
+  }
+  ```
+
+  ### Frontend: scheda Riepilogo in `PortfolioDetailPage`
+
+  - Chiama il nuovo endpoint `/api/portfolios/:id/positions/enriched` al caricamento
+  - Sostituisce il placeholder con la tabella dei titoli
+  - Colonne: ISIN, Descrizione, Quantità, Valore attuale, Prezzo medio carico, Differenza
+  - Valori null mostrati come "–" con classe CSS `dato-mancante`
+  - Differenza positiva: classe `positivo` (verde); negativa: classe `negativo` (rosso)
+  - Stato vuoto: messaggio esplicito "Nessun titolo nel portafoglio"
+  - La sezione di gestione (rinomina/elimina) rimane nella scheda Riepilogo dopo la tabella
+
+  ### Decisioni architetturali
+  - Nessuna modifica allo schema SQLite (tabelle `positions` e `securities` già esistenti)
+  - Il calcolo della differenza avviene lato server (incluso nel response body)
+  - Il prezzo attuale è quello in cache (non si esegue scraping live); se non disponibile si mostra "–" con nota visiva
+  - L'endpoint `/enriched` viene registrato PRIMA di `/summary` in `positionsRoutes` per evitare conflitti di routing con Fastify
+
+  ---
+
+  ## Strategia di Test
+
+  Test di integrazione Vitest sull'endpoint backend per verificare aggregazione, join e gestione null. Test E2E Playwright per il flusso utente completo, incluso lo stato vuoto.
+
+  ### Test di integrazione (Vitest)
+
+  - Endpoint con posizioni e securities in cache: verifica tutti i campi calcolati correttamente
+  - Endpoint con ISIN non in cache securities: verifica che `name`, `currentPrice`, `currentValue`, `difference` siano `null`
+  - Endpoint con portafoglio vuoto: verifica array vuoto
+  - Endpoint con portafoglio inesistente: verifica 404
+  - Calcolo media ponderata con carichi multipli sullo stesso ISIN
+
+  ### E2E Tests — Simulazione utente
+
+  **Framework:** Playwright (già configurato nel progetto)
+  **Video recording:** Scenario demo only — salvato in `docs/test-results/US-017/`
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Demo: tabella titoli popolata | L'utente crea un portafoglio, aggiunge una posizione via API seed, apre la scheda Riepilogo e vede la tabella con ISIN, quantità, prezzo medio carico; se la security è in cache vede anche prezzo attuale e differenza |
+  | Stato vuoto | L'utente apre un portafoglio senza posizioni, seleziona la scheda Riepilogo e vede il messaggio di stato vuoto chiaro |
+
+  ---
+
+  _Piano generato via ARchetipo Planning — 2026-06-28_
+tasks:
+  - id: TASK-01
+    title: Aggiungere EnrichedPositionSummary ai tipi condivisi
+    description: 'Definire l''interfaccia `EnrichedPositionSummary` in `shared/types/index.ts` con i campi: isin, name (null), totalQuantity, avgLoadPrice, currentPrice (null), currentValue (null), difference (null). Questo tipo sarà usato da backend e frontend.'
+    type: Impl
+    status: DONE
+    ref: TASK-01
+  - id: TASK-02
+    title: Implementare endpoint GET /api/portfolios/:id/positions/enriched
+    description: In `server/src/api/positions.ts`, aggiungere la route (registrata prima di `/summary` per evitare conflitti Fastify). Esegue aggregazione LEFT JOIN tra `positions` e `securities` per ISIN, calcola `avgLoadPrice`, `currentValue` e `difference` lato server. Restituisce `EnrichedPositionSummary[]`.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    ref: TASK-02
+  - id: TASK-03
+    title: Test di integrazione Vitest per /positions/enriched
+    description: 'In `server/tests/`, aggiungere test per l''endpoint enriched: portafoglio con security in cache (tutti i campi valorizzati), ISIN senza security in cache (campi null), portafoglio vuoto (array vuoto), portafoglio inesistente (404), carichi multipli con media ponderata corretta.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+    ref: TASK-03
+  - id: TASK-04
+    title: Aggiornare la scheda Riepilogo in PortfolioDetailPage con la tabella titoli
+    description: 'In `client/src/pages/PortfolioDetailPage.tsx`, sostituire il placeholder `dettaglio-placeholder` nella scheda ''riepilogo'' con: fetch verso `/api/portfolios/:id/positions/enriched`, tabella `mastro` con colonne ISIN / Descrizione / Quantità / Valore attuale / Prezzo medio carico / Differenza. Valori null mostrati come ''–''. Differenza colorata (positivo/negativo). Stato vuoto con messaggio chiaro. La sezione gestione (rinomina/elimina) resta dopo la tabella.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+    ref: TASK-04
+  - id: TASK-05
+    title: Test E2E Playwright — tabella titoli e stato vuoto
+    description: 'In `e2e/US-017__visualizza-tabella-titoli.spec.ts`, implementare: (1) scenario demo con video (outputDir `docs/test-results/US-017/`) — crea portafoglio via API, aggiunge posizione via API, apre scheda Riepilogo, verifica presenza tabella con riga ISIN corretta; (2) scenario stato vuoto — portafoglio senza posizioni, verifica messaggio vuoto visibile.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    ref: TASK-05

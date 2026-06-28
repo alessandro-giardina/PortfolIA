@@ -333,6 +333,7 @@ body {
 .euro::before { content: "€ "; color: var(--seppia); }
 .guadagno { color: var(--verde-attivo); font-weight: 700; }
 .perdita  { color: var(--rosso-perdita); font-weight: 700; }
+.dato-mancante { color: var(--seppia); opacity: .55; font-style: italic; }
 
 /* ---------- Timbri ---------- */
 .timbro {
@@ -920,4 +921,113 @@ body {
 }
 .mastro tbody tr.riga-nuova td {
   border-bottom: 2px solid rgba(59,100,30,.3);
+}
+
+/* ---------- Riquadro Valore Totale (US-014) ---------- */
+.riquadro-valore-totale {
+  display: flex;
+  align-items: stretch;
+  border: 2px solid var(--inchiostro);
+  background: rgba(247,239,218,.6);
+  box-shadow: 4px 4px 0 rgba(34,28,20,.12);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+/* Fascia sinistra colorata — segnale visivo primario */
+.riquadro-valore-totale .fascia-colore {
+  width: 6px;
+  background: var(--verde-mastro);
+  flex-shrink: 0;
+}
+.riquadro-valore-totale .fascia-colore.parziale {
+  background: var(--ottone);
+}
+.riquadro-valore-totale .fascia-colore.assente {
+  background: var(--seppia);
+  opacity: .5;
+}
+
+/* Zona contenuto */
+.riquadro-valore-totale .contenuto-totale {
+  flex: 1;
+  padding: 22px 28px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+/* Etichetta + numero grande */
+.riquadro-valore-totale .blocco-cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.riquadro-valore-totale .et-totale {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 11px;
+  color: var(--seppia);
+}
+.riquadro-valore-totale .cifra-totale {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1;
+  color: var(--inchiostro);
+  letter-spacing: -.01em;
+}
+.riquadro-valore-totale .cifra-totale .valuta {
+  font-size: .55em;
+  font-weight: 600;
+  color: var(--seppia);
+  vertical-align: middle;
+  margin-right: .12em;
+  letter-spacing: .04em;
+}
+.riquadro-valore-totale .cifra-totale.parziale {
+  color: var(--ottone);
+}
+.riquadro-valore-totale .cifra-totale.assente {
+  color: var(--seppia);
+  opacity: .6;
+  font-style: italic;
+}
+
+/* Nota dati mancanti */
+.riquadro-valore-totale .nota-mancante {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--seppia);
+  line-height: 1.45;
+  max-width: 400px;
+  padding: 10px 14px;
+  border-left: 1.5px solid rgba(110,90,54,.35);
+  background: rgba(156,125,52,.06);
+}
+.riquadro-valore-totale .nota-mancante strong {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ottone);
+  display: block;
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+/* Zona destra — aggiornamento timestamp */
+.riquadro-valore-totale .timestamp-totale {
+  margin-left: auto;
+  text-align: right;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  color: var(--seppia);
+  opacity: .7;
+  white-space: nowrap;
+  align-self: flex-end;
 }

@@ -1,0 +1,491 @@
+/* ============================================================
+   PortfolIA — US-017 mockup shared styles
+   Stile: Libro Mastro, anni Trenta — tabella titoli portafoglio
+   Coerente con US-025/shared.css e libro-mastro/shared.css
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@600;700;900&display=swap');
+
+:root {
+  --carta:        #f1e7cf;
+  --carta-chiara: #f7efda;
+  --carta-scura:  #e7d9b8;
+  --verde-mastro: #2c3a2c;
+  --verde-panno:  #38492f;
+  --verde-tenue:  #d7ddc4;
+  --inchiostro:   #221c14;
+  --inchiostro-2: #3b3120;
+  --seppia:       #6e5a36;
+  --rosso-margine:#9e2b25;
+  --rosso-vivo:   #b8362c;
+  --carminio:     #8d231f;
+  --blu-riga:     #8a9bb0;
+  --blu-inchiostro:#1d2b40;
+  --ottone:       #9c7d34;
+  --ottone-chiaro:#d9bf78;
+  --verde-attivo: #2f6b3a;
+  --rosso-perdita:#9e2b25;
+  --ombra-pagina: 0 22px 50px -20px rgba(34,28,20,.55);
+  --filetto:      1.5px solid var(--inchiostro);
+  --filetto-fine: 1px solid rgba(34,28,20,.32);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  margin: 0;
+  font-family: 'IM Fell English', Georgia, serif;
+  color: var(--inchiostro);
+  font-size: 17px;
+  line-height: 1.5;
+  background-color: #3a4438;
+  background-image: radial-gradient(circle at 50% -10%, #4a5645 0%, #313a30 60%, #232a23 100%);
+  min-height: 100vh;
+  padding: 32px 18px 80px;
+}
+
+/* ---------- Foglio ---------- */
+.foglio {
+  position: relative;
+  max-width: 1100px;
+  margin: 0 auto;
+  background-color: var(--carta);
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(110,90,54,.10), transparent 22%),
+    radial-gradient(circle at 88% 78%, rgba(110,90,54,.12), transparent 26%),
+    repeating-linear-gradient(0deg, rgba(34,28,20,.014) 0 2px, transparent 2px 4px);
+  box-shadow: var(--ombra-pagina);
+  border: 1px solid #c9b78e;
+  overflow: hidden;
+}
+.foglio::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(0deg, transparent 0 33px, rgba(138,155,176,.28) 33px 34px);
+  mix-blend-mode: multiply;
+  opacity: .5;
+  z-index: 0;
+}
+.foglio::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 64px;
+  width: 0;
+  border-left: 1.5px solid var(--rosso-margine);
+  box-shadow: 2px 0 0 -1px rgba(158,43,37,.35);
+  z-index: 1;
+}
+.foglio > * { position: relative; z-index: 2; }
+
+/* ---------- Testata ---------- */
+.testata {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 30px 40px 18px 90px;
+  border-bottom: 3px double var(--inchiostro);
+  background: linear-gradient(180deg, rgba(56,73,47,.06), transparent);
+}
+.marchio {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 13px;
+  letter-spacing: .32em;
+  color: var(--seppia);
+  text-transform: uppercase;
+  margin: 0 0 4px;
+}
+.testata h1 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(26px, 4vw, 44px);
+  line-height: .98;
+  margin: 0;
+  color: var(--inchiostro);
+}
+.testata h1 .corsivo { font-style: italic; font-weight: 700; color: var(--carminio); }
+.testata .sottotesto { font-style: italic; color: var(--seppia); margin: 6px 0 0; font-size: 15px; }
+.colonna-registro {
+  text-align: right;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  color: var(--inchiostro-2);
+  line-height: 1.9;
+  white-space: nowrap;
+}
+.colonna-registro b { letter-spacing: .04em; }
+.colonna-registro .totale-positivo { color: var(--verde-attivo); font-weight: 700; }
+.colonna-registro .totale-negativo { color: var(--rosso-perdita); font-weight: 700; }
+
+/* ---------- Linguette ---------- */
+.linguette {
+  display: flex;
+  gap: 0;
+  padding: 0 40px 0 90px;
+  margin-top: -1px;
+  border-bottom: var(--filetto);
+  background: linear-gradient(180deg, transparent, rgba(34,28,20,.03));
+}
+.linguette a {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 13px;
+  text-decoration: none;
+  color: var(--seppia);
+  padding: 12px 20px 10px;
+  border: var(--filetto-fine);
+  border-bottom: none;
+  margin-right: 6px;
+  background: var(--carta-scura);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  top: 1px;
+  transition: background .15s, color .15s;
+}
+.linguette a:hover { color: var(--inchiostro); background: var(--carta-chiara); }
+.linguette a.attiva {
+  color: var(--inchiostro);
+  background: var(--carta);
+  border-bottom: 2px solid var(--carta);
+  box-shadow: 0 -2px 0 var(--rosso-margine);
+  font-weight: 700;
+}
+.linguette a.disabilitata { pointer-events: none; opacity: .4; }
+
+/* ---------- Corpo ---------- */
+.corpo { padding: 26px 40px 48px 90px; }
+
+.sezione-titolo {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  font-size: 14px;
+  color: var(--inchiostro);
+  margin: 34px 0 14px;
+  padding-bottom: 6px;
+  border-bottom: var(--filetto);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sezione-titolo:first-child { margin-top: 6px; }
+.sezione-titolo .nota {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  color: var(--seppia);
+}
+
+/* ---------- Riepilogo valori ---------- */
+.riepilogo-valori {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 2px solid var(--inchiostro);
+  background: rgba(247,239,218,.5);
+  margin-bottom: 6px;
+}
+.riepilogo-valori .voce {
+  padding: 14px 16px;
+  border-left: 1px solid rgba(34,28,20,.2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.riepilogo-valori .voce:first-child { border-left: none; }
+.riepilogo-valori .voce .et {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 11px;
+  color: var(--seppia);
+}
+.riepilogo-valori .voce .dato {
+  font-family: 'Courier Prime', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--inchiostro);
+}
+.riepilogo-valori .voce .dato.positivo { color: var(--verde-attivo); }
+.riepilogo-valori .voce .dato.negativo { color: var(--rosso-perdita); }
+
+/* ---------- Tabella mastro ---------- */
+.tabella-scroll {
+  overflow-x: auto;
+  border: 2px solid var(--inchiostro);
+  box-shadow: 4px 4px 0 rgba(34,28,20,.12);
+}
+.mastro {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Courier Prime', monospace;
+  font-size: 14px;
+  background: rgba(247,239,218,.4);
+  min-width: 760px;
+}
+.mastro thead th {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--carta-chiara);
+  background: var(--verde-mastro);
+  padding: 10px 12px;
+  text-align: left;
+  border-left: 1px solid rgba(247,239,218,.2);
+  border-bottom: 2px solid var(--inchiostro);
+  white-space: nowrap;
+}
+.mastro thead th:first-child { border-left: none; }
+.mastro thead th.allineato-dx { text-align: right; }
+
+.mastro tbody td {
+  padding: 11px 12px;
+  border-left: 1px solid rgba(34,28,20,.16);
+  border-bottom: 1px solid rgba(138,155,176,.5);
+  vertical-align: middle;
+}
+.mastro tbody td:first-child { border-left: none; }
+.mastro tbody tr:nth-child(even) td { background: rgba(215,221,196,.42); }
+.mastro tbody tr.cliccabile { cursor: pointer; transition: background .12s; }
+.mastro tbody tr.cliccabile:hover td { background: rgba(156,125,52,.14); }
+
+/* denominazione + ISIN */
+.voce { display: flex; flex-direction: column; gap: 2px; }
+.voce strong { font-family: 'IM Fell English', serif; font-size: 15px; font-weight: normal; color: var(--inchiostro); }
+.voce small { font-family: 'Courier Prime', monospace; font-size: 12px; letter-spacing: .05em; color: var(--seppia); }
+
+/* cifre allineate a destra */
+.cifra { text-align: right; font-variant-numeric: tabular-nums; }
+.euro::before { content: "€\00a0"; font-size: 11px; opacity: .7; }
+
+/* differenze colorate */
+.guadagno { color: var(--verde-attivo); font-weight: 700; }
+.perdita   { color: var(--rosso-perdita); font-weight: 700; }
+.neutro    { color: var(--seppia); }
+
+/* dato mancante (price non disponibile) */
+.dato-mancante { color: rgba(110,90,54,.55); font-style: italic; }
+
+/* tfoot */
+.mastro tfoot td {
+  padding: 10px 12px;
+  border-left: 1px solid rgba(34,28,20,.16);
+  border-top: 2px solid var(--inchiostro);
+  background: rgba(44,58,44,.08);
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--inchiostro-2);
+}
+.mastro tfoot td.cifra { font-family: 'Courier Prime', monospace; font-size: 14px; letter-spacing: 0; text-transform: none; }
+.mastro tfoot td:first-child { border-left: none; }
+
+/* ---------- Stato vuoto ---------- */
+.stato-vuoto {
+  border: 2px dashed rgba(34,28,20,.35);
+  background: rgba(247,239,218,.5);
+  padding: 52px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.stato-vuoto .ornamento {
+  font-family: 'Playfair Display', serif;
+  font-size: 64px;
+  line-height: 1;
+  color: rgba(110,90,54,.22);
+  font-weight: 900;
+  user-select: none;
+  letter-spacing: -.02em;
+}
+.stato-vuoto .titolo-vuoto {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 19px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--inchiostro);
+}
+.stato-vuoto .desc-vuoto {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--seppia);
+  max-width: 480px;
+  line-height: 1.55;
+}
+.stato-vuoto .timbro-vuoto {
+  display: inline-block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 12px;
+  padding: 6px 14px;
+  border: 2px solid rgba(110,90,54,.4);
+  color: var(--seppia);
+  border-radius: 3px;
+  transform: rotate(-1.5deg);
+  opacity: .7;
+}
+
+/* ---------- Sezione gestione ---------- */
+.sezione-gestione {
+  border: 1px solid rgba(34,28,20,.22);
+  background: rgba(247,239,218,.3);
+  margin-top: 6px;
+}
+.sezione-gestione .intestazione-gestione {
+  padding: 10px 18px;
+  background: rgba(44,58,44,.06);
+  border-bottom: 1px solid rgba(34,28,20,.18);
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 12px;
+  color: var(--inchiostro-2);
+}
+.sezione-gestione .corpo-gestione {
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.riga-gestione {
+  display: grid;
+  grid-template-columns: 180px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px dotted rgba(110,90,54,.3);
+  padding-bottom: 12px;
+}
+.riga-gestione:last-child { border-bottom: none; padding-bottom: 0; }
+.riga-gestione label {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--seppia);
+  align-self: center;
+}
+.riga-gestione input {
+  border: none;
+  background: transparent;
+  font-family: 'IM Fell English', serif;
+  font-size: 16px;
+  color: var(--inchiostro);
+  padding: 6px 4px;
+  border-bottom: 1.5px dotted rgba(34,28,20,.45);
+  flex: 1;
+  width: 100%;
+}
+.riga-gestione input:focus { outline: none; border-bottom-color: var(--rosso-margine); }
+
+/* ---------- Pulsanti ---------- */
+.bottoni { display: flex; gap: 14px; margin-top: 22px; flex-wrap: wrap; align-items: center; }
+.bottone {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 14px;
+  padding: 12px 26px;
+  border: 2px solid var(--inchiostro);
+  background: var(--verde-mastro);
+  color: var(--carta-chiara);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 3px 3px 0 rgba(34,28,20,.25);
+  transition: transform .12s, box-shadow .12s;
+}
+.bottone:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 rgba(34,28,20,.3); }
+.bottone:active { transform: translate(2px,2px); box-shadow: none; }
+.bottone.secondario { background: var(--carta-chiara); color: var(--inchiostro); }
+.bottone.ottone-btn {
+  background: var(--ottone);
+  border-color: #7a6128;
+  color: var(--carta-chiara);
+  box-shadow: 3px 3px 0 rgba(122,97,40,.35);
+}
+.bottone.ottone-btn:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 rgba(122,97,40,.4); }
+.bottone.pericoloso {
+  background: var(--carta-chiara);
+  border-color: var(--rosso-vivo);
+  color: var(--rosso-vivo);
+  box-shadow: 3px 3px 0 rgba(158,43,37,.2);
+}
+.bottone.pericoloso:hover { background: rgba(184,54,44,.06); }
+
+/* ---------- Timbri ---------- */
+.timbro {
+  display: inline-block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 2px solid var(--rosso-vivo);
+  color: var(--rosso-vivo);
+  border-radius: 3px;
+  transform: rotate(-4deg);
+  opacity: .82;
+  background: rgba(184,54,44,.05);
+  box-shadow: inset 0 0 0 1px rgba(184,54,44,.25);
+}
+.timbro.verde {
+  border-color: var(--verde-attivo);
+  color: var(--verde-attivo);
+  background: rgba(47,107,58,.05);
+  box-shadow: inset 0 0 0 1px rgba(47,107,58,.25);
+  transform: rotate(1deg);
+}
+
+/* ---------- Piè di pagina ---------- */
+.pie {
+  padding: 18px 40px 26px 90px;
+  border-top: 3px double var(--inchiostro);
+  font-family: 'Courier Prime', monospace;
+  font-size: 11.5px;
+  color: var(--seppia);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pie .firma { font-family: 'IM Fell English', serif; font-style: italic; font-size: 14px; }
+
+/* ---------- Nav mockup ---------- */
+.nav-mockup {
+  margin-top: 48px;
+  padding-top: 18px;
+  border-top: 1px dashed rgba(110,90,54,.4);
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  color: var(--seppia);
+}
+.nav-mockup a { color: var(--ottone); text-decoration: none; border-bottom: 1px dotted var(--ottone); }
+.nav-mockup a:hover { color: var(--carminio); border-bottom-color: var(--carminio); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 840px) {
+  body { padding: 14px 6px 50px; }
+  .foglio::before { left: 30px; }
+  .testata, .linguette, .pie, .corpo { padding-left: 44px; }
+  .corpo { padding-right: 20px; }
+  .testata { flex-direction: column; align-items: flex-start; }
+  .colonna-registro { text-align: left; }
+  .riepilogo-valori { grid-template-columns: repeat(2, 1fr); }
+  .riga-gestione { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .riepilogo-valori { grid-template-columns: 1fr; }
+}

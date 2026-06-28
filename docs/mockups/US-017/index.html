@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Tabella Titoli Portafoglio (US-017)</title>
+  <meta name="description" content="Mockup US-017: tabella titoli nella scheda Riepilogo di un portafoglio, con ISIN, descrizione, quantità, valore attuale, prezzo medio di carico e differenza.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda riepilogo</p>
+      <h1>Portafoglio <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">5 titoli iscritti &middot; aperto il 04.III.2023</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Valore di carico &nbsp;<b>€&thinsp;36.820,00</b></div>
+      <div>Valore attuale &nbsp;&nbsp;<b>€&thinsp;49.607,40</b></div>
+      <div>P&amp;L da carico &nbsp;&nbsp;&nbsp;<b class="totale-positivo">+€&thinsp;12.787,40</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="index.html" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <!-- Riquadro sommario valori -->
+    <div class="sezione-titolo" style="margin-top:6px">
+      Sommario del conto
+      <span class="nota">valori aggiornati al 28.VI.2026 &middot; 17:32</span>
+    </div>
+
+    <div class="riepilogo-valori">
+      <div class="voce">
+        <span class="et">Posizioni aperte</span>
+        <span class="dato">5</span>
+      </div>
+      <div class="voce">
+        <span class="et">Valore attuale totale</span>
+        <span class="dato">€&thinsp;49.607,40</span>
+      </div>
+      <div class="voce">
+        <span class="et">Valore medio di carico</span>
+        <span class="dato">€&thinsp;36.820,00</span>
+      </div>
+      <div class="voce">
+        <span class="et">Differenza complessiva</span>
+        <span class="dato positivo">+€&thinsp;12.787,40</span>
+      </div>
+    </div>
+
+    <!-- Tabella titoli -->
+    <div class="sezione-titolo">
+      Titoli iscritti a conto
+      <span class="nota">FR-013 &middot; clicca una riga per la scheda completa</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro" aria-label="Tabella titoli del portafoglio">
+        <thead>
+          <tr>
+            <th>Denominazione &middot; ISIN</th>
+            <th class="allineato-dx">Quantità</th>
+            <th class="allineato-dx">Pr. medio carico</th>
+            <th class="allineato-dx">Valore attuale</th>
+            <th class="allineato-dx">Differenza</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- Riga 1: guadagno -->
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>ENEL S.p.A.</strong>
+                <small>IT0003128367</small>
+              </span>
+            </td>
+            <td class="cifra">1.200</td>
+            <td class="cifra euro">5,42</td>
+            <td class="cifra euro">8.616,00</td>
+            <td class="cifra guadagno">+€&thinsp;2.112,00</td>
+          </tr>
+
+          <!-- Riga 2: guadagno forte -->
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>iShares Core MSCI World UCITS ETF</strong>
+                <small>IE00B4L5Y983</small>
+              </span>
+            </td>
+            <td class="cifra">220</td>
+            <td class="cifra euro">68,30</td>
+            <td class="cifra euro">20.801,00</td>
+            <td class="cifra guadagno">+€&thinsp;5.775,00</td>
+          </tr>
+
+          <!-- Riga 3: perdita -->
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>iShares MSCI Emerging Markets IMI</strong>
+                <small>IE00BMVB5R75</small>
+              </span>
+            </td>
+            <td class="cifra">340</td>
+            <td class="cifra euro">26,90</td>
+            <td class="cifra euro">8.551,00</td>
+            <td class="cifra perdita">&minus;€&thinsp;595,00</td>
+          </tr>
+
+          <!-- Riga 4: ISIN senza prezzo recuperato (dato null) -->
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Intesa Sanpaolo S.p.A.</strong>
+                <small>IT0000072618</small>
+              </span>
+            </td>
+            <td class="cifra">2.000</td>
+            <td class="cifra euro">2,10</td>
+            <td class="cifra euro">7.720,00</td>
+            <td class="cifra guadagno">+€&thinsp;3.520,00</td>
+          </tr>
+
+          <!-- Riga 5: prezzo non disponibile (null) — mostra '–' -->
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Recordati Industria Chimica e Farmaceutica</strong>
+                <small>IT0003828271</small>
+              </span>
+            </td>
+            <td class="cifra">90</td>
+            <td class="cifra euro">42,00</td>
+            <td class="cifra dato-mancante">&ndash;</td>
+            <td class="cifra dato-mancante">&ndash;</td>
+          </tr>
+
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">Totale portafoglio (5 posizioni)</td>
+            <td class="cifra euro" style="font-weight:700;color:var(--inchiostro)">45.688,00</td>
+            <td class="cifra guadagno" style="border-left:1px solid rgba(34,28,20,.16)">+€&thinsp;10.812,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p style="font-family:'IM Fell English';font-style:italic;color:var(--seppia);font-size:13px;margin:14px 0 0;padding-top:10px;border-top:1px dotted rgba(110,90,54,.4);">
+      I valori contrassegnati con &laquo;&ndash;&raquo; indicano che il prezzo corrente non è ancora
+      disponibile in archivio; la differenza non può essere calcolata. I prezzi vengono
+      aggiornati tramite Borsa Italiana o MorningStar in fase di ricerca titolo.
+    </p>
+
+    <!-- Sezione gestione portafoglio -->
+    <div class="sezione-titolo" style="margin-top:40px">
+      Gestione portafoglio
+      <span class="nota">rinomina o elimina il registro</span>
+    </div>
+
+    <div class="sezione-gestione">
+      <div class="intestazione-gestione">Operazioni sul registro corrente</div>
+      <div class="corpo-gestione">
+        <div class="riga-gestione">
+          <label for="nome-portafoglio">Nome del portafoglio</label>
+          <input id="nome-portafoglio" type="text" value="Lungo Periodo">
+          <button class="bottone ottone-btn" style="padding:9px 20px;font-size:13px">Rinomina</button>
+        </div>
+        <div class="riga-gestione" style="grid-template-columns:1fr auto;gap:16px;align-items:center">
+          <p style="font-family:'IM Fell English';font-style:italic;font-size:14px;color:var(--seppia);margin:0">
+            L'eliminazione del registro è irreversibile e rimuove tutte le posizioni iscritte.
+          </p>
+          <button class="bottone pericoloso" style="padding:9px 18px;font-size:13px;white-space:nowrap">
+            Elimina portafoglio
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottoni">
+      <a class="bottone" href="#">&#x2295;&ensp;Registra carico titolo</a>
+      <a class="bottone secondario" href="#">&larr; Torna ai portafogli</a>
+    </div>
+
+    <div class="nav-mockup">
+      Schermate mockup US-017 &nbsp;&rarr;&nbsp;
+      <a href="index.html">Portafoglio con titoli (questa pagina)</a>
+      &middot;
+      <a href="vuoto.html">Portafoglio senza titoli (stato vuoto)</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Ogni carico è registrato con prezzo, quantità e data di esecuzione</span>
+    <span><span class="timbro verde">Aggiornato</span>&emsp;PortfolIA &middot; US-017 mockup &middot; schermata 1 di 2</span>
+  </footer>
+
+</div><!-- /foglio -->
+
+<script src="app.js"></script>
+</body>
+</html>

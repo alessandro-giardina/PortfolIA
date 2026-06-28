@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Portafoglio Vuoto (US-017)</title>
+  <meta name="description" content="Mockup US-017: stato vuoto della scheda Riepilogo quando un portafoglio non ha ancora titoli iscritti.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda riepilogo</p>
+      <h1>Portafoglio <span class="corsivo">Speculativo</span></h1>
+      <p class="sottotesto">Nessun titolo iscritto &middot; aperto il 18.XI.2025</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Valore di carico &nbsp;<b>€&thinsp;—</b></div>
+      <div>Valore attuale &nbsp;&nbsp;<b>€&thinsp;—</b></div>
+      <div>P&amp;L da carico &nbsp;&nbsp;&nbsp;<b style="color:var(--seppia)">—</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="vuoto.html" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <!-- Riquadro sommario valori — stato vuoto -->
+    <div class="sezione-titolo" style="margin-top:6px">
+      Sommario del conto
+      <span class="nota">valori non disponibili &middot; nessuna posizione iscritta</span>
+    </div>
+
+    <div class="riepilogo-valori">
+      <div class="voce">
+        <span class="et">Posizioni aperte</span>
+        <span class="dato" style="color:var(--seppia)">0</span>
+      </div>
+      <div class="voce">
+        <span class="et">Valore attuale totale</span>
+        <span class="dato dato-mancante" style="font-size:15px;font-style:italic;opacity:.6">—</span>
+      </div>
+      <div class="voce">
+        <span class="et">Valore medio di carico</span>
+        <span class="dato dato-mancante" style="font-size:15px;font-style:italic;opacity:.6">—</span>
+      </div>
+      <div class="voce">
+        <span class="et">Differenza complessiva</span>
+        <span class="dato dato-mancante" style="font-size:15px;font-style:italic;opacity:.6">—</span>
+      </div>
+    </div>
+
+    <!-- Titoli a conto — stato vuoto -->
+    <div class="sezione-titolo">
+      Titoli iscritti a conto
+      <span class="nota">FR-013 &middot; nessun titolo registrato</span>
+    </div>
+
+    <!-- Stato vuoto decorativo -->
+    <div class="stato-vuoto" role="status" aria-label="Portafoglio senza titoli">
+      <div class="ornamento" aria-hidden="true">₤</div>
+      <p class="titolo-vuoto">Il registro è ancora bianco</p>
+      <p class="desc-vuoto">
+        Nessun titolo è stato ancora iscritto in questo portafoglio.
+        Usa il pulsante qui sotto per registrare il primo carico tramite
+        ricerca per codice ISIN.
+      </p>
+      <span class="timbro-vuoto">Conto aperto &middot; senza movimenti</span>
+    </div>
+
+    <!-- Sezione gestione portafoglio -->
+    <div class="sezione-titolo" style="margin-top:40px">
+      Gestione portafoglio
+      <span class="nota">rinomina o elimina il registro</span>
+    </div>
+
+    <div class="sezione-gestione">
+      <div class="intestazione-gestione">Operazioni sul registro corrente</div>
+      <div class="corpo-gestione">
+        <div class="riga-gestione">
+          <label for="nome-portafoglio">Nome del portafoglio</label>
+          <input id="nome-portafoglio" type="text" value="Speculativo">
+          <button class="bottone ottone-btn" style="padding:9px 20px;font-size:13px">Rinomina</button>
+        </div>
+        <div class="riga-gestione" style="grid-template-columns:1fr auto;gap:16px;align-items:center">
+          <p style="font-family:'IM Fell English';font-style:italic;font-size:14px;color:var(--seppia);margin:0">
+            L'eliminazione del registro è irreversibile e rimuove tutte le posizioni iscritte.
+          </p>
+          <button class="bottone pericoloso" style="padding:9px 18px;font-size:13px;white-space:nowrap">
+            Elimina portafoglio
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottoni">
+      <a class="bottone" href="#">&#x2295;&ensp;Registra il primo carico</a>
+      <a class="bottone secondario" href="#">&larr; Torna ai portafogli</a>
+    </div>
+
+    <div class="nav-mockup">
+      Schermate mockup US-017 &nbsp;&rarr;&nbsp;
+      <a href="index.html">Portafoglio con titoli</a>
+      &middot;
+      <a href="vuoto.html">Portafoglio senza titoli (stato vuoto &middot; questa pagina)</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Il primo carico apre il conto a mastro e iscrive il titolo</span>
+    <span>PortfolIA &middot; US-017 mockup &middot; schermata 2 di 2</span>
+  </footer>
+
+</div><!-- /foglio -->
+
+<script src="app.js"></script>
+</body>
+</html>

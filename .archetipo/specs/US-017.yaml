@@ -6,7 +6,7 @@ epic:
   title: Visualizzazione dei titoli
 priority: HIGH
 points: 3
-status: TODO
+status: REVIEW
 scope: MVP
 body: |-
   #### US-017: Visualizzare la tabella dei titoli del portafoglio
@@ -29,3 +29,9 @@ body: |-
 history:
   - status: TODO
     at: "2026-06-26T15:47:52Z"
+  - status: PLANNED
+    at: "2026-06-28T20:45:15Z"
+  - status: IN PROGRESS
+    at: "2026-06-28T20:49:37Z"
+  - status: REVIEW
+    at: "2026-06-28T20:58:44Z"

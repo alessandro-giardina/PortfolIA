@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import type { Portfolio, Position, PositionSummary, CreatePositionRequest, UpdatePositionRequest } from '@portfolia/shared';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import type { Portfolio, Position, PositionSummary, EnrichedPositionSummary, CreatePositionRequest, UpdatePositionRequest } from '@portfolia/shared';
 import { isValidIsin } from '@portfolia/shared';
 import Foglio, { dataRegistro } from '../components/Foglio.js';
 
@@ -13,9 +13,17 @@ function dataCarico(iso: string): string {
 
 type Scheda = 'riepilogo' | 'carico';
 
+interface PrefillState {
+  isin: string;
+  name: string | null;
+  price: number | null;
+  currency: string | null;
+}
+
 export default function PortfolioDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +42,8 @@ export default function PortfolioDetailPage() {
   // Positions state
   const [positions, setPositions] = useState<Position[]>([]);
   const [summaries, setSummaries] = useState<PositionSummary[]>([]);
+  const [enrichedPositions, setEnrichedPositions] = useState<EnrichedPositionSummary[]>([]);
+  const [enrichedLoading, setEnrichedLoading] = useState(false);
   const [positionsLoading, setPositionsLoading] = useState(false);
   const [newPositionId, setNewPositionId] = useState<number | null>(null);
 
@@ -49,6 +59,7 @@ export default function PortfolioDetailPage() {
 
   // Carico form state
   const [isin, setIsin] = useState('');
+  const [prefillName, setPrefillName] = useState<string | null>(null);
   const [loadDate, setLoadDate] = useState('');
   const [loadPrice, setLoadPrice] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -86,6 +97,19 @@ export default function PortfolioDetailPage() {
       .catch(() => setSummaries([]));
   }, [id]);
 
+  const fetchEnriched = useCallback(() => {
+    if (!id) return;
+    setEnrichedLoading(true);
+    fetch(`/api/portfolios/${id}/positions/enriched`)
+      .then((res) => {
+        if (!res.ok) return [];
+        return res.json() as Promise<EnrichedPositionSummary[]>;
+      })
+      .then((data) => setEnrichedPositions(data))
+      .catch(() => setEnrichedPositions([]))
+      .finally(() => setEnrichedLoading(false));
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
     fetch(`/api/portfolios/${id}`)
@@ -108,8 +132,24 @@ export default function PortfolioDetailPage() {
     if (!loading && !notFound && !error) {
       fetchPositions();
       fetchSummary();
+      fetchEnriched();
     }
-  }, [loading, notFound, error, fetchPositions, fetchSummary]);
+  }, [loading, notFound, error, fetchPositions, fetchSummary, fetchEnriched]);
+
+  useEffect(() => {
+    const state = location.state as { prefill?: PrefillState } | null;
+    if (state?.prefill?.isin) {
+      const prefill = state.prefill;
+      setIsin(prefill.isin);
+      if (prefill.price !== null) {
+        setLoadPrice(String(prefill.price));
+      }
+      if (prefill.name) {
+        setPrefillName(prefill.name);
+      }
+      window.history.replaceState({}, document.title);
+    }
+  }, []);
 
   /** Validazione client-side del form di carico. */
   function validateForm(): boolean {
@@ -167,6 +207,7 @@ export default function PortfolioDetailPage() {
       setFieldErrors({});
       fetchPositions();
       fetchSummary();
+      fetchEnriched();
     } catch {
       setSubmitError('Backend non raggiungibile.');
     } finally {
@@ -232,6 +273,7 @@ export default function PortfolioDetailPage() {
       setEditingPositionId(null);
       fetchPositions();
       fetchSummary();
+      fetchEnriched();
     } catch {
       setEditError('Backend non raggiungibile.');
     } finally {
@@ -254,6 +296,7 @@ export default function PortfolioDetailPage() {
       }
       fetchPositions();
       fetchSummary();
+      fetchEnriched();
     } catch {
       setPositionDeleteError('Backend non raggiungibile.');
     } finally {
@@ -379,20 +422,131 @@ export default function PortfolioDetailPage() {
           {/* ===== SCHEDA: Riepilogo ===== */}
           {scheda === 'riepilogo' && (
             <>
-              <div className="dettaglio-placeholder">
-                <span className="icona-conto" aria-hidden="true">&#9634;</span>
-                <div className="avviso-wip">Vista in preparazione</div>
-                <h2>{portfolio.name}</h2>
-                <p className="sottotitolo">
-                  Questa schermata mostrerà il dettaglio completo del portafoglio selezionato.
-                </p>
+              {/* Tabella titoli arricchita (FR-013) */}
+              <div className="sezione-titolo" style={{ marginTop: '6px' }}>
+                Titoli iscritti a conto
+                <span className="nota">FR-013 &middot; valore attuale e differenza rispetto al carico</span>
               </div>
 
-              <div className="bottoni">
+              {enrichedLoading ? (
+                <p className="messaggio attesa">Caricamento titoli…</p>
+              ) : enrichedPositions.length === 0 ? (
+                <div className="dettaglio-placeholder" data-testid="riepilogo-vuoto">
+                  <span className="icona-conto" aria-hidden="true">&#9634;</span>
+                  <p className="sottotitolo" style={{ fontFamily: "'IM Fell English', serif", fontStyle: 'italic', fontSize: '18px', fontWeight: 400 }}>
+                    Il registro è ancora bianco
+                  </p>
+                  <p className="sottotitolo">
+                    Nessun titolo è stato ancora iscritto in questo portafoglio.
+                    Vai alla scheda <em>Carico titoli</em> per registrare il primo carico.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {(() => {
+                    const positionsWithPrice = enrichedPositions.filter((ep) => ep.currentValue !== null);
+                    const totalCurrentValue = positionsWithPrice.reduce((s, ep) => s + (ep.currentValue ?? 0), 0);
+                    const missingPriceCount = enrichedPositions.length - positionsWithPrice.length;
+                    return (
+                      <div className="riquadro-valore-totale" data-testid="valore-totale-portafoglio" aria-label="Valore attuale totale del portafoglio">
+                        <div className={`fascia-colore${missingPriceCount > 0 ? (positionsWithPrice.length === 0 ? ' assente' : ' parziale') : ''}`}></div>
+                        <div className="contenuto-totale">
+                          <div className="blocco-cifra">
+                            <span className="et-totale">Valore attuale totale</span>
+                            <span className={`cifra-totale${positionsWithPrice.length === 0 ? ' assente' : missingPriceCount > 0 ? ' parziale' : ''}`}>
+                              <span className="valuta">EUR</span>
+                              {positionsWithPrice.length === 0
+                                ? '–'
+                                : totalCurrentValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                          {missingPriceCount > 0 && (
+                            <div className="nota-mancante" role="note">
+                              <strong>{positionsWithPrice.length === 0 ? 'Nessun prezzo disponibile' : 'Valore parziale'}</strong>
+                              {positionsWithPrice.length === 0
+                                ? `Il prezzo corrente non è in archivio per nessuna delle ${enrichedPositions.length} ${enrichedPositions.length === 1 ? 'posizione' : 'posizioni'}. Il valore sarà calcolato non appena almeno un prezzo sarà recuperato.`
+                                : `${missingPriceCount} ${missingPriceCount === 1 ? 'posizione senza prezzo corrente' : 'posizioni senza prezzo corrente'}: il totale esclude ${missingPriceCount === 1 ? 'questo titolo' : 'questi titoli'}.`}
+                            </div>
+                          )}
+                          <div className="timestamp-totale">
+                            {positionsWithPrice.length} di {enrichedPositions.length} {enrichedPositions.length === 1 ? 'posizione valorizzata' : 'posizioni valorizzate'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  <div className="tabella-scroll">
+                    <table className="mastro" data-testid="tabella-riepilogo" aria-label="Tabella titoli del portafoglio">
+                      <thead>
+                        <tr>
+                          <th>Denominazione &middot; ISIN</th>
+                          <th>Quantità</th>
+                          <th>Pr. medio carico</th>
+                          <th>Valore attuale</th>
+                          <th>Differenza</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {enrichedPositions.map((ep) => (
+                          <tr key={ep.isin} data-testid={`riepilogo-${ep.isin}`}>
+                            <td>
+                              <span className="voce">
+                                {ep.name ? <strong>{ep.name}</strong> : null}
+                                <small style={{ display: 'block', letterSpacing: '.08em', opacity: ep.name ? 0.7 : 1 }}>{ep.isin}</small>
+                              </span>
+                            </td>
+                            <td className="cifra">{ep.totalQuantity.toLocaleString('it-IT')}</td>
+                            <td className="cifra euro">{ep.avgLoadPrice.toFixed(4)}</td>
+                            <td className={ep.currentValue !== null ? 'cifra euro' : 'cifra dato-mancante'}>
+                              {ep.currentValue !== null
+                                ? ep.currentValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                : '–'}
+                            </td>
+                            <td className={
+                              ep.difference === null
+                                ? 'cifra dato-mancante'
+                                : ep.difference >= 0
+                                  ? 'cifra guadagno'
+                                  : 'cifra perdita'
+                            } data-testid={`diff-${ep.isin}`}>
+                              {ep.difference !== null
+                                ? `${ep.difference >= 0 ? '+' : ''}${ep.difference.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                : '–'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      {(() => {
+                        const enrichedWithPrice = enrichedPositions.filter((ep) => ep.currentValue !== null);
+                        if (enrichedWithPrice.length === 0) return null;
+                        const totalCurrentValue = enrichedWithPrice.reduce((s, ep) => s + (ep.currentValue ?? 0), 0);
+                        const totalDiff = enrichedWithPrice.reduce((s, ep) => s + (ep.difference ?? 0), 0);
+                        return (
+                          <tfoot>
+                            <tr>
+                              <td colSpan={3}>Totale portafoglio ({enrichedWithPrice.length} {enrichedWithPrice.length === 1 ? 'posizione valorizzata' : 'posizioni valorizzate'}{enrichedWithPrice.length < enrichedPositions.length ? ` di ${enrichedPositions.length}` : ''})</td>
+                              <td className="cifra euro">{totalCurrentValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                              <td className={totalDiff >= 0 ? 'cifra guadagno' : 'cifra perdita'}>
+                                {`${totalDiff >= 0 ? '+' : ''}${totalDiff.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        );
+                      })()}
+                    </table>
+                  </div>
+                  <p style={{ fontFamily: "'IM Fell English', serif", fontStyle: 'italic', color: 'var(--seppia)', fontSize: '13px', margin: '14px 0 0', paddingTop: '10px', borderTop: '1px dotted rgba(110,90,54,.4)' }}>
+                    I valori contrassegnati con &laquo;&ndash;&raquo; indicano che il prezzo corrente non è ancora
+                    disponibile in archivio; la differenza non può essere calcolata.
+                  </p>
+                </>
+              )}
+
+              <div className="bottoni" style={{ marginTop: '24px' }}>
                 <Link to="/" className="bottone secondario">&larr; Torna all&rsquo;elenco portafogli</Link>
               </div>
 
-              <div className="sezione-titolo">
+              <div className="sezione-titolo" style={{ marginTop: '40px' }}>
                 Gestione del conto
                 <span className="nota">rinomina o estingui il portafoglio</span>
               </div>
@@ -489,6 +643,27 @@ export default function PortfolioDetailPage() {
                 </div>
                 <div className="corpo-modulo">
                   <form id="form-carico" onSubmit={(e) => { void handleCarico(e); }} noValidate>
+
+                    {/* Nome titolo (da ricerca) */}
+                    {prefillName && (
+                      <div className="riga-modulo">
+                        <label htmlFor="carico-nome">
+                          Nome titolo
+                          <span className="sotto-etichetta">da ricerca — sola lettura</span>
+                        </label>
+                        <div className="campo">
+                          <input
+                            id="carico-nome"
+                            data-testid="input-nome-titolo"
+                            type="text"
+                            value={prefillName}
+                            readOnly
+                            disabled
+                            style={{ fontStyle: 'italic', color: 'var(--seppia)' }}
+                          />
+                        </div>
+                      </div>
+                    )}
 
                     {/* ISIN */}
                     <div className={`riga-modulo${fieldErrors.isin ? ' con-errore' : ''}`}>
