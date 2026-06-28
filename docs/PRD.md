@@ -1,8 +1,8 @@
 # PortfolIA - Product Requirements Document
 
 **Autore:** ARchetipo
-**Data:** 2026-06-26
-**Versione:** 1.0
+**Data:** 2026-06-28
+**Versione:** 1.1
 
 ---
 
@@ -125,7 +125,7 @@ A differenza dei portali dei broker (che mostrano solo i titoli detenuti presso 
 - **Rischio tecnico/adozione (alto):** fragilità dello scraping — un cambio di layout di Borsa Italiana rompe il recupero dati. Mitigazione: adapter isolato + cache + degradazione trasparente.
 - **Rischio di copertura dati:** alcuni strumenti o orizzonti storici potrebbero non essere disponibili. Mitigazione: trasparenza totale sui dati mancanti.
 - **Rischio di correttezza:** errori di calcolo del P&L multi-orizzonte minerebbero la fiducia. Mitigazione: definizioni chiare delle metriche e test sui calcoli.
-- **Rischio di blocco fonte:** richieste eccessive al sito potrebbero portare a blocchi. Mitigazione: caching aggressivo e richieste a basso volume.
+- **Rischio di blocco fonte:** richieste eccessive al sito potrebbero portare a blocchi. Mitigazione: caching aggressivo, richieste a basso volume e fonte di backup (MorningStar) come fallback quando la fonte primaria non risponde.
 
 ---
 
@@ -134,7 +134,7 @@ A differenza dei portali dei broker (che mostrano solo i titoli detenuti presso 
 ### MVP - Minimum Viable Product
 
 1. **Gestione multi-portafoglio:** creare, rinominare ed eliminare più portafogli virtuali.
-2. **Ricerca titoli per ISIN:** inserendo un ISIN, l'app recupera denominazione e prezzo attuale dai dati ufficiali di Borsa Italiana.
+2. **Ricerca titoli per ISIN:** inserendo un ISIN, l'app recupera denominazione e prezzo attuale dai dati ufficiali di Borsa Italiana; quando il titolo non è trovato su Borsa Italiana (o la fonte è irraggiungibile), l'app interroga MorningStar come fonte di backup e indica all'utente la provenienza dei dati.
 3. **Inserimento titoli in portafoglio:** aggiungere a un portafoglio un titolo con data di carico, prezzo di acquisto e quantità.
 4. **Riepilogo portafoglio:** valore attuale, P&L assoluto (€) e percentuale rispetto a giorno, mese, anno, 5 anni e 10 anni precedenti; gestione trasparente degli orizzonti senza dati.
 5. **Tabella titoli:** elenco dei titoli del portafoglio con ISIN, descrizione, quantità, valore attuale, valore medio di carico e differenza.
@@ -155,7 +155,7 @@ A differenza dei portali dei broker (che mostrano solo i titoli detenuti presso 
 
 - **Alert e notifiche** locali su soglie di prezzo o variazioni.
 - **Analisi di rischio/allocazione** (diversificazione, esposizione per settore/area).
-- **Fonti dati aggiuntive** e fallback multi-provider oltre Borsa Italiana.
+- **Fonti dati aggiuntive** oltre Borsa Italiana e MorningStar (es. provider per la serie storica multi-fonte).
 - **Reportistica esportabile** (PDF/Excel) e proiezioni.
 
 ---
@@ -168,13 +168,13 @@ A differenza dei portali dei broker (che mostrano solo i titoli detenuti presso 
 
 PortfolIA è un'applicazione **full-stack TypeScript a singolo processo locale**, pensata per essere avviata con un comando e usata dal browser su `localhost`. Il backend espone un'API interna, accede a SQLite per la persistenza e incapsula il recupero dei dati di mercato dietro un *adapter* dedicato che esegue lo scraping di Borsa Italiana. Il frontend è una SPA che consuma l'API ed effettua i calcoli di presentazione (riepiloghi, grafici).
 
-**Pattern architetturale:** Architettura a livelli (presentation → API → service/domain → data access), con un **Market Data Adapter** isolato come *anti-corruption layer* verso la fonte esterna (scraping).
+**Pattern architetturale:** Architettura a livelli (presentation → API → service/domain → data access), con i **Market Data Adapter** isolati come *anti-corruption layer* verso le fonti esterne (scraping). Più adapter (Borsa Italiana come fonte primaria, MorningStar come backup) espongono la stessa interfaccia e sono coordinati da una logica di orchestrazione che applica il fallback e traccia la provenienza del dato.
 
 **Componenti principali:**
 - **Web UI (SPA):** dashboard portafogli, ricerca ISIN, form di carico, tabella titoli, grafico andamento.
 - **API/Backend:** endpoint per portafogli, posizioni e dati di mercato; orchestrazione dei calcoli di P&L.
 - **Domain/Service layer:** logica di calcolo valore attuale, P&L da carico e variazione multi-orizzonte; regole di trasparenza sui dati mancanti.
-- **Market Data Adapter:** modulo isolato per scraping Borsa Italiana (ricerca per ISIN → scheda strumento → serie storica), parsing HTML e normalizzazione.
+- **Market Data Adapter:** moduli isolati per lo scraping delle fonti (Borsa Italiana primaria, MorningStar di backup) — ricerca per ISIN → scheda strumento → serie storica — con parsing HTML, normalizzazione e orchestrazione del fallback con tracciamento della provenienza.
 - **Cache & Persistenza (SQLite):** portafogli, posizioni, anagrafica titoli e serie storiche prezzi in cache.
 
 ### Technology Stack
@@ -205,8 +205,9 @@ portfolIA/
 │   │   ├── index.ts            # bootstrap server locale
 │   │   ├── api/                # route: portfolios, positions, market
 │   │   ├── domain/             # calcoli P&L, valore, orizzonti temporali
-│   │   ├── market/             # Market Data Adapter (scraping Borsa Italiana)
+│   │   ├── market/             # Market Data Adapter (scraping multi-fonte + fallback)
 │   │   │   ├── borsaItalianaAdapter.ts
+│   │   │   ├── morningstarAdapter.ts
 │   │   │   └── parser.ts
 │   │   ├── db/                 # schema, migrazioni, repository (Drizzle)
 │   │   └── seed/               # inizializzazione ISIN seed
@@ -245,6 +246,7 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 - **ADR-004 — Nessuna autenticazione:** l'app è single-user, locale e non esposta all'esterno; l'auth è esplicitamente fuori scope.
 - **ADR-005 — Cache locale dei prezzi storici:** le serie storiche recuperate sono persistite su SQLite per performance e per minimizzare le richieste alla fonte.
 - **ADR-006 — Full-stack TypeScript:** un solo linguaggio e tipi condivisi tra client e server per ridurre la complessità.
+- **ADR-007 — Fonte di backup MorningStar con fallback e provenienza visibile:** quando Borsa Italiana non trova il titolo o è irraggiungibile, il sistema interroga MorningStar (`https://global.morningstar.com/it`) tramite un secondo adapter isolato dietro la stessa interfaccia della fonte primaria. La provenienza (fonte primaria o di backup) è mostrata all'utente. Estende ADR-002 e mitiga il rischio di blocco/fragilità della singola fonte; le regole di Buona Cittadinanza (User-Agent corretto, basso volume, caching) valgono per entrambe le fonti.
 
 ---
 
@@ -260,7 +262,9 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 
 - **FR-004:** L'utente può ricercare un titolo inserendo un codice ISIN.
 - **FR-005:** Il sistema recupera dai dati ufficiali di Borsa Italiana, a partire dall'ISIN: la denominazione del titolo; il prezzo attuale, il ticker, il Tipo Strumento, le Commissioni totali annue, la Valuta di Denominazione; l'Emittente; il Segmento, la politica di distribuzione Dividendi.
-- **FR-006:** Il sistema gestisce in modo esplicito il caso di ISIN non trovato o di dati non disponibili, senza generare valori inventati.
+- **FR-006:** Il sistema gestisce in modo esplicito il caso di ISIN non trovato su nessuna delle fonti (Borsa Italiana e MorningStar) o di dati non disponibili, senza generare valori inventati.
+- **FR-020:** Quando Borsa Italiana non trova il titolo o è irraggiungibile (timeout/errore di rete), il sistema interroga MorningStar (`https://global.morningstar.com/it`) come fonte di backup, ricercando per ISIN e recuperando lo stesso insieme di dati anagrafici e di prezzo della fonte primaria.
+- **FR-021:** Il sistema indica all'utente da quale fonte (Borsa Italiana primaria o MorningStar di backup) provengono i dati del titolo mostrati.
 
 ### Inserimento e gestione posizioni
 
@@ -298,14 +302,15 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 
 - L'applicazione gira esclusivamente in locale (`localhost`) e non espone alcuna interfaccia di rete verso l'esterno.
 - Nessun servizio di autenticazione: l'accesso è garantito dal possesso fisico della macchina (requisito esplicito).
-- Nessun dato finanziario viene inviato a servizi cloud o terze parti, ad eccezione delle richieste in sola lettura verso Borsa Italiana per il recupero dei dati di mercato.
+- Nessun dato finanziario viene inviato a servizi cloud o terze parti, ad eccezione delle richieste in sola lettura verso Borsa Italiana e, come fonte di backup, MorningStar per il recupero dei dati di mercato.
 - Il database SQLite risiede come file locale nella directory dell'applicazione.
 
 ### Integrazioni
 
-- **Borsa Italiana (scraping HTML):** integrazione in sola lettura via `https://www.borsaitaliana.it/borsa/searchengine/search.html?q=<ISIN>`, seguendo il percorso ricerca → scheda strumento → serie storica. La logica è isolata in un adapter dedicato.
-- **Robustezza:** l'adapter deve gestire variazioni di markup, timeout ed errori di rete in modo degradante, segnalando i dati non disponibili anziché bloccare l'app.
-- **Buona cittadinanza:** richieste a basso volume, User-Agent corretto e caching aggressivo delle serie storiche per minimizzare le chiamate alla fonte.
+- **Borsa Italiana (scraping HTML, fonte primaria):** integrazione in sola lettura via `https://www.borsaitaliana.it/borsa/searchengine/search.html?q=<ISIN>`, seguendo il percorso ricerca → scheda strumento → serie storica. La logica è isolata in un adapter dedicato.
+- **MorningStar (scraping HTML, fonte di backup):** integrazione in sola lettura via `https://global.morningstar.com/it`, inserendo l'ISIN nella casella di ricerca del sito per raggiungere la scheda dello strumento. Interrogata solo quando Borsa Italiana non trova il titolo o è irraggiungibile. La logica è isolata in un secondo adapter dietro la stessa interfaccia della fonte primaria.
+- **Robustezza:** ogni adapter deve gestire variazioni di markup, timeout ed errori di rete in modo degradante, segnalando i dati non disponibili anziché bloccare l'app.
+- **Buona cittadinanza:** per entrambe le fonti, richieste a basso volume, User-Agent corretto e caching aggressivo delle serie storiche per minimizzare le chiamate.
 
 ---
 

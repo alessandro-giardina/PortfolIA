@@ -1,0 +1,35 @@
+schema: archetipo/spec/v2
+code: US-023
+title: Fallback su MorningStar per la serie storica dei prezzi
+epic:
+  code: EP-002
+  title: Ricerca titoli e dati di mercato
+priority: MEDIUM
+points: 5
+status: TODO
+blocked_by:
+  - US-009
+  - US-021
+body: |-
+  #### US-023: Fallback su MorningStar per la serie storica dei prezzi
+
+  **Epic:** EP-002 | **Priorità:** MEDIUM | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** US-009, US-021
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che la serie storica dei prezzi venga recuperata da MorningStar quando Borsa Italiana non la espone (titoli backup-only o storico irraggiungibile),
+  in modo da avere grafici e P&L multi-orizzonte anche per i titoli che Borsa Italiana non conosce.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, per un ISIN presente solo su MorningStar (es. `IE00BJRHVJ28`) la serie storica dei prezzi viene recuperata da MorningStar, persistita nella stessa cache su SQLite e usata per grafico e calcoli storici; una seconda richiesta è servita dalla cache senza nuove chiamate.
+
+  **Criteri di Accettazione**
+  - [ ] L'adapter MorningStar recupera la serie storica dei prezzi per un ISIN seguendo il percorso ricerca → scheda strumento → serie storica
+  - [ ] Quando la serie storica di Borsa Italiana non è disponibile o la fonte è irraggiungibile, il sistema esegue il fallback sulla serie storica di MorningStar
+  - [ ] La serie storica recuperata da MorningStar è persistita nella stessa cache su SQLite della fonte primaria ed è servita dalla cache nelle richieste successive
+  - [ ] Gli intervalli storici non disponibili su nessuna fonte sono marcati come tali e non interpolati
+  - [ ] L'adapter rispetta le regole di Buona Cittadinanza (User-Agent corretto, basso volume, caching) verso MorningStar
+history:
+  - status: TODO
+    at: "2026-06-28T09:33:55Z"

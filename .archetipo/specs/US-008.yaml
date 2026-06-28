@@ -9,24 +9,25 @@ points: 2
 status: TODO
 blocked_by:
   - US-007
+  - US-022
 scope: MVP
-body: |-
+body: |
   #### US-008: Gestione trasparente di ISIN non trovato o dati non disponibili
 
   **Epic:** EP-002 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
-  **Bloccata da:** US-007
+  **Bloccata da:** US-007, US-022
 
   **User Story**
   Come Giulia, investitrice prudente,
-  voglio che l'app mi dica chiaramente quando un ISIN non viene trovato o un dato non è disponibile,
+  voglio che l'app mi dica chiaramente quando un ISIN non viene trovato su nessuna fonte o un dato non è disponibile,
   in modo da potermi fidare dei numeri senza temere valori inventati (FR-006, ADR-003).
 
   **Dimostra**
-  Dopo l'implementazione di questa spec, cercando un ISIN inesistente o quando la fonte è irraggiungibile, l'utente vede un messaggio esplicito di "dato non disponibile" invece di valori stimati o errori bloccanti.
+  Dopo l'implementazione di questa spec, cercando un ISIN che non esiste né su Borsa Italiana né su MorningStar (fonte di backup), o quando entrambe le fonti sono irraggiungibili, l'utente vede un messaggio esplicito di "dato non disponibile" invece di valori stimati o errori bloccanti.
 
   **Criteri di Accettazione**
-  - [ ] Un ISIN non trovato produce un messaggio esplicito senza dati inventati
-  - [ ] Timeout o errori di rete verso la fonte sono gestiti in modo degradante, senza bloccare l'app
+  - [ ] Un ISIN non trovato su nessuna fonte (dopo il fallback su MorningStar) produce un messaggio esplicito senza dati inventati
+  - [ ] Timeout o errori di rete verso le fonti sono gestiti in modo degradante, senza bloccare l'app
   - [ ] I campi anagrafici non disponibili sono dichiarati come "dato non disponibile" anziché lasciati vuoti o stimati
 history:
   - status: TODO
