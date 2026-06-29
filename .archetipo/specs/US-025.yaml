@@ -6,7 +6,7 @@ epic:
   title: Gestione delle posizioni
 priority: HIGH
 points: 3
-status: REVIEW
+status: DONE
 body: |-
   #### US-025: Aggiungere un titolo ricercato a un portafoglio
 
@@ -36,3 +36,5 @@ history:
     at: "2026-06-28T20:32:22Z"
   - status: REVIEW
     at: "2026-06-28T20:41:24Z"
+  - status: DONE
+    at: "2026-06-29T17:48:28Z"
