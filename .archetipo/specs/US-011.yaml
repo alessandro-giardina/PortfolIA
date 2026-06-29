@@ -6,7 +6,7 @@ epic:
   title: Gestione delle posizioni
 priority: HIGH
 points: 3
-status: REVIEW
+status: DONE
 scope: MVP
 body: |-
   #### US-011: Aggiungere un titolo a un portafoglio con un carico
@@ -35,3 +35,5 @@ history:
     at: "2026-06-28T16:33:40Z"
   - status: REVIEW
     at: "2026-06-28T16:42:41Z"
+  - status: DONE
+    at: "2026-06-29T17:44:03Z"
