@@ -6,7 +6,7 @@ epic:
   title: Gestione delle posizioni
 priority: MEDIUM
 points: 2
-status: REVIEW
+status: DONE
 blocked_by:
   - US-011
 scope: MVP
@@ -37,3 +37,5 @@ history:
     at: "2026-06-28T17:10:34Z"
   - status: REVIEW
     at: "2026-06-28T17:17:00Z"
+  - status: DONE
+    at: "2026-06-29T17:52:34Z"
