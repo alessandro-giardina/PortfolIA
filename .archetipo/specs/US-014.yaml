@@ -6,7 +6,7 @@ epic:
   title: Riepilogo e indicatori di rendimento
 priority: HIGH
 points: 3
-status: REVIEW
+status: DONE
 scope: MVP
 body: |-
   #### US-014: Calcolare il valore attuale totale del portafoglio
@@ -35,3 +35,5 @@ history:
     at: "2026-06-28T21:25:34Z"
   - status: REVIEW
     at: "2026-06-28T21:36:14Z"
+  - status: DONE
+    at: "2026-06-29T17:45:35Z"
