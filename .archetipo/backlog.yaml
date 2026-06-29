@@ -16,7 +16,6 @@ epics:
   - code: EP-006
     title: Grafico andamento del portafoglio
 order:
-  - US-017
   - US-018
   - US-015
   - US-016
@@ -41,3 +40,4 @@ order:
   - US-025
   - US-011
   - US-014
+  - US-017
