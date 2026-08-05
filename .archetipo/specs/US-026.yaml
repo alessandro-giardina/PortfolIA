@@ -1,0 +1,31 @@
+schema: archetipo/spec/v2
+code: US-026
+title: Aprire il portafoglio sulla scheda Riepilogo
+epic:
+  code: EP-001
+  title: Gestione multi-portafoglio
+priority: MEDIUM
+points: 1
+status: TODO
+body: |
+  #### US-026: Aprire il portafoglio sulla scheda Riepilogo
+
+  **Epic:** EP-001 | **Priorità:** MEDIUM | **Punti:** 1 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che cliccando su un portafoglio dall'elenco principale si apra direttamente la scheda "Riepilogo",
+  in modo da vedere subito valore e posizioni del portafoglio senza passare da un modulo di inserimento che nella maggior parte delle visite non mi serve.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, cliccando su un portafoglio nell'elenco della schermata principale la pagina di dettaglio si apre con la scheda "Riepilogo" attiva e la tabella dei titoli visibile; arrivando invece dalla ricerca titoli con un carico da registrare, la pagina si apre ancora sulla scheda "Carico titoli" con il modulo pre-compilato.
+
+  **Criteri di Accettazione**
+  - [ ] Cliccando su un portafoglio dall'elenco della schermata principale, la pagina di dettaglio si apre con la scheda "Riepilogo" attiva
+  - [ ] Anche con un portafoglio senza titoli caricati la scheda iniziale è "Riepilogo", che mostra il messaggio già previsto per il portafoglio vuoto con il rimando a "Carico titoli"
+  - [ ] Regressione: entrando dal flusso "Ricerca titoli → seleziona portafoglio", la pagina si apre sulla scheda "Carico titoli" con il modulo pre-compilato, come previsto da US-025
+  - [ ] Il passaggio manuale tra le due schede continua a funzionare in entrambe le direzioni
+history:
+  - status: TODO
+    at: "2026-08-05T14:14:46Z"
