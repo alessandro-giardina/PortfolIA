@@ -11,9 +11,8 @@ data/
 # SQLite database locale (generato a runtime)
 **/*.db
 
-# Playwright: artefatti di run (rumore, rigenerati a ogni esecuzione).
-# Versionati di proposito solo i video demo dei singoli spec (review gate).
-docs/test-results/**/.last-run.json
-docs/test-results/.last-run.json
-docs/test-results/**/error-context.md
-docs/test-results/**/trace.zip
+# Playwright: artefatti di run (video, trace, error-context, .last-run.json).
+# Nessuno è versionato, video demo inclusi: sono binari rigenerati a ogni
+# esecuzione e producevano solo rumore nei diff. Per rivedere il demo di una
+# spec, riesegui `npx playwright test` e apri il file sotto docs/test-results/.
+docs/test-results/

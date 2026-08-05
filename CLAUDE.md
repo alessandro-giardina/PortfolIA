@@ -42,7 +42,9 @@ Runs the Vitest suite in `server/tests/` (unit + integration).
 npx playwright test
 ```
 
-Runs the Playwright tests in `e2e/`. Requires no running server — the webServer config starts it automatically. Artifacts (video) are saved to `docs/test-results/US-004/`.
+Runs the Playwright tests in `e2e/`. Requires no running server — the webServer config starts it automatically.
+
+Artifacts (video, trace, error context) are written under `docs/test-results/` and are **not versioned** — the whole directory is gitignored. They are regenerated on every run, so to review a spec's demo video just run the suite and open the file locally. The global `outputDir` in `playwright.config.ts` is where non-demo artifacts land; a demo test that wants its own folder saves the video explicitly via `page.video().saveAs(...)` (see `e2e/US-026__apre-scheda-riepilogo.spec.ts`), because `outputDir` is not a valid `test.use()` option.
 
 ## Full verification
 
