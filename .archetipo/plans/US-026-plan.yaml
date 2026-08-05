@@ -104,56 +104,63 @@ tasks:
     title: Scheda iniziale condizionale in PortfolioDetailPage
     description: 'In client/src/pages/PortfolioDetailPage.tsx sostituire `useState<Scheda>(''carico'')` (riga ~31) con un lazy initializer che legge `location.state`: se è presente `prefill.isin` la scheda iniziale è ''carico'', altrimenti ''riepilogo''. Non usare un useEffect correttivo, che causerebbe un flash della scheda sbagliata al primo render. Lasciare invariato l''useEffect di pre-popolamento esistente, incluso il `window.history.replaceState`.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'In client/src/pages/PortfolioDetailPage.tsx sostituire `useState<Scheda>(''carico'')` (riga ~31) con un lazy initializer che legge `location.state`: se è presente `prefill.isin` la scheda iniziale è ''carico'', altrimenti ''riepilogo''. Non usare un useEffect correttivo, che causerebbe un flash della scheda sbagliata al primo render. Lasciare invariato l''useEffect di pre-popolamento esistente, incluso il `window.history.replaceState`.'
+    ref: TASK-01
   - id: TASK-02
     title: Verificare manualmente entrambi i percorsi di apertura
     description: 'Con `npm run dev`, verificare a mano i due percorsi: (a) clic su un portafoglio dall''elenco in dashboard → si apre su Riepilogo con la tabella titoli o il placeholder vuoto; (b) Ricerca titoli → Aggiungi a Portafoglio → Conferma → si apre su Carico titoli con il modulo pre-compilato e senza flash intermedio della scheda Riepilogo. Verificare anche il ricaricamento della pagina (F5) dopo il percorso (b): lo state è stato ripulito, quindi l''apertura deve cadere su Riepilogo.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Con `npm run dev`, verificare a mano i due percorsi: (a) clic su un portafoglio dall''elenco in dashboard → si apre su Riepilogo con la tabella titoli o il placeholder vuoto; (b) Ricerca titoli → Aggiungi a Portafoglio → Conferma → si apre su Carico titoli con il modulo pre-compilato e senza flash intermedio della scheda Riepilogo. Verificare anche il ricaricamento della pagina (F5) dopo il percorso (b): lo state è stato ripulito, quindi l''apertura deve cadere su Riepilogo.'
+    ref: TASK-02
   - id: TASK-03
     title: Adeguare i test E2E che assumevano 'Carico titoli' come scheda di default
     description: 'In e2e/US-011__aggiungi-posizione.spec.ts, e2e/US-012__carichi-multipli.spec.ts e e2e/US-013__modifica-rimuovi-posizione.spec.ts, dopo ogni `page.goto(''/portfolio/:id'')` inserire un clic esplicito sulla linguetta Carico titoli con `page.locator(''nav.linguette a'', { hasText: ''Carico titoli'' }).click()`, sullo stesso pattern usato da US-014/US-017 per Riepilogo. Aggiornare i commenti che affermano che ''Carico titoli'' è la scheda attiva di default (es. US-011 righe 4, 47, 158).'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'In e2e/US-011__aggiungi-posizione.spec.ts, e2e/US-012__carichi-multipli.spec.ts e e2e/US-013__modifica-rimuovi-posizione.spec.ts, dopo ogni `page.goto(''/portfolio/:id'')` inserire un clic esplicito sulla linguetta Carico titoli con `page.locator(''nav.linguette a'', { hasText: ''Carico titoli'' }).click()`, sullo stesso pattern usato da US-014/US-017 per Riepilogo. Aggiornare i commenti che affermano che ''Carico titoli'' è la scheda attiva di default (es. US-011 righe 4, 47, 158).'
+    ref: TASK-03
   - id: TASK-04
     title: Test E2E — scenario demo con video (apertura dall'elenco portafogli)
     description: 'Creare e2e/US-026__apre-scheda-riepilogo.spec.ts con lo scenario demo: `video: ''on''` e `outputDir: ''docs/test-results/US-026/''`. Flusso: crea portafoglio via API e registra una posizione con ISIN noto (IE00B4L5Y983) → `page.goto(''/'')` → clic sulla riga del portafoglio nell''elenco → verifica che la linguetta Riepilogo abbia classe `attiva`, che `tabella-riepilogo` sia visibile e che `input-isin` NON sia visibile, senza alcun clic sulle linguette. Cleanup del portafoglio via API.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Creare e2e/US-026__apre-scheda-riepilogo.spec.ts con lo scenario demo: `video: ''on''` e `outputDir: ''docs/test-results/US-026/''`. Flusso: crea portafoglio via API e registra una posizione con ISIN noto (IE00B4L5Y983) → `page.goto(''/'')` → clic sulla riga del portafoglio nell''elenco → verifica che la linguetta Riepilogo abbia classe `attiva`, che `tabella-riepilogo` sia visibile e che `input-isin` NON sia visibile, senza alcun clic sulle linguette. Cleanup del portafoglio via API.'
+    ref: TASK-04
   - id: TASK-05
     title: Test E2E — portafoglio vuoto e toggle manuale delle schede
     description: 'Nello stesso file US-026, due scenari senza video. (1) Portafoglio vuoto: crea portafoglio senza posizioni → clic sulla riga in dashboard → verifica `riepilogo-vuoto` visibile con il rimando a ''Carico titoli'' e `tabella-riepilogo` assente. (2) Toggle bidirezionale: apri dall''elenco (Riepilogo attiva) → clic ''Carico titoli'' → `input-isin` visibile → clic ''Riepilogo'' → tabella o placeholder visibile di nuovo, verificando la classe `attiva` sulla linguetta corretta a ogni passaggio.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Nello stesso file US-026, due scenari senza video. (1) Portafoglio vuoto: crea portafoglio senza posizioni → clic sulla riga in dashboard → verifica `riepilogo-vuoto` visibile con il rimando a ''Carico titoli'' e `tabella-riepilogo` assente. (2) Toggle bidirezionale: apri dall''elenco (Riepilogo attiva) → clic ''Carico titoli'' → `input-isin` visibile → clic ''Riepilogo'' → tabella o placeholder visibile di nuovo, verificando la classe `attiva` sulla linguetta corretta a ogni passaggio.'
+    ref: TASK-05
   - id: TASK-06
     title: Test E2E — regressione flusso Ricerca titoli → Carico titoli
     description: 'Nello stesso file US-026, scenario senza video che protegge il comportamento di US-025: crea portafoglio via API → `/ricerca` → cerca IE00B4L5Y983 → attendi `btn-aggiungi-portafoglio` → apri il dialog → seleziona il portafoglio → Conferma → verifica che dopo la navigazione la linguetta ''Carico titoli'' sia `attiva`, che `input-isin` valga IE00B4L5Y983 e che `input-prezzo` non sia vuoto. Cleanup via API.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Nello stesso file US-026, scenario senza video che protegge il comportamento di US-025: crea portafoglio via API → `/ricerca` → cerca IE00B4L5Y983 → attendi `btn-aggiungi-portafoglio` → apri il dialog → seleziona il portafoglio → Conferma → verifica che dopo la navigazione la linguetta ''Carico titoli'' sia `attiva`, che `input-isin` valga IE00B4L5Y983 e che `input-prezzo` non sia vuoto. Cleanup via API.'
+    ref: TASK-06
   - id: TASK-07
     title: 'Verifica completa: npm run check e suite Playwright integrale'
     description: 'Eseguire `npm run check` (lint + typecheck + unit test) e `npx playwright test` sull''INTERA suite, non solo sui file nuovi: serve a intercettare altre dipendenze implicite dal default precedente. Verificare in particolare che e2e/US-006__rinomina-elimina-portafoglio.spec.ts sia verde — cerca ''Rinomina conto'' ed ''Elimina portafoglio'', che vivono nella scheda Riepilogo, quindi questa modifica dovrebbe riallinearlo alla UI. Se qualche altra suite risulta rossa per la stessa assunzione, adeguarla con il clic esplicito sulla linguetta.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
       - TASK-04
       - TASK-05
       - TASK-06
     body: 'Eseguire `npm run check` (lint + typecheck + unit test) e `npx playwright test` sull''INTERA suite, non solo sui file nuovi: serve a intercettare altre dipendenze implicite dal default precedente. Verificare in particolare che e2e/US-006__rinomina-elimina-portafoglio.spec.ts sia verde — cerca ''Rinomina conto'' ed ''Elimina portafoglio'', che vivono nella scheda Riepilogo, quindi questa modifica dovrebbe riallinearlo alla UI. Se qualche altra suite risulta rossa per la stessa assunzione, adeguarla con il clic esplicito sulla linguetta.'
+    ref: TASK-07

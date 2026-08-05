@@ -1,8 +1,8 @@
 /**
  * US-011: Aggiungere un titolo a un portafoglio con un carico
  *
- * Scenario demo (con video): apri portafoglio → Carico titoli → compila form
- *   → submit → posizione compare in tabella.
+ * Scenario demo (con video): apri portafoglio → apri la scheda Carico titoli
+ *   → compila form → submit → posizione compare in tabella.
  * Scenario validazione: prezzo zero e ISIN corto → messaggi errore inline.
  * Scenario persistenza: inserisci carico → ricarica pagina → posizione ancora visibile.
  */
@@ -44,7 +44,8 @@ demoTest(
       await page.goto(`/portfolio/${portfolioId}`);
       await expect(page.getByRole('heading', { name: portfolioName })).toBeVisible({ timeout: 8000 });
 
-      // La scheda "Carico titoli" è quella attiva di default
+      // Entrando dall'elenco si apre su "Riepilogo": apri la scheda Carico titoli
+      await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
       await expect(page.getByTestId('input-isin')).toBeVisible();
 
       // 2. Compila il form
@@ -79,6 +80,7 @@ test('validazione: ISIN troppo corto e prezzo zero → messaggi errore inline', 
 
   try {
     await page.goto(`/portfolio/${portfolioId}`);
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
     // Inserisce ISIN corto, data ok, prezzo 0, quantità ok
@@ -113,6 +115,7 @@ test('validazione: data assente → messaggio errore data', async ({ page }) => 
 
   try {
     await page.goto(`/portfolio/${portfolioId}`);
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
     await page.getByTestId('input-isin').fill('IE00B4L5Y983');
@@ -137,6 +140,7 @@ test('persistenza: posizione iscritta è ancora visibile dopo ricarica pagina', 
 
   try {
     await page.goto(`/portfolio/${portfolioId}`);
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
     // Inserisce carico valido
@@ -155,7 +159,8 @@ test('persistenza: posizione iscritta è ancora visibile dopo ricarica pagina', 
     // Ricarica la pagina (re-fetch API)
     await page.reload();
 
-    // Torna sulla scheda Carico titoli (già attiva di default)
+    // Dopo la ricarica si riparte da "Riepilogo": torna sulla scheda Carico titoli
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
     // La posizione è ancora visibile nella tabella (persistenza)

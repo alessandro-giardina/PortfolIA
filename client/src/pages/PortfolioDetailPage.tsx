@@ -28,7 +28,14 @@ export default function PortfolioDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [scheda, setScheda] = useState<Scheda>('carico');
+  // La scheda iniziale dipende da come si è arrivati qui: con un carico da
+  // registrare (dalla ricerca titoli) si apre su "Carico titoli", altrimenti su
+  // "Riepilogo". Lazy initializer, non useEffect, per non mostrare la scheda
+  // sbagliata al primo render.
+  const [scheda, setScheda] = useState<Scheda>(() => {
+    const state = location.state as { prefill?: PrefillState } | null;
+    return state?.prefill?.isin ? 'carico' : 'riepilogo';
+  });
 
   // Rename form state
   const [renameValue, setRenameValue] = useState('');

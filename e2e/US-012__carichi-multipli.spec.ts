@@ -58,6 +58,7 @@ demoTest(
       // Stato iniziale: portafoglio vuoto
       await page.goto(`/portfolio/${portfolioId}`);
       await expect(page.getByRole('heading', { name: portfolioName })).toBeVisible({ timeout: 8000 });
+      await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
       await expect(page.getByTestId('input-isin')).toBeVisible();
 
       // Primo carico: IE00B4L5Y983, 89.00 × 40
@@ -112,6 +113,7 @@ test('multi-ISIN: due ISIN diversi → due righe distinte nella tabella aggregat
     await addPosition(portfolioId, 'IE00B3RBWM25', '2026-03-20', 115.5, 20);
 
     await page.goto(`/portfolio/${portfolioId}`);
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
     const tabellaAggregata = page.getByTestId('tabella-posizioni');
@@ -141,6 +143,7 @@ test('coerenza reload: riga aggregata invariata dopo reload pagina', async ({ pa
     await addPosition(portfolioId, 'IE00B4L5Y983', '2026-04-10', 91.0, 60);
 
     await page.goto(`/portfolio/${portfolioId}`);
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
     // Verifica stato iniziale
@@ -149,6 +152,7 @@ test('coerenza reload: riga aggregata invariata dopo reload pagina', async ({ pa
 
     // Ricarica la pagina
     await page.reload();
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
     // La vista aggregata è invariata dopo reload

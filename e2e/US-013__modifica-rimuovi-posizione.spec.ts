@@ -69,6 +69,7 @@ demoTest(
       // Stato iniziale: inserisci due carichi tramite UI
       await page.goto(`/portfolio/${portfolioId}`);
       await expect(page.getByRole('heading', { name: portfolioName })).toBeVisible({ timeout: 8000 });
+      await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
       await expect(page.getByTestId('input-isin')).toBeVisible();
 
       // Primo carico: IE00B4L5Y983, 89.00 × 40
@@ -152,6 +153,7 @@ test('validazione form modifica: prezzo non positivo mostra errore inline', asyn
     const posId = await addPosition(portfolioId, 'IE00B4L5Y983', '2026-03-15', 89.0, 40);
 
     await page.goto(`/portfolio/${portfolioId}`);
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
     // Apri il form inline
@@ -182,6 +184,7 @@ test('annullamento confirm rimozione: il carico non viene rimosso', async ({ pag
     const posId = await addPosition(portfolioId, 'IE00B4L5Y983', '2026-03-15', 89.0, 40);
 
     await page.goto(`/portfolio/${portfolioId}`);
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
     await expect(page.getByTestId(`posizione-${posId}`)).toBeVisible();
 
@@ -204,6 +207,7 @@ test('persistenza: i dati modificati rimangono dopo ricarica pagina', async ({ p
     const posId = await addPosition(portfolioId, 'IE00B4L5Y983', '2026-03-15', 89.0, 40);
 
     await page.goto(`/portfolio/${portfolioId}`);
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
     // Modifica quantity via PATCH diretto
@@ -215,6 +219,7 @@ test('persistenza: i dati modificati rimangono dopo ricarica pagina', async ({ p
 
     // Ricarica la pagina
     await page.reload();
+    await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
     // La riga mostra quantity aggiornata
