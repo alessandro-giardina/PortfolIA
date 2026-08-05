@@ -8,7 +8,13 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     video: 'off',
   },
-  outputDir: 'docs/test-results/US-008/',
+  // Artefatti transitori dei run (trace, video dei fallimenti). Playwright svuota
+  // questa cartella a ogni esecuzione, quindi NON va puntata su una cartella di spec:
+  // in passato lo era, e la spec di turno finiva per raccogliere gli artefatti di
+  // tutte le altre e per vederseli cancellare al run successivo.
+  // I video demo si salvano a parte in docs/test-results/<US-CODE>/ via
+  // page.video().saveAs(), fuori da qui, così sopravvivono ai run successivi.
+  outputDir: 'docs/test-results/_run/',
   projects: [
     {
       name: 'chromium',
