@@ -1,0 +1,159 @@
+schema: archetipo/plan/v2
+spec_code: US-026
+body: |
+  # US-026: Aprire il portafoglio sulla scheda Riepilogo — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-08-05
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-001 — Gestione multi-portafoglio
+  **Priorità:** MEDIUM | **Punti:** 1
+
+  **User Story**
+  Come Alessandro, investitore-proprietario, voglio che cliccando su un portafoglio dall'elenco principale si apra direttamente la scheda "Riepilogo", in modo da vedere subito valore e posizioni del portafoglio senza passare da un modulo di inserimento che nella maggior parte delle visite non mi serve.
+
+  **Criteri di Accettazione**
+  - Cliccando su un portafoglio dall'elenco della schermata principale, la pagina di dettaglio si apre con la scheda "Riepilogo" attiva
+  - Anche con un portafoglio senza titoli caricati la scheda iniziale è "Riepilogo", che mostra il messaggio già previsto per il portafoglio vuoto con il rimando a "Carico titoli"
+  - Regressione: entrando dal flusso "Ricerca titoli → seleziona portafoglio", la pagina si apre sulla scheda "Carico titoli" con il modulo pre-compilato, come previsto da US-025
+  - Il passaggio manuale tra le due schede continua a funzionare in entrambe le direzioni
+
+  ---
+
+  ## Soluzione Tecnica
+
+  La modifica è interamente frontend e circoscritta a un solo punto: lo stato iniziale della scheda attiva in `client/src/pages/PortfolioDetailPage.tsx`. Oggi la riga 31 inizializza `useState<Scheda>('carico')` — un default costante introdotto in US-011, quando la scheda Riepilogo non era ancora la vista principale del portafoglio. La scheda iniziale non deve essere una costante ma una funzione della **provenienza** della navigazione: il navigation state `prefill` (introdotto da US-025) è già il segnale che distingue i due percorsi.
+
+  ### Regola di selezione della scheda iniziale
+
+  | Provenienza | Navigation state | Scheda iniziale |
+  |---|---|---|
+  | Elenco portafogli (DashboardPage) o URL diretto | assente | `riepilogo` |
+  | Ricerca titoli → dialog selezione portafoglio (US-025) | `{ prefill: { isin, ... } }` | `carico` |
+
+  ### Implementazione
+
+  - Sostituire `useState<Scheda>('carico')` con un **lazy initializer** che legge `location.state` al primo render:
+
+  ```typescript
+  const [scheda, setScheda] = useState<Scheda>(() => {
+    const state = location.state as { prefill?: PrefillState } | null;
+    return state?.prefill?.isin ? 'carico' : 'riepilogo';
+  });
+  ```
+
+  - **Perché un initializer e non un `useEffect`:** con un effetto correttivo il primo render mostrerebbe comunque `riepilogo` e la scheda cambierebbe subito dopo il mount, producendo un flash visibile della vista sbagliata nel percorso da ricerca. L'initializer decide prima del primo paint.
+  - L'`useEffect` di pre-popolamento esistente (righe 139-152) **resta invariato**: continua a impostare `isin`, `loadPrice`, `prefillName` e a ripulire la history con `window.history.replaceState`. La lettura dello state avviene due volte (initializer + effect) ma nello stesso render pass, prima che `replaceState` intervenga, quindi entrambe vedono lo state intatto.
+  - Nessuna modifica a `DashboardPage.tsx`: il `navigate(\`/portfolio/${p.id}\`)` della riga cliccabile non passa state, quindi ricade automaticamente sul ramo `riepilogo`.
+  - Nessuna modifica al backend, allo schema o ai tipi condivisi.
+
+  ### Effetti collaterali già coperti dal codice esistente
+
+  - Il sottotesto del `Foglio` è già derivato da `scheda` (`scheda === 'carico' ? 'Carico titoli · iscrizione nuova posizione' : 'Vista di dettaglio'`): si adatta senza interventi.
+  - Il caso portafoglio vuoto è già gestito nella scheda Riepilogo dal placeholder `data-testid="riepilogo-vuoto"` con il rimando esplicito a *Carico titoli* — il secondo criterio di accettazione è quindi soddisfatto dal solo cambio di scheda iniziale, senza nuova UI.
+  - Le linguette restano cliccabili in entrambe le direzioni (`setScheda`): il quarto criterio non richiede codice nuovo, solo verifica.
+
+  ### Rischio principale: regressione sui test E2E esistenti
+
+  Tre suite E2E dipendono implicitamente dal default `'carico'` — fanno `page.goto('/portfolio/:id')` e si aspettano `input-isin` immediatamente visibile senza cliccare alcuna linguetta:
+
+  - `e2e/US-011__aggiungi-posizione.spec.ts` (scenario demo + 3 scenari)
+  - `e2e/US-012__carichi-multipli.spec.ts`
+  - `e2e/US-013__modifica-rimuovi-posizione.spec.ts`
+
+  Vanno aggiornate inserendo un clic esplicito sulla linguetta "Carico titoli" dopo il `goto`, con lo stesso pattern già usato da US-014/US-017 per la linguetta Riepilogo: `page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click()`. Non è un adeguamento cosmetico dei test: rende esplicita nei test un'assunzione che prima era implicita.
+
+  Effetto opposto, positivo: `e2e/US-006__rinomina-elimina-portafoglio.spec.ts` cerca dopo il `goto` il campo "Rinomina conto" e il bottone "Elimina portafoglio", che vivono nella sezione *Gestione del conto* della scheda Riepilogo. Con il default corrente quella sezione non è montata all'apertura; il cambio di scheda iniziale riallinea il test alla UI. Va verificato in fase di implementazione che la suite US-006 risulti verde.
+
+  Le suite US-014 e US-017 cliccano esplicitamente su "Riepilogo": restano verdi (il clic su una linguetta già attiva è idempotente).
+
+  ---
+
+  ## Strategia di Test
+
+  Nessuna logica di dominio è toccata: la copertura è interamente E2E, con focus sul comportamento condizionale della scheda iniziale e sulla non-regressione dei flussi esistenti.
+
+  - **Nessun test unitario aggiuntivo**: nessuna modifica a backend, schema o funzioni pure. La suite Vitest esistente resta invariata e deve continuare a passare (`npm run test`).
+  - **E2E nuovi**: quattro scenari nel file `e2e/US-026__apre-scheda-riepilogo.spec.ts`, che coprono i quattro criteri di accettazione.
+  - **E2E adeguati**: US-011, US-012, US-013 con clic esplicito sulla linguetta "Carico titoli".
+  - **Verifica di regressione completa**: l'intera suite Playwright deve essere eseguita, non solo i file nuovi — è l'unico modo per intercettare altre dipendenze implicite dal default precedente.
+
+  ### Test E2E — Simulazione utente
+
+  **Framework:** Playwright (già configurato, `playwright.config.ts`)
+  **Video:** solo scenario demo; gli altri scenari girano senza registrazione
+
+  | Scenario | Flusso utente |
+  |---|---|
+  | Demo (con video) | Crea portafoglio via API e registra una posizione → naviga alla dashboard `/` → clic sulla riga del portafoglio nell'elenco → la pagina di dettaglio si apre con la linguetta "Riepilogo" in stato `attiva` e `tabella-riepilogo` visibile, senza alcun clic sulle linguette |
+  | Portafoglio vuoto | Crea portafoglio senza posizioni → clic sulla riga nell'elenco → scheda Riepilogo attiva, `riepilogo-vuoto` visibile con il rimando a "Carico titoli", `tabella-riepilogo` assente |
+  | Regressione flusso ricerca (US-025) | `/ricerca` → cerca un ISIN valido → "Aggiungi a Portafoglio" → seleziona portafoglio → Conferma → la pagina si apre sulla scheda "Carico titoli" con `input-isin` pre-compilato e `input-prezzo` non vuoto |
+  | Toggle manuale bidirezionale | Apri portafoglio dall'elenco (Riepilogo attiva) → clic "Carico titoli" → `input-isin` visibile → clic "Riepilogo" → tabella titoli visibile di nuovo |
+
+  > Il video dello scenario demo è salvato in `docs/test-results/US-026/` tramite `outputDir` sul test demo, seguendo il pattern degli altri spec E2E del progetto.
+
+  ---
+
+  _Piano generato tramite ARchetipo Planning — 2026-08-05_
+tasks:
+  - id: TASK-01
+    title: Scheda iniziale condizionale in PortfolioDetailPage
+    description: 'In client/src/pages/PortfolioDetailPage.tsx sostituire `useState<Scheda>(''carico'')` (riga ~31) con un lazy initializer che legge `location.state`: se è presente `prefill.isin` la scheda iniziale è ''carico'', altrimenti ''riepilogo''. Non usare un useEffect correttivo, che causerebbe un flash della scheda sbagliata al primo render. Lasciare invariato l''useEffect di pre-popolamento esistente, incluso il `window.history.replaceState`.'
+    type: Impl
+    status: TODO
+    body: 'In client/src/pages/PortfolioDetailPage.tsx sostituire `useState<Scheda>(''carico'')` (riga ~31) con un lazy initializer che legge `location.state`: se è presente `prefill.isin` la scheda iniziale è ''carico'', altrimenti ''riepilogo''. Non usare un useEffect correttivo, che causerebbe un flash della scheda sbagliata al primo render. Lasciare invariato l''useEffect di pre-popolamento esistente, incluso il `window.history.replaceState`.'
+  - id: TASK-02
+    title: Verificare manualmente entrambi i percorsi di apertura
+    description: 'Con `npm run dev`, verificare a mano i due percorsi: (a) clic su un portafoglio dall''elenco in dashboard → si apre su Riepilogo con la tabella titoli o il placeholder vuoto; (b) Ricerca titoli → Aggiungi a Portafoglio → Conferma → si apre su Carico titoli con il modulo pre-compilato e senza flash intermedio della scheda Riepilogo. Verificare anche il ricaricamento della pagina (F5) dopo il percorso (b): lo state è stato ripulito, quindi l''apertura deve cadere su Riepilogo.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: 'Con `npm run dev`, verificare a mano i due percorsi: (a) clic su un portafoglio dall''elenco in dashboard → si apre su Riepilogo con la tabella titoli o il placeholder vuoto; (b) Ricerca titoli → Aggiungi a Portafoglio → Conferma → si apre su Carico titoli con il modulo pre-compilato e senza flash intermedio della scheda Riepilogo. Verificare anche il ricaricamento della pagina (F5) dopo il percorso (b): lo state è stato ripulito, quindi l''apertura deve cadere su Riepilogo.'
+  - id: TASK-03
+    title: Adeguare i test E2E che assumevano 'Carico titoli' come scheda di default
+    description: 'In e2e/US-011__aggiungi-posizione.spec.ts, e2e/US-012__carichi-multipli.spec.ts e e2e/US-013__modifica-rimuovi-posizione.spec.ts, dopo ogni `page.goto(''/portfolio/:id'')` inserire un clic esplicito sulla linguetta Carico titoli con `page.locator(''nav.linguette a'', { hasText: ''Carico titoli'' }).click()`, sullo stesso pattern usato da US-014/US-017 per Riepilogo. Aggiornare i commenti che affermano che ''Carico titoli'' è la scheda attiva di default (es. US-011 righe 4, 47, 158).'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: 'In e2e/US-011__aggiungi-posizione.spec.ts, e2e/US-012__carichi-multipli.spec.ts e e2e/US-013__modifica-rimuovi-posizione.spec.ts, dopo ogni `page.goto(''/portfolio/:id'')` inserire un clic esplicito sulla linguetta Carico titoli con `page.locator(''nav.linguette a'', { hasText: ''Carico titoli'' }).click()`, sullo stesso pattern usato da US-014/US-017 per Riepilogo. Aggiornare i commenti che affermano che ''Carico titoli'' è la scheda attiva di default (es. US-011 righe 4, 47, 158).'
+  - id: TASK-04
+    title: Test E2E — scenario demo con video (apertura dall'elenco portafogli)
+    description: 'Creare e2e/US-026__apre-scheda-riepilogo.spec.ts con lo scenario demo: `video: ''on''` e `outputDir: ''docs/test-results/US-026/''`. Flusso: crea portafoglio via API e registra una posizione con ISIN noto (IE00B4L5Y983) → `page.goto(''/'')` → clic sulla riga del portafoglio nell''elenco → verifica che la linguetta Riepilogo abbia classe `attiva`, che `tabella-riepilogo` sia visibile e che `input-isin` NON sia visibile, senza alcun clic sulle linguette. Cleanup del portafoglio via API.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: 'Creare e2e/US-026__apre-scheda-riepilogo.spec.ts con lo scenario demo: `video: ''on''` e `outputDir: ''docs/test-results/US-026/''`. Flusso: crea portafoglio via API e registra una posizione con ISIN noto (IE00B4L5Y983) → `page.goto(''/'')` → clic sulla riga del portafoglio nell''elenco → verifica che la linguetta Riepilogo abbia classe `attiva`, che `tabella-riepilogo` sia visibile e che `input-isin` NON sia visibile, senza alcun clic sulle linguette. Cleanup del portafoglio via API.'
+  - id: TASK-05
+    title: Test E2E — portafoglio vuoto e toggle manuale delle schede
+    description: 'Nello stesso file US-026, due scenari senza video. (1) Portafoglio vuoto: crea portafoglio senza posizioni → clic sulla riga in dashboard → verifica `riepilogo-vuoto` visibile con il rimando a ''Carico titoli'' e `tabella-riepilogo` assente. (2) Toggle bidirezionale: apri dall''elenco (Riepilogo attiva) → clic ''Carico titoli'' → `input-isin` visibile → clic ''Riepilogo'' → tabella o placeholder visibile di nuovo, verificando la classe `attiva` sulla linguetta corretta a ogni passaggio.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: 'Nello stesso file US-026, due scenari senza video. (1) Portafoglio vuoto: crea portafoglio senza posizioni → clic sulla riga in dashboard → verifica `riepilogo-vuoto` visibile con il rimando a ''Carico titoli'' e `tabella-riepilogo` assente. (2) Toggle bidirezionale: apri dall''elenco (Riepilogo attiva) → clic ''Carico titoli'' → `input-isin` visibile → clic ''Riepilogo'' → tabella o placeholder visibile di nuovo, verificando la classe `attiva` sulla linguetta corretta a ogni passaggio.'
+  - id: TASK-06
+    title: Test E2E — regressione flusso Ricerca titoli → Carico titoli
+    description: 'Nello stesso file US-026, scenario senza video che protegge il comportamento di US-025: crea portafoglio via API → `/ricerca` → cerca IE00B4L5Y983 → attendi `btn-aggiungi-portafoglio` → apri il dialog → seleziona il portafoglio → Conferma → verifica che dopo la navigazione la linguetta ''Carico titoli'' sia `attiva`, che `input-isin` valga IE00B4L5Y983 e che `input-prezzo` non sia vuoto. Cleanup via API.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: 'Nello stesso file US-026, scenario senza video che protegge il comportamento di US-025: crea portafoglio via API → `/ricerca` → cerca IE00B4L5Y983 → attendi `btn-aggiungi-portafoglio` → apri il dialog → seleziona il portafoglio → Conferma → verifica che dopo la navigazione la linguetta ''Carico titoli'' sia `attiva`, che `input-isin` valga IE00B4L5Y983 e che `input-prezzo` non sia vuoto. Cleanup via API.'
+  - id: TASK-07
+    title: 'Verifica completa: npm run check e suite Playwright integrale'
+    description: 'Eseguire `npm run check` (lint + typecheck + unit test) e `npx playwright test` sull''INTERA suite, non solo sui file nuovi: serve a intercettare altre dipendenze implicite dal default precedente. Verificare in particolare che e2e/US-006__rinomina-elimina-portafoglio.spec.ts sia verde — cerca ''Rinomina conto'' ed ''Elimina portafoglio'', che vivono nella scheda Riepilogo, quindi questa modifica dovrebbe riallinearlo alla UI. Se qualche altra suite risulta rossa per la stessa assunzione, adeguarla con il clic esplicito sulla linguetta.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-03
+      - TASK-04
+      - TASK-05
+      - TASK-06
+    body: 'Eseguire `npm run check` (lint + typecheck + unit test) e `npx playwright test` sull''INTERA suite, non solo sui file nuovi: serve a intercettare altre dipendenze implicite dal default precedente. Verificare in particolare che e2e/US-006__rinomina-elimina-portafoglio.spec.ts sia verde — cerca ''Rinomina conto'' ed ''Elimina portafoglio'', che vivono nella scheda Riepilogo, quindi questa modifica dovrebbe riallinearlo alla UI. Se qualche altra suite risulta rossa per la stessa assunzione, adeguarla con il clic esplicito sulla linguetta.'
