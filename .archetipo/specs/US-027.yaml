@@ -1,0 +1,32 @@
+schema: archetipo/spec/v2
+code: US-027
+title: Scorrere l'elenco portafogli nel dialog di scelta
+epic:
+  code: EP-003
+  title: Gestione delle posizioni
+priority: MEDIUM
+points: 2
+status: TODO
+body: |
+  #### US-027: Scorrere l'elenco portafogli nel dialog di scelta
+
+  **Epic:** EP-003 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio poter scegliere un portafoglio qualsiasi dal dialog "Aggiungi a Portafoglio" anche quando ne ho molti,
+  in modo da non trovarmi con il percorso bloccato e senza via d'uscita quando l'elenco supera l'altezza della finestra.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, con un numero di portafogli superiore all'altezza della finestra il dialog mostra l'elenco in un'area scorrevole e i bottoni "Annulla" e "Conferma" restano sempre visibili in fondo; è possibile selezionare anche l'ultimo portafoglio dell'elenco e confermare la scelta.
+
+  **Criteri di Accettazione**
+  - [ ] Quando l'elenco supera lo spazio disponibile, scorre all'interno del dialog anziché farlo crescere oltre la finestra
+  - [ ] I bottoni "Annulla" e "Conferma" restano sempre raggiungibili, indipendentemente dal numero di portafogli
+  - [ ] L'ultimo portafoglio dell'elenco è selezionabile e la conferma porta alla pagina di dettaglio corretta
+  - [ ] Il comportamento con pochi portafogli resta invariato: nessuna barra di scorrimento e nessun cambio di aspetto
+  - [ ] Regressione: i due test E2E di US-025 tornano verdi senza ricorrere a stub dell'elenco portafogli
+history:
+  - status: TODO
+    at: "2026-08-06T19:32:28Z"

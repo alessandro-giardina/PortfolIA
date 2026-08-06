@@ -1,0 +1,32 @@
+schema: archetipo/spec/v2
+code: US-029
+title: Rendere i test E2E indipendenti dallo stato dell'archivio
+epic:
+  code: EP-000
+  title: Fondazione del progetto
+priority: MEDIUM
+points: 3
+status: TODO
+body: |
+  #### US-029: Rendere i test E2E indipendenti dallo stato dell'archivio
+
+  **Epic:** EP-000 | **Priorità:** MEDIUM | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come sviluppatore di PortfolIA,
+  voglio che ogni test E2E parta da uno stato dati prevedibile,
+  in modo che l'esito non dipenda dalle esecuzioni precedenti né dall'ordine dei test, e un rosso significhi sempre un difetto reale.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, due esecuzioni consecutive della suite producono lo stesso esito, e i singoli file danno lo stesso risultato eseguiti da soli o insieme agli altri: il test di US-014 sui dati mancanti passa in modo stabile e quello di US-004 sul nome duplicato non è più intermittente.
+
+  **Criteri di Accettazione**
+  - [ ] Il test di US-014 sui dati mancanti non dipende più da cosa è già presente nella cache dei prezzi
+  - [ ] Il test di US-004 sul nome duplicato non dipende più da portafogli lasciati da esecuzioni precedenti
+  - [ ] Ogni test rimuove i dati che ha creato anche quando fallisce, così l'archivio di sviluppo non accumula più residui
+  - [ ] Due esecuzioni consecutive della suite completa danno esito identico
+  - [ ] Nessuna modifica al codice di produzione: l'intervento resta confinato ai test e alla loro infrastruttura
+history:
+  - status: TODO
+    at: "2026-08-06T19:32:28Z"

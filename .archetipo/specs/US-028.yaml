@@ -1,0 +1,32 @@
+schema: archetipo/spec/v2
+code: US-028
+title: Allineare le asserzioni E2E alla UI attuale
+epic:
+  code: EP-000
+  title: Fondazione del progetto
+priority: HIGH
+points: 2
+status: TODO
+body: |
+  #### US-028: Allineare le asserzioni E2E alla UI attuale
+
+  **Epic:** EP-000 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come sviluppatore di PortfolIA,
+  voglio che la suite E2E verifichi la UI così com'è oggi,
+  in modo da poter distinguere una regressione reale da un test scaduto invece di convivere con una suite stabilmente rossa.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, `npx playwright test` non riporta più fallimenti dovuti ad asserzioni disallineate dalla UI: i cinque test interessati passano e il demo obsoleto di US-005 non fa più parte della suite.
+
+  **Criteri di Accettazione**
+  - [ ] I test che cercano l'intestazione con corrispondenza esatta sono allineati al formato reale `Conto <nome>` (US-006 demo e "eliminazione annullata")
+  - [ ] I due test di US-011 sono allineati al contatore reale, che esprime gli ISIN distinti e non il numero di posizioni
+  - [ ] Il file `demo__visualizza-portafoglio.spec.ts` è rimosso: il flusso elenco → dettaglio è già coperto in modo più completo da US-026
+  - [ ] Nessuna modifica al codice di produzione: le etichette della UI restano quelle attuali
+  - [ ] La suite non presenta più fallimenti attribuibili ad asserzioni scadute; restano quelli in carico a US-027 e US-029
+history:
+  - status: TODO
+    at: "2026-08-06T19:32:28Z"
