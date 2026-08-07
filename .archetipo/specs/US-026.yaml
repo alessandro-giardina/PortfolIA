@@ -6,7 +6,7 @@ epic:
   title: Gestione multi-portafoglio
 priority: MEDIUM
 points: 1
-status: REVIEW
+status: DONE
 body: |
   #### US-026: Aprire il portafoglio sulla scheda Riepilogo
 
@@ -35,3 +35,5 @@ history:
     at: "2026-08-05T14:24:23Z"
   - status: REVIEW
     at: "2026-08-05T14:47:33Z"
+  - status: DONE
+    at: "2026-08-07T13:38:57Z"
