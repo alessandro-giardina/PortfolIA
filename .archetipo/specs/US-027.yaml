@@ -6,7 +6,7 @@ epic:
   title: Gestione delle posizioni
 priority: MEDIUM
 points: 2
-status: TODO
+status: REVIEW
 body: |
   #### US-027: Scorrere l'elenco portafogli nel dialog di scelta
 
@@ -30,3 +30,9 @@ body: |
 history:
   - status: TODO
     at: "2026-08-06T19:32:28Z"
+  - status: PLANNED
+    at: "2026-08-07T12:56:42Z"
+  - status: IN PROGRESS
+    at: "2026-08-07T12:58:04Z"
+  - status: REVIEW
+    at: "2026-08-07T13:26:17Z"

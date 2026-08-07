@@ -1,0 +1,134 @@
+schema: archetipo/plan/v2
+spec_code: US-027
+body: |-
+  # US-027: Scorrere l'elenco portafogli nel dialog di scelta — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-08-07
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-003 — Gestione delle posizioni
+  **Priorità:** MEDIUM | **Punti:** 2
+
+  **User Story**
+  Come Alessandro, investitore-proprietario, voglio poter scegliere un portafoglio qualsiasi dal dialog "Aggiungi a Portafoglio" anche quando ne ho molti, in modo da non trovarmi con il percorso bloccato e senza via d'uscita quando l'elenco supera l'altezza della finestra.
+
+  **Criteri di Accettazione**
+  - Quando l'elenco supera lo spazio disponibile, scorre all'interno del dialog anziché farlo crescere oltre la finestra
+  - I bottoni "Annulla" e "Conferma" restano sempre raggiungibili, indipendentemente dal numero di portafogli
+  - L'ultimo portafoglio dell'elenco è selezionabile e la conferma porta alla pagina di dettaglio corretta
+  - Il comportamento con pochi portafogli resta invariato: nessuna barra di scorrimento e nessun cambio di aspetto
+  - Regressione: i due test E2E di US-025 tornano verdi senza ricorrere a stub dell'elenco portafogli
+
+  ---
+
+  ## Soluzione Tecnica
+
+  **Il difetto.** `client/src/components/PortfolioSelectDialog.tsx` monta un overlay `position: fixed; inset: 0` centrato in flex, e dentro di esso un riquadro senza alcun limite di altezza. Con molti portafogli il riquadro cresce oltre la finestra e, poiché il centraggio lo estende in modo simmetrico, deborda sopra e sotto insieme: i bottoni "Annulla"/"Conferma", che oggi stanno in fondo a `.dialog-corpo`, finiscono fuori dal viewport e non c'è nulla da scorrere (l'overlay è `fixed`, la pagina sotto è coperta). Restano solo Escape o il clic sul backdrop — il percorso di aggiunta è di fatto bloccato.
+
+  **La correzione** è tutta frontend e contenuta nel solo componente del dialog: nessuna modifica ad API, dati, rotte o `ledger.css`.
+
+  - **Il riquadro diventa una colonna flex ad altezza limitata**: `display: flex`, `flexDirection: column`, `maxHeight: 100%`; l'overlay guadagna un `padding: 24px` perché il dialog non tocchi mai i bordi della finestra. `maxHeight: 100%` si risolve sull'altezza dell'overlay (`inset: 0`), quindi il riquadro non può più superare la finestra.
+  - **Intestazione e piè di pagina non si comprimono, il corpo sì**: `.dialog-intestazione` e `.dialog-bottoni` ricevono `flexShrink: 0`; `.dialog-corpo` diventa la sola area scorrevole, con `flex: 1 1 auto`, `minHeight: 0` e `overflowY: auto`. `minHeight: 0` è la chiave e non è cosmetico: senza, un flex item non scende sotto la propria altezza di contenuto e l'overflow tornerebbe a spingere il riquadro fuori dalla finestra.
+  - **I bottoni escono da `.dialog-corpo`** e diventano suoi fratelli, ultimo figlio della colonna: è questo che li rende permanentemente visibili, qualunque sia la lunghezza dell'elenco.
+  - **Spaziatura invariata in ogni stato**: il `marginBottom: 20px` resta dov'è oggi, sulla `.lista-portafogli` dentro l'area scorrevole, e il piè di pagina non riceve margini nuovi. Così caricamento, stato "nessun portafoglio" ed elenco corto appaiono identici a prima.
+  - **Con pochi portafogli non cambia nulla, per costruzione**: `overflow-y: auto` non disegna alcuna barra finché il contenuto entra, e il `maxHeight` non viene mai raggiunto. Nessuna soglia da tarare, nessun ramo condizionale.
+  - Miglioria facoltativa: `overscrollBehavior: 'contain'` sull'area scorrevole, perché lo scroll arrivato a fine lista non si propaghi alla pagina sottostante.
+
+  Il componente usa stili inline anziché le classi di `ledger.css`: la correzione resta nello stesso stile, per non aprire un refactor estraneo alla spec.
+
+  ### Ricaduta sui test E2E esistenti
+
+  Il difetto era già stato incontrato e aggirato. La demo di US-025 (`e2e/US-025__aggiungi-titolo-a-portafoglio.spec.ts`, righe 31-42) intercetta `GET **/api/portfolios` e riduce l'elenco al solo portafoglio di prova, proprio perché con i portafogli creati dagli altri worker il "Conferma" finiva fuori schermo. Con il dialog corretto quell'aggiramento non serve più e va rimosso, insieme all'import ormai inutile di `leggiPortafoglio`: è la prova che il difetto è chiuso alla radice e non semplicemente nascosto.
+
+  Lo stub dello scenario "nessun portafoglio disponibile", invece, resta: lì non aggira un difetto, simula uno stato dell'archivio.
+
+  ---
+
+  ## Strategia di Test
+
+  Il progetto non ha test di unità sul client (`npm run test` esegue solo `server/tests/`) e la correzione è puramente di layout: la verifica vive quindi negli E2E, dove si misura ciò che conta davvero — che i bottoni siano dentro il viewport e che l'area lista scorra invece di far crescere il riquadro.
+
+  - Nessun test di unità o di integrazione nuovo: nessuna logica di dominio cambia.
+  - Le asserzioni si fanno sul DOM reale: `toBeInViewport()` per i bottoni, confronto `scrollHeight > clientHeight` sull'area scorrevole per distinguere "scorre" da "non scorre", `boundingBox().height` del riquadro contro l'altezza del viewport per la contenzione.
+  - Convenzioni US-029 rispettate: portafogli creati dalla fixture `archivio` (nomi univoci, teardown garantito anche su timeout), un solo ISIN seminato per file spec.
+  - Regressione: `npx playwright test` sull'intera suite più `npm run check` (lint + typecheck + typecheck:e2e + unit).
+
+  ### Test E2E — Simulazione utente
+
+  **Framework:** Playwright (`playwright.config.ts` già configurato)
+  **Video:** solo lo scenario demo, salvato in `docs/test-results/US-027/` con `page.video().saveAs()` in `afterEach`, dopo `page.close()`
+
+  Due file, come impone la convenzione del progetto documentata in `CLAUDE.md`: `launchOptions.slowMo` non è scopabile a un `describe`, quindi la demo vive da sola con un `test.use()` di file e gli altri scenari in un file fratello (stesso schema della coppia `US-026__*`).
+
+  | Scenario | Flusso utente |
+  |---|---|
+  | Demo (con video) | 14 portafogli creati via fixture → `/ricerca` con l'ISIN seminato → clic "Aggiungi a Portafoglio" → il dialog si apre: l'area lista scorre, "Annulla" e "Conferma" sono in viewport, il riquadro non supera l'altezza della finestra → si scorre fino all'ultima riga dell'elenco e la si seleziona → "Conferma" → si arriva su `/portfolio/:id` di *quel* portafoglio, con il modulo di carico pre-compilato |
+  | Elenco corto invariato | 1 solo portafoglio → apri il dialog → l'area lista non scorre (`scrollHeight <= clientHeight`), nessuna barra di scorrimento, riquadro ben dentro la finestra |
+  | Elenco lungo contenuto | 14 portafogli → apri il dialog → l'altezza del riquadro è ≤ altezza del viewport ed entrambi i bottoni risultano in viewport |
+
+  Due accortezze che la correttezza dei test richiede:
+
+  - **Un solo file semina in cache.** Nel file fratello l'anagrafica del titolo si ottiene intercettando `**/api/securities/**` con `route.fulfill()` — pattern già in uso in US-007, US-008 e `fallback-morningstar` — così la regola "un ISIN per file spec" di `e2e/support/titoli.ts` resta rispettata senza riservare un secondo ISIN.
+  - **Nessuna assunzione sull'ordinamento.** Per "l'ultimo portafoglio dell'elenco" il test prende `[data-testid^="portafoglio-option-"]` con `.last()`, ne legge l'id dal `data-testid` e verifica che l'URL finale sia quello: la prova regge anche quando in archivio ci sono i portafogli di altri worker.
+
+  ---
+
+  _Piano generato tramite ARchetipo Planning — 2026-08-07_
+tasks:
+  - id: TASK-01
+    title: Limitare l'altezza del dialog e rendere scorrevole la sola area lista
+    description: 'In `client/src/components/PortfolioSelectDialog.tsx`: aggiungere `padding: 24px` all''overlay; trasformare il riquadro in colonna flex con `maxHeight: 100%`; dare `flexShrink: 0` a `.dialog-intestazione`; rendere `.dialog-corpo` l''unica area scorrevole con `flex: 1 1 auto`, `minHeight: 0` e `overflowY: auto`. Spostare `.dialog-bottoni` fuori da `.dialog-corpo`, come ultimo figlio della colonna, con `flexShrink: 0`. Lasciare invariati margini e spaziature esistenti (il `marginBottom: 20px` resta sulla `.lista-portafogli`) perché l''aspetto con pochi portafogli non cambi.'
+    type: Impl
+    status: DONE
+    body: 'In `client/src/components/PortfolioSelectDialog.tsx`: aggiungere `padding: 24px` all''overlay; trasformare il riquadro in colonna flex con `maxHeight: 100%`; dare `flexShrink: 0` a `.dialog-intestazione`; rendere `.dialog-corpo` l''unica area scorrevole con `flex: 1 1 auto`, `minHeight: 0` e `overflowY: auto`. Spostare `.dialog-bottoni` fuori da `.dialog-corpo`, come ultimo figlio della colonna, con `flexShrink: 0`. Lasciare invariati margini e spaziature esistenti (il `marginBottom: 20px` resta sulla `.lista-portafogli`) perché l''aspetto con pochi portafogli non cambi.'
+    ref: TASK-01
+  - id: TASK-02
+    title: Riservare l'ISIN del file demo in e2e/support/titoli.ts
+    description: 'Aggiungere una costante `TITOLO_US_027` (ISIN non usato in scrittura da nessun altro file spec, con anagrafica plausibile: name, price, ticker, instrument_type, currency, issuer) seguendo la regola "un ISIN per file spec" documentata in testa al modulo. Serve solo al file demo: il file fratello intercetterà `**/api/securities/**` e non toccherà la cache.'
+    type: Test
+    status: DONE
+    body: 'Aggiungere una costante `TITOLO_US_027` (ISIN non usato in scrittura da nessun altro file spec, con anagrafica plausibile: name, price, ticker, instrument_type, currency, issuer) seguendo la regola "un ISIN per file spec" documentata in testa al modulo. Serve solo al file demo: il file fratello intercetterà `**/api/securities/**` e non toccherà la cache.'
+    ref: TASK-02
+  - id: TASK-03
+    title: Test E2E demo con video — elenco lungo, selezione dell'ultimo portafoglio
+    description: 'Creare `e2e/US-027__scorre-elenco-portafogli.spec.ts` sul modello di `US-026__apre-scheda-riepilogo.spec.ts`: `test.use` di file con `video: { mode: ''on'', size: 1280x720 }`, `launchOptions: { slowMo: 300 }`, `viewport: 1280x720`, e `afterEach` che fa `page.close()` e poi `page.video()?.saveAs(''docs/test-results/US-027/demo-scorre-elenco-portafogli.webm'')`. Flusso: semina `TITOLO_US_027`, crea 14 portafogli con `archivio.creaPortafoglio`, va su `/ricerca`, cerca l''ISIN, apre il dialog; verifica che l''area scorrevole abbia `scrollHeight > clientHeight`, che `btn-annulla-dialog` e `btn-conferma-dialog` siano `toBeInViewport()` e che l''altezza del riquadro non superi il viewport; seleziona l''ultima riga (`[data-testid^="portafoglio-option-"]` `.last()`, id letto dal `data-testid`), conferma e verifica l''URL `/portfolio/<quell''id>` con `input-isin` pre-compilato.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+    body: 'Creare `e2e/US-027__scorre-elenco-portafogli.spec.ts` sul modello di `US-026__apre-scheda-riepilogo.spec.ts`: `test.use` di file con `video: { mode: ''on'', size: 1280x720 }`, `launchOptions: { slowMo: 300 }`, `viewport: 1280x720`, e `afterEach` che fa `page.close()` e poi `page.video()?.saveAs(''docs/test-results/US-027/demo-scorre-elenco-portafogli.webm'')`. Flusso: semina `TITOLO_US_027`, crea 14 portafogli con `archivio.creaPortafoglio`, va su `/ricerca`, cerca l''ISIN, apre il dialog; verifica che l''area scorrevole abbia `scrollHeight > clientHeight`, che `btn-annulla-dialog` e `btn-conferma-dialog` siano `toBeInViewport()` e che l''altezza del riquadro non superi il viewport; seleziona l''ultima riga (`[data-testid^="portafoglio-option-"]` `.last()`, id letto dal `data-testid`), conferma e verifica l''URL `/portfolio/<quell''id>` con `input-isin` pre-compilato.'
+    ref: TASK-03
+  - id: TASK-04
+    title: Test E2E — elenco corto invariato ed elenco lungo contenuto (senza video)
+    description: 'Creare il file fratello `e2e/US-027__dialog-elenco-portafogli.spec.ts` (nessun video, nessuno slowMo), con l''anagrafica del titolo servita da `page.route(''**/api/securities/**'', route.fulfill)` per non seminare un secondo ISIN. Scenario A: un solo portafoglio → apri il dialog → l''area scorrevole ha `scrollHeight <= clientHeight` (nessuna barra) e il riquadro sta dentro la finestra. Scenario B: 14 portafogli → apri il dialog → l''altezza del riquadro è ≤ altezza del viewport ed entrambi i bottoni sono `toBeInViewport()`.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'Creare il file fratello `e2e/US-027__dialog-elenco-portafogli.spec.ts` (nessun video, nessuno slowMo), con l''anagrafica del titolo servita da `page.route(''**/api/securities/**'', route.fulfill)` per non seminare un secondo ISIN. Scenario A: un solo portafoglio → apri il dialog → l''area scorrevole ha `scrollHeight <= clientHeight` (nessuna barra) e il riquadro sta dentro la finestra. Scenario B: 14 portafogli → apri il dialog → l''altezza del riquadro è ≤ altezza del viewport ed entrambi i bottoni sono `toBeInViewport()`.'
+    ref: TASK-04
+  - id: TASK-05
+    title: Rimuovere lo stub dell'elenco portafogli dalla demo di US-025
+    description: In `e2e/US-025__aggiungi-titolo-a-portafoglio.spec.ts` eliminare il `page.route('**/api/portfolios', ...)` introdotto per aggirare il dialog non scorrevole (righe 31-42), l'import ora inutile di `leggiPortafoglio` e il commento che spiegava l'aggiramento, sostituendolo con una nota breve sul fatto che il dialog ora scorre. Lasciare intatto lo stub dello scenario "nessun portafoglio", che simula uno stato e non aggira un difetto. Verificare che i due scenari tornino verdi con l'elenco reale.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: In `e2e/US-025__aggiungi-titolo-a-portafoglio.spec.ts` eliminare il `page.route('**/api/portfolios', ...)` introdotto per aggirare il dialog non scorrevole (righe 31-42), l'import ora inutile di `leggiPortafoglio` e il commento che spiegava l'aggiramento, sostituendolo con una nota breve sul fatto che il dialog ora scorre. Lasciare intatto lo stub dello scenario "nessun portafoglio", che simula uno stato e non aggira un difetto. Verificare che i due scenari tornino verdi con l'elenco reale.
+    ref: TASK-05
+  - id: TASK-06
+    title: 'Verifica finale: check completo e suite E2E'
+    description: Eseguire `npm run check` (lint + typecheck + typecheck:e2e + unit) e `npx playwright test` sull'intera suite, confermando in particolare che US-025, US-026 e i nuovi file US-027 siano verdi e che il video demo sia stato scritto in `docs/test-results/US-027/`.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+      - TASK-04
+      - TASK-05
+    body: Eseguire `npm run check` (lint + typecheck + typecheck:e2e + unit) e `npx playwright test` sull'intera suite, confermando in particolare che US-025, US-026 e i nuovi file US-027 siano verdi e che il video demo sia stato scritto in `docs/test-results/US-027/`.
+    ref: TASK-06

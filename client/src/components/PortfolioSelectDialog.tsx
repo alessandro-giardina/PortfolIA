@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import type { Portfolio } from '@portfolia/shared';
 
 interface Props {
@@ -42,7 +43,14 @@ export default function PortfolioSelectDialog({ isin, name, onConfirm, onClose }
     if (e.target === e.currentTarget) onClose();
   }
 
-  return (
+  // Il dialog è montato su `document.body`, non dove lo si usa. `ledger.css` dà a
+  // ogni figlio del foglio `position: relative; z-index: 2`: sono contesti di
+  // impilamento fratelli, quindi lo `z-index: 100` dell'overlay resta confinato
+  // dentro quello di `.corpo` e il footer `.pie` — pari livello, ma successivo nel
+  // DOM — gli si dipinge sopra. Finché il riquadro era basso non si vedeva; da
+  // quando arriva in fondo alla finestra il footer intercetta i clic sulle ultime
+  // righe dell'elenco. Il portale toglie il dialog da quel contesto una volta per tutte.
+  return createPortal(
     <div
       className="overlay-dialog"
       role="presentation"
@@ -54,6 +62,9 @@ export default function PortfolioSelectDialog({ isin, name, onConfirm, onClose }
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        // Respiro fra il riquadro e i bordi della finestra: senza, con l'elenco al
+        // massimo dell'altezza il dialog toccherebbe i lati dello schermo.
+        padding: '24px',
         zIndex: 100,
       }}
     >
@@ -71,9 +82,16 @@ export default function PortfolioSelectDialog({ isin, name, onConfirm, onClose }
           maxWidth: '520px',
           width: '100%',
           boxShadow: '0 8px 32px rgba(0,0,0,0.22)',
+          // Colonna flex con un tetto d'altezza: l'elenco non fa più crescere il
+          // riquadro oltre la finestra, scorre dentro `.dialog-corpo`. Il 100% è
+          // l'altezza utile dell'overlay, già al netto del suo padding, e comprende
+          // padding e bordo del riquadro grazie al `box-sizing: border-box` globale.
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: '100%',
         }}
       >
-        <div className="dialog-intestazione" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <div className="dialog-intestazione" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexShrink: 0 }}>
           <div>
             <div className="titolo-dialog" id="dialog-titolo" style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px' }}>
               Scegli un Portafoglio
@@ -93,9 +111,38 @@ export default function PortfolioSelectDialog({ isin, name, onConfirm, onClose }
           </button>
         </div>
 
-        <div className="dialog-corpo">
+        {/*
+          L'unica area scorrevole del dialog. `minHeight: 0` è indispensabile: senza,
+          la base minima di un figlio flex è il suo contenuto, quindi il corpo si
+          rifiuterebbe di rimpicciolirsi e il tetto d'altezza del riquadro verrebbe
+          sfondato dall'elenco invece che assorbito dallo scorrimento.
+        */}
+        <div
+          className="dialog-corpo"
+          data-testid="dialog-corpo"
+          style={{
+            flex: '1 1 auto',
+            minHeight: 0,
+            overflowY: 'auto',
+            // Lo scorrimento si ferma qui: arrivati a fondo elenco non prosegue
+            // trascinando la pagina che sta sotto l'overlay.
+            overscrollBehavior: 'contain',
+          }}
+        >
+          {/*
+            `marginTop: 0` esplicito sui due paragrafi che aprono direttamente il corpo
+            (caricamento e nota). Lo stato "nessun portafoglio" non ne ha bisogno: il
+            suo `<p>` è avvolto in un `<div>` con padding, che il margine non
+            attraversava nemmeno prima. Prima erano i
+            13px del margine predefinito dello user-agent, che risalivano attraverso
+            `.dialog-corpo` e collassavano con il `marginBottom: 16px`
+            dell'intestazione — `max(16, 13)`, quindi 16. Da quando il riquadro è un
+            contenitore flex i margini dei figli non collassano più e quei 13px si
+            sommerebbero, spostando in basso l'intero dialog: azzerarli conserva la
+            spaziatura di prima invece di affidarla a un collasso che non avviene più.
+          */}
           {loading ? (
-            <p style={{ fontStyle: 'italic', color: 'var(--seppia)', fontSize: '13px' }}>Caricamento portafogli…</p>
+            <p style={{ marginTop: 0, fontStyle: 'italic', color: 'var(--seppia)', fontSize: '13px' }}>Caricamento portafogli…</p>
           ) : portfolios.length === 0 ? (
             <div data-testid="msg-nessun-portafoglio" style={{ textAlign: 'center', padding: '16px 0' }}>
               <p style={{ fontStyle: 'italic', marginBottom: '8px' }}>Nessun portafoglio disponibile.</p>
@@ -105,7 +152,7 @@ export default function PortfolioSelectDialog({ isin, name, onConfirm, onClose }
             </div>
           ) : (
             <>
-              <p className="nota-dialog" style={{ fontSize: '13px', fontStyle: 'italic', marginBottom: '14px', color: 'var(--seppia)' }}>
+              <p className="nota-dialog" style={{ marginTop: 0, fontSize: '13px', fontStyle: 'italic', marginBottom: '14px', color: 'var(--seppia)' }}>
                 Seleziona il portafoglio di destinazione. Il modulo di carico sarà pre-compilato
                 con ISIN, nome e prezzo corrente del titolo.
               </p>
@@ -157,30 +204,35 @@ export default function PortfolioSelectDialog({ isin, name, onConfirm, onClose }
               </div>
             </>
           )}
+        </div>
 
-          <div className="dialog-bottoni" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+        {/*
+          Fuori dal corpo, quindi fuori dallo scorrimento: "Annulla" e "Conferma"
+          restano ancorati in fondo al riquadro comunque sia lungo l'elenco.
+        */}
+        <div className="dialog-bottoni" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexShrink: 0 }}>
+          <button
+            type="button"
+            className="bottone secondario"
+            data-testid="btn-annulla-dialog"
+            onClick={onClose}
+          >
+            Annulla
+          </button>
+          {portfolios.length > 0 && (
             <button
               type="button"
-              className="bottone secondario"
-              data-testid="btn-annulla-dialog"
-              onClick={onClose}
+              className="bottone"
+              data-testid="btn-conferma-dialog"
+              disabled={selectedId === null}
+              onClick={() => { if (selectedId !== null) onConfirm(selectedId); }}
             >
-              Annulla
+              Conferma →
             </button>
-            {portfolios.length > 0 && (
-              <button
-                type="button"
-                className="bottone"
-                data-testid="btn-conferma-dialog"
-                disabled={selectedId === null}
-                onClick={() => { if (selectedId !== null) onConfirm(selectedId); }}
-              >
-                Conferma →
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
