@@ -11,13 +11,16 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
     "typecheck": "tsc --build",
+    "typecheck:e2e": "tsc --noEmit -p e2e",
     "lint": "eslint .",
     "test": "npm run test --workspace=server",
-    "check": "npm run lint && npm run typecheck && npm run test"
+    "check": "npm run lint && npm run typecheck && npm run typecheck:e2e && npm run test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
+    "@types/better-sqlite3": "^7.6.11",
+    "better-sqlite3": "^11.0.0",
     "concurrently": "^9.0.0",
     "drizzle-orm": "^0.45.2",
     "eslint": "^10.6.0",

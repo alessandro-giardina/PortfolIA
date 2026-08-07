@@ -6,7 +6,7 @@ epic:
   title: Fondazione del progetto
 priority: HIGH
 points: 2
-status: TODO
+status: REVIEW
 body: |
   #### US-028: Allineare le asserzioni E2E alla UI attuale
 
@@ -30,3 +30,9 @@ body: |
 history:
   - status: TODO
     at: "2026-08-06T19:32:28Z"
+  - status: PLANNED
+    at: "2026-08-06T19:38:05Z"
+  - status: IN PROGRESS
+    at: "2026-08-06T19:39:28Z"
+  - status: REVIEW
+    at: "2026-08-06T20:17:34Z"

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './support/fixtures.js';
 
 // Demo scenario — video enabled (top-level test.use required by Playwright)
 // Records the Demonstrates flow: create a portfolio, verify in list, reload, verify persistence.
@@ -8,9 +8,11 @@ test.use({
   launchOptions: { slowMo: 300 },
 });
 
-test('demo__crea-portafoglio-principale', async ({ page }) => {
-  // Use a unique name to avoid conflicts with existing data across runs
-  const portfolioName = `Portafoglio Demo ${Date.now()}`;
+test('demo__crea-portafoglio-principale', async ({ page, archivio }) => {
+  // Use a unique name to avoid conflicts with existing data across runs.
+  // Il portafoglio nasce dalla UI: il test non ne conosce l'id, quindi la fixture
+  // lo rimuove riconoscendolo dal nome prenotato.
+  const portfolioName = archivio.nomeUnico('Portafoglio Demo');
 
   await page.goto('/');
 

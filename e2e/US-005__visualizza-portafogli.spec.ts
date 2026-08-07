@@ -1,28 +1,19 @@
-import { test, expect, request } from '@playwright/test';
-
-const BASE_API = 'http://localhost:3200';
-
-async function createPortfolio(name: string) {
-  const ctx = await request.newContext();
-  const res = await ctx.post(`${BASE_API}/api/portfolios`, { data: { name } });
-  const data = await res.json();
-  await ctx.dispose();
-  return data;
-}
-
+import { test, expect } from './support/fixtures.js';
 
 test.describe('US-005 — Visualizzazione portafogli', () => {
 
-  test('stato vuoto: messaggio visibile senza portafogli', async ({ page, request: apiRequest }) => {
-    // Verify the API returns no portfolios before testing empty state.
-    // This test requires a fresh DB — if portfolios already exist from previous runs,
-    // the empty state will not be visible. The test is skipped dynamically in that case.
-    const apiRes = await apiRequest.get(`${BASE_API}/api/portfolios`);
-    const existing = await apiRes.json() as Array<unknown>;
-    if (existing.length > 0) {
-      test.skip(true, 'DB non vuoto — stato vuoto non testabile senza reset endpoint');
-      return;
-    }
+  test('stato vuoto: messaggio visibile senza portafogli', async ({ page }) => {
+    // Prima di US-029 questo test si auto-saltava quando l'archivio non era vuoto,
+    // cioè in pratica sempre: un test che non gira non protegge nulla. L'elenco è
+    // ora intercettato a vuoto, con la stessa tecnica già usata in US-025, così lo
+    // stato vuoto è verificabile senza dipendere da cosa c'è in archivio.
+    await page.route('**/api/portfolios', (route) => {
+      if (route.request().method() === 'GET') {
+        void route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+      } else {
+        void route.continue();
+      }
+    });
 
     await page.goto('/');
     await expect(page.getByText('Caricamento portafogli')).not.toBeVisible({ timeout: 5000 }).catch(() => {});
@@ -30,9 +21,8 @@ test.describe('US-005 — Visualizzazione portafogli', () => {
     await expect(page.getByText('Apri il tuo primo conto a mastro')).toBeVisible();
   });
 
-  test('lista portafogli: portafoglio creato via API compare nella lista', async ({ page }) => {
-    const nome = `Test-${Date.now()}`;
-    await createPortfolio(nome);
+  test('lista portafogli: portafoglio creato via API compare nella lista', async ({ page, archivio }) => {
+    const { name: nome } = await archivio.creaPortafoglio('Test');
 
     await page.goto('/');
     await expect(page.getByText('Caricamento portafogli')).not.toBeVisible({ timeout: 5000 }).catch(() => {});
@@ -41,4 +31,3 @@ test.describe('US-005 — Visualizzazione portafogli', () => {
   });
 
 });
-

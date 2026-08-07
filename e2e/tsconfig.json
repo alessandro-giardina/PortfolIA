@@ -1,0 +1,15 @@
+{
+  "// nota": "Progetto a sé, fuori dalle project references della root: i test E2E non sono compilati, Playwright li traspila con esbuild scartando i tipi senza verificarli. Senza questo file lo strato condiviso in e2e/support/ non sarebbe controllato da nulla. Usato da `npm run typecheck:e2e`, che `npm run check` include.",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"]
+  },
+  "include": ["**/*.ts"]
+}

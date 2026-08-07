@@ -44,6 +44,28 @@ npx playwright test
 
 Runs the Playwright tests in `e2e/`. Requires no running server — the webServer config starts it automatically.
 
+### Test data: use the `archivio` fixture, never `try/finally`
+
+The suite shares a dev database with the running server, so every test must leave the archive exactly as it found it. `e2e/support/` exists for that, and it is the only sanctioned way to touch test data:
+
+| Module | What it gives you |
+|---|---|
+| `support/api.ts` | The HTTP helpers (`creaPortafoglio`, `aggiungiPosizione`, `eliminaPortafoglio`, `elencaPortafogli`, …), defined once. Do **not** re-declare them in a spec file. |
+| `support/archivio.ts` | Direct primitives on the `securities` price cache (`seminaTitolo`, `rimuoviTitolo`, `ripristinaTitoli`). Test-only, never imported by the server. |
+| `support/nomi.ts` | `nomeUnico(prefisso)` — unique per worker and per run. |
+| `support/fixtures.ts` | The extended `test` carrying the `archivio` fixture. Import `test`/`expect` from here, not from `@playwright/test`. |
+
+Three rules follow, and each one exists because its absence caused a real defect:
+
+- **Clean up in the fixture, not in a `finally` block.** Playwright runs fixture teardown even when a test times out or an assertion throws; a `finally` block in those cases is never reached. That difference is how the archive silently accumulated 57 orphan portfolios. Use `await archivio.creaPortafoglio('Prefisso')` and let teardown remove it. When the *UI* creates the portfolio and the test has no id, reserve the name with `archivio.nomeUnico('Prefisso')` — teardown then finds it by name (matching by substring, so a renamed portfolio is still collected).
+- **Never hard-code a resource name.** A fixed name (`'Conto Unico'`) exists on the second run, so the test silently starts exercising a different path than the one it claims to. `nomeUnico()` removes that failure class by construction.
+- **Never assume what is in the price cache.** Assert the premise instead of inheriting it: `archivio.rimuoviTitolo(isin)` for a guaranteed cache miss, `archivio.seminaTitolo(isin, { price })` for a known expected value. The fixture restores the prior state either way. See `e2e/US-014__valore-totale-portafoglio.spec.ts`, where both directions were previously true only by accident.
+- **One seeded ISIN per spec file — never share a key across files.** Playwright runs *files* in parallel across workers (`fullyParallel: false` only serialises within a file), and seed-then-restore is an undo stack: if two files seed the same ISIN and interleave, the last one to restore rolls back to the *other* file's seed rather than to the original, leaving residue no conditional check can undo. `e2e/support/titoli.ts` therefore assigns each file its own constant. Seeding the same ISIN repeatedly *inside* one file is safe.
+
+Seeding also has a second effect worth knowing: `seminaTitolo` stamps `fetched_at` to now. A stale timestamp makes the server classify the cache as expired and re-contact the real source — Borsa Italiana, then headless MorningStar, 8-12 seconds — which is both slow and non-deterministic. Any test that merely passes *through* the ISIN search on its way somewhere else should seed the security first.
+
+`playwright.config.ts` also registers `globalSetup: './e2e/support/bonifica.ts'`, which removes suite-generated residue before the run. It is the safety net for a run killed with SIGKILL, when not even teardown can execute — not a substitute for the fixture.
+
 ### Test artifacts
 
 Everything under `docs/test-results/` is **not versioned** — the whole directory is gitignored. Artifacts are regenerated on every run, so to review a spec's demo video just run the suite and open the file locally.

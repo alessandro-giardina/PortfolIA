@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './support/fixtures.js';
 
 // ─── Validazione: nome vuoto ───────────────────────────────────────────────────
 test('validazione nome vuoto mostra messaggio errore inline', async ({ page }) => {
@@ -12,17 +12,27 @@ test('validazione nome vuoto mostra messaggio errore inline', async ({ page }) =
 });
 
 // ─── Validazione: nome duplicato ──────────────────────────────────────────────
-test('nome duplicato mostra messaggio errore 409', async ({ page }) => {
+// Il nome è univoco per esecuzione (US-029). Con il nome fisso di prima, alla
+// seconda esecuzione il conto esisteva già e il 409 scattava sulla *prima*
+// creazione: il test passava, ma verificando un percorso diverso da quello
+// dichiarato. Il portafoglio nasce dalla UI, quindi il test non ne conosce l'id:
+// la fixture lo rimuove riconoscendolo dal nome prenotato.
+test('nome duplicato mostra messaggio errore 409', async ({ page, archivio }) => {
+  const nomeConto = archivio.nomeUnico('Conto Unico');
+
   await page.goto('/');
   await expect(page.getByRole('form', { name: 'Crea portafoglio' })).toBeVisible();
 
-  // Create first portfolio
-  await page.getByLabel('Denominazione del conto').fill('Conto Unico');
+  // Prima creazione: deve riuscire
+  await page.getByLabel('Denominazione del conto').fill(nomeConto);
   await page.getByRole('button', { name: 'Registra a mastro' }).click();
-  await expect(page.getByText('Conto Unico')).toBeVisible();
+  await expect(page.getByText(nomeConto)).toBeVisible();
 
-  // Try to create duplicate
-  await page.getByLabel('Denominazione del conto').fill('Conto Unico');
+  // …e non deve produrre alcun errore: è la metà del contratto che prima sfuggiva.
+  await expect(page.getByRole('alert')).not.toBeVisible();
+
+  // Seconda creazione con lo stesso nome: è qui che deve arrivare il 409
+  await page.getByLabel('Denominazione del conto').fill(nomeConto);
   await page.getByRole('button', { name: 'Registra a mastro' }).click();
 
   await expect(page.getByRole('alert')).toBeVisible();

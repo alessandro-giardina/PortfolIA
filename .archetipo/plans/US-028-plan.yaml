@@ -1,0 +1,112 @@
+schema: archetipo/plan/v2
+spec_code: US-028
+body: |
+  # US-028: Allineare le asserzioni E2E alla UI attuale — Piano di Implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 2026-08-06
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-000 — Fondazione del progetto
+  **Priorità:** HIGH | **Punti:** 2
+
+  **User Story**
+  Come sviluppatore di PortfolIA,
+  voglio che la suite E2E verifichi la UI così com'è oggi,
+  in modo da poter distinguere una regressione reale da un test scaduto invece di convivere con una suite stabilmente rossa.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, `npx playwright test` non riporta più fallimenti dovuti ad asserzioni disallineate dalla UI: i cinque test interessati passano e il demo obsoleto di US-005 non fa più parte della suite.
+
+  **Criteri di Accettazione**
+  - [ ] I test che cercano l'intestazione con corrispondenza esatta sono allineati al formato reale `Conto <nome>` (US-006 demo e "eliminazione annullata")
+  - [ ] I due test di US-011 sono allineati al contatore reale, che esprime gli ISIN distinti e non il numero di posizioni
+  - [ ] Il file `demo__visualizza-portafoglio.spec.ts` è rimosso: il flusso elenco → dettaglio è già coperto in modo più completo da US-026
+  - [ ] Nessuna modifica al codice di produzione: le etichette della UI restano quelle attuali
+  - [ ] La suite non presenta più fallimenti attribuibili ad asserzioni scadute; restano quelli in carico a US-027 e US-029
+
+  ---
+
+  ## Soluzione Tecnica
+
+  Intervento di sola manutenzione dei test, confinato alla cartella `e2e/`: le asserzioni scadute vengono riportate sulle etichette che la UI produce davvero oggi, e il demo che verifica una schermata non più esistente viene eliminato. La UI è la fonte di verità: nessun file sotto `client/` o `server/` viene toccato.
+
+  - **Intestazione del dettaglio portafoglio.** `client/src/pages/PortfolioDetailPage.tsx:404-405` passa a `Foglio` `titolo="Conto "` e `titoloCorsivo={portfolio.name}`; l'`h1` composto in `client/src/components/Foglio.tsx` ha quindi nome accessibile `Conto <nome>`. Le tre asserzioni `getByRole('heading', { name: <nome>, exact: true })` in `e2e/US-006__rinomina-elimina-portafoglio.spec.ts` (righe 44, 56, 136) non possono corrispondere. Si **mantiene** `exact: true` — serve a distinguere il nome originale dal nome rinominato, che lo contiene come prefisso — e si porta il valore atteso a `Conto ${nome}`. Poiché il pattern ricorre tre volte nello stesso file, si introduce un piccolo helper locale al file (es. `intestazioneConto(nome)`) invece di ripetere il template literal.
+  - **Contatore dei titoli iscritti.** `client/src/pages/PortfolioDetailPage.tsx:808-810` rende `${summaries.length} ISIN distinto|i`: il contatore esprime gli ISIN aggregati, non il numero di carichi. Le due asserzioni `toContainText('1 posizione')` in `e2e/US-011__aggiungi-posizione.spec.ts` (righe 65 e 168) diventano `toContainText('1 ISIN distinto')` — singolare corretto per `summaries.length === 1`. Le asserzioni analoghe di US-012 (righe 94, 128, 162) e US-013 (riga 134) verificano solo la cifra e restano valide: vanno però ri-eseguite come regressione.
+  - **Demo obsoleto di US-005.** `e2e/demo__visualizza-portafoglio.spec.ts` verifica il placeholder `Vista in preparazione` (riga 40), stringa che non esiste più in nessun sorgente del client, oltre a un'intestazione con `exact: true` affetta dallo stesso disallineamento. Il flusso elenco → dettaglio è coperto in modo più completo da `e2e/US-026__apre-scheda-riepilogo.spec.ts`, che verifica anche la scheda attiva e la tabella di riepilogo. Il file viene eliminato; nessun altro file del repository lo referenzia. L'artefatto storico in `docs/test-results/US-005/` resta invariato: è l'evidenza della spec già accettata e non va rigenerato.
+  - **Fuori scope.** I fallimenti dovuti allo stato condiviso dell'archivio (US-014 sui dati mancanti, US-004 sul nome duplicato, stato vuoto di US-005) restano in carico a **US-029**; quelli del dialog "Aggiungi a Portafoglio" con elenco non scorrevole (i due test di US-025) restano in carico a **US-027**. Questa spec non deve né correggerli né mascherarli con `skip`.
+
+  ---
+
+  ## Strategia di Test
+
+  L'oggetto della spec è la suite stessa: la verifica coincide con la sua esecuzione. Non si aggiungono test nuovi — si riportano al verde quelli esistenti e si toglie quello scaduto.
+
+  - Esecuzione mirata dei due file modificati (`US-006__rinomina-elimina-portafoglio.spec.ts`, `US-011__aggiungi-posizione.spec.ts`): tutti gli scenari devono passare.
+  - Regressione sul contatore: `US-012__carichi-multipli.spec.ts` e `US-013__modifica-rimuovi-posizione.spec.ts` devono restare verdi, a conferma che il formato `N ISIN distinto|i` è quello reale e non è cambiato nulla in produzione.
+  - Copertura del flusso rimosso: `US-026__apre-scheda-riepilogo.spec.ts` deve passare, prova che il percorso elenco → dettaglio resta coperto dopo l'eliminazione del demo di US-005.
+  - Vincolo "nessuna modifica al codice di produzione": verificare con `git status --short` / `git diff --stat` che il diff tocchi esclusivamente `e2e/`.
+  - Esecuzione della suite completa: ogni fallimento residuo va classificato esplicitamente come US-027 o US-029; qualunque fallimento non riconducibile a quelle due spec è un difetto di questa.
+  - Il progetto non ha test unitari coinvolti: `npm run check` (lint + typecheck + vitest) serve solo a confermare che la rimozione del file e le modifiche alle asserzioni non rompano lint e typecheck.
+
+  ### Test E2E — Simulazione Utente
+
+  **Framework:** Playwright (`playwright.config.ts`, `testDir: './e2e'`, progetto `chromium`, webServer avviato automaticamente)
+  **Registrazione video:** **nessun nuovo video.** Il `Dimostra` di questa spec è l'esito della suite, non un incremento visibile e filmabile: non va creata la cartella `docs/test-results/US-028/` né aggiunto alcun `saveAs`. I demo esistenti di US-006 e US-011 continuano a registrare esattamente come fanno oggi.
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Demo US-006 — rinomina ed elimina | L'utente apre il dettaglio di un portafoglio, ne verifica l'intestazione, lo rinomina, vede il nuovo nome nell'intestazione, poi lo elimina confermando il dialog e torna alla dashboard senza più trovarlo in elenco |
+  | US-006 — eliminazione annullata | L'utente apre il dettaglio, avvia l'eliminazione, annulla il dialog di conferma e resta sulla stessa pagina con l'intestazione del portafoglio ancora visibile |
+  | Demo US-011 — aggiungi posizione | L'utente apre il portafoglio, passa alla scheda "Carico titoli", compila il modulo, iscrive il carico e vede la posizione in tabella con il contatore aggiornato |
+  | US-011 — persistenza dopo ricarica | L'utente iscrive un carico, ricarica la pagina, torna sulla scheda "Carico titoli" e ritrova posizione e contatore invariati |
+  | US-026 — apertura su Riepilogo (regressione) | L'utente clicca un portafoglio dall'elenco e atterra sul dettaglio con la scheda "Riepilogo" attiva e la tabella titoli visibile — copertura sostitutiva del demo rimosso |
+
+  ---
+
+  _Piano generato con ARchetipo Planning — 2026-08-06_
+tasks:
+  - id: TASK-01
+    title: Allineare le asserzioni sull'intestazione in US-006
+    description: 'In e2e/US-006__rinomina-elimina-portafoglio.spec.ts portare le tre asserzioni getByRole(''heading'', ...) delle righe 44, 56 e 136 al nome accessibile reale `Conto <nome>`, mantenendo exact: true. Introdurre un helper locale al file per comporre il nome atteso ed evitare la ripetizione del template literal.'
+    type: Test
+    status: DONE
+    body: 'In e2e/US-006__rinomina-elimina-portafoglio.spec.ts portare le tre asserzioni getByRole(''heading'', ...) delle righe 44, 56 e 136 al nome accessibile reale `Conto <nome>`, mantenendo exact: true. Introdurre un helper locale al file per comporre il nome atteso ed evitare la ripetizione del template literal.'
+    ref: TASK-01
+  - id: TASK-02
+    title: Allineare le asserzioni sul contatore in US-011
+    description: In e2e/US-011__aggiungi-posizione.spec.ts sostituire le due asserzioni toContainText('1 posizione') (righe 65 e 168) con il formato reso dalla UI, '1 ISIN distinto'. Non toccare le asserzioni di US-012 e US-013, che verificano solo la cifra.
+    type: Test
+    status: DONE
+    body: In e2e/US-011__aggiungi-posizione.spec.ts sostituire le due asserzioni toContainText('1 posizione') (righe 65 e 168) con il formato reso dalla UI, '1 ISIN distinto'. Non toccare le asserzioni di US-012 e US-013, che verificano solo la cifra.
+    ref: TASK-02
+  - id: TASK-03
+    title: Rimuovere il demo obsoleto di US-005
+    description: Eliminare e2e/demo__visualizza-portafoglio.spec.ts, che verifica il placeholder 'Vista in preparazione' non più presente nel client. Lasciare invariato l'artefatto storico in docs/test-results/US-005/, evidenza della spec già accettata.
+    type: Test
+    status: DONE
+    body: Eliminare e2e/demo__visualizza-portafoglio.spec.ts, che verifica il placeholder 'Vista in preparazione' non più presente nel client. Lasciare invariato l'artefatto storico in docs/test-results/US-005/, evidenza della spec già accettata.
+    ref: TASK-03
+  - id: TASK-04
+    title: Eseguire i file toccati e i test di regressione sul contatore
+    description: Lanciare npx playwright test sui file US-006, US-011, US-012, US-013 e US-026 e verificare che passino tutti. Confermare con git diff --stat che il diff sia confinato a e2e/, senza alcuna modifica sotto client/ o server/.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+      - TASK-03
+    body: Lanciare npx playwright test sui file US-006, US-011, US-012, US-013 e US-026 e verificare che passino tutti. Confermare con git diff --stat che il diff sia confinato a e2e/, senza alcuna modifica sotto client/ o server/.
+    ref: TASK-04
+  - id: TASK-05
+    title: Eseguire la suite completa e classificare i fallimenti residui
+    description: Lanciare npx playwright test sull'intera suite e npm run check. Elencare i fallimenti rimasti attribuendo ciascuno a US-027 (dialog di scelta portafoglio non scorrevole) o a US-029 (dipendenza dallo stato dell'archivio); segnalare come difetto di questa spec qualunque fallimento non riconducibile a quelle due.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    body: Lanciare npx playwright test sull'intera suite e npm run check. Elencare i fallimenti rimasti attribuendo ciascuno a US-027 (dialog di scelta portafoglio non scorrevole) o a US-029 (dipendenza dallo stato dell'archivio); segnalare come difetto di questa spec qualunque fallimento non riconducibile a quelle due.
+    ref: TASK-05

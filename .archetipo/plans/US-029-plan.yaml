@@ -1,0 +1,204 @@
+schema: archetipo/plan/v2
+spec_code: US-029
+body: |
+  # US-029: Rendere i test E2E indipendenti dallo stato dell'archivio — Piano di implementazione
+
+  **Prodotto da:** Team di Pianificazione ARchetipo
+  **Data:** 2026-08-07
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-000 — Fondazione del progetto
+  **Priorità:** MEDIUM | **Punti:** 3
+
+  **User Story**
+  Come sviluppatore di PortfolIA, voglio che ogni test E2E parta da uno stato dati prevedibile, in modo che l'esito non dipenda dalle esecuzioni precedenti né dall'ordine dei test, e un rosso significhi sempre un difetto reale.
+
+  **Criteri di Accettazione**
+  - [ ] Il test di US-014 sui dati mancanti non dipende più da cosa è già presente nella cache dei prezzi
+  - [ ] Il test di US-004 sul nome duplicato non dipende più da portafogli lasciati da esecuzioni precedenti
+  - [ ] Ogni test rimuove i dati che ha creato anche quando fallisce, così l'archivio di sviluppo non accumula più residui
+  - [ ] Due esecuzioni consecutive della suite completa danno esito identico
+  - [ ] Nessuna modifica al codice di produzione: l'intervento resta confinato ai test e alla loro infrastruttura
+
+  ---
+
+  ## Diagnosi (stato verificato sul campo)
+
+  L'ispezione di `data/portfolia.db` conferma le cause, e va oltre quanto scritto nella spec:
+
+  | Sintomo | Causa accertata |
+  |---|---|
+  | US-014 «dati mancanti» rosso | `IT0003128367` (ENEL) **è già nella cache `securities`** con `price = 9.972`, lasciato da una ricerca precedente. Lo scenario pretende un cache miss, quindi oggi fallisce in modo **deterministico**, non intermittente. |
+  | US-014 demo fragile all'inverso | Lo scenario demo dà per scontato che `IE00BJRHVJ28` sia in cache con un prezzo. Nessuna migrazione lo semina: è vero solo grazie a un residuo. Su archivio vergine il demo fallirebbe. |
+  | US-004 «nome duplicato» intermittente | Usa il nome fisso `Conto Unico` e non lo cancella mai: la riga `id = 97` è tuttora in archivio. Alla seconda esecuzione la *prima* creazione risponde già 409, quindi il test verifica un percorso diverso da quello che crede di verificare. |
+  | Archivio che si gonfia | **57 portafogli residui** accumulati. La pulizia vive in blocchi `finally`, che Playwright **non** esegue quando il test va in timeout o il worker muore; e i portafogli creati dalla UI (US-004, `demo__crea-portafoglio-principale`) non hanno alcuna pulizia. |
+  | US-005 «stato vuoto» sempre saltato | Il test si auto-salta con `test.skip` dinamico se l'archivio non è vuoto — cioè, in pratica, sempre. Un test che non gira non protegge nulla. |
+
+  Nota trasversale: sette file spec ridefiniscono ciascuno la propria copia di `createPortfolio` / `addPosition` / `deletePortfolio`. Ogni correzione alla pulizia andrebbe replicata sette volte.
+
+  ---
+
+  ## Soluzione tecnica
+
+  L'intervento è confinato a `e2e/` e a `playwright.config.ts`. Nessun file sotto `client/`, `server/` o `shared/` viene toccato: il vincolo di AC5 è architetturale, non solo di buona volontà.
+
+  **1. Uno strato di supporto condiviso — `e2e/support/`**
+
+  - `api.ts`: gli helper HTTP oggi duplicati (`creaPortafoglio`, `aggiungiPosizione`, `eliminaPortafoglio`, `elencaPortafogli`), definiti una volta sola.
+  - `archivio.ts`: primitive sulla cache `securities` — `seminaTitolo(isin, campi)`, `rimuoviTitolo(isin)`, `ripristinaTitoli()`. Agiscono **direttamente sul file SQLite** `data/portfolia.db` tramite `better-sqlite3`. È una scelta obbligata, non una scorciatoia: non esiste un endpoint per svuotare la cache, e crearne uno sarebbe codice di produzione — vietato da AC5. `better-sqlite3` e `@types/better-sqlite3` sono già hoistati in `node_modules/` root, quindi nessuna nuova dipendenza da installare.
+  - `nomi.ts`: `nomeUnico(prefisso)` = prefisso + indice del worker + timestamp. Elimina per costruzione la classe di difetti dei nomi fissi.
+  - `fixtures.ts`: un `test` esteso con la fixture `archivio`, che registra le risorse create e le smonta nel **teardown della fixture**. Questo è il punto centrale del piano: il teardown di una fixture Playwright viene eseguito anche quando il test va in timeout o l'asserzione esplode, mentre un blocco `finally` in quei casi viene saltato. È esattamente la differenza fra i 57 residui attuali e zero.
+
+  **2. Convivenza con il server sullo stesso file SQLite**
+
+  Il server tiene `data/portfolia.db` aperto (`reuseExistingServer: true`) e il journal è in modalità `delete`, non WAL. Il modulo `archivio.ts` deve quindi impostare `PRAGMA busy_timeout` (5000 ms) e aprire la connessione solo per la durata dell'operazione, così una scrittura del server in corso fa attendere il test invece di farlo fallire con `SQLITE_BUSY`.
+
+  **3. Bonifica all'avvio — `globalSetup`**
+
+  Un `globalSetup` in `playwright.config.ts` rimuove via API i portafogli residui riconducibili alla suite, prima che i test partano. Serve a due cose: azzerare il debito attuale (57 righe) e rendere la suite auto-riparante se un run futuro viene interrotto con SIGKILL, quando nemmeno il teardown può girare.
+
+  **4. Correzioni mirate ai tre scenari difettosi**
+
+  - US-014 «dati mancanti»: `rimuoviTitolo('IT0003128367')` prima dello scenario → cache miss garantito, indipendentemente da cosa c'era prima.
+  - US-014 demo: `seminaTitolo('IE00BJRHVJ28', { price: 13.6, … })` prima dello scenario → prezzo presente e **valore atteso noto**, anche su archivio vergine. La fixture ripristina lo stato precedente in teardown.
+  - US-004 «nome duplicato»: nome da `nomeUnico()`, creazione del duplicato sullo stesso nome, pulizia via fixture. Il test torna a verificare il 409 *sulla seconda* creazione, che è ciò che dichiara di verificare.
+  - US-005 «stato vuoto»: via lo `test.skip` dinamico, dentro l'intercettazione `page.route('**/api/portfolios')` → `[]`. La tecnica è già in uso in `US-025__aggiungi-titolo-a-portafoglio.spec.ts`, quindi non introduce un pattern nuovo. Il test passa da «mai eseguito» a «sempre eseguito», senza dipendere dall'archivio.
+
+  **5. Migrazione dei file rimanenti**
+
+  Gli spec che creano dati (`US-006`, `US-011`, `US-012`, `US-013`, `US-017`, `US-025`, `US-026` ×2, `demo__crea-portafoglio-principale`) passano agli helper condivisi e alla fixture, sostituendo i `try/finally`.
+
+  **Nessun mockup:** la spec non introduce né modifica alcuna superficie utente.
+
+  ---
+
+  ## Strategia di test
+
+  Questa spec ha per oggetto la suite stessa, quindi la verifica non è «scrivere un test in più» ma **misurare la proprietà che la spec promette**: stesso input, stesso esito.
+
+  - **Determinismo fra run:** due esecuzioni consecutive di `npx playwright test` a partire dallo stesso stato devono produrre lo stesso conteggio passati/falliti/saltati, e in particolare zero test saltati.
+  - **Indipendenza dall'ordine:** ogni file eseguito da solo (`npx playwright test e2e/<file>`) deve dare lo stesso esito che dà dentro la suite completa. I candidati critici sono `US-004`, `US-005` e `US-014`.
+  - **Igiene dell'archivio:** contare i portafogli prima e dopo un run completo. Il delta deve essere zero. Prova ulteriore, più severa: interrompere di proposito un test (timeout indotto) e verificare che il teardown ripulisca comunque — è il caso che oggi il `finally` non copre.
+  - **Non regressione della cache:** dopo il run, `IE00BJRHVJ28` e `IT0003128367` devono trovarsi nello stato in cui erano prima (la fixture ripristina), così la suite non lascia effetti collaterali sull'ambiente di sviluppo.
+  - **Vincolo AC5 verificabile:** `git diff --stat` non deve mostrare alcun file sotto `client/`, `server/` o `shared/`. E `npm run check` (lint + typecheck + unit) deve restare verde.
+
+  ### Test E2E — simulazione utente
+
+  **Framework:** Playwright (`@playwright/test`), già configurato nel progetto.
+  **Registrazione video:** **nessun nuovo video demo per US-029.** Il campo «Dimostra» descrive una proprietà di determinismo della suite, non un flusso utente filmabile: un video non aggiungerebbe evidenza. I video demo già esistenti degli altri spec restano intatti e devono continuare a essere prodotti.
+
+  | Scenario | Descrizione del flusso |
+  |---|---|
+  | Dati mancanti (US-014) | Cache ripulita dall'ISIN → l'utente apre il portafoglio sulla scheda Riepilogo e vede «EUR –» con la nota esplicativa, mai un numero inventato. Esito stabile a ogni ripetizione. |
+  | Valore totale (US-014, demo) | Prezzo seminato in cache → l'utente apre la scheda Riepilogo e vede un valore EUR positivo noto, anche su archivio vergine. |
+  | Nome duplicato (US-004) | L'utente crea un conto con nome unico, poi ritenta lo stesso nome: l'errore 409 compare **sulla seconda** creazione, non sulla prima. |
+  | Stato vuoto (US-005) | Elenco portafogli intercettato a vuoto → l'utente vede «Il registro è ancora vuoto». Il test esegue sempre, non si salta più. |
+
+  ---
+
+  _Piano prodotto da ARchetipo Planning — 2026-08-07_
+tasks:
+  - id: TASK-01
+    title: Creare gli helper HTTP condivisi in e2e/support/api.ts
+    description: Estrarre in un unico modulo le funzioni creaPortafoglio, aggiungiPosizione, eliminaPortafoglio ed elencaPortafogli, oggi riscritte in sette file spec. Ogni helper apre e smaltisce il proprio request context.
+    type: Impl
+    status: DONE
+    body: Estrarre in un unico modulo le funzioni creaPortafoglio, aggiungiPosizione, eliminaPortafoglio ed elencaPortafogli, oggi riscritte in sette file spec. Ogni helper apre e smaltisce il proprio request context.
+    ref: TASK-01
+  - id: TASK-02
+    title: Creare e2e/support/archivio.ts per governare la cache securities
+    description: Modulo di test che apre data/portfolia.db con better-sqlite3 ed espone seminaTitolo, rimuoviTitolo e ripristinaTitoli. Imposta PRAGMA busy_timeout a 5000 ms e chiude la connessione a fine operazione, perché il server tiene lo stesso file aperto con journal in modalità delete.
+    type: Impl
+    status: DONE
+    body: Modulo di test che apre data/portfolia.db con better-sqlite3 ed espone seminaTitolo, rimuoviTitolo e ripristinaTitoli. Imposta PRAGMA busy_timeout a 5000 ms e chiude la connessione a fine operazione, perché il server tiene lo stesso file aperto con journal in modalità delete.
+    ref: TASK-02
+  - id: TASK-03
+    title: Creare la fixture archivio con teardown garantito e nomi unici
+    description: In e2e/support/fixtures.ts estendere test con una fixture che registra portafogli creati e titoli seminati o rimossi, e li smonta nel teardown — che Playwright esegue anche su timeout o asserzione fallita, a differenza di un blocco finally. Includere nomeUnico(prefisso) basato su indice worker piu timestamp.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+    body: In e2e/support/fixtures.ts estendere test con una fixture che registra portafogli creati e titoli seminati o rimossi, e li smonta nel teardown — che Playwright esegue anche su timeout o asserzione fallita, a differenza di un blocco finally. Includere nomeUnico(prefisso) basato su indice worker piu timestamp.
+    ref: TASK-03
+  - id: TASK-04
+    title: Rendere lo scenario dati mancanti di US-014 indipendente dalla cache
+    description: Rimuovere IT0003128367 dalla cache securities prima dello scenario tramite la fixture, cosi il cache miss e garantito. Oggi ENEL e in cache con prezzo 9.972 e il test fallisce in modo deterministico. Copre AC1.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+    body: Rimuovere IT0003128367 dalla cache securities prima dello scenario tramite la fixture, cosi il cache miss e garantito. Oggi ENEL e in cache con prezzo 9.972 e il test fallisce in modo deterministico. Copre AC1.
+    ref: TASK-04
+  - id: TASK-05
+    title: Rendere lo scenario demo di US-014 indipendente dalla cache
+    description: Seminare IE00BJRHVJ28 con un prezzo noto prima dello scenario demo, invece di affidarsi a un residuo di run precedenti, cosi il valore totale atteso e verificabile anche su archivio vergine. La fixture ripristina lo stato precedente.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+    body: Seminare IE00BJRHVJ28 con un prezzo noto prima dello scenario demo, invece di affidarsi a un residuo di run precedenti, cosi il valore totale atteso e verificabile anche su archivio vergine. La fixture ripristina lo stato precedente.
+    ref: TASK-05
+  - id: TASK-06
+    title: Correggere il test sul nome duplicato di US-004
+    description: Sostituire il nome fisso Conto Unico con nomeUnico() e affidare la pulizia alla fixture. Verificare che il 409 scatti sulla seconda creazione e non sulla prima, come accade oggi per via del residuo id 97. Copre AC2.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+    body: Sostituire il nome fisso Conto Unico con nomeUnico() e affidare la pulizia alla fixture. Verificare che il 409 scatti sulla seconda creazione e non sulla prima, come accade oggi per via del residuo id 97. Copre AC2.
+    ref: TASK-06
+  - id: TASK-07
+    title: Rendere sempre eseguibile il test stato vuoto di US-005
+    description: Eliminare il test.skip dinamico e intercettare GET /api/portfolios restituendo un elenco vuoto, con la stessa tecnica gia usata in US-025. Il test passa da praticamente sempre saltato a sempre eseguito.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: Eliminare il test.skip dinamico e intercettare GET /api/portfolios restituendo un elenco vuoto, con la stessa tecnica gia usata in US-025. Il test passa da praticamente sempre saltato a sempre eseguito.
+    ref: TASK-07
+  - id: TASK-08
+    title: Migrare i restanti spec alla fixture con teardown garantito
+    description: Portare US-006, US-011, US-012, US-013, US-017, US-025, US-026 (entrambi i file) e demo__crea-portafoglio-principale sugli helper condivisi e sulla fixture, sostituendo i blocchi try/finally e coprendo anche i portafogli creati dalla UI, oggi senza alcuna pulizia. Copre AC3.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+      - TASK-04
+      - TASK-05
+      - TASK-06
+      - TASK-07
+    body: Portare US-006, US-011, US-012, US-013, US-017, US-025, US-026 (entrambi i file) e demo__crea-portafoglio-principale sugli helper condivisi e sulla fixture, sostituendo i blocchi try/finally e coprendo anche i portafogli creati dalla UI, oggi senza alcuna pulizia. Copre AC3.
+    ref: TASK-08
+  - id: TASK-09
+    title: Aggiungere il globalSetup di bonifica in playwright.config.ts
+    description: Prima dell'avvio della suite, eliminare via API i portafogli residui riconducibili ai test. Azzera i 57 residui attuali e rende la suite auto-riparante quando un run viene interrotto senza teardown.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: Prima dell'avvio della suite, eliminare via API i portafogli residui riconducibili ai test. Azzera i 57 residui attuali e rende la suite auto-riparante quando un run viene interrotto senza teardown.
+    ref: TASK-09
+  - id: TASK-10
+    title: Verificare il determinismo della suite
+    description: Eseguire due volte di seguito npx playwright test e confrontare gli esiti, eseguire US-004, US-005 e US-014 anche isolati, e verificare che il conteggio dei portafogli in archivio sia invariato prima e dopo il run. Copre AC4.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-08
+      - TASK-09
+    body: Eseguire due volte di seguito npx playwright test e confrontare gli esiti, eseguire US-004, US-005 e US-014 anche isolati, e verificare che il conteggio dei portafogli in archivio sia invariato prima e dopo il run. Copre AC4.
+    ref: TASK-10
+  - id: TASK-11
+    title: Documentare la convenzione e verificare il vincolo di non invasivita
+    description: Aggiungere alla sezione E2E di CLAUDE.md la regola su fixture e nomi unici al posto dei try/finally, e verificare con git diff --stat che nessun file sotto client/, server/ o shared/ risulti modificato, con npm run check verde. Copre AC5.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-10
+    body: Aggiungere alla sezione E2E di CLAUDE.md la regola su fixture e nomi unici al posto dei try/finally, e verificare con git diff --stat che nessun file sotto client/, server/ o shared/ risulti modificato, con npm run check verde. Copre AC5.
+    ref: TASK-11

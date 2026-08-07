@@ -1,56 +1,44 @@
 /**
  * US-014: Calcolare il valore attuale totale del portafoglio
  *
- * Scenario demo (con video, salvato in docs/test-results/US-014/):
- *   crea portafoglio via API, aggiunge posizione per ISIN con prezzo in cache
- *   (IE00BJRHVJ28 — Wellington Euro HY Bond, presente in securities DB), apre
- *   scheda Riepilogo, verifica che il riquadro valore-totale-portafoglio sia
- *   visibile con un valore EUR numerico positivo.
+ * Entrambi gli scenari governano la cache `securities` con la fixture `archivio`
+ * invece di sperare nel suo contenuto (US-029). Prima di quella spec, il primo
+ * dava per scontato che ENEL *non* fosse in cache — ma c'era, con prezzo 9.972,
+ * lasciato da una ricerca precedente — e il secondo dava per scontato il contrario
+ * per un altro ISIN. Entrambe le premesse erano residui di run passati, non fatti.
+ *
+ * Scenario demo (con video):
+ *   semina IE00BJRHVJ28 a 13,60, crea portafoglio con 200 quote, apre la scheda
+ *   Riepilogo e verifica il totale atteso — 200 × 13,60 = EUR 2.720,00.
  *
  * Scenario dati mancanti (senza video):
- *   crea portafoglio con posizione per IT0003128367 (ENEL — ISIN reale e valido
- *   ma non presente nell'archivio securities del server), apre scheda Riepilogo,
- *   verifica che il riquadro mostri "EUR –" con nota esplicativa e NON mostri
- *   un numero inventato.
+ *   rimuove IT0003128367 dalla cache, così il cache miss è garantito, e verifica
+ *   che il riquadro mostri "EUR –" con la nota esplicativa, mai un numero inventato.
+ *
+ * La rimozione dalla cache non innesca alcuna chiamata di rete: la vista arricchita
+ * legge i prezzi con una LEFT JOIN sulla cache e non tenta il recupero live.
  */
-import { test, expect, request } from '@playwright/test';
+import { test, expect } from './support/fixtures.js';
 
-const BASE_API = 'http://localhost:3200';
+/** ISIN con prezzo seminato: Wellington Euro High Yield Bond. */
+const ISIN_CON_PREZZO = 'IE00BJRHVJ28';
+/** ISIN senza prezzo: ENEL — reale e valido, ma tenuto fuori dalla cache. */
+const ISIN_SENZA_PREZZO = 'IT0003128367';
 
-// ---------------------------------------------------------------------------
-// Helpers API
-// ---------------------------------------------------------------------------
-
-async function createPortfolio(name: string): Promise<number> {
-  const ctx = await request.newContext();
-  const res = await ctx.post(`${BASE_API}/api/portfolios`, { data: { name } });
-  const data = (await res.json()) as { id: number };
-  await ctx.dispose();
-  return data.id;
-}
-
-async function addPosition(
-  portfolioId: number,
-  isin: string,
-  loadDate: string,
-  loadPrice: number,
-  quantity: number,
-): Promise<void> {
-  const ctx = await request.newContext();
-  await ctx.post(`${BASE_API}/api/portfolios/${portfolioId}/positions`, {
-    data: { isin, load_date: loadDate, load_price: loadPrice, quantity },
-  });
-  await ctx.dispose();
-}
-
-async function deletePortfolio(id: number): Promise<void> {
-  const ctx = await request.newContext();
-  await ctx.delete(`${BASE_API}/api/portfolios/${id}`);
-  await ctx.dispose();
-}
+/**
+ * Prezzo seminato e quantità danno un totale atteso noto: 200 × 13,60 = 2720.
+ *
+ * Attenzione al formato: la pagina usa `toLocaleString('it-IT')`, e in italiano
+ * CLDR dichiara `minimumGroupingDigits = 2`, quindi il separatore delle migliaia
+ * compare solo da cinque cifre in su. "2720,00" senza punto è corretto — non è un
+ * refuso da "correggere" in "2.720,00".
+ */
+const PREZZO_SEMINATO = 13.6;
+const QUANTITA = 200;
+const TOTALE_ATTESO = '2720,00';
 
 // ---------------------------------------------------------------------------
-// Scenario demo (con video) — docs/test-results/US-014/
+// Scenario demo (con video)
 // ---------------------------------------------------------------------------
 
 const demoTest = test.extend<object>({});
@@ -62,40 +50,44 @@ demoTest.use({
 
 demoTest(
   'demo: apre scheda Riepilogo e vede il valore attuale totale del portafoglio in EUR',
-  async ({ page }) => {
-    const portfolioName = `Demo Valore Totale ${Date.now()}`;
-    const portfolioId = await createPortfolio(portfolioName);
+  async ({ page, archivio }) => {
+    // Prezzo noto in cache: il totale atteso è verificabile anche su archivio vergine.
+    archivio.seminaTitolo(ISIN_CON_PREZZO, {
+      name: 'Wellington Euro High Yield Bond Fund EUR D Ac',
+      price: PREZZO_SEMINATO,
+      currency: 'EUR',
+    });
 
-    try {
-      // Aggiunge posizione per IE00BJRHVJ28 (Wellington Euro HY Bond, seed nel DB con prezzo corrente)
-      await addPosition(portfolioId, 'IE00BJRHVJ28', '2026-01-10', 13.0, 200);
+    const { id: portfolioId, name: portfolioName } =
+      await archivio.creaPortafoglio('Demo Valore Totale');
+    await archivio.aggiungiPosizione(portfolioId, ISIN_CON_PREZZO, '2026-01-10', 13.0, QUANTITA);
 
-      // Naviga al portafoglio
-      await page.goto(`/portfolio/${portfolioId}`);
-      await expect(page.getByRole('heading', { name: portfolioName })).toBeVisible({ timeout: 8000 });
+    // Naviga al portafoglio
+    await page.goto(`/portfolio/${portfolioId}`);
+    await expect(page.getByRole('heading', { name: portfolioName })).toBeVisible({ timeout: 8000 });
 
-      // Clicca sulla scheda Riepilogo
-      await page.locator('nav.linguette a', { hasText: 'Riepilogo' }).click();
+    // Clicca sulla scheda Riepilogo
+    await page.locator('nav.linguette a', { hasText: 'Riepilogo' }).click();
 
-      // Il riquadro valore totale deve essere visibile
-      const riquadro = page.getByTestId('valore-totale-portafoglio');
-      await expect(riquadro).toBeVisible({ timeout: 10000 });
+    // Il riquadro valore totale deve essere visibile
+    const riquadro = page.getByTestId('valore-totale-portafoglio');
+    await expect(riquadro).toBeVisible({ timeout: 10000 });
 
-      // Deve contenere il testo "EUR"
-      await expect(riquadro).toContainText('EUR');
+    // Deve contenere il testo "EUR"
+    await expect(riquadro).toContainText('EUR');
 
-      // Il testo dell'etichetta deve essere visibile
-      await expect(riquadro).toContainText('Valore attuale totale');
+    // Il testo dell'etichetta deve essere visibile
+    await expect(riquadro).toContainText('Valore attuale totale');
 
-      // Il valore non deve essere il trattino (–), perché IE00BJRHVJ28 ha prezzo in cache
-      const cifra = riquadro.locator('.cifra-totale');
-      await expect(cifra).not.toContainText('–');
+    // Il valore non deve essere il trattino (–), perché l'ISIN ha prezzo in cache…
+    const cifra = riquadro.locator('.cifra-totale');
+    await expect(cifra).not.toContainText('–');
 
-      // Pausa finale per rendere lo stato visibile nel video
-      await page.waitForTimeout(1500);
-    } finally {
-      await deletePortfolio(portfolioId);
-    }
+    // …ed essendo il prezzo seminato da noi, il totale è un numero atteso, non un caso.
+    await expect(cifra).toContainText(TOTALE_ATTESO);
+
+    // Pausa finale per rendere lo stato visibile nel video
+    await page.waitForTimeout(1500);
   },
 );
 
@@ -103,38 +95,38 @@ demoTest(
 // Scenario dati mancanti (senza video)
 // ---------------------------------------------------------------------------
 
-test('dati mancanti: ISIN senza prezzo in cache mostra EUR – senza numero inventato', async ({ page }) => {
-  const portfolioName = `Missing Price ${Date.now()}`;
-  // ISIN reale e valido (ENEL) ma non presente nell'archivio securities del server
-  const missingPriceIsin = 'IT0003128367';
-  const portfolioId = await createPortfolio(portfolioName);
+test('dati mancanti: ISIN senza prezzo in cache mostra EUR – senza numero inventato', async ({
+  page,
+  archivio,
+}) => {
+  // Cache miss garantito: senza questa rimozione lo scenario dipende da cosa hanno
+  // lasciato in archivio le ricerche precedenti. La fixture ripristina lo stato.
+  archivio.rimuoviTitolo(ISIN_SENZA_PREZZO);
 
-  try {
-    // Aggiunge posizione per ISIN non presente in archivio (nessun prezzo)
-    await addPosition(portfolioId, missingPriceIsin, '2026-01-10', 6.5, 100);
+  const { id: portfolioId, name: portfolioName } = await archivio.creaPortafoglio('Missing Price');
 
-    // Naviga al portafoglio → scheda Riepilogo
-    await page.goto(`/portfolio/${portfolioId}`);
-    await expect(page.getByRole('heading', { name: portfolioName })).toBeVisible({ timeout: 8000 });
+  // Aggiunge posizione per ISIN non presente in archivio (nessun prezzo)
+  await archivio.aggiungiPosizione(portfolioId, ISIN_SENZA_PREZZO, '2026-01-10', 6.5, 100);
 
-    await page.locator('nav.linguette a', { hasText: 'Riepilogo' }).click();
+  // Naviga al portafoglio → scheda Riepilogo
+  await page.goto(`/portfolio/${portfolioId}`);
+  await expect(page.getByRole('heading', { name: portfolioName })).toBeVisible({ timeout: 8000 });
 
-    // Il riquadro deve essere visibile
-    const riquadro = page.getByTestId('valore-totale-portafoglio');
-    await expect(riquadro).toBeVisible({ timeout: 10000 });
+  await page.locator('nav.linguette a', { hasText: 'Riepilogo' }).click();
 
-    // Con nessun prezzo disponibile, il blocco cifra deve mostrare il trattino
-    const cifra = riquadro.locator('.cifra-totale');
-    await expect(cifra).toContainText('–');
+  // Il riquadro deve essere visibile
+  const riquadro = page.getByTestId('valore-totale-portafoglio');
+  await expect(riquadro).toBeVisible({ timeout: 10000 });
 
-    // La nota mancante deve essere visibile con testo esplicativo
-    const notaMancante = riquadro.locator('.nota-mancante');
-    await expect(notaMancante).toBeVisible();
+  // Con nessun prezzo disponibile, il blocco cifra deve mostrare il trattino
+  const cifra = riquadro.locator('.cifra-totale');
+  await expect(cifra).toContainText('–');
 
-    // Non deve contenere un numero EUR positivo (il valore 650 in questo caso)
-    await expect(cifra).not.toContainText('650');
-    await expect(cifra).not.toContainText('6.5');
-  } finally {
-    await deletePortfolio(portfolioId);
-  }
+  // La nota mancante deve essere visibile con testo esplicativo
+  const notaMancante = riquadro.locator('.nota-mancante');
+  await expect(notaMancante).toBeVisible();
+
+  // Non deve contenere un numero EUR positivo (il valore 650 in questo caso)
+  await expect(cifra).not.toContainText('650');
+  await expect(cifra).not.toContainText('6.5');
 });

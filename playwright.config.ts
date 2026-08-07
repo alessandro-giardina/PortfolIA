@@ -4,6 +4,9 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
   reporter: 'list',
+  // Bonifica dei portafogli residui prima che i test partano (US-029). Playwright
+  // avvia i webServer *prima* del globalSetup, quindi qui l'API è già in ascolto.
+  globalSetup: './e2e/support/bonifica.ts',
   use: {
     baseURL: 'http://localhost:5173',
     video: 'off',
