@@ -6,7 +6,7 @@ epic:
   title: Fondazione del progetto
 priority: MEDIUM
 points: 3
-status: REVIEW
+status: DONE
 body: |
   #### US-029: Rendere i test E2E indipendenti dallo stato dell'archivio
 
@@ -36,3 +36,5 @@ history:
     at: "2026-08-07T12:01:09Z"
   - status: REVIEW
     at: "2026-08-07T12:51:15Z"
+  - status: DONE
+    at: "2026-08-07T16:38:57Z"
