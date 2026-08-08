@@ -1,0 +1,36 @@
+schema: archetipo/spec/v2
+code: US-030
+title: Aggiornare i dati di un titolo dalla sua scheda
+epic:
+  code: EP-005
+  title: Visualizzazione dei titoli
+priority: MEDIUM
+points: 5
+status: TODO
+blocked_by:
+  - US-018
+body: |-
+  #### US-030: Aggiornare i dati di un titolo dalla sua scheda
+
+  **Epic:** EP-005 | **Priorità:** MEDIUM | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** US-018
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio aggiornare i dati di un titolo direttamente dalla sua scheda, accanto all'indicazione della fonte e dell'istante di rilevazione,
+  in modo da rinfrescare prezzo e anagrafica senza passare dalla Ricerca titoli, sapendo da quale fonte arriva il dato nuovo.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, aprendo la scheda di un titolo rilevato in una sessione di mercato precedente l'utente trova un comando di aggiornamento nella riga di provenienza; premendolo, la scheda mostra i dati rinfrescati con la fonte che ha risposto e il nuovo istante di rilevazione. Premendolo di nuovo subito dopo, compare l'avviso di buona cittadinanza con la possibilità di procedere comunque; cercando lo stesso ISIN dalla Ricerca titoli, l'avviso compare anche lì, con l'istante dell'aggiornamento fatto dalla scheda.
+
+  **Criteri di Accettazione**
+  - [ ] Nella riga di provenienza della Scheda Titolo, accanto a «Fonte» e «Rilevato il», è presente un comando per aggiornare i dati del titolo
+  - [ ] Quando per l'ISIN è registrata una fonte, il tentativo parte da quella fonte e l'altra viene interrogata solo se la prima non risponde o non trova il titolo
+  - [ ] Quando per l'ISIN non è registrata alcuna fonte, l'ordine dei tentativi è Borsa Italiana e poi MorningStar
+  - [ ] Dopo un aggiornamento riuscito la scheda mostra i dati aggiornati, la fonte che ha effettivamente risposto e il nuovo istante di rilevazione
+  - [ ] Se il recupero precedente è troppo ravvicinato (stessa sessione di mercato, o nessuna sessione trascorsa), l'aggiornamento non contatta la fonte: viene mostrato l'avviso di buona cittadinanza con la possibilità di procedere comunque
+  - [ ] L'aggiornamento dalla scheda e la Ricerca titoli condividono lo stesso archivio e la stessa guardia: dopo un aggiornamento riuscito dalla scheda, una ricerca immediata dello stesso ISIN mostra l'avviso di buona cittadinanza — e viceversa, un recupero appena fatto dalla ricerca fa scattare l'avviso sul pulsante della scheda
+  - [ ] Se nessuna delle due fonti risponde, i dati in archivio restano invariati e l'esito negativo è dichiarato senza valori inventati
+history:
+  - status: TODO
+    at: "2026-08-08T12:58:39Z"
