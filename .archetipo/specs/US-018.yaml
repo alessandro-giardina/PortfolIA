@@ -6,7 +6,7 @@ epic:
   title: Visualizzazione dei titoli
 priority: MEDIUM
 points: 3
-status: REVIEW
+status: DONE
 blocked_by:
   - US-017
 scope: MVP
@@ -38,3 +38,5 @@ history:
     at: "2026-08-08T08:40:31Z"
   - status: REVIEW
     at: "2026-08-08T08:56:07Z"
+  - status: DONE
+    at: "2026-08-08T09:58:25Z"
