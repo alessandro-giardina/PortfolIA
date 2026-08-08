@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-034
+title: Segnalare nel riepilogo i titoli con rilevamento obsoleto
+epic:
+  code: EP-005
+  title: Visualizzazione dei titoli
+priority: HIGH
+points: 2
+status: TODO
+body: |-
+  #### US-034: Segnalare nel riepilogo i titoli con rilevamento obsoleto
+
+  **Epic:** EP-005 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che il riepilogo dichiari quali titoli hanno un rilevamento obsoleto e quanti sono,
+  in modo da sapere quali cifre a schermo sono ancora attendibili prima di leggere il valore totale.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, aprendo il riepilogo di un portafoglio i cui titoli sono stati rilevati in momenti diversi, le righe il cui ultimo rilevamento precede almeno una sessione di borsa conclusa portano la dicitura «da aggiornare», e sopra la tabella si legge il conteggio (es. «3 titoli su 11 con rilevamento obsoleto»); in un portafoglio rilevato interamente nella sessione corrente nessuna riga è marcata e il riepilogo lo dichiara.
+
+  **Criteri di Accettazione**
+  - [ ] Il verdetto di obsolescenza è calcolato dal server con la stessa classificazione oraria della guardia di buona cittadinanza: obsoleto quando almeno una sessione di borsa si è conclusa dall'ultimo rilevamento, non obsoleto quando il rilevamento cade nella sessione corrente o quando nessuna sessione è trascorsa
+  - [ ] Un titolo di cui l'archivio non ha prezzo né istante di rilevamento è dichiarato «mai rilevato», distinto a schermo da «obsoleto», e rientra anch'esso nel conteggio dei titoli da aggiornare
+  - [ ] La marcatura è leggibile come testo sulla riga, non affidata al solo colore, e affianca la colonna «Ultimo rilevamento» già presente
+  - [ ] Il conteggio dei titoli da aggiornare è mostrato sopra la tabella; a zero il riepilogo dichiara esplicitamente che tutti i titoli sono allineati all'ultima sessione, senza lasciare lo spazio vuoto
+  - [ ] Nessuna regola di orario di borsa è replicata nel client: il verdetto arriva già calcolato dall'endpoint che alimenta il riepilogo
+  - [ ] Test lato server con tempo deterministico coprono i quattro casi (obsoleto, sessione corrente, nessuna sessione trascorsa, mai rilevato); un test E2E verifica la marcatura seminando due titoli con istanti di rilevamento diversi
+  - [ ] Valore attuale, differenza e totale restano quelli di oggi: nessuna cifra cambia per effetto di questa spec
+history:
+  - status: TODO
+    at: "2026-08-08T17:19:21Z"

@@ -1,0 +1,47 @@
+schema: archetipo/spec/v2
+code: US-035
+title: Aggiornare in un colpo solo i titoli obsoleti del portafoglio
+epic:
+  code: EP-005
+  title: Visualizzazione dei titoli
+priority: HIGH
+points: 5
+status: TODO
+blocked_by:
+  - US-034
+body: |-
+  #### US-035: Aggiornare in un colpo solo i titoli obsoleti del portafoglio
+
+  **Epic:** EP-005 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** US-034
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio lanciare dal riepilogo un unico comando che aggiorni tutti i titoli con rilevamento obsoleto, vedendo a che punto è il lavoro,
+  in modo da riallineare il portafoglio senza aprire una scheda titolo alla volta e senza chiedere alle fonti dati che non possono essere cambiati.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, in un portafoglio con 3 titoli obsoleti su 11 un clic su «Aggiorna i titoli obsoleti (3)» avvia il lavoro: la riga di stato dichiara quale ISIN è in corso e a che punto è («2 di 3»), la tabella e il valore totale si riscrivono man mano che ciascun titolo viene rilevato, e al termine un consuntivo riporta quanti titoli sono stati aggiornati e quali non hanno trovato risposta. Gli 8 titoli recenti non vengono mai richiesti alla fonte.
+
+  **Criteri di Accettazione**
+  - [ ] Nel riepilogo un comando «Aggiorna i titoli obsoleti (N)» avvia il lavoro; a N = 0 è inattivo e ne dichiara la ragione
+  - [ ] Sono interrogati soltanto i titoli dichiarati obsoleti o mai rilevati: nessuna richiesta parte per un titolo rilevato nella sessione corrente, e nessun recupero è forzato oltre la guardia di buona cittadinanza
+  - [ ] I titoli sono aggiornati uno alla volta, in sequenza: in nessun istante due richieste alla stessa fonte sono in volo insieme
+  - [ ] Il recupero riusa la catena esistente — fonte primaria, poi backup, con l'ordine dedotto dalla fonte già registrata per l'ISIN — senza una seconda implementazione del fetch
+  - [ ] Durante il lavoro la pagina dichiara che il sistema sta lavorando: titolo in corso, avanzamento sul totale, e la nota che la fonte di backup può richiedere una decina di secondi per titolo
+  - [ ] Prezzo, valore attuale, differenza della riga e valore totale del portafoglio si aggiornano dopo ogni titolo rilevato, senza attendere la fine del lavoro
+  - [ ] Un titolo che nessuna fonte trova, o per cui nessuna fonte risponde, non interrompe il lavoro: è registrato come non aggiornato e si passa al successivo
+  - [ ] Al termine un consuntivo dichiara quanti titoli sono stati aggiornati e quali no, con il relativo ISIN e la ragione
+  - [ ] L'utente può interrompere il lavoro in corso: l'interruzione si ferma al titolo corrente e i titoli già aggiornati conservano i valori appena rilevati
+  - [ ] Lasciando il portafoglio, o cambiandolo, mentre il lavoro è in corso il lavoro si interrompe e nessuna risposta in volo scrive sulla vista di un altro portafoglio o di un altro titolo
+  - [ ] Rientrando nel riepilogo il conteggio dei titoli obsoleti è ricalcolato e riflette quanto era stato completato: quanto resta da fare si legge senza confrontare le date a mano
+  - [ ] Il comando non è avviabile due volte in parallelo
+  - [ ] Un test E2E copre la corsa completa e l'interruzione per cambio di portafoglio, senza dipendere dalla rete reale
+
+  **Note**
+  Il lavoro vive nel client, nella scheda Riepilogo, e si interrompe alla navigazione: decisione presa in analisi contro l'alternativa di un job lato server che sopravvive al cambio pagina. È la ragione per cui la spec dipende da US-034 — il conteggio ricalcolato al rientro è ciò che rende l'interruzione recuperabile.
+
+  Il presidio contro la risposta che arriva sul portafoglio sbagliato ha già un precedente da imitare: il riferimento `isinMostrato` in `client/src/components/SchedaTitolo.tsx`, introdotto in US-030 per lo stesso rischio su un singolo titolo. La sequenzialità nel client rende inoltre l'E2E deterministico intercettando `/api/securities/*` a livello di browser, senza toccare le fonti reali.
+history:
+  - status: TODO
+    at: "2026-08-08T17:19:21Z"
