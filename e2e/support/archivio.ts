@@ -46,6 +46,7 @@ const COLONNE = [
   'issuer',
   'segment',
   'dividend_policy',
+  'data_source',
   'fetched_at',
 ] as const;
 
@@ -61,6 +62,13 @@ export interface RigaTitolo {
   issuer: string | null;
   segment: string | null;
   dividend_policy: string | null;
+  /**
+   * Fonte da cui l'anagrafica è stata rilevata: `'borsaitaliana'`,
+   * `'morningstar'`, oppure `null` quando la provenienza non è registrata
+   * (riga scritta prima che la colonna esistesse). Seminarla esplicitamente è
+   * l'unico modo per mettere alla prova il timbro di provenienza di US-018.
+   */
+  data_source: string | null;
   fetched_at: number;
 }
 
@@ -160,6 +168,7 @@ export function seminaTitolo(isin: string, campi: CampiTitolo = {}): IstantaneaT
         issuer: null,
         segment: null,
         dividend_policy: null,
+        data_source: null,
         ...precedente,
         // `fetched_at` è riscritto *dopo* la riga esistente, non prima: seminare un
         // titolo equivale a un recupero appena avvenuto. Con un timestamp vecchio il

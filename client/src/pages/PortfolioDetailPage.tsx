@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import type { Portfolio, Position, PositionSummary, EnrichedPositionSummary, CreatePositionRequest, UpdatePositionRequest } from '@portfolia/shared';
 import { isValidIsin } from '@portfolia/shared';
 import Foglio, { dataRegistro } from '../components/Foglio.js';
+import SchedaTitolo from '../components/SchedaTitolo.js';
 
 /** Formatta una data ISO-8601 (YYYY-MM-DD) in stile registro (es. "15.III.2026"). */
 const MESI_ROMANI = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -11,7 +12,7 @@ function dataCarico(iso: string): string {
   return `${String(d).padStart(2,'0')}.${MESI_ROMANI[m - 1]}.${y}`;
 }
 
-type Scheda = 'riepilogo' | 'carico';
+type Scheda = 'riepilogo' | 'carico' | 'titolo';
 
 interface PrefillState {
   isin: string;
@@ -51,6 +52,9 @@ export default function PortfolioDetailPage() {
   const [summaries, setSummaries] = useState<PositionSummary[]>([]);
   const [enrichedPositions, setEnrichedPositions] = useState<EnrichedPositionSummary[]>([]);
   const [enrichedLoading, setEnrichedLoading] = useState(false);
+  // ISIN del titolo aperto nella scheda di dettaglio (US-018). Finché è null la
+  // linguetta "Scheda titolo" resta disabilitata: non c'è nulla da mostrare.
+  const [isinSelezionato, setIsinSelezionato] = useState<string | null>(null);
   const [positionsLoading, setPositionsLoading] = useState(false);
   const [newPositionId, setNewPositionId] = useState<number | null>(null);
 
@@ -142,6 +146,17 @@ export default function PortfolioDetailPage() {
       fetchEnriched();
     }
   }, [loading, notFound, error, fetchPositions, fetchSummary, fetchEnriched]);
+
+  // Un titolo può sparire dal portafoglio mentre la sua scheda è aperta: basta
+  // rimuoverne l'ultimo carico dalla scheda "Carico titoli". Senza questo,
+  // la linguetta resterebbe attiva su un dettaglio che non esiste più.
+  useEffect(() => {
+    if (isinSelezionato === null || enrichedLoading) return;
+    if (!enrichedPositions.some((ep) => ep.isin === isinSelezionato)) {
+      setIsinSelezionato(null);
+      setScheda((corrente) => (corrente === 'titolo' ? 'riepilogo' : corrente));
+    }
+  }, [enrichedPositions, enrichedLoading, isinSelezionato]);
 
   useEffect(() => {
     const state = location.state as { prefill?: PrefillState } | null;
@@ -383,9 +398,26 @@ export default function PortfolioDetailPage() {
       >
         Carico titoli
       </a>
-      <a className="disabilitata">Scheda titolo</a>
+      {isinSelezionato === null ? (
+        // Nessun titolo scelto: la linguetta non ha un dettaglio da aprire.
+        <a className="disabilitata">Scheda titolo</a>
+      ) : (
+        <a
+          className={scheda === 'titolo' ? 'attiva' : 'cliccabile'}
+          onClick={() => setScheda('titolo')}
+          style={{ cursor: 'pointer' }}
+        >
+          Scheda titolo
+        </a>
+      )}
     </>
   );
+
+  /** Apre la scheda di dettaglio sul titolo indicato (US-018). */
+  function apriSchedaTitolo(isinTitolo: string) {
+    setIsinSelezionato(isinTitolo);
+    setScheda('titolo');
+  }
 
   const registro = (
     <>
@@ -404,7 +436,13 @@ export default function PortfolioDetailPage() {
       marchio="Conto a mastro · partita singola"
       titolo="Conto "
       titoloCorsivo={portfolio?.name ?? ''}
-      sottotesto={scheda === 'carico' ? 'Carico titoli · iscrizione nuova posizione' : 'Vista di dettaglio'}
+      sottotesto={
+        scheda === 'carico'
+          ? 'Carico titoli · iscrizione nuova posizione'
+          : scheda === 'titolo'
+            ? 'Scheda titolo · anagrafica completa della posizione'
+            : 'Vista di dettaglio'
+      }
       registro={registro}
       linguette={linguette}
     >
@@ -495,7 +533,24 @@ export default function PortfolioDetailPage() {
                       </thead>
                       <tbody>
                         {enrichedPositions.map((ep) => (
-                          <tr key={ep.isin} data-testid={`riepilogo-${ep.isin}`}>
+                          <tr
+                            key={ep.isin}
+                            className="cliccabile"
+                            data-testid={`riepilogo-${ep.isin}`}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Apri la scheda del titolo ${ep.name ?? ep.isin}`}
+                            onClick={() => apriSchedaTitolo(ep.isin)}
+                            onKeyDown={(e) => {
+                              // Una riga con role="button" deve rispondere a Enter e
+                              // Spazio come un bottone vero. `preventDefault` sullo
+                              // Spazio evita che la pagina scorra sotto l'utente.
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                apriSchedaTitolo(ep.isin);
+                              }
+                            }}
+                          >
                             <td>
                               <span className="voce">
                                 {ep.name ? <strong>{ep.name}</strong> : null}
@@ -545,6 +600,7 @@ export default function PortfolioDetailPage() {
                   <p style={{ fontFamily: "'IM Fell English', serif", fontStyle: 'italic', color: 'var(--seppia)', fontSize: '13px', margin: '14px 0 0', paddingTop: '10px', borderTop: '1px dotted rgba(110,90,54,.4)' }}>
                     I valori contrassegnati con &laquo;&ndash;&raquo; indicano che il prezzo corrente non è ancora
                     disponibile in archivio; la differenza non può essere calcolata.
+                    Seleziona una riga per aprirne la <em>scheda titolo</em> con l&rsquo;anagrafica completa.
                   </p>
                 </>
               )}
@@ -600,6 +656,24 @@ export default function PortfolioDetailPage() {
                   {deleteError && <p className="messaggio errore">{deleteError}</p>}
                 </div>
               </section>
+            </>
+          )}
+
+          {/* ===== SCHEDA: Scheda titolo (US-018) ===== */}
+          {scheda === 'titolo' && isinSelezionato !== null && id && (
+            <>
+              <SchedaTitolo portfolioId={id} isin={isinSelezionato} />
+
+              <div className="bottoni" style={{ marginTop: '24px' }}>
+                <button
+                  type="button"
+                  className="bottone secondario"
+                  data-testid="btn-torna-riepilogo"
+                  onClick={() => setScheda('riepilogo')}
+                >
+                  &larr; Torna al riepilogo
+                </button>
+              </div>
             </>
           )}
 

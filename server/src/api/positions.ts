@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { eq, desc, sql, and } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { portfolios, positions, securities } from '../db/schema.js';
-import type { Position, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary } from '@portfolia/shared';
+import type { Position, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, DataSource } from '@portfolia/shared';
 import { isValidIsin, normalizeIsin } from '@portfolia/shared';
 
 /** Mappa una PositionRow Drizzle nell'interfaccia condivisa Position. */
@@ -20,6 +20,15 @@ function toPosition(row: typeof positions.$inferSelect): Position {
 
 /** RegExp formato data ISO-8601 YYYY-MM-DD */
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Normalizza la colonna `securities.data_source` nel tipo condiviso.
+ * Un valore assente o non riconosciuto diventa `null` — "fonte non registrata" —
+ * e non viene mai reinterpretato come Borsa Italiana (FR-021).
+ */
+function toDataSource(value: string | null | undefined): DataSource | null {
+  return value === 'borsaitaliana' || value === 'morningstar' ? value : null;
+}
 
 export async function positionsRoutes(fastify: FastifyInstance): Promise<void> {
   /**
@@ -82,6 +91,94 @@ export async function positionsRoutes(fastify: FastifyInstance): Promise<void> {
       .get();
 
     return reply.status(201).send(toPosition(row));
+  });
+
+  /**
+   * GET /api/portfolios/:id/positions/:isin/detail
+   * Dettaglio completo di un titolo iscritto al portafoglio (FR-014).
+   *
+   * Compone l'aggregato di posizione, l'anagrafica dalla cache `securities`
+   * (LEFT JOIN, con la provenienza del dato) e l'elenco dei carichi ordinato
+   * per data. È una vista di sola lettura: non contatta mai la fonte esterna,
+   * perché un recupero a freddo costa 8-12 secondi e scavalcherebbe la guardia
+   * di buona cittadinanza di GET /api/securities/:isin. Quando l'anagrafica non
+   * è in archivio i campi restano null e il client lo dichiara.
+   *
+   * Va registrata PRIMA di GET /positions, come le altre GET a percorso specifico.
+   */
+  fastify.get<{
+    Params: { id: string; isin: string };
+    Reply: PositionDetail | { error: string };
+  }>('/api/portfolios/:id/positions/:isin/detail', async (request, reply) => {
+    const portfolioId = Number(request.params.id);
+    if (!Number.isInteger(portfolioId) || portfolioId <= 0) {
+      return reply.status(404).send({ error: 'Portafoglio non trovato.' });
+    }
+
+    const rawIsin = request.params.isin ?? '';
+    if (!isValidIsin(rawIsin)) {
+      return reply.status(400).send({ error: 'Inserire un codice ISIN valido (12 caratteri alfanumerici).' });
+    }
+    const isin = normalizeIsin(rawIsin);
+
+    // Verifica esistenza portafoglio
+    const portfolio = db.select().from(portfolios).where(eq(portfolios.id, portfolioId)).get();
+    if (!portfolio) {
+      return reply.status(404).send({ error: 'Portafoglio non trovato.' });
+    }
+
+    // I carichi individuali di questo ISIN, in ordine cronologico di carico.
+    const loadRows = db
+      .select()
+      .from(positions)
+      .where(and(eq(positions.portfolio_id, portfolioId), eq(positions.isin, isin)))
+      .orderBy(positions.load_date, positions.id)
+      .all();
+
+    // Un ISIN formalmente valido ma senza carichi non è un titolo di questo
+    // portafoglio: 404, non una scheda vuota con zeri inventati.
+    if (loadRows.length === 0) {
+      return reply.status(404).send({ error: 'Titolo non presente in questo portafoglio.' });
+    }
+
+    const security = db.select().from(securities).where(eq(securities.isin, isin)).get();
+
+    const totalQuantity = loadRows.reduce((sum, row) => sum + row.quantity, 0);
+    const weightedSum = loadRows.reduce((sum, row) => sum + row.load_price * row.quantity, 0);
+    const avgLoadPrice = totalQuantity > 0 ? weightedSum / totalQuantity : 0;
+    const totalLoadValue = avgLoadPrice * totalQuantity;
+
+    const currentPrice = security?.price ?? null;
+    const currentValue = currentPrice !== null ? currentPrice * totalQuantity : null;
+    const difference = currentValue !== null ? currentValue - totalLoadValue : null;
+    // La percentuale è definita solo su un controvalore di carico non nullo:
+    // dividere per zero produrrebbe Infinity, cioè un numero inventato.
+    const differencePercent =
+      difference !== null && totalLoadValue !== 0 ? (difference / totalLoadValue) * 100 : null;
+
+    const detail: PositionDetail = {
+      isin,
+      totalQuantity,
+      avgLoadPrice,
+      totalLoadValue,
+      currentPrice,
+      currentValue,
+      difference,
+      differencePercent,
+      name: security?.name ?? null,
+      ticker: security?.ticker ?? null,
+      instrumentType: security?.instrument_type ?? null,
+      totalAnnualFees: security?.total_annual_fees ?? null,
+      currency: security?.currency ?? null,
+      issuer: security?.issuer ?? null,
+      segment: security?.segment ?? null,
+      dividendPolicy: security?.dividend_policy ?? null,
+      dataSource: toDataSource(security?.data_source),
+      fetchedAt: security?.fetched_at ?? null,
+      loads: loadRows.map(toPosition),
+    };
+
+    return reply.status(200).send(detail);
   });
 
   /**

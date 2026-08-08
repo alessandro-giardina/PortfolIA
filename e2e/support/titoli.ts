@@ -79,6 +79,39 @@ export const TITOLO_US_027: TitoloSeminabile = {
   },
 };
 
+/**
+ * Riservato a `US-018__dettaglio-titolo.spec.ts` (il file demo).
+ *
+ * È l'unico titolo della suite seminato con `data_source` esplicito: la scheda
+ * di dettaglio dichiara la provenienza (FR-021), e senza fissarla il timbro
+ * dipenderebbe da quale fonte ha popolato la cache l'ultima volta.
+ */
+export const TITOLO_US_018: TitoloSeminabile = {
+  isin: 'LU1781541179',
+  campi: {
+    name: 'Amundi S&P 500 Ii Ucits Etf Acc',
+    price: 112.74,
+    ticker: 'SP5H',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,05%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-018__dettaglio-titolo-dati-mancanti.spec.ts`.
+ *
+ * Quel file non lo semina: lo *rimuove* dalla cache per garantire l'assenza di
+ * anagrafica che lo scenario deve dimostrare. Vale comunque la riserva di un
+ * ISIN per file — rimuovere e ripristinare è lo stesso stack di undo del
+ * seeding, e condividerlo lascerebbe lo stesso residuo.
+ */
+export const ISIN_SENZA_ANAGRAFICA_US_018 = 'LU0908500753';
+
 /** Riservato a `US-026__schede-portafoglio.spec.ts`. */
 export const TITOLO_US_026: TitoloSeminabile = {
   isin: 'IE00BMVB5R75',

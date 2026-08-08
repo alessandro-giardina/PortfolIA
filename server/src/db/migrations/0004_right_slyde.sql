@@ -1,0 +1,1 @@
+ALTER TABLE `securities` ADD `data_source` text;

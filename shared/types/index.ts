@@ -46,6 +46,18 @@ export interface SecurityInfo {
 }
 
 /**
+ * Fonte da cui proviene l'anagrafica di un titolo (FR-021).
+ * - `'borsaitaliana'`: fonte primaria.
+ * - `'morningstar'`: fonte di backup, attivata quando Borsa Italiana non trova
+ *   il titolo o è irraggiungibile.
+ *
+ * Dove compare come `DataSource | null`, `null` significa **fonte non
+ * registrata**: la riga in archivio precede la persistenza della provenienza.
+ * Non va mai reinterpretata come `'borsaitaliana'`.
+ */
+export type DataSource = 'borsaitaliana' | 'morningstar';
+
+/**
  * Conferma richiesta dalla guardia di buona cittadinanza prima di ripetere
  * lo scraping di un ISIN già in cache.
  * - `intra-session`: ricerca già effettuata nella sessione di mercato corrente
@@ -83,7 +95,7 @@ export interface SecurityLookupResponse {
    * Assente nelle risposte dalla cache (fromCache=true) che non hanno
    * ancora questo campo: il client tratta l'assenza come `'borsaitaliana'`.
    */
-  dataSource?: 'borsaitaliana' | 'morningstar';
+  dataSource?: DataSource;
 }
 
 /**
@@ -192,4 +204,72 @@ export interface EnrichedPositionSummary {
   currentValue: number | null;
   /** Differenza rispetto al carico: currentValue − (avgLoadPrice × totalQuantity), null se currentPrice è null. */
   difference: number | null;
+}
+
+/**
+ * Dettaglio completo di un titolo iscritto a un portafoglio (FR-014).
+ *
+ * Compone in un'unica vista di sola lettura ciò che l'archivio già contiene:
+ * l'aggregato di posizione, l'anagrafica dalla cache `securities`, la
+ * provenienza del dato e i carichi individuali che compongono la posizione.
+ * Non contatta mai la fonte esterna.
+ *
+ * **Ogni campo derivato dalla cache è nullable e `null` significa "dato non
+ * disponibile": mai zero, mai un valore stimato.** È la stessa disciplina di
+ * `SecurityInfo`, applicata anche ai valori calcolati (`currentValue`,
+ * `difference`, `differencePercent`), che restano `null` finché manca il prezzo.
+ */
+export interface PositionDetail {
+  /** Codice ISIN normalizzato. */
+  isin: string;
+
+  // ─── Aggregato di posizione — sempre valorizzato, deriva dai soli carichi ───
+  /** Somma delle quantità di tutti i carichi: Σ(quantity). */
+  totalQuantity: number;
+  /** Prezzo medio di carico ponderato: Σ(load_price × quantity) / Σ(quantity). */
+  avgLoadPrice: number;
+  /** Controvalore totale di carico: avgLoadPrice × totalQuantity. */
+  totalLoadValue: number;
+
+  // ─── Valori correnti — null quando il prezzo non è in archivio ─────────────
+  /** Prezzo corrente dalla cache securities, null se non in cache. */
+  currentPrice: number | null;
+  /** Valore attuale: currentPrice × totalQuantity, null se currentPrice è null. */
+  currentValue: number | null;
+  /** Differenza: currentValue − totalLoadValue, null se currentPrice è null. */
+  difference: number | null;
+  /** Differenza in percentuale sul controvalore di carico, null se non calcolabile. */
+  differencePercent: number | null;
+
+  // ─── Anagrafica ufficiale — null = non disponibile alla fonte o non in cache ─
+  /** Denominazione ufficiale dello strumento. */
+  name: string | null;
+  /** Ticker / sigla di negoziazione. */
+  ticker: string | null;
+  /** Tipo di strumento (es. "ETF azionario", "Azione", "Obbligazione"). */
+  instrumentType: string | null;
+  /** Commissioni totali annue / TER, es. "0,20% (TER)". */
+  totalAnnualFees: string | null;
+  /** Valuta di denominazione (es. "EUR"). */
+  currency: string | null;
+  /** Emittente dello strumento. */
+  issuer: string | null;
+  /** Segmento di mercato (es. "ETFplus"). */
+  segment: string | null;
+  /** Politica di distribuzione dei dividendi (es. "ad accumulazione"). */
+  dividendPolicy: string | null;
+
+  // ─── Provenienza del dato (FR-021) ────────────────────────────────────────
+  /**
+   * Fonte da cui l'anagrafica è stata rilevata, `null` se non registrata:
+   * il titolo non è in cache, oppure vi è entrato prima che la provenienza
+   * fosse persistita. `null` non equivale a `'borsaitaliana'`.
+   */
+  dataSource: DataSource | null;
+  /** Timestamp (unix, secondi) dell'ultimo recupero dalla fonte, null se non in cache. */
+  fetchedAt: number | null;
+
+  // ─── Carichi individuali ──────────────────────────────────────────────────
+  /** I carichi che compongono la posizione, ordinati per data di carico crescente. */
+  loads: Position[];
 }

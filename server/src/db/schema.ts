@@ -29,6 +29,12 @@ export const securities = sqliteTable('securities', {
   issuer: text('issuer'),
   segment: text('segment'),
   dividend_policy: text('dividend_policy'),
+  /**
+   * Fonte da cui l'anagrafica è stata rilevata: 'borsaitaliana' o 'morningstar'.
+   * NULL sulle righe scritte prima che la colonna esistesse: significa "fonte
+   * non registrata" e non va mai reinterpretata come Borsa Italiana (FR-021).
+   */
+  data_source: text('data_source'),
   fetched_at: integer('fetched_at')
     .notNull()
     .default(sql`(unixepoch())`),

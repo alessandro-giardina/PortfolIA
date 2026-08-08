@@ -29,6 +29,13 @@
       "when": 1782664488307,
       "tag": "0003_freezing_boom_boom",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1786178633406,
+      "tag": "0004_right_slyde",
+      "breakpoints": true
     }
   ]
 }

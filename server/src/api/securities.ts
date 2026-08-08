@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { db as defaultDb } from '../db/index.js';
 import { securities, type SecurityRow } from '../db/schema.js';
 import { isValidIsin, normalizeIsin } from '@portfolia/shared';
-import type { SecurityInfo, SecurityLookupResponse } from '@portfolia/shared';
+import type { DataSource, SecurityInfo, SecurityLookupResponse } from '@portfolia/shared';
 import { fetchSecurityByIsin, type AdapterResult } from '../market/borsaItalianaAdapter.js';
 import { fetchSecurityByIsin as fetchSecurityByIsinMorningStar } from '../market/morningStarAdapter.js';
 import { classifyRefetch } from '../domain/marketHours.js';
@@ -15,7 +15,7 @@ type Db = typeof defaultDb;
  * Aggiunge `dataSource` per sapere da quale fonte proviene il titolo trovato.
  */
 type FallbackResult =
-  | { status: 'found'; security: SecurityInfo; dataSource: 'borsaitaliana' | 'morningstar' }
+  | { status: 'found'; security: SecurityInfo; dataSource: DataSource }
   | { status: 'not-found' }
   | { status: 'error'; reason?: string };
 
@@ -73,7 +73,14 @@ function rowToSecurity(row: SecurityRow): SecurityInfo {
   };
 }
 
-function upsertSecurity(db: Db, sec: SecurityInfo, fetchedAt: number): void {
+/**
+ * Persiste l'anagrafica in cache insieme alla fonte da cui proviene.
+ *
+ * `dataSource` è scritta sia in inserimento sia in aggiornamento: un titolo
+ * prima trovato da Borsa Italiana e poi recuperato dal backup deve riportare
+ * la fonte del recupero più recente, quella coerente con i dati salvati.
+ */
+function upsertSecurity(db: Db, sec: SecurityInfo, fetchedAt: number, dataSource: DataSource): void {
   db.insert(securities)
     .values({
       isin: sec.isin,
@@ -86,6 +93,7 @@ function upsertSecurity(db: Db, sec: SecurityInfo, fetchedAt: number): void {
       issuer: sec.issuer,
       segment: sec.segment,
       dividend_policy: sec.dividendPolicy,
+      data_source: dataSource,
       fetched_at: fetchedAt,
     })
     .onConflictDoUpdate({
@@ -100,10 +108,26 @@ function upsertSecurity(db: Db, sec: SecurityInfo, fetchedAt: number): void {
         issuer: sec.issuer,
         segment: sec.segment,
         dividend_policy: sec.dividendPolicy,
+        data_source: dataSource,
         fetched_at: fetchedAt,
       },
     })
     .run();
+}
+
+/**
+ * Legge la fonte persistita in cache, restituendo `undefined` quando non è
+ * registrata (riga anteriore alla colonna `data_source`).
+ *
+ * `undefined` e non `'borsaitaliana'`: attribuire d'ufficio la fonte primaria
+ * a una riga che potrebbe venire da MorningStar significherebbe inventare un
+ * dato, che è precisamente ciò che FR-021 vieta. Il campo resta assente e il
+ * client dichiara la provenienza come non registrata.
+ */
+function cachedDataSource(row: SecurityRow): DataSource | undefined {
+  return row.data_source === 'borsaitaliana' || row.data_source === 'morningstar'
+    ? row.data_source
+    : undefined;
 }
 
 /**
@@ -158,6 +182,7 @@ export function securitiesRoutes(deps: SecuritiesDeps = {}) {
               lastFetchedAt: cached.fetched_at,
               message: classification.message,
             },
+            dataSource: cachedDataSource(cached),
           };
           return reply.status(200).send(response);
         }
@@ -175,7 +200,7 @@ export function securitiesRoutes(deps: SecuritiesDeps = {}) {
         });
       }
 
-      upsertSecurity(db, result.security, nowSeconds);
+      upsertSecurity(db, result.security, nowSeconds, result.dataSource);
       const response: SecurityLookupResponse = {
         security: result.security,
         fromCache: false,

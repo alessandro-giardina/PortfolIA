@@ -6,86 +6,97 @@ tasks:
     title: Definire il tipo condiviso PositionDetail
     description: 'In shared/types/index.ts aggiungere l''interfaccia PositionDetail (aggregato di posizione, anagrafica completa nullable, dataSource + fetchedAt, loads: Position[]) e il tipo union DataSource riusabile (''borsaitaliana'' | ''morningstar''). Documentare che null significa dato non disponibile, mai zero.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'In shared/types/index.ts aggiungere l''interfaccia PositionDetail (aggregato di posizione, anagrafica completa nullable, dataSource + fetchedAt, loads: Position[]) e il tipo union DataSource riusabile (''borsaitaliana'' | ''morningstar''). Documentare che null significa dato non disponibile, mai zero.'
+    ref: TASK-01
   - id: TASK-02
     title: Persistere la fonte del dato nella cache securities
     description: 'Generare la migrazione Drizzle che aggiunge securities.data_source (TEXT nullable), aggiungere il campo allo schema, scriverlo da upsertSecurity in server/src/api/securities.ts e restituire dataSource anche nelle risposte da cache di GET /api/securities/:isin. Le righe preesistenti restano null: nessuna attribuzione d''ufficio a Borsa Italiana.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Generare la migrazione Drizzle che aggiunge securities.data_source (TEXT nullable), aggiungere il campo allo schema, scriverlo da upsertSecurity in server/src/api/securities.ts e restituire dataSource anche nelle risposte da cache di GET /api/securities/:isin. Le righe preesistenti restano null: nessuna attribuzione d''ufficio a Borsa Italiana.'
+    ref: TASK-02
   - id: TASK-03
     title: Test Vitest sulla persistenza della provenienza
     description: In server/tests/ verificare che upsertSecurity scriva data_source in inserimento e aggiornamento, che la risposta da cache di GET /api/securities/:isin riporti dataSource, e che una riga con data_source null resti null senza essere reinterpretata.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
     body: In server/tests/ verificare che upsertSecurity scriva data_source in inserimento e aggiornamento, che la risposta da cache di GET /api/securities/:isin riporti dataSource, e che una riga con data_source null resti null senza essere reinterpretata.
+    ref: TASK-03
   - id: TASK-04
     title: Implementare GET /api/portfolios/:id/positions/:isin/detail
     description: 'In server/src/api/positions.ts aggiungere la route (registrata con le altre GET a percorso specifico, prima di GET /positions): aggregazione per ISIN in LEFT JOIN su securities, calcolo lato server di currentValue, difference e differencePercent, elenco loads ordinato per load_date. 400 su ISIN malformato, 404 su portafoglio inesistente o ISIN senza carichi nel portafoglio.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
       - TASK-02
     body: 'In server/src/api/positions.ts aggiungere la route (registrata con le altre GET a percorso specifico, prima di GET /positions): aggregazione per ISIN in LEFT JOIN su securities, calcolo lato server di currentValue, difference e differencePercent, elenco loads ordinato per load_date. 400 su ISIN malformato, 404 su portafoglio inesistente o ISIN senza carichi nel portafoglio.'
+    ref: TASK-04
   - id: TASK-05
     title: Test Vitest di integrazione sull'endpoint di dettaglio
     description: 'Coprire: anagrafica completa in cache con dataSource corretta; ISIN senza riga in cache (anagrafica e valori correnti null, dataSource null); carichi multipli con media ponderata e loads completo e ordinato; differenza negativa con segno e percentuale corretti; ISIN valido ma non nel portafoglio (404); ISIN malformato (400); portafoglio inesistente (404).'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-04
     body: 'Coprire: anagrafica completa in cache con dataSource corretta; ISIN senza riga in cache (anagrafica e valori correnti null, dataSource null); carichi multipli con media ponderata e loads completo e ordinato; differenza negativa con segno e percentuale corretti; ISIN valido ma non nel portafoglio (404); ISIN malformato (400); portafoglio inesistente (404).'
+    ref: TASK-05
   - id: TASK-06
     title: Portare in ledger.css gli stili della scheda titolo
     description: 'Aggiungere a client/src/ledger.css i blocchi mancanti presi da docs/mockups/US-018/shared.css: .orizzonti / .orizzonte (con varianti .assente e .non-valorizzato), .riga-fonte e .timbro-fonte (primaria / di-backup / ignota), .nota-sezione, più le regole responsive. Riusare .anagrafica e .dato.assente già presenti senza duplicarle.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'Aggiungere a client/src/ledger.css i blocchi mancanti presi da docs/mockups/US-018/shared.css: .orizzonti / .orizzonte (con varianti .assente e .non-valorizzato), .riga-fonte e .timbro-fonte (primaria / di-backup / ignota), .nota-sezione, più le regole responsive. Riusare .anagrafica e .dato.assente già presenti senza duplicarle.'
+    ref: TASK-06
   - id: TASK-07
     title: Creare il componente SchedaTitolo
     description: 'Nuovo componente client/src/components/SchedaTitolo.tsx che, dato portfolioId e isin, interroga l''endpoint di dettaglio e rende le tre sezioni del mockup docs/mockups/US-018/index.html: cartellino Posizione a conto, Anagrafica ufficiale a due colonne, riga di provenienza con timbro e Carichi registrati. Ogni campo null è reso come ''Dato non disponibile''; la fonte assente è dichiarata ''fonte non registrata'' (vedi docs/mockups/US-018/dati-mancanti.html). Gestire stato di caricamento ed errore.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
       - TASK-04
       - TASK-06
     body: 'Nuovo componente client/src/components/SchedaTitolo.tsx che, dato portfolioId e isin, interroga l''endpoint di dettaglio e rende le tre sezioni del mockup docs/mockups/US-018/index.html: cartellino Posizione a conto, Anagrafica ufficiale a due colonne, riga di provenienza con timbro e Carichi registrati. Ogni campo null è reso come ''Dato non disponibile''; la fonte assente è dichiarata ''fonte non registrata'' (vedi docs/mockups/US-018/dati-mancanti.html). Gestire stato di caricamento ed errore.'
+    ref: TASK-07
   - id: TASK-08
     title: Collegare la tabella di riepilogo alla scheda titolo
     description: In client/src/pages/PortfolioDetailPage.tsx estendere il tipo Scheda con 'titolo', aggiungere lo stato dell'ISIN selezionato, rendere cliccabili le righe della tabella di riepilogo (classe cliccabile, role=button, tabIndex, attivazione con Enter e Spazio) e attivare la linguetta 'Scheda titolo' — oggi disabilitata — solo quando un titolo è selezionato. La scheda rende SchedaTitolo.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-07
     body: In client/src/pages/PortfolioDetailPage.tsx estendere il tipo Scheda con 'titolo', aggiungere lo stato dell'ISIN selezionato, rendere cliccabili le righe della tabella di riepilogo (classe cliccabile, role=button, tabIndex, attivazione con Enter e Spazio) e attivare la linguetta 'Scheda titolo' — oggi disabilitata — solo quando un titolo è selezionato. La scheda rende SchedaTitolo.
+    ref: TASK-08
   - id: TASK-09
     title: Estendere il supporto E2E con la fonte del dato
     description: In e2e/support/archivio.ts aggiungere data_source a RigaTitolo (e quindi a CampiTitolo) così che seminaTitolo possa fissare la provenienza e ripristinaTitoli la ripristini. In e2e/support/titoli.ts dichiarare TITOLO_US_018 (riservato al file demo) e la costante dell'ISIN senza anagrafica riservato al file della variante, documentando la riserva come per gli altri titoli.
     type: Impl
-    status: TODO
+    status: DONE
     body: In e2e/support/archivio.ts aggiungere data_source a RigaTitolo (e quindi a CampiTitolo) così che seminaTitolo possa fissare la provenienza e ripristinaTitoli la ripristini. In e2e/support/titoli.ts dichiarare TITOLO_US_018 (riservato al file demo) e la costante dell'ISIN senza anagrafica riservato al file della variante, documentando la riserva come per gli altri titoli.
+    ref: TASK-09
   - id: TASK-10
     title: Test E2E dimostrativo — dettaglio con anagrafica completa
     description: 'In e2e/US-018__dettaglio-titolo.spec.ts (file dedicato con test.use per slowMo e video salvato in docs/test-results/US-018/ tramite page.video().saveAs() in afterEach, dopo page.close()): portafoglio e tre carichi dello stesso ISIN creati via la fixture archivio, anagrafica seminata con fonte borsaitaliana, click sulla riga di riepilogo, verifica di posizione, anagrafica completa, provenienza dichiarata e carichi elencati. Aggiungere nello stesso file lo scenario di apertura da tastiera con Enter.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-08
       - TASK-09
     body: 'In e2e/US-018__dettaglio-titolo.spec.ts (file dedicato con test.use per slowMo e video salvato in docs/test-results/US-018/ tramite page.video().saveAs() in afterEach, dopo page.close()): portafoglio e tre carichi dello stesso ISIN creati via la fixture archivio, anagrafica seminata con fonte borsaitaliana, click sulla riga di riepilogo, verifica di posizione, anagrafica completa, provenienza dichiarata e carichi elencati. Aggiungere nello stesso file lo scenario di apertura da tastiera con Enter.'
+    ref: TASK-10
   - id: TASK-11
     title: Test E2E — dettaglio senza anagrafica in archivio
     description: 'In e2e/US-018__dettaglio-titolo-dati-mancanti.spec.ts (senza video), con l''ISIN riservato rimosso dalla cache via archivio.rimuoviTitolo: aprire il dettaglio e verificare che i dati di posizione siano calcolati dai soli carichi, che ogni campo anagrafico sia dichiarato ''Dato non disponibile'', che valore attuale e differenza siano dichiarati non disponibili e che la provenienza sia dichiarata non registrata — nessun valore inventato in pagina.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-08
       - TASK-09
     body: 'In e2e/US-018__dettaglio-titolo-dati-mancanti.spec.ts (senza video), con l''ISIN riservato rimosso dalla cache via archivio.rimuoviTitolo: aprire il dettaglio e verificare che i dati di posizione siano calcolati dai soli carichi, che ogni campo anagrafico sia dichiarato ''Dato non disponibile'', che valore attuale e differenza siano dichiarati non disponibili e che la provenienza sia dichiarata non registrata — nessun valore inventato in pagina.'
+    ref: TASK-11
