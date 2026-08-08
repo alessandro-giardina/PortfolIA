@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import type { PositionDetail } from '@portfolia/shared';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { DataSource, PositionDetail, RefetchConfirmation, SecurityLookupResponse } from '@portfolia/shared';
 import { dataRegistro } from './Foglio.js';
 
 interface SchedaTitoloProps {
@@ -7,6 +7,28 @@ interface SchedaTitoloProps {
   portfolioId: string;
   /** ISIN del titolo di cui mostrare il dettaglio. */
   isin: string;
+  /**
+   * Notifica un aggiornamento dei dati andato a buon fine (US-030).
+   *
+   * Serve a chi mostra anche il riepilogo del portafoglio: il prezzo appena
+   * rilevato cambia valore attuale e differenza di *tutte* le viste, non solo
+   * di questa scheda. Non viene invocata quando la guardia chiede conferma né
+   * quando nessuna fonte ha risposto: in entrambi i casi l'archivio è intatto.
+   */
+  onDatiAggiornati?: () => void;
+}
+
+/** Esito dichiarato dell'ultimo aggiornamento richiesto dall'utente. */
+type EsitoAggiornamento =
+  | { tipo: 'in-corso' }
+  | { tipo: 'riuscito'; fonte: string | null; prezzo: string | null }
+  | { tipo: 'fallito'; motivo: string };
+
+/** Come si chiama una fonte in pagina; `null` quando l'archivio non la registra. */
+function nomeFonte(dataSource: DataSource | null): string | null {
+  if (dataSource === 'morningstar') return 'MorningStar (backup)';
+  if (dataSource === 'borsaitaliana') return 'Borsa Italiana';
+  return null;
 }
 
 /** Formatta un timestamp unix come "07.VIII.2026 · 09:14", nello stile del registro. */
@@ -32,6 +54,11 @@ function importo(valore: number): string {
 /** Prezzo unitario a quattro decimali, es. "68,3000". */
 function prezzo(valore: number): string {
   return valore.toLocaleString('it-IT', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+}
+
+/** Simbolo della valuta di denominazione; l'euro è la valuta del registro. */
+function simboloDi(currency: string | null): string {
+  return currency === 'USD' ? '$' : currency === 'GBP' ? '£' : '€';
 }
 
 /** Etichetta unica per ogni campo assente: la spec vieta il valore inventato. */
@@ -61,30 +88,58 @@ function VoceAnagrafica({ etichetta, valore }: { etichetta: string; valore: stri
  * della posizione a conto, l'anagrafica ufficiale con la riga di provenienza
  * del dato (FR-021) e l'elenco dei carichi registrati.
  *
- * La vista è di sola lettura e non contatta mai la fonte esterna: quando
- * l'anagrafica non è in archivio lo dichiara e rimanda alla ricerca titoli,
- * che è il percorso previsto per compilarla. Vedi la variante
- * `docs/mockups/US-018/dati-mancanti.html`.
+ * Dalla riga di provenienza si può chiedere l'aggiornamento dei dati (US-030):
+ * è l'unica azione della scheda che contatta la fonte, e passa dallo stesso
+ * endpoint e dalla stessa guardia della Ricerca titoli — un archivio solo, una
+ * guardia sola. Vedi `docs/mockups/US-030/stati-riga-fonte.html` per i sei
+ * stati della riga e `docs/mockups/US-018/dati-mancanti.html` per la variante
+ * senza anagrafica.
  */
-export default function SchedaTitolo({ portfolioId, isin }: SchedaTitoloProps) {
+export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: SchedaTitoloProps) {
   const [detail, setDetail] = useState<PositionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // ─── Aggiornamento dei dati dalla riga di provenienza (US-030) ─────────────
+  const [esito, setEsito] = useState<EsitoAggiornamento | null>(null);
+  const [conferma, setConferma] = useState<RefetchConfirmation | null>(null);
+  const [appenaAggiornato, setAppenaAggiornato] = useState(false);
+
+  /**
+   * ISIN attualmente in pagina. Un aggiornamento può restare in volo una decina
+   * di secondi, abbastanza perché l'utente torni al riepilogo e apra un altro
+   * titolo: alla risposta si confronta questo riferimento, e se il titolo è
+   * cambiato la risposta viene lasciata cadere. Senza, la scheda del titolo
+   * nuovo mostrerebbe i valori di quello vecchio — un dato falso indistinguibile
+   * da uno vero.
+   */
+  const isinMostrato = useRef(isin);
+  useEffect(() => {
+    isinMostrato.current = isin;
+  }, [isin]);
+
+  /** Legge il dettaglio dal server. Solleva con il messaggio da mostrare. */
+  const leggiDettaglio = useCallback(async (): Promise<PositionDetail> => {
+    const res = await fetch(`/api/portfolios/${portfolioId}/positions/${isin}/detail`);
+    if (!res.ok) {
+      const dati = (await res.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(dati?.error ?? 'Impossibile leggere il dettaglio del titolo.');
+    }
+    return (await res.json()) as PositionDetail;
+  }, [portfolioId, isin]);
 
   useEffect(() => {
     let annullato = false;
     setLoading(true);
     setError(null);
     setDetail(null);
+    // Il verdetto di un aggiornamento vale per il titolo che lo ha richiesto:
+    // cambiando titolo va via con lui.
+    setEsito(null);
+    setConferma(null);
+    setAppenaAggiornato(false);
 
-    fetch(`/api/portfolios/${portfolioId}/positions/${isin}/detail`)
-      .then(async (res) => {
-        if (!res.ok) {
-          const dati = (await res.json().catch(() => null)) as { error?: string } | null;
-          throw new Error(dati?.error ?? 'Impossibile leggere il dettaglio del titolo.');
-        }
-        return (await res.json()) as PositionDetail;
-      })
+    leggiDettaglio()
       .then((dati) => {
         if (!annullato) setDetail(dati);
       })
@@ -100,7 +155,85 @@ export default function SchedaTitolo({ portfolioId, isin }: SchedaTitoloProps) {
     return () => {
       annullato = true;
     };
-  }, [portfolioId, isin]);
+  }, [leggiDettaglio]);
+
+  /**
+   * Chiede alla fonte i dati aggiornati del titolo e rilegge il dettaglio.
+   *
+   * `loading` resta falso per tutta l'attesa: i valori d'archivio restano a
+   * schermo, dichiarati come tali dalla riga d'esito. Con la fonte di backup
+   * l'interrogazione arriva a una decina di secondi, e una scheda vuota per
+   * tutto quel tempo sarebbe una regressione rispetto a US-018.
+   *
+   * Il ricalcolo di valore attuale e differenza non avviene qui: la formula
+   * vive sul server, e rileggere l'endpoint di dettaglio è l'unico modo per non
+   * duplicarla nel client.
+   */
+  async function aggiornaDati(force: boolean): Promise<void> {
+    setConferma(null);
+    setAppenaAggiornato(false);
+    setEsito({ tipo: 'in-corso' });
+
+    /** L'utente ha cambiato titolo mentre la fonte rispondeva? */
+    const titoloAbbandonato = () => isinMostrato.current !== isin;
+
+    try {
+      const res = await fetch(`/api/securities/${isin}${force ? '?force=true' : ''}`);
+      if (titoloAbbandonato()) return;
+
+      if (res.status === 404) {
+        setEsito({
+          tipo: 'fallito',
+          motivo: 'Nessuna delle due fonti ha trovato il titolo. I dati in scheda restano quelli in archivio.',
+        });
+        return;
+      }
+      if (!res.ok) {
+        setEsito({
+          tipo: 'fallito',
+          motivo:
+            res.status === 502
+              ? 'Nessuna delle due fonti ha risposto. I dati in scheda restano quelli già rilevati.'
+              : 'Errore inatteso durante l’aggiornamento. I dati in scheda restano quelli già rilevati.',
+        });
+        return;
+      }
+
+      const body = (await res.json()) as SecurityLookupResponse;
+
+      // La guardia ha risposto dalla cache senza contattare la fonte: nulla è
+      // cambiato in archivio, e la decisione di procedere spetta all'utente.
+      if (body.confirmation) {
+        setConferma(body.confirmation);
+        setEsito(null);
+        return;
+      }
+
+      const aggiornato = await leggiDettaglio();
+      if (titoloAbbandonato()) return;
+
+      setDetail(aggiornato);
+      setAppenaAggiornato(true);
+      setEsito({
+        tipo: 'riuscito',
+        // La fonte dichiarata è quella della riga appena riletta, la stessa che
+        // valorizza il timbro di provenienza: due letture diverse dello stesso
+        // fatto potrebbero divergere, e una di loro sarebbe falsa.
+        fonte: nomeFonte(aggiornato.dataSource),
+        prezzo:
+          aggiornato.currentPrice !== null
+            ? `${simboloDi(aggiornato.currency)} ${prezzo(aggiornato.currentPrice)}`
+            : null,
+      });
+      onDatiAggiornati?.();
+    } catch {
+      if (titoloAbbandonato()) return;
+      setEsito({
+        tipo: 'fallito',
+        motivo: 'Backend non raggiungibile. I dati in scheda restano quelli già rilevati.',
+      });
+    }
+  }
 
   if (loading) {
     return <p className="messaggio attesa">Caricamento scheda titolo…</p>;
@@ -118,7 +251,39 @@ export default function SchedaTitolo({ portfolioId, isin }: SchedaTitoloProps) {
 
   const numeroCarichi = detail.loads.length;
   const inGuadagno = detail.difference !== null && detail.difference >= 0;
-  const simboloValuta = detail.currency === 'USD' ? '$' : detail.currency === 'GBP' ? '£' : '€';
+  const simboloValuta = simboloDi(detail.currency);
+  const inAttesa = esito?.tipo === 'in-corso';
+
+  /**
+   * Il comando di aggiornamento, così com'è dentro la riga di provenienza.
+   *
+   * Cambia verbo quando la fonte non è registrata: lì non c'è nulla da
+   * rinfrescare, c'è un'anagrafica da compilare. Resta disabilitato mentre la
+   * fonte è interrogata e mentre la guardia attende una decisione.
+   */
+  const comandoAggiorna = (
+    <span className="azione-fonte">
+      <button
+        type="button"
+        className={`bottone-minuto${inAttesa ? ' in-corso' : ''}`}
+        data-testid="btn-aggiorna-dati"
+        disabled={inAttesa || conferma !== null}
+        aria-busy={inAttesa}
+        onClick={() => {
+          void aggiornaDati(false);
+        }}
+      >
+        <span className="glifo">&#x21bb;</span>{' '}
+        {inAttesa
+          ? detail.dataSource === null
+            ? 'Recupero…'
+            : 'Aggiornamento…'
+          : detail.dataSource === null
+            ? 'Recupera dati'
+            : 'Aggiorna dati'}
+      </button>
+    </span>
+  );
 
   return (
     <div data-testid="scheda-titolo" data-isin={detail.isin}>
@@ -221,14 +386,12 @@ export default function SchedaTitolo({ portfolioId, isin }: SchedaTitoloProps) {
         />
       </div>
 
-      {/* Provenienza del dato — FR-021 */}
+      {/* Provenienza del dato — FR-021 — e comando di aggiornamento (US-030) */}
       {detail.dataSource === null ? (
         <div className="riga-fonte ignota" data-testid="fonte-dato">
           <span className="timbro-fonte ignota">Fonte non registrata</span>
           <span>Nessun recupero dalla fonte risulta in archivio per questo ISIN.</span>
-          <span>
-            Cerca il titolo dalla <b>Ricerca titoli</b> per compilarne l&rsquo;anagrafica.
-          </span>
+          {comandoAggiorna}
         </div>
       ) : (
         <div className={`riga-fonte${detail.dataSource === 'morningstar' ? ' di-backup' : ''}`} data-testid="fonte-dato">
@@ -236,13 +399,86 @@ export default function SchedaTitolo({ portfolioId, isin }: SchedaTitoloProps) {
             {detail.dataSource === 'morningstar' ? 'Fonte di backup' : 'Fonte primaria'}
           </span>
           <span>
-            Fonte: <b>{detail.dataSource === 'morningstar' ? 'MorningStar (backup)' : 'Borsa Italiana'}</b>
+            Fonte: <b>{nomeFonte(detail.dataSource)}</b>
           </span>
           {detail.fetchedAt !== null && (
             <span>
-              Rilevato il <b>{dataRilevazione(detail.fetchedAt)}</b>
+              Rilevato il{' '}
+              <b className={appenaAggiornato ? 'appena-aggiornato' : undefined} data-testid="istante-rilevazione">
+                {dataRilevazione(detail.fetchedAt)}
+              </b>
             </span>
           )}
+          {comandoAggiorna}
+        </div>
+      )}
+
+      {/* Esito dell'aggiornamento: una riga in più, mai un valore al posto di
+          un altro. Sul ramo negativo fonte e istante restano i precedenti,
+          perché l'archivio non è stato riscritto. */}
+      {esito !== null && (
+        <div
+          className={`esito-aggiornamento${esito.tipo === 'fallito' ? ' negativo' : ''}`}
+          data-testid="esito-aggiornamento"
+          role={esito.tipo === 'fallito' ? 'alert' : 'status'}
+        >
+          {esito.tipo === 'in-corso' && (
+            <>
+              <span className="timbro-esito">In attesa</span>
+              <span>
+                Interrogazione della fonte in corso &mdash; la fonte di backup pu&ograve; richiedere fino a
+                una decina di secondi.
+              </span>
+            </>
+          )}
+          {esito.tipo === 'riuscito' && (
+            <>
+              <span className="timbro-esito">Dati aggiornati</span>
+              <span>
+                {esito.fonte !== null ? (
+                  <>
+                    Ha risposto <b>{esito.fonte}</b>.
+                  </>
+                ) : (
+                  <>I dati in archivio sono stati riscritti.</>
+                )}
+                {esito.prezzo !== null && (
+                  <>
+                    {' '}
+                    Prezzo ora <b>{esito.prezzo}</b>.
+                  </>
+                )}
+              </span>
+            </>
+          )}
+          {esito.tipo === 'fallito' && (
+            <>
+              <span className="timbro-esito">Aggiornamento non riuscito</span>
+              <span>{esito.motivo}</span>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Guardia di buona cittadinanza: lo stesso avviso, lo stesso testo e lo
+          stesso archivio della Ricerca titoli. */}
+      {conferma !== null && (
+        <div className="avviso-conferma" role="alertdialog" aria-label="Conferma aggiornamento" data-testid="avviso-conferma-aggiornamento">
+          <p>{conferma.message}</p>
+          <div className="bottoni">
+            <button
+              type="button"
+              className="bottone"
+              onClick={() => {
+                void aggiornaDati(true);
+              }}
+            >
+              Procedi comunque
+            </button>
+            <button type="button" className="bottone secondario" onClick={() => setConferma(null)}>
+              Annulla
+            </button>
+          </div>
         </div>
       )}
 

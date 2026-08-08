@@ -32,30 +32,57 @@ export interface SecuritiesDeps {
 }
 
 /**
- * Orchestra i due adapter in sequenza: Borsa Italiana prima, MorningStar come
- * backup quando BI restituisce `not-found` o `error`.
- * Non interroga mai MorningStar quando BI ha già trovato il titolo.
+ * Ordine dei tentativi, dedotto dalla fonte già registrata per l'ISIN.
+ *
+ * Un titolo che l'archivio attribuisce a MorningStar riparte da MorningStar:
+ * è la fonte che quel titolo lo conosce, e ripartire da Borsa Italiana
+ * significherebbe pagarne il fallimento a ogni aggiornamento. Senza una fonte
+ * registrata l'ordine resta quello predefinito — prima la fonte primaria, poi
+ * il backup — che è anche il comportamento di ogni recupero precedente a US-030.
+ */
+function ordineTentativi(preferita: DataSource | undefined): DataSource[] {
+  return preferita === 'morningstar'
+    ? ['morningstar', 'borsaitaliana']
+    : ['borsaitaliana', 'morningstar'];
+}
+
+/**
+ * Interroga le due fonti nell'ordine indicato, fermandosi alla prima che trova
+ * il titolo: la seconda non viene mai contattata quando la prima ha risposto.
+ *
+ * La `dataSource` restituita è quella della fonte che ha *effettivamente*
+ * risposto, non della prima tentata — è ciò che rende il timbro di provenienza
+ * (FR-021) un dato rilevato e non una presunzione.
+ *
+ * L'esito è quello dell'ultimo tentativo: `not-found` se l'ultima fonte
+ * interrogata ha risposto senza trovare il titolo, `error` se nessuna ha
+ * risposto. Sul ramo `error` il chiamante non scrive nulla in archivio.
  */
 async function fetchWithFallback(
   isin: string,
-  fetchPrimary: (isin: string) => Promise<AdapterResult>,
-  fetchBackup: (isin: string) => Promise<AdapterResult>,
+  fetchers: Record<DataSource, (isin: string) => Promise<AdapterResult>>,
+  preferita: DataSource | undefined,
 ): Promise<FallbackResult> {
-  const primary = await fetchPrimary(isin);
-  if (primary.status === 'found') {
-    return { status: 'found', security: primary.security, dataSource: 'borsaitaliana' };
+  // Esito dell'ultimo tentativo andato a vuoto. Il valore iniziale non è mai
+  // quello restituito — l'ordine contiene sempre due fonti — ma tiene il tipo
+  // onesto senza ricorrere a un'asserzione.
+  let ultimo: Exclude<AdapterResult, { status: 'found' }> = {
+    status: 'error',
+    reason: 'Nessuna fonte interrogata.',
+  };
+
+  for (const fonte of ordineTentativi(preferita)) {
+    const esito = await fetchers[fonte](isin);
+    if (esito.status === 'found') {
+      return { status: 'found', security: esito.security, dataSource: fonte };
+    }
+    ultimo = esito;
   }
 
-  // BI non ha trovato il titolo o è irraggiungibile → prova il backup.
-  const backup = await fetchBackup(isin);
-  if (backup.status === 'found') {
-    return { status: 'found', security: backup.security, dataSource: 'morningstar' };
-  }
-  if (backup.status === 'not-found') {
+  if (ultimo.status === 'not-found') {
     return { status: 'not-found' };
   }
-  // Entrambi in errore: propaga l'errore.
-  return { status: 'error', reason: backup.reason };
+  return { status: 'error', reason: ultimo.reason };
 }
 
 function rowToSecurity(row: SecurityRow): SecurityInfo {
@@ -138,7 +165,9 @@ function cachedDataSource(row: SecurityRow): DataSource | undefined {
  *   passato `?force=true`, applica la guardia di buona cittadinanza
  *   (`classifyRefetch`): su `intra-session`/`no-session` restituisce i dati in
  *   cache + `confirmation` SENZA contattare la fonte; su `none` (o cache miss /
- *   `force`) interroga l'adapter, persiste e aggiorna `fetched_at`.
+ *   `force`) interroga le fonti, persiste e aggiorna `fetched_at`.
+ * - L'ordine dei tentativi parte dalla fonte registrata per l'ISIN, quando c'è
+ *   (US-030); altrimenti Borsa Italiana e poi MorningStar.
  * - 200 con l'anagrafica, 404 se non trovato, 502 su errore della fonte.
  */
 export function securitiesRoutes(deps: SecuritiesDeps = {}) {
@@ -188,7 +217,13 @@ export function securitiesRoutes(deps: SecuritiesDeps = {}) {
         }
       }
 
-      const result = await fetchWithFallback(isin, fetchSecurity, fetchSecurityFallback);
+      // La fonte registrata in archivio decide da dove ripartire (US-030). È
+      // letta da `cached`, disponibile su entrambi i rami — con `force` e senza.
+      const result = await fetchWithFallback(
+        isin,
+        { borsaitaliana: fetchSecurity, morningstar: fetchSecurityFallback },
+        cached ? cachedDataSource(cached) : undefined,
+      );
       if (result.status === 'not-found') {
         return reply.status(404).send({
           error: `Nessuna corrispondenza disponibile per ${isin}.`,

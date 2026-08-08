@@ -6,61 +6,69 @@ tasks:
     title: Rendere fetchWithFallback consapevole della fonte registrata
     description: 'In server/src/api/securities.ts sostituire la coppia fissa Borsa Italiana → MorningStar con una sequenza ordinata di tentativi, derivata dalla fonte preferita: [''morningstar'',''borsaitaliana''] quando cachedDataSource(cached) è ''morningstar'', [''borsaitaliana'',''morningstar''] altrimenti (fonte non registrata compresa). La dataSource restituita e persistita è quella della fonte che ha risposto, non della prima tentata. Conservare la semantica d''esito attuale (found vince; altrimenti not-found se l''ultimo tentativo non ha trovato il titolo; error se nessuno ha risposto) e il fatto che sul ramo error non venga scritto nulla in archivio. La riga `cached` è già letta prima della guardia, quindi la fonte preferita è disponibile su entrambi i rami force e non-force.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'In server/src/api/securities.ts sostituire la coppia fissa Borsa Italiana → MorningStar con una sequenza ordinata di tentativi, derivata dalla fonte preferita: [''morningstar'',''borsaitaliana''] quando cachedDataSource(cached) è ''morningstar'', [''borsaitaliana'',''morningstar''] altrimenti (fonte non registrata compresa). La dataSource restituita e persistita è quella della fonte che ha risposto, non della prima tentata. Conservare la semantica d''esito attuale (found vince; altrimenti not-found se l''ultimo tentativo non ha trovato il titolo; error se nessuno ha risposto) e il fatto che sul ramo error non venga scritto nulla in archivio. La riga `cached` è già letta prima della guardia, quindi la fonte preferita è disponibile su entrambi i rami force e non-force.'
+    ref: TASK-01
   - id: TASK-02
     title: Test Vitest sull'ordine dei tentativi e sulle invarianti d'archivio
     description: 'In server/tests/ coprire con adapter iniettati via SecuritiesDeps: fonte in cache ''morningstar'' → MorningStar interrogato per primo e Borsa Italiana mai chiamata; ''morningstar'' in cache ma not-found → ripiego su Borsa Italiana con data_source riscritta a ''borsaitaliana''; data_source NULL o cache miss → ordine Borsa Italiana poi MorningStar; entrambi in error con una riga in cache → 502 e price, data_source, fetched_at invariati; guardia attiva → confirmation restituita senza che alcuno spy sia chiamato; ?force=true → fonte interrogata e fetched_at avanzato, così che la chiamata successiva senza force torni a chiedere conferma.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'In server/tests/ coprire con adapter iniettati via SecuritiesDeps: fonte in cache ''morningstar'' → MorningStar interrogato per primo e Borsa Italiana mai chiamata; ''morningstar'' in cache ma not-found → ripiego su Borsa Italiana con data_source riscritta a ''borsaitaliana''; data_source NULL o cache miss → ordine Borsa Italiana poi MorningStar; entrambi in error con una riga in cache → 502 e price, data_source, fetched_at invariati; guardia attiva → confirmation restituita senza che alcuno spy sia chiamato; ?force=true → fonte interrogata e fetched_at avanzato, così che la chiamata successiva senza force torni a chiedere conferma.'
+    ref: TASK-02
   - id: TASK-03
     title: Portare in ledger.css gli stili del comando di aggiornamento
     description: 'Aggiungere a client/src/ledger.css i blocchi nuovi di docs/mockups/US-030/shared.css: .riga-fonte .azione-fonte (margin-left:auto e row-gap), .bottone-minuto con le varianti :disabled/.in-corso e il glifo rotante (@keyframes gira), .esito-aggiornamento con la variante .negativo e il .timbro-esito, .appena-aggiornato (@keyframes inchiostro-fresco) e la regola responsive sotto i 640px. Riusare .avviso-conferma e .riga-fonte/.timbro-fonte già presenti senza duplicarle.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'Aggiungere a client/src/ledger.css i blocchi nuovi di docs/mockups/US-030/shared.css: .riga-fonte .azione-fonte (margin-left:auto e row-gap), .bottone-minuto con le varianti :disabled/.in-corso e il glifo rotante (@keyframes gira), .esito-aggiornamento con la variante .negativo e il .timbro-esito, .appena-aggiornato (@keyframes inchiostro-fresco) e la regola responsive sotto i 640px. Riusare .avviso-conferma e .riga-fonte/.timbro-fonte già presenti senza duplicarle.'
+    ref: TASK-03
   - id: TASK-04
     title: Aggiungere il comando di aggiornamento a SchedaTitolo
     description: 'In client/src/components/SchedaTitolo.tsx estrarre il caricamento del dettaglio in una funzione richiamabile (useCallback) e aggiungere il comando «⟳ Aggiorna dati» dentro .riga-fonte, in entrambe le varianti — fonte dichiarata e fonte non registrata, dove l''etichetta diventa «Recupera dati» (vedi docs/mockups/US-030/stati-riga-fonte.html). Il comando chiama GET /api/securities/:isin: su confirmation mostra .avviso-conferma col messaggio del server e ripete con ?force=true su «Procedi comunque»; su successo rilegge l''endpoint di dettaglio invece di ricalcolare currentValue/difference nel client; su 404 e 502 dichiara l''esito negativo lasciando in pagina fonte e istante precedenti. Lo stato di aggiornamento è distinto da loading: i dati d''archivio restano a schermo durante l''attesa, che con la fonte di backup arriva a 8-12 secondi. L''assenza di dataSource nella risposta resta «fonte non registrata»: non applicare il default ''borsaitaliana'' di SecuritySearchPage.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
       - TASK-03
     body: 'In client/src/components/SchedaTitolo.tsx estrarre il caricamento del dettaglio in una funzione richiamabile (useCallback) e aggiungere il comando «⟳ Aggiorna dati» dentro .riga-fonte, in entrambe le varianti — fonte dichiarata e fonte non registrata, dove l''etichetta diventa «Recupera dati» (vedi docs/mockups/US-030/stati-riga-fonte.html). Il comando chiama GET /api/securities/:isin: su confirmation mostra .avviso-conferma col messaggio del server e ripete con ?force=true su «Procedi comunque»; su successo rilegge l''endpoint di dettaglio invece di ricalcolare currentValue/difference nel client; su 404 e 502 dichiara l''esito negativo lasciando in pagina fonte e istante precedenti. Lo stato di aggiornamento è distinto da loading: i dati d''archivio restano a schermo durante l''attesa, che con la fonte di backup arriva a 8-12 secondi. L''assenza di dataSource nella risposta resta «fonte non registrata»: non applicare il default ''borsaitaliana'' di SecuritySearchPage.'
+    ref: TASK-04
   - id: TASK-05
     title: Riallineare il riepilogo dopo un aggiornamento riuscito
     description: 'Aggiungere a SchedaTitolo una prop opzionale di notifica (es. onDatiAggiornati) invocata solo dopo un aggiornamento riuscito, e in client/src/pages/PortfolioDetailPage.tsx passarle fetchEnriched — già una useCallback — così che il valore totale e la tabella di riepilogo non restino sul prezzo vecchio quando l''utente torna alla scheda Riepilogo. Verificare che il ricalcolo non faccia scattare l''effetto che azzera isinSelezionato quando l''ISIN non è tra le enrichedPositions: durante il ricarico enrichedLoading è true e l''effetto si astiene.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-04
     body: 'Aggiungere a SchedaTitolo una prop opzionale di notifica (es. onDatiAggiornati) invocata solo dopo un aggiornamento riuscito, e in client/src/pages/PortfolioDetailPage.tsx passarle fetchEnriched — già una useCallback — così che il valore totale e la tabella di riepilogo non restino sul prezzo vecchio quando l''utente torna alla scheda Riepilogo. Verificare che il ricalcolo non faccia scattare l''effetto che azzera isinSelezionato quando l''ISIN non è tra le enrichedPositions: durante il ricarico enrichedLoading è true e l''effetto si astiene.'
+    ref: TASK-05
   - id: TASK-06
     title: Riservare gli ISIN E2E per i due file di US-030
     description: 'In e2e/support/titoli.ts dichiarare TITOLO_US_030 (riservato al file demo, con prezzo e data_source: ''borsaitaliana'' espliciti) e l''ISIN riservato al file delle varianti, documentando la riserva come per gli altri titoli. Nessuna modifica ad archivio.ts è necessaria: CampiTitolo accetta già data_source e fetched_at, e in seminaTitolo lo spread di campi viene applicato dopo il timestamp corrente, quindi un test può fissare una rilevazione di una sessione di borsa passata.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'In e2e/support/titoli.ts dichiarare TITOLO_US_030 (riservato al file demo, con prezzo e data_source: ''borsaitaliana'' espliciti) e l''ISIN riservato al file delle varianti, documentando la riserva come per gli altri titoli. Nessuna modifica ad archivio.ts è necessaria: CampiTitolo accetta già data_source e fetched_at, e in seminaTitolo lo spread di campi viene applicato dopo il timestamp corrente, quindi un test può fissare una rilevazione di una sessione di borsa passata.'
+    ref: TASK-06
   - id: TASK-07
     title: Test E2E dimostrativo — aggiornamento dalla scheda e guardia condivisa
     description: 'In e2e/US-030__aggiorna-dati-titolo.spec.ts (file dedicato con test.use per slowMo e video salvato in docs/test-results/US-030/ tramite page.video().saveAs() in afterEach, dopo page.close()): portafoglio e carichi creati con la fixture archivio, titolo seminato con prezzo vecchio, data_source ''borsaitaliana'' e fetched_at di una sessione passata. Aprire la scheda dalla riga di riepilogo, verificare la rilevazione vecchia; ri-seminare la riga col prezzo nuovo, data_source ''morningstar'' e fetched_at corrente, servire il lookup con route.fulfill({times: 1}) come trovato su MorningStar, premere «Aggiorna dati» e verificare prezzo, valore attuale, differenza, timbro «Fonte di backup» e nuovo istante. Premere di nuovo (stub esaurito, guardia reale) e verificare l''avviso con «Procedi comunque», poi annullare — mai procedere, che contatterebbe la rete. Chiudere passando alla Ricerca titoli e cercando lo stesso ISIN: l''avviso compare anche lì con l''istante dell''aggiornamento fatto dalla scheda.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-04
       - TASK-05
       - TASK-06
     body: 'In e2e/US-030__aggiorna-dati-titolo.spec.ts (file dedicato con test.use per slowMo e video salvato in docs/test-results/US-030/ tramite page.video().saveAs() in afterEach, dopo page.close()): portafoglio e carichi creati con la fixture archivio, titolo seminato con prezzo vecchio, data_source ''borsaitaliana'' e fetched_at di una sessione passata. Aprire la scheda dalla riga di riepilogo, verificare la rilevazione vecchia; ri-seminare la riga col prezzo nuovo, data_source ''morningstar'' e fetched_at corrente, servire il lookup con route.fulfill({times: 1}) come trovato su MorningStar, premere «Aggiorna dati» e verificare prezzo, valore attuale, differenza, timbro «Fonte di backup» e nuovo istante. Premere di nuovo (stub esaurito, guardia reale) e verificare l''avviso con «Procedi comunque», poi annullare — mai procedere, che contatterebbe la rete. Chiudere passando alla Ricerca titoli e cercando lo stesso ISIN: l''avviso compare anche lì con l''istante dell''aggiornamento fatto dalla scheda.'
+    ref: TASK-07
   - id: TASK-08
     title: Test E2E delle varianti — esito negativo e fonte non registrata
     description: 'In e2e/US-030__aggiorna-dati-titolo-varianti.spec.ts (senza video, sull''ISIN riservato al file): (a) titolo seminato con prezzo e fonte noti e lookup servito con 502 → la scheda dichiara l''esito negativo, fonte e istante restano i precedenti e archivio.leggiTitolo() conferma la riga identica; (b) ISIN rimosso con archivio.rimuoviTitolo → la scheda dichiara «Fonte non registrata» e offre comunque il comando, e dopo il recupero (lookup servito come trovato su Borsa Italiana e riga ri-seminata) il timbro diventa «Fonte primaria»; (c) titolo seminato con fetched_at corrente → l''avviso di buona cittadinanza compare al primo click, cioè la rilevazione registrata dalla ricerca è la stessa che la scheda legge. Gli scenari condividono l''ISIN del file: girano in serie dentro lo stesso file, quindi lo stack di semina-e-ripristino resta consistente.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-04
       - TASK-06
     body: 'In e2e/US-030__aggiorna-dati-titolo-varianti.spec.ts (senza video, sull''ISIN riservato al file): (a) titolo seminato con prezzo e fonte noti e lookup servito con 502 → la scheda dichiara l''esito negativo, fonte e istante restano i precedenti e archivio.leggiTitolo() conferma la riga identica; (b) ISIN rimosso con archivio.rimuoviTitolo → la scheda dichiara «Fonte non registrata» e offre comunque il comando, e dopo il recupero (lookup servito come trovato su Borsa Italiana e riga ri-seminata) il timbro diventa «Fonte primaria»; (c) titolo seminato con fetched_at corrente → l''avviso di buona cittadinanza compare al primo click, cioè la rilevazione registrata dalla ricerca è la stessa che la scheda legge. Gli scenari condividono l''ISIN del file: girano in serie dentro lo stesso file, quindi lo stack di semina-e-ripristino resta consistente.'
+    ref: TASK-08

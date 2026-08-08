@@ -112,6 +112,56 @@ export const TITOLO_US_018: TitoloSeminabile = {
  */
 export const ISIN_SENZA_ANAGRAFICA_US_018 = 'LU0908500753';
 
+/**
+ * Riservato a `US-030__aggiorna-dati-titolo.spec.ts` (il file demo).
+ *
+ * `data_source` e `price` sono espliciti perché lo scenario deve *vedere* la
+ * fonte cambiare: parte da Borsa Italiana e da un prezzo vecchio, e dopo
+ * l'aggiornamento entrambi devono risultare diversi. Il `fetched_at` non sta
+ * qui: lo scenario lo fissa a una sessione di borsa passata, perché è quella
+ * distanza a rendere l'aggiornamento lecito senza guardia.
+ */
+export const TITOLO_US_030: TitoloSeminabile = {
+  isin: 'IE00BK5BQT80',
+  campi: {
+    name: 'Vanguard Ftse All-World Ucits Etf Usd Acc',
+    price: 118.42,
+    ticker: 'VWCE',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,22%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-030__aggiorna-dati-titolo-varianti.spec.ts`.
+ *
+ * Il file lo semina *e* lo rimuove, a seconda dello scenario: l'esito negativo
+ * parte da una riga nota, la fonte non registrata da un cache miss. Entrambe le
+ * direzioni sono lo stesso stack di undo, quindi vale la riserva per file — con
+ * in più il vincolo che gli scenari girino in serie dentro il file, come già fa
+ * Playwright (`fullyParallel: false`).
+ */
+export const TITOLO_US_030_VARIANTI: TitoloSeminabile = {
+  isin: 'LU1681045370',
+  campi: {
+    name: 'Amundi Msci Emerging Markets Ucits Etf Acc',
+    price: 27.86,
+    ticker: 'AEEM',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,20%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
 /** Riservato a `US-026__schede-portafoglio.spec.ts`. */
 export const TITOLO_US_026: TitoloSeminabile = {
   isin: 'IE00BMVB5R75',

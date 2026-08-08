@@ -80,7 +80,11 @@ test('senza anagrafica in archivio la scheda dichiara ogni campo assente, senza 
   await expect(fonte.locator('.timbro-fonte')).toHaveText('Fonte non registrata');
   await expect(fonte).not.toContainText('Borsa Italiana');
   await expect(fonte).not.toContainText('MorningStar');
-  await expect(fonte).toContainText('Ricerca titoli');
+  // Il rimedio è nella riga stessa: fino a US-030 questa riga rimandava alla
+  // Ricerca titoli, l'unico percorso allora disponibile per compilare
+  // l'anagrafica. Ora il recupero si fa da qui, e il comando cambia verbo
+  // perché non c'è nulla da rinfrescare.
+  await expect(fonte.getByTestId('btn-aggiorna-dati')).toHaveText(/Recupera dati/);
 
   // 5. I carichi restano leggibili: sono l'unico dato certo di questa posizione
   const carichi = page.getByTestId('tabella-carichi-titolo').locator('tbody tr');

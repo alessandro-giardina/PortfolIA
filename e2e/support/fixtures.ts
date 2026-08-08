@@ -21,11 +21,13 @@ import {
   type Portafoglio,
 } from './api.js';
 import {
+  leggiTitolo,
   rimuoviTitolo,
   ripristinaTitoli,
   seminaTitolo,
   type CampiTitolo,
   type IstantaneaTitolo,
+  type RigaTitolo,
 } from './archivio.js';
 import { nomeUnico } from './nomi.js';
 
@@ -64,6 +66,14 @@ export interface GestoreArchivio {
 
   /** Rimuove un ISIN dalla cache; lo stato precedente è ripristinato. */
   rimuoviTitolo(isin: string): void;
+
+  /**
+   * Legge la riga in cache di un ISIN, o `undefined` se assente.
+   *
+   * È di sola lettura e non registra nulla per il teardown: serve ad asserire
+   * che l'archivio sia rimasto com'era, non a modificarlo.
+   */
+  leggiTitolo(isin: string): RigaTitolo | undefined;
 }
 
 export const test = base.extend<{ archivio: GestoreArchivio }>({
@@ -115,6 +125,7 @@ export const test = base.extend<{ archivio: GestoreArchivio }>({
       rimuoviTitolo(isin) {
         registraIstantanea(rimuoviTitolo(isin));
       },
+      leggiTitolo,
     };
 
     await use(gestore);

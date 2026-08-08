@@ -662,7 +662,13 @@ export default function PortfolioDetailPage() {
           {/* ===== SCHEDA: Scheda titolo (US-018) ===== */}
           {scheda === 'titolo' && isinSelezionato !== null && id && (
             <>
-              <SchedaTitolo portfolioId={id} isin={isinSelezionato} />
+              {/* Un aggiornamento riuscito dalla scheda cambia il prezzo in
+                  archivio, quindi valore totale e tabella di riepilogo: senza
+                  questo ricalcolo, tornando al Riepilogo l'utente ritroverebbe
+                  il prezzo vecchio (US-030). Il ricalcolo non chiude la scheda:
+                  finché `enrichedLoading` è true l'effetto che azzera
+                  `isinSelezionato` si astiene. */}
+              <SchedaTitolo portfolioId={id} isin={isinSelezionato} onDatiAggiornati={fetchEnriched} />
 
               <div className="bottoni" style={{ marginTop: '24px' }}>
                 <button

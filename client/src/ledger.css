@@ -1134,6 +1134,90 @@ body {
 .timbro-fonte.di-backup { border-color: var(--rosso-margine); color: var(--rosso-margine); }
 .timbro-fonte.ignota    { border-color: var(--seppia); color: var(--seppia); }
 
+/* ---------- Aggiornamento dei dati dalla riga di provenienza (US-030) ----------
+   Il comando vive DENTRO la riga di provenienza, spinto a destra da un margine
+   automatico: è accanto a «Rilevato il», cioè accanto al dato che spiega perché
+   si vuole aggiornare. Vedi docs/mockups/US-030/stati-riga-fonte.html. */
+.riga-fonte { row-gap: 8px; }
+.riga-fonte .azione-fonte { margin-left: auto; }
+
+/* Comando in scala ridotta: la stessa targhetta d'ottone di `.bottone`,
+   rimpicciolita per non competere con le azioni maggiori della pagina. */
+.bottone-minuto {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 12px;
+  padding: 6px 13px;
+  color: var(--carta-chiara);
+  background: var(--verde-panno);
+  border: 1.5px solid var(--inchiostro);
+  box-shadow: 2px 2px 0 rgba(34,28,20,.28);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.bottone-minuto:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 rgba(34,28,20,.32); }
+.bottone-minuto:active { transform: translate(1px,1px); box-shadow: 0 0 0 rgba(34,28,20,.3); }
+.bottone-minuto:disabled,
+.bottone-minuto.in-corso { opacity: .62; cursor: progress; transform: none; box-shadow: 2px 2px 0 rgba(34,28,20,.2); }
+.bottone-minuto .glifo { font-family: 'Courier Prime', monospace; font-size: 14px; line-height: 1; }
+
+/* Rotazione del glifo mentre la fonte è interrogata. */
+.bottone-minuto.in-corso .glifo { animation: gira 1.1s linear infinite; display: inline-block; }
+@keyframes gira { to { transform: rotate(360deg); } }
+
+/* Esito dell'aggiornamento: una riga in più sotto la provenienza, mai un valore
+   al posto di un altro. Verde = una fonte ha risposto, rosso = nessuna ha
+   risposto e l'archivio è rimasto com'era. */
+.esito-aggiornamento {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 8px 14px;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--seppia);
+  border-left: 4px solid var(--verde-attivo);
+  background: rgba(47,107,58,.07);
+}
+.esito-aggiornamento.negativo {
+  border-left-color: var(--rosso-margine);
+  background: rgba(158,43,37,.07);
+}
+.esito-aggiornamento .timbro-esito {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-style: normal;
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border: 1.5px solid var(--verde-attivo);
+  color: var(--verde-attivo);
+  transform: rotate(-.8deg);
+  white-space: nowrap;
+}
+.esito-aggiornamento.negativo .timbro-esito { border-color: var(--rosso-margine); color: var(--rosso-margine); }
+.esito-aggiornamento b { font-family: 'Courier Prime', monospace; font-style: normal; color: var(--inchiostro); font-size: 13px; }
+
+/* Dato appena rinfrescato: breve alone d'inchiostro fresco. */
+.appena-aggiornato { animation: inchiostro-fresco 1.5s ease-out; }
+@keyframes inchiostro-fresco {
+  0%   { background: rgba(217,191,120,.65); }
+  100% { background: transparent; }
+}
+
+@media (max-width: 640px) {
+  .riga-fonte .azione-fonte { margin-left: 0; width: 100%; }
+  .bottone-minuto { width: 100%; justify-content: center; }
+}
+
 /* ---------- Nota di piè di sezione ---------- */
 .nota-sezione {
   font-family: 'IM Fell English', serif;
