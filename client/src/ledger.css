@@ -32,6 +32,16 @@
   --ombra-pagina: 0 22px 50px -20px rgba(34,28,20,.55);
   --filetto:      1.5px solid var(--inchiostro);
   --filetto-fine: 1px solid rgba(34,28,20,.32);
+
+  /* Misure del foglio (US-031).
+     `--larghezza-foglio` è la carta: quanto si estende il libro mastro su un
+     monitor largo. `--larghezza-lettura` è la banda utile che il corpo aveva
+     al foglio da 1080px (1080 - 90 di margine rosso - 40 di margine destro):
+     i blocchi a campi restano dentro questa colonna perché una riga etichetta
+     + valore lunga un metro non si legge. Le griglie di dati (mastro,
+     anagrafica, orizzonti, valore totale) prendono invece tutto lo spazio. */
+  --larghezza-foglio:  1440px;
+  --larghezza-lettura: 950px;
 }
 
 * { box-sizing: border-box; }
@@ -53,7 +63,7 @@ body {
 /* ---------- Foglio ---------- */
 .foglio {
   position: relative;
-  max-width: 1080px;
+  max-width: var(--larghezza-foglio);
   margin: 0 auto;
   background-color: var(--carta);
   background-image:
@@ -354,9 +364,12 @@ body {
 .timbro.verde { border-color: var(--verde-attivo); color: var(--verde-attivo); background: rgba(47,107,58,.05); box-shadow: inset 0 0 0 1px rgba(47,107,58,.25); transform: rotate(1deg); }
 
 /* ---------- Modulo apertura conto ---------- */
+/* Blocco a campi: resta nella colonna di lettura (US-031), altrimenti la
+   griglia `200px 1fr` di `.riga-modulo` stira il valore per tutto il foglio. */
 .riquadro-modulo {
   border: 2px solid var(--inchiostro);
   background: rgba(247,239,218,.55);
+  max-width: var(--larghezza-lettura);
 }
 .riquadro-modulo .intestazione-modulo {
   padding: 12px 18px;
@@ -562,11 +575,13 @@ body {
 }
 
 /* ---------- Sezione gestione (rinomina / elimina) ---------- */
+/* Anche questo è un blocco a campi: colonna di lettura (US-031). */
 .sezione-gestione {
   margin-top: 8px;
   border: 2px solid var(--inchiostro);
   background: rgba(247,239,218,.55);
   padding: 0 0 22px;
+  max-width: var(--larghezza-lettura);
 }
 .form-gestione { margin-top: 4px; }
 .separatore-gestione {
@@ -676,9 +691,12 @@ body {
 }
 
 /* --- Barra di ricerca ISIN in evidenza --- */
+/* Un ISIN è lungo dodici caratteri: il campo resta nella colonna di lettura
+   (US-031) invece di diventare una riga vuota lunga tutto il foglio. */
 .ricerca-isin {
   border: 2px solid var(--inchiostro);
   background: rgba(247,239,218,.6);
+  max-width: var(--larghezza-lettura);
   padding: 18px 20px;
   display: grid;
   grid-template-columns: 1fr auto;

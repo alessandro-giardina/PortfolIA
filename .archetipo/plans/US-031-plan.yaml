@@ -1,0 +1,130 @@
+schema: archetipo/plan/v2
+spec_code: US-031
+body: |
+  # US-031: Allargare la pagina per sfruttare gli schermi ad alta risoluzione — Piano di implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 08.VIII.2026
+
+  ---
+
+  ## Spec
+
+  **Epica:** EP-000 — Fondazione del progetto
+  **Priorità:** HIGH | **Punti:** 2
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che il foglio dell'applicazione si estenda fino a 1440px invece degli attuali 1080px,
+  in modo da leggere tabelle con più colonne senza che i dati si comprimano o vadano a capo, sfruttando il monitor ad alta risoluzione su cui uso sempre l'app.
+
+  **Criteri di Accettazione**
+  - [ ] AC-1 — Su una finestra sufficientemente larga il foglio si estende fino a 1440px, restando centrato e conservando i margini laterali attuali
+  - [ ] AC-2 — Su finestre più strette di quel limite il foglio continua ad adattarsi alla larghezza disponibile, senza introdurre scroll orizzontale di pagina
+  - [ ] AC-3 — Il comportamento alle soglie responsive già esistenti (840, 760 e 640px) resta invariato
+  - [ ] AC-4 — Le schermate esistenti — elenco portafogli, riepilogo, ricerca titolo, scheda titolo, dialog di scelta portafoglio — restano leggibili e composte alla nuova larghezza
+  - [ ] AC-5 — La suite E2E esistente passa senza modifiche alle asserzioni funzionali
+
+  ---
+
+  ## Soluzione tecnica
+
+  Il foglio è largo 1080px per una sola dichiarazione, `client/src/ledger.css:56`. Il lavoro di questa spec non è cambiare quel numero — è **governare cosa fanno i 360px in più** alle schermate, che sono state composte quando la banda di contenuto utile era di 950px. Da qui la decisione portante: la larghezza diventa una manopola con un nome, e accanto nasce un secondo limite, quello di lettura, che trattiene i blocchi a campi mentre lascia crescere le tabelle. Senza questa seconda mossa l'AC-4 fallisce: allargare e basta stira i moduli di inserimento invece di dare spazio ai dati.
+
+  - **Una manopola sola, dichiarata.** In `:root` nasce `--larghezza-foglio: 1440px` e `.foglio` diventa `max-width: var(--larghezza-foglio)`. `margin: 0 auto` e il `padding: 32px 18px 80px` del `body` non si toccano: centratura e margini laterali restano esattamente quelli di oggi (AC-1). Il nome non è cosmesi — US-032 tocca le stesse tabelle e deve poter ragionare sulla larghezza senza ricercare una costante sparsa nel foglio di stile.
+  - **Niente scroll orizzontale, per costruzione.** `max-width` è un tetto, non un pavimento: sotto i 1440px il foglio continua a prendere la larghezza disponibile come oggi. L'unico modo per introdurre scroll sarebbe un figlio a larghezza fissa, e non ce ne sono: le tabelle sono `width: 100%` dentro `.tabella-scroll { overflow-x: auto }`, e il dialog di scelta portafoglio è montato in un portale su `document.body` con un suo `maxWidth: 520px` — non dipende dal foglio né oggi né dopo (AC-2).
+  - **Lo spazio in più va alle tabelle, non ai campi.** Oggi la banda utile del corpo è 1080 − 90 (margine rosso a sinistra) − 40 = **950px**; a 1440 diventa 1310. Per `.mastro` è precisamente ciò che la spec chiede. Per i blocchi guidati da input è invece un difetto: `.riga-modulo` è `grid-template-columns: 200px 1fr`, quindi il campo passerebbe da ~730px a ~1090px, e `.ricerca-isin` (`1fr auto`) allo stesso modo. Nasce perciò `--larghezza-lettura: 950px`, applicata come `max-width` a `.riquadro-modulo`, `.ricerca-isin` e `.sezione-gestione`. Il valore non è arbitrario: **è la banda che quei blocchi hanno oggi**, quindi a schermo largo si disegnano identici a prima e sotto i 1080px la regola è inerte.
+  - **Cosa resta a piena larghezza, e perché.** `.mastro`, `.anagrafica`, `.orizzonti` e `.riquadro-valore-totale` non vengono limitati: sono griglie e fasce di *dati*, cioè il motivo per cui la spec esiste. In particolare **non** si cambia il numero di colonne di `.anagrafica` (2) e `.orizzonti` (4): sarebbe fuori dai criteri e altererebbe il layout anche sotto i 1440px, dove nessuno l'ha chiesto.
+  - **La tipografia non cresce da sola.** `.testata h1` è `clamp(30px, 5vw, 52px)` e `.cifra-totale` è `clamp(28px, 4vw, 42px)`: entrambe raggiungono il proprio tetto già intorno ai 1040-1050px di finestra, quindi su schermi più larghi restano ferme. Non c'è nulla da fare — è annotato perché non venga "corretto" per scrupolo.
+  - **Le soglie responsive non si toccano.** 840, 760 e 640 sono `@media (max-width: …)`: alzare un tetto non le sfiora. L'AC-3 è quindi una non-regressione, e come tale va **verificata da un test**, non implementata.
+  - **Il riferimento visivo di base si allinea.** `docs/mockups/libro-mastro/shared.css` è la base che i mockup nuovi copiano: va portata a 1440px perché il prossimo disegno (US-032, colonne di prezzo) non erediti 1080. I mockup delle singole spec (US-004, US-005, US-007, US-011, US-025) restano intatti: documentano disegni già approvati, e riscriverli falsificherebbe ciò che è stato accettato.
+
+  **Assunzione registrata:** 1440px è preso alla lettera dalla spec, senza introdurre una soglia intermedia. Se in esercizio il foglio risultasse troppo arioso su monitor ultrawide, il correttivo è cambiare una sola variabile.
+
+  ---
+
+  ## Strategia di test
+
+  Qui non c'è logica da coprire con Vitest: il risultato è **geometria prodotta dal browser**, e l'unica prova onesta è misurarla. La verifica vive quindi tutta negli E2E, divisa in due file — quello dimostrativo con video, e un fratello senza video per le soglie (`launchOptions`/`slowMo` non sono scopabili in un `describe`, la coppia `US-026__*` è il precedente).
+
+  - **Misura assoluta a finestra larga:** con viewport 1600×900, il `boundingBox()` di `.foglio` è largo esattamente 1440px, ed è centrato (`x` pari a metà dello spazio residuo). È l'AC-1 preso alla lettera.
+  - **Adattività senza scroll:** ridotta la finestra a 1100px, la larghezza del foglio torna a essere `documentElement.clientWidth − 36` (i 18px di padding per lato). Il confronto si fa **contro il DOM, non contro la costante del viewport**, perché la barra di scorrimento verticale sottrae larghezza e renderebbe il test fragile. In più `document.documentElement.scrollWidth <= clientWidth`: nessuno scroll orizzontale di pagina (AC-2).
+  - **Soglie invariate, misurate ai due lati:** `.orizzonti` ha 4 tracce a 900px di finestra e 2 a 800px (soglia 840); `.testata` ha `padding-left: 90px` a 800px e `44px` a 700px (soglia 760); `.bottone-minuto` occupa tutta la riga a 620px e non a 700px (soglia 640). Verificare *entrambi* i lati di ogni soglia è ciò che distingue un test di non-regressione da una tautologia.
+  - **Suite esistente immutata:** i test girano a viewport 1280, dove il foglio passa da 1080px a 1244px — quindi la suite *vede* il cambiamento. Le sue asserzioni sono però funzionali (locator, testo, conteggi); le uniche geometriche sono quelle di US-027 sul dialog, che misurano altezza e `y` di un riquadro montato in un portale con `maxWidth` proprio, indipendente dal foglio. La prova è l'esecuzione completa di `npx playwright test` senza toccare alcuna asserzione (AC-5).
+  - **Nessuna semina di titoli.** Nessuno dei due file nuovi attraversa la ricerca ISIN: le posizioni si iscrivono via API e la Scheda Titolo legge dalla cache senza contattare la fonte. Entrambi usano `IE00B4L5Y983` in **sola lettura**, come già fa `US-026__apre-scheda-riepilogo` — la regola di un ISIN riservato per file vincola chi scrive nella cache, non chi legge.
+
+  ### Test E2E — simulazione utente
+
+  **Framework:** Playwright (`playwright.config.ts`, fixture `archivio` in `e2e/support/`)
+  **Registrazione video:** solo lo scenario dimostrativo, salvato in `docs/test-results/US-031/` con `page.video().saveAs()` in `afterEach` dopo `page.close()`; le soglie girano senza video in un file fratello.
+
+  | Scenario | Flusso utente |
+  |---|---|
+  | Il foglio sfrutta il monitor largo (demo, con video) | Portafoglio creato con la fixture `archivio` e due titoli iscritti via API → a finestra 1600×900 l'utente apre l'elenco portafogli e il foglio misura 1440px, centrato; entra nel portafoglio e la tabella di riepilogo respira sull'intera banda; la barra di ricerca ISIN e il modulo di iscrizione restano nella loro colonna di lettura invece di stirarsi → restringendo la finestra a 1100px il foglio si adatta alla larghezza disponibile e la pagina non guadagna scroll orizzontale (AC-1, AC-2, AC-4) |
+  | Le soglie responsive non si sono mosse | Sullo stesso portafoglio, aperta la Scheda Titolo: a 900px `.orizzonti` ha 4 colonne, a 800px ne ha 2 (soglia 840); a 800px `.testata` ha 90px di margine rosso, a 700px ne ha 44 (soglia 760); a 700px il bottone di aggiornamento sta sulla sua riga naturale, a 620px occupa tutta la larghezza (soglia 640) (AC-3) |
+
+  ---
+
+  _Piano generato con ARchetipo Planning — 08.VIII.2026_
+tasks:
+  - id: TASK-01
+    title: Portare il foglio a 1440px con una variabile dedicata
+    description: 'In client/src/ledger.css dichiarare --larghezza-foglio: 1440px in :root e sostituire il max-width: 1080px di .foglio (riga 56) con var(--larghezza-foglio). Non toccare margin: 0 auto né il padding 32px 18px 80px del body: centratura e margini laterali devono restare quelli attuali. Nessun''altra regola va modificata in questo task.'
+    type: Impl
+    status: DONE
+    body: 'In client/src/ledger.css dichiarare --larghezza-foglio: 1440px in :root e sostituire il max-width: 1080px di .foglio (riga 56) con var(--larghezza-foglio). Non toccare margin: 0 auto né il padding 32px 18px 80px del body: centratura e margini laterali devono restare quelli attuali. Nessun''altra regola va modificata in questo task.'
+    ref: TASK-01
+  - id: TASK-02
+    title: Trattenere i blocchi a campi nella colonna di lettura
+    description: 'In client/src/ledger.css dichiarare --larghezza-lettura: 950px (la banda utile che il corpo ha oggi: 1080 - 90 - 40) e applicarla come max-width a .riquadro-modulo, .ricerca-isin e .sezione-gestione, così che a foglio largo non si stirino i campi di .riga-modulo (200px 1fr) e della barra ISIN. Lasciare a piena larghezza .mastro, .anagrafica, .orizzonti e .riquadro-valore-totale: sono griglie di dati ed è a loro che va lo spazio in più. Non cambiare il numero di colonne di .anagrafica e .orizzonti, e non intervenire sui clamp tipografici (.testata h1, .cifra-totale), che saturano già intorno ai 1040px di finestra.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'In client/src/ledger.css dichiarare --larghezza-lettura: 950px (la banda utile che il corpo ha oggi: 1080 - 90 - 40) e applicarla come max-width a .riquadro-modulo, .ricerca-isin e .sezione-gestione, così che a foglio largo non si stirino i campi di .riga-modulo (200px 1fr) e della barra ISIN. Lasciare a piena larghezza .mastro, .anagrafica, .orizzonti e .riquadro-valore-totale: sono griglie di dati ed è a loro che va lo spazio in più. Non cambiare il numero di colonne di .anagrafica e .orizzonti, e non intervenire sui clamp tipografici (.testata h1, .cifra-totale), che saturano già intorno ai 1040px di finestra.'
+    ref: TASK-02
+  - id: TASK-03
+    title: Rivedere le cinque schermate alla nuova larghezza
+    description: 'Con l''app avviata (npm run dev) e la finestra a 1600px, passare in rassegna elenco portafogli, riepilogo del portafoglio, ricerca titolo, scheda titolo e dialog di scelta portafoglio, correggendo eventuali blocchi rimasti stirati o sperduti con la stessa tecnica di TASK-02 (max-width: var(--larghezza-lettura) sul contenitore, mai larghezze fisse). Verificare in particolare che il dialog resti largo 520px e centrato sulla finestra, non sul foglio, e che nessuna schermata introduca scroll orizzontale di pagina. Ogni ritocco aggiuntivo va motivato nel commento della regola.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    body: 'Con l''app avviata (npm run dev) e la finestra a 1600px, passare in rassegna elenco portafogli, riepilogo del portafoglio, ricerca titolo, scheda titolo e dialog di scelta portafoglio, correggendo eventuali blocchi rimasti stirati o sperduti con la stessa tecnica di TASK-02 (max-width: var(--larghezza-lettura) sul contenitore, mai larghezze fisse). Verificare in particolare che il dialog resti largo 520px e centrato sulla finestra, non sul foglio, e che nessuna schermata introduca scroll orizzontale di pagina. Ogni ritocco aggiuntivo va motivato nel commento della regola.'
+    ref: TASK-03
+  - id: TASK-04
+    title: Test E2E dimostrativo — il foglio sfrutta il monitor largo
+    description: 'Creare e2e/US-031__larghezza-foglio.spec.ts con test.use({ viewport: { width: 1600, height: 900 }, video: { mode: ''on'', size: { width: 1600, height: 900 } }, launchOptions: { slowMo: 300 } }) e il salvataggio del video in docs/test-results/US-031/ via page.video().saveAs() in un afterEach dopo page.close(). Portafoglio creato con la fixture archivio e due posizioni iscritte via API su IE00B4L5Y983 (sola lettura: non seminare la cache). Asserzioni: sull''elenco portafogli il boundingBox di .foglio è largo esattamente 1440 e la x pari a metà dello spazio residuo (centratura); dentro il portafoglio la tabella di riepilogo e il modulo di iscrizione sono visibili e il modulo non supera i 950px; dopo page.setViewportSize({ width: 1100, height: 900 }) la larghezza del foglio torna uguale a documentElement.clientWidth - 36 — confronto contro il DOM, non contro la costante del viewport, perché la barra di scorrimento sottrae larghezza — e documentElement.scrollWidth <= clientWidth.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+    body: 'Creare e2e/US-031__larghezza-foglio.spec.ts con test.use({ viewport: { width: 1600, height: 900 }, video: { mode: ''on'', size: { width: 1600, height: 900 } }, launchOptions: { slowMo: 300 } }) e il salvataggio del video in docs/test-results/US-031/ via page.video().saveAs() in un afterEach dopo page.close(). Portafoglio creato con la fixture archivio e due posizioni iscritte via API su IE00B4L5Y983 (sola lettura: non seminare la cache). Asserzioni: sull''elenco portafogli il boundingBox di .foglio è largo esattamente 1440 e la x pari a metà dello spazio residuo (centratura); dentro il portafoglio la tabella di riepilogo e il modulo di iscrizione sono visibili e il modulo non supera i 950px; dopo page.setViewportSize({ width: 1100, height: 900 }) la larghezza del foglio torna uguale a documentElement.clientWidth - 36 — confronto contro il DOM, non contro la costante del viewport, perché la barra di scorrimento sottrae larghezza — e documentElement.scrollWidth <= clientWidth.'
+    ref: TASK-04
+  - id: TASK-05
+    title: Test E2E delle soglie responsive, misurate ai due lati
+    description: 'Creare e2e/US-031__soglie-responsive.spec.ts (senza video né slowMo), che apre la Scheda Titolo di una posizione iscritta via API su IE00B4L5Y983 (sola lettura) e misura con getComputedStyle ai due lati di ogni soglia: .orizzonti ha 4 tracce di gridTemplateColumns a 900px di finestra e 2 a 800px (soglia 840); .testata ha paddingLeft 90px a 800px e 44px a 700px (soglia 760); .bottone-minuto occupa l''intera larghezza del contenitore a 620px e non a 700px (soglia 640). Verificare entrambi i lati è ciò che rende il test una non-regressione e non una tautologia.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+    body: 'Creare e2e/US-031__soglie-responsive.spec.ts (senza video né slowMo), che apre la Scheda Titolo di una posizione iscritta via API su IE00B4L5Y983 (sola lettura) e misura con getComputedStyle ai due lati di ogni soglia: .orizzonti ha 4 tracce di gridTemplateColumns a 900px di finestra e 2 a 800px (soglia 840); .testata ha paddingLeft 90px a 800px e 44px a 700px (soglia 760); .bottone-minuto occupa l''intera larghezza del contenitore a 620px e non a 700px (soglia 640). Verificare entrambi i lati è ciò che rende il test una non-regressione e non una tautologia.'
+    ref: TASK-05
+  - id: TASK-06
+    title: Allineare a 1440px il riferimento visivo di base dei mockup
+    description: 'Portare max-width: 1080px a 1440px in docs/mockups/libro-mastro/shared.css, che è la base copiata dai mockup nuovi, così che il prossimo disegno (US-032) non erediti la larghezza vecchia. Non toccare i mockup delle singole spec (US-004, US-005, US-007, US-011, US-025): documentano disegni già approvati.'
+    type: Impl
+    status: DONE
+    body: 'Portare max-width: 1080px a 1440px in docs/mockups/libro-mastro/shared.css, che è la base copiata dai mockup nuovi, così che il prossimo disegno (US-032) non erediti la larghezza vecchia. Non toccare i mockup delle singole spec (US-004, US-005, US-007, US-011, US-025): documentano disegni già approvati.'
+    ref: TASK-06
+  - id: TASK-07
+    title: Eseguire la suite E2E esistente senza modificarne le asserzioni
+    description: 'Lanciare npx playwright test per intero e verificare che passi senza alcuna modifica alle asserzioni funzionali dei file esistenti (AC-5). I test girano a viewport 1280, dove il foglio passa da 1080 a 1244px: sorvegliare in particolare US-027, le cui uniche asserzioni geometriche riguardano altezza e y del dialog montato in un portale — se qualcosa rompe, la correzione va nel codice o negli stili, non nell''asserzione. Chiudere con npm run check (lint + typecheck + test).'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+      - TASK-05
+    body: 'Lanciare npx playwright test per intero e verificare che passi senza alcuna modifica alle asserzioni funzionali dei file esistenti (AC-5). I test girano a viewport 1280, dove il foglio passa da 1080 a 1244px: sorvegliare in particolare US-027, le cui uniche asserzioni geometriche riguardano altezza e y del dialog montato in un portale — se qualcosa rompe, la correzione va nel codice o negli stili, non nell''asserzione. Chiudere con npm run check (lint + typecheck + test).'
+    ref: TASK-07

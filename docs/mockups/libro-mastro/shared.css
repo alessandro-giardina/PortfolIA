@@ -55,7 +55,10 @@ body {
 /* ---------- Texture carta ---------- */
 .foglio {
   position: relative;
-  max-width: 1080px;
+  /* US-031: il foglio è largo 1440px. Questa è la base che i mockup nuovi
+     copiano, quindi va tenuta allineata all'app; i mockup delle singole spec
+     conservano invece la larghezza con cui il disegno fu approvato. */
+  max-width: 1440px;
   margin: 0 auto;
   background-color: var(--carta);
   background-image:
