@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Scheda titolo, dati non disponibili (US-018)</title>
+  <meta name="description" content="Mockup US-018 — variante: titolo iscritto a portafoglio la cui anagrafica non è in archivio. Ogni campo assente è dichiarato, nessun valore è inventato.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda anagrafica del titolo</p>
+      <h1>Titolo <span class="corsivo">senza denominazione</span></h1>
+      <p class="sottotesto">ISIN LU1681043599 &middot; iscritto al Conto <em>Lungo Periodo</em></p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantit&agrave; &nbsp;&nbsp;&nbsp;&nbsp;<b>40</b></div>
+      <div>Pr. attuale &nbsp;<b>&ndash;</b></div>
+      <div>Differenza &nbsp;<b>&ndash;</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a href="dati-mancanti.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <!-- ===== 1. Posizione a conto ===== -->
+    <div class="sezione-titolo" style="margin-top:6px">
+      Posizione a conto
+      <span class="nota">FR-014 &middot; dati della posizione nel portafoglio</span>
+    </div>
+
+    <div class="orizzonti">
+      <div class="orizzonte">
+        <span class="et">Quantit&agrave;</span>
+        <span class="valore">40</span>
+        <span class="perc">su 1 carico</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore medio di carico</span>
+        <span class="valore">€&thinsp;242,5000</span>
+        <span class="perc">carico € 9.700,00</span>
+      </div>
+      <div class="orizzonte non-valorizzato">
+        <span class="et">Valore attuale</span>
+        <span class="valore assente">Dato non disponibile</span>
+        <span class="perc assente">prezzo non in archivio</span>
+      </div>
+      <div class="orizzonte non-valorizzato">
+        <span class="et">Differenza</span>
+        <span class="valore assente">Dato non disponibile</span>
+        <span class="perc assente">non calcolabile</span>
+      </div>
+    </div>
+
+    <!-- ===== 2. Anagrafica ufficiale ===== -->
+    <div class="sezione-titolo">
+      Anagrafica ufficiale
+      <span class="nota">dati come rilevati alla fonte &middot; nessun valore stimato</span>
+    </div>
+
+    <div class="anagrafica">
+      <div class="voce-def"><span class="et">Denominazione</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">ISIN</span><span class="dato">LU1681043599</span></div>
+      <div class="voce-def"><span class="et">Ticker</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">Tipo strumento</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">Commissioni annue</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">Valuta</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">Emittente</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">Segmento</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">Politica dividendi</span><span class="dato assente">Dato non disponibile</span></div>
+      <div class="voce-def"><span class="et">Prezzo attuale</span><span class="dato assente">Dato non disponibile</span></div>
+    </div>
+
+    <!-- Provenienza del dato — FR-021, caso fonte ignota -->
+    <div class="riga-fonte ignota">
+      <span class="timbro-fonte ignota">Fonte non registrata</span>
+      <span>Nessun recupero dalla fonte risulta in archivio per questo ISIN.</span>
+      <span>Cerca il titolo dalla <b>Ricerca titoli</b> per compilarne l&rsquo;anagrafica.</span>
+    </div>
+
+    <!-- ===== 3. Carichi registrati ===== -->
+    <div class="sezione-titolo">
+      Carichi registrati
+      <span class="nota">le iscrizioni individuali che compongono la posizione</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Data di carico</th>
+            <th class="allineato-dx">Quantit&agrave;</th>
+            <th class="allineato-dx">Prezzo d&rsquo;acquisto</th>
+            <th class="allineato-dx">Controvalore carico</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="voce"><strong>03.V.2026</strong></span></td>
+            <td class="cifra">40</td>
+            <td class="cifra">€&thinsp;242,5000</td>
+            <td class="cifra">€&thinsp;9.700,00</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Totale &middot; prezzo medio</td>
+            <td class="cifra">40</td>
+            <td class="cifra">€&thinsp;242,5000</td>
+            <td class="cifra">€&thinsp;9.700,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p class="nota-sezione">
+      I campi contrassegnati &laquo;Dato non disponibile&raquo; non sono presenti in archivio:
+      PortfolIA non mostra denominazioni, prezzi o valori stimati.
+    </p>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="#">&larr; Torna al riepilogo</a>
+      <a class="bottone secondario" href="index.html">&larr; Vedi variante &laquo;dato completo&raquo;</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">Scheda compilata a regola d&rsquo;arte &mdash; ci&ograve; che manca &egrave; dichiarato</span>
+    <span><span class="timbro mancante">Dato non disponibile</span> PortfolIA &middot; US-018</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-018 &middot; <a href="index.html">Dato completo</a> &middot;
+  <a href="dati-mancanti.html">Dati non disponibili</a>
+</p>
+
+<script src="app.js"></script>
+</body>
+</html>
