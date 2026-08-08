@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Stati dell&rsquo;aggiornamento (US-030)</title>
+  <meta name="description" content="Mockup US-030: i cinque stati della riga di provenienza durante e dopo un aggiornamento dei dati del titolo.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Scheda titolo &middot; riga di provenienza</p>
+      <h1>Gli stati <span class="corsivo">dell&rsquo;aggiornamento</span></h1>
+      <p class="sottotesto">Cosa mostra la riga di provenienza prima, durante e dopo il comando</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Spec &nbsp;&nbsp;&nbsp;<b>US-030</b></div>
+      <div>Epica &nbsp;<b>EP-005</b></div>
+      <div>Requisiti &nbsp;<b>FR-014 &middot; FR-021</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="index.html">Scheda titolo</a>
+    <a href="stati-riga-fonte.html" class="attiva">Stati del comando</a>
+  </nav>
+
+  <main class="corpo tavola-stati">
+
+    <!-- ===== 1. A riposo ===== -->
+    <p class="didascalia-stato">1 &middot; A riposo &mdash; il comando &egrave; disponibile <span class="ac">AC-1</span></p>
+    <div class="riga-fonte">
+      <span class="timbro-fonte">Fonte primaria</span>
+      <span>Fonte: <b>Borsa Italiana</b></span>
+      <span>Rilevato il <b>05.VIII.2026 &middot; 17:28</b></span>
+      <span class="azione-fonte">
+        <button type="button" class="bottone-minuto">
+          <span class="glifo">&#x21bb;</span> Aggiorna dati
+        </button>
+      </span>
+    </div>
+    <p class="glossa">
+      Il comando vive dentro la riga, dopo &laquo;Rilevato il&raquo;: l&rsquo;utente legge quanto
+      &egrave; vecchio il dato e trova subito il modo di rinfrescarlo.
+    </p>
+
+    <!-- ===== 2. In corso ===== -->
+    <p class="didascalia-stato">2 &middot; Interrogazione in corso &mdash; i dati mostrati restano quelli in archivio</p>
+    <div class="riga-fonte">
+      <span class="timbro-fonte">Fonte primaria</span>
+      <span>Fonte: <b>Borsa Italiana</b></span>
+      <span>Rilevato il <b>05.VIII.2026 &middot; 17:28</b></span>
+      <span class="azione-fonte">
+        <button type="button" class="bottone-minuto in-corso" disabled aria-busy="true">
+          <span class="glifo">&#x21bb;</span> Aggiornamento&hellip;
+        </button>
+      </span>
+    </div>
+    <div class="esito-aggiornamento">
+      <span class="timbro-esito">In attesa</span>
+      <span>Interrogazione della fonte in corso &mdash; la fonte di backup pu&ograve; richiedere fino a una decina di secondi.</span>
+    </div>
+    <p class="glossa">
+      La scheda non si svuota e non mostra scheletri: finch&eacute; la fonte non risponde,
+      i valori a schermo sono ancora quelli dell&rsquo;archivio, dichiarati come tali.
+    </p>
+
+    <!-- ===== 3. Riuscito, con cambio di fonte ===== -->
+    <p class="didascalia-stato">3 &middot; Aggiornamento riuscito &mdash; ha risposto la fonte di backup <span class="ac">AC-2 &middot; AC-4</span></p>
+    <div class="riga-fonte di-backup">
+      <span class="timbro-fonte di-backup">Fonte di backup</span>
+      <span>Fonte: <b>MorningStar (backup)</b></span>
+      <span>Rilevato il <b class="appena-aggiornato">08.VIII.2026 &middot; 11:04</b></span>
+      <span class="azione-fonte">
+        <button type="button" class="bottone-minuto">
+          <span class="glifo">&#x21bb;</span> Aggiorna dati
+        </button>
+      </span>
+    </div>
+    <div class="esito-aggiornamento">
+      <span class="timbro-esito">Dati aggiornati</span>
+      <span>Ha risposto <b>MorningStar</b>: Borsa Italiana non ha trovato il titolo. Prezzo ora <b>€&thinsp;129,7200</b>.</span>
+    </div>
+    <p class="glossa">
+      Il timbro e la fonte dichiarata sono quelli della fonte che ha <em>effettivamente</em>
+      risposto, non quelli tentati per primi. Se il titolo era registrato su MorningStar,
+      &egrave; da MorningStar che il tentativo riparte.
+    </p>
+
+    <!-- ===== 4. Guardia di buona cittadinanza ===== -->
+    <p class="didascalia-stato">4 &middot; Recupero troppo ravvicinato &mdash; la fonte non viene contattata <span class="ac">AC-5 &middot; AC-6</span></p>
+    <div class="riga-fonte di-backup">
+      <span class="timbro-fonte di-backup">Fonte di backup</span>
+      <span>Fonte: <b>MorningStar (backup)</b></span>
+      <span>Rilevato il <b>08.VIII.2026 &middot; 11:04</b></span>
+      <span class="azione-fonte">
+        <button type="button" class="bottone-minuto" disabled>
+          <span class="glifo">&#x21bb;</span> Aggiorna dati
+        </button>
+      </span>
+    </div>
+    <div class="avviso-conferma" role="alertdialog" aria-label="Conferma aggiornamento">
+      <p>
+        Hai gi&agrave; chiesto il recupero informazioni di questo titolo oggi alle 11:04.
+        Vuoi procedere comunque a una nuova ricerca?
+      </p>
+      <div class="bottoni">
+        <button type="button" class="bottone">Procedi comunque</button>
+        <button type="button" class="bottone secondario">Annulla</button>
+      </div>
+    </div>
+    <p class="glossa">
+      &Egrave; lo stesso avviso, con lo stesso testo, che compare nella <em>Ricerca titoli</em>:
+      la guardia &egrave; una sola e legge lo stesso istante di rilevazione. Un aggiornamento
+      fatto da qui fa scattare l&rsquo;avviso anche l&agrave;, e viceversa.
+    </p>
+
+    <!-- ===== 5. Nessuna fonte ha risposto ===== -->
+    <p class="didascalia-stato">5 &middot; Nessuna fonte ha risposto &mdash; l&rsquo;archivio resta invariato <span class="ac">AC-7</span></p>
+    <div class="riga-fonte">
+      <span class="timbro-fonte">Fonte primaria</span>
+      <span>Fonte: <b>Borsa Italiana</b></span>
+      <span>Rilevato il <b>05.VIII.2026 &middot; 17:28</b></span>
+      <span class="azione-fonte">
+        <button type="button" class="bottone-minuto">
+          <span class="glifo">&#x21bb;</span> Aggiorna dati
+        </button>
+      </span>
+    </div>
+    <div class="esito-aggiornamento negativo" role="alert">
+      <span class="timbro-esito">Aggiornamento non riuscito</span>
+      <span>Nessuna delle due fonti ha risposto. I dati in scheda restano quelli rilevati il <b>05.VIII.2026</b>.</span>
+    </div>
+    <p class="glossa">
+      Nulla viene riscritto e nulla viene stimato: la fonte e l&rsquo;istante di rilevazione
+      sono ancora i precedenti, e l&rsquo;esito negativo &egrave; dichiarato per iscritto.
+    </p>
+
+    <!-- ===== 6. Fonte non registrata ===== -->
+    <p class="didascalia-stato">6 &middot; Fonte non registrata &mdash; l&rsquo;ordine dei tentativi &egrave; quello predefinito <span class="ac">AC-3</span></p>
+    <div class="riga-fonte ignota">
+      <span class="timbro-fonte ignota">Fonte non registrata</span>
+      <span>Nessun recupero dalla fonte risulta in archivio per questo ISIN.</span>
+      <span class="azione-fonte">
+        <button type="button" class="bottone-minuto">
+          <span class="glifo">&#x21bb;</span> Recupera dati
+        </button>
+      </span>
+    </div>
+    <p class="glossa">
+      Senza una fonte registrata il tentativo segue l&rsquo;ordine predefinito &mdash; Borsa
+      Italiana e poi MorningStar &mdash; e da qui si compila l&rsquo;anagrafica senza passare
+      dalla Ricerca titoli. Il comando cambia verbo, perch&eacute; non c&rsquo;&egrave; nulla da rinfrescare.
+    </p>
+
+    <div class="bottoni" style="margin-top:34px">
+      <a class="bottone secondario" href="index.html">&larr; Torna alla scheda completa</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Nessun valore stimato &mdash; ogni dato porta la sua fonte e il suo istante</span>
+    <span><span class="timbro">Dati ufficiali</span> PortfolIA &middot; US-030</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-030 &middot; <a href="index.html">Comando disponibile</a> &middot;
+  <a href="stati-riga-fonte.html">Stati dell&rsquo;aggiornamento</a>
+</p>
+
+<script src="app.js"></script>
+</body>
+</html>

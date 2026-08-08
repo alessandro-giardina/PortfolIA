@@ -6,7 +6,7 @@ epic:
   title: Visualizzazione dei titoli
 priority: MEDIUM
 points: 5
-status: TODO
+status: PLANNED
 blocked_by:
   - US-018
 body: |-
@@ -34,3 +34,5 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-08T12:58:39Z"
+  - status: PLANNED
+    at: "2026-08-08T13:07:59Z"

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Aggiornare i dati dalla scheda titolo (US-030)</title>
+  <meta name="description" content="Mockup US-030: comando di aggiornamento dei dati di un titolo nella riga di provenienza della scheda titolo.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda anagrafica del titolo</p>
+      <h1>Ishares Core <span class="corsivo">Msci World</span></h1>
+      <p class="sottotesto">ISIN IE00B4L5Y983 &middot; iscritto al Conto <em>Lungo Periodo</em></p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantit&agrave; &nbsp;&nbsp;&nbsp;&nbsp;<b>220</b></div>
+      <div>Pr. attuale &nbsp;<b>€&thinsp;128,4600</b></div>
+      <div>Differenza &nbsp;<b class="totale-positivo">+€&thinsp;13.235,20</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a href="index.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <!-- ===== 1. Posizione a conto ===== -->
+    <div class="sezione-titolo" style="margin-top:6px">
+      Posizione a conto
+      <span class="nota">FR-014 &middot; dati della posizione nel portafoglio</span>
+    </div>
+
+    <div class="orizzonti">
+      <div class="orizzonte">
+        <span class="et">Quantit&agrave;</span>
+        <span class="valore">220</span>
+        <span class="perc">su 3 carichi</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore medio di carico</span>
+        <span class="valore">€&thinsp;68,3000</span>
+        <span class="perc">carico € 15.026,00</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore attuale</span>
+        <span class="valore">€&thinsp;28.261,20</span>
+        <span class="perc">€ 128,4600/quota</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Differenza</span>
+        <span class="valore guadagno">+€&thinsp;13.235,20</span>
+        <span class="perc guadagno">+88,08&thinsp;%</span>
+      </div>
+    </div>
+
+    <!-- ===== 2. Anagrafica ufficiale ===== -->
+    <div class="sezione-titolo">
+      Anagrafica ufficiale
+      <span class="nota">dati come rilevati alla fonte &middot; nessun valore stimato</span>
+    </div>
+
+    <div class="anagrafica">
+      <div class="voce-def"><span class="et">Denominazione</span><span class="dato">Ishares Core Msci World Ucits Etf Acc</span></div>
+      <div class="voce-def"><span class="et">ISIN</span><span class="dato">IE00B4L5Y983</span></div>
+      <div class="voce-def"><span class="et">Ticker</span><span class="dato">SWDA</span></div>
+      <div class="voce-def"><span class="et">Tipo strumento</span><span class="dato">ETF</span></div>
+      <div class="voce-def"><span class="et">Commissioni annue</span><span class="dato">0,20&thinsp;%</span></div>
+      <div class="voce-def"><span class="et">Valuta</span><span class="dato">EUR</span></div>
+      <div class="voce-def"><span class="et">Emittente</span><span class="dato">ISHARES III PLC</span></div>
+      <div class="voce-def"><span class="et">Segmento</span><span class="dato">ETF Indicizzati</span></div>
+      <div class="voce-def"><span class="et">Politica dividendi</span><span class="dato">ad accumulazione</span></div>
+      <div class="voce-def"><span class="et">Prezzo attuale</span><span class="dato">€&thinsp;128,4600</span></div>
+    </div>
+
+    <!--
+      Provenienza del dato (FR-021) + comando di aggiornamento (US-030).
+      Il comando sta QUI e non in cima alla scheda: è accanto al dato che
+      dichiara la vecchiaia della rilevazione, cioè accanto alla ragione
+      per cui l'utente vuole aggiornare.
+    -->
+    <div class="riga-fonte">
+      <span class="timbro-fonte">Fonte primaria</span>
+      <span>Fonte: <b>Borsa Italiana</b></span>
+      <span>Rilevato il <b>05.VIII.2026 &middot; 17:28</b></span>
+      <span class="azione-fonte">
+        <button type="button" class="bottone-minuto" title="Interroga di nuovo la fonte per questo titolo">
+          <span class="glifo">&#x21bb;</span> Aggiorna dati
+        </button>
+      </span>
+    </div>
+
+    <!-- ===== 3. Carichi registrati ===== -->
+    <div class="sezione-titolo">
+      Carichi registrati
+      <span class="nota">le iscrizioni individuali che compongono la posizione</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Data di carico</th>
+            <th class="allineato-dx">Quantit&agrave;</th>
+            <th class="allineato-dx">Prezzo d&rsquo;acquisto</th>
+            <th class="allineato-dx">Controvalore carico</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="voce"><strong>19.IX.2021</strong></span></td>
+            <td class="cifra">80</td>
+            <td class="cifra">€&thinsp;61,4000</td>
+            <td class="cifra">€&thinsp;4.912,00</td>
+          </tr>
+          <tr>
+            <td><span class="voce"><strong>07.III.2023</strong></span></td>
+            <td class="cifra">90</td>
+            <td class="cifra">€&thinsp;70,1000</td>
+            <td class="cifra">€&thinsp;6.309,00</td>
+          </tr>
+          <tr>
+            <td><span class="voce"><strong>14.II.2025</strong></span></td>
+            <td class="cifra">50</td>
+            <td class="cifra">€&thinsp;76,1000</td>
+            <td class="cifra">€&thinsp;3.805,00</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Totale &middot; prezzo medio</td>
+            <td class="cifra">220</td>
+            <td class="cifra">€&thinsp;68,3000</td>
+            <td class="cifra">€&thinsp;15.026,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p class="nota-sezione">
+      L&rsquo;aggiornamento riparte dalla fonte con cui il titolo &egrave; gi&agrave; registrato e
+      interroga l&rsquo;altra solo se quella non risponde. Vale la stessa guardia di buona
+      cittadinanza della <em>Ricerca titoli</em>: l&rsquo;archivio &egrave; uno solo.
+    </p>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="#">&larr; Torna al riepilogo</a>
+      <a class="bottone secondario" href="stati-riga-fonte.html">Gli stati del comando &rarr;</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">Scheda compilata a regola d&rsquo;arte &mdash; dati da fonte ufficiale</span>
+    <span><span class="timbro">Dati ufficiali</span> PortfolIA &middot; US-030</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-030 &middot; <a href="index.html">Comando disponibile</a> &middot;
+  <a href="stati-riga-fonte.html">Stati dell&rsquo;aggiornamento</a>
+</p>
+
+<script src="app.js"></script>
+</body>
+</html>
