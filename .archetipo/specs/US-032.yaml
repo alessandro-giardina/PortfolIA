@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-032
+title: Mostrare prezzo unitario e data di rilevamento nella tabella del riepilogo
+epic:
+  code: EP-005
+  title: Visualizzazione dei titoli
+priority: HIGH
+points: 3
+status: TODO
+scope: MVP
+body: |-
+  #### US-032: Mostrare prezzo unitario e data di rilevamento nella tabella del riepilogo
+
+  **Epic:** EP-005 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** US-017
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio vedere nella tabella dei titoli del riepilogo il prezzo unitario attuale di ogni titolo e la data e ora dell'ultimo rilevamento di quel prezzo,
+  in modo da capire a colpo d'occhio a quale prezzo è valorizzata ciascuna posizione e quanto è fresco il dato, senza aprire la scheda titolo per titolo.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, la tabella del riepilogo mostra sette colonne anziché cinque: alle attuali si aggiungono «Prezzo attuale» e «Ultimo rilevamento» (es. 08/08/2026 14:32), valorizzate per ogni titolo il cui prezzo è in archivio e riportate come «–» per gli altri.
+
+  **Criteri di Accettazione**
+  - [ ] La tabella del riepilogo mostra, per ogni titolo, una colonna con il prezzo unitario attuale, nello stesso formato numerico già usato per il prezzo medio di carico
+  - [ ] La tabella mostra una colonna con data e ora dell'ultimo rilevamento del prezzo, nel formato gg/mm/aaaa hh:mm
+  - [ ] Per un titolo il cui prezzo non è in archivio entrambe le nuove colonne mostrano «–», coerentemente con quanto già fanno «Valore attuale» e «Differenza»
+  - [ ] Il timestamp dell'ultimo rilevamento è esposto dall'endpoint delle posizioni arricchite, con test che ne verificano presenza e valore
+  - [ ] La riga di totale in fondo alla tabella resta allineata alle nuove colonne
+  - [ ] Il clic (e l'attivazione da tastiera) su una riga continua ad aprire la scheda del titolo come oggi
+history:
+  - status: TODO
+    at: "2026-08-08T14:23:11Z"

@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-031
+title: Allargare la pagina per sfruttare gli schermi ad alta risoluzione
+epic:
+  code: EP-000
+  title: Fondazione del progetto
+priority: HIGH
+points: 2
+status: TODO
+scope: MVP
+body: |-
+  #### US-031: Allargare la pagina per sfruttare gli schermi ad alta risoluzione
+
+  **Epic:** EP-000 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che il foglio dell'applicazione si estenda fino a 1440px invece degli attuali 1080px,
+  in modo da leggere tabelle con più colonne senza che i dati si comprimano o vadano a capo, sfruttando il monitor ad alta risoluzione su cui uso sempre l'app.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, aprendo una qualunque schermata dell'app su un monitor largo il foglio misura 1440px anziché 1080px — un terzo di spazio in più per le tabelle — mentre su una finestra stretta il layout resta identico a oggi.
+
+  **Criteri di Accettazione**
+  - [ ] Su una finestra sufficientemente larga il foglio si estende fino a 1440px, restando centrato e conservando i margini laterali attuali
+  - [ ] Su finestre più strette di quel limite il foglio continua ad adattarsi alla larghezza disponibile, senza introdurre scroll orizzontale di pagina
+  - [ ] Il comportamento alle soglie responsive già esistenti (840, 760 e 640px) resta invariato
+  - [ ] Le schermate esistenti — elenco portafogli, riepilogo, ricerca titolo, scheda titolo, dialog di scelta portafoglio — restano leggibili e composte alla nuova larghezza, senza elementi stirati o sperduti nello spazio in più
+  - [ ] La suite E2E esistente passa senza modifiche alle asserzioni funzionali
+history:
+  - status: TODO
+    at: "2026-08-08T14:23:11Z"
