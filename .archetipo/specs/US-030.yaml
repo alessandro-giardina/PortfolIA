@@ -6,7 +6,7 @@ epic:
   title: Visualizzazione dei titoli
 priority: MEDIUM
 points: 5
-status: REVIEW
+status: DONE
 blocked_by:
   - US-018
 body: |-
@@ -40,3 +40,5 @@ history:
     at: "2026-08-08T13:15:23Z"
   - status: REVIEW
     at: "2026-08-08T13:30:34Z"
+  - status: DONE
+    at: "2026-08-08T14:13:15Z"
