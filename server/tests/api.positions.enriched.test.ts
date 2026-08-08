@@ -91,13 +91,19 @@ async function addPosition(
   });
 }
 
-function insertSecurity(isin: string, name: string | null, price: number | null) {
+/**
+ * `fetchedAt` è opzionale: quando non è passato la colonna prende il default
+ * dello schema (`unixepoch()`), come nella scrittura reale della cache. I test
+ * che asseriscono il momento del rilevamento lo fissano a un valore noto,
+ * perché è l'unico modo di distinguere un timestamp propagato da uno inventato.
+ */
+function insertSecurity(isin: string, name: string | null, price: number | null, fetchedAt?: number) {
   testDb
     .insert(schema.securities)
-    .values({ isin, name, price })
+    .values(fetchedAt === undefined ? { isin, name, price } : { isin, name, price, fetched_at: fetchedAt })
     .onConflictDoUpdate({
       target: schema.securities.isin,
-      set: { name, price },
+      set: fetchedAt === undefined ? { name, price } : { name, price, fetched_at: fetchedAt },
     })
     .run();
 }
@@ -247,5 +253,124 @@ describe('GET /api/portfolios/:id/positions/enriched', () => {
     expect(second.currentPrice).toBeNull();
     expect(second.currentValue).toBeNull();
     expect(second.difference).toBeNull();
+  });
+
+  // -------------------------------------------------------------------------
+  // fetchedAt — momento dell'ultimo rilevamento del prezzo (US-032)
+  // -------------------------------------------------------------------------
+
+  it('ISIN in cache — espone il momento esatto dell ultimo rilevamento', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio Rilevamento');
+
+    const rilevatoIl = 1_770_000_000; // istante noto, non "adesso"
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.00, 40);
+    insertSecurity('IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF', 95.50, rilevatoIl);
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    expect(res.statusCode).toBe(200);
+    const rows = res.json<EnrichedPositionSummary[]>();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].fetchedAt).toBe(rilevatoIl);
+  });
+
+  it('ISIN senza security in cache — fetchedAt è null', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio Senza Rilevamento');
+
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.00, 40);
+    // Nessuna riga in cache: il rilevamento non esiste, non è "adesso"
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    expect(res.statusCode).toBe(200);
+    const rows = res.json<EnrichedPositionSummary[]>();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].fetchedAt).toBeNull();
+  });
+
+  it('carichi multipli sullo stesso ISIN — una sola riga, fetchedAt invariato', async () => {
+    // Il rilevamento appartiene al titolo, non al carico: aggregare tre carichi
+    // non deve moltiplicare le righe né alterare il timestamp.
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio Carichi Multipli');
+
+    const rilevatoIl = 1_769_500_000;
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.00, 40);
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 91.00, 60);
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 93.00, 10);
+    insertSecurity('IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF', 95.00, rilevatoIl);
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    expect(res.statusCode).toBe(200);
+    const rows = res.json<EnrichedPositionSummary[]>();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].totalQuantity).toBe(110);
+    expect(rows[0].fetchedAt).toBe(rilevatoIl);
+  });
+
+  it('riga in cache con prezzo nullo — fetchedAt resta valorizzato, il prezzo no', async () => {
+    // Stato raggiungibile: la fonte risponde con l'anagrafica ma senza quotazione.
+    // L'endpoint riporta ciò che l'archivio contiene — istante sì, prezzo no — e
+    // lascia al client la decisione su cosa mostrare accanto a un prezzo assente.
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio Prezzo Nullo');
+
+    const rilevatoIl = 1_767_000_000;
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.00, 40);
+    insertSecurity('IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF', null, rilevatoIl);
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    expect(res.statusCode).toBe(200);
+    const rows = res.json<EnrichedPositionSummary[]>();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].currentPrice).toBeNull();
+    expect(rows[0].currentValue).toBeNull();
+    expect(rows[0].difference).toBeNull();
+    expect(rows[0].fetchedAt).toBe(rilevatoIl);
+  });
+
+  it('due ISIN con rilevamenti distinti — ogni riga porta il proprio timestamp', async () => {
+    // `fetched_at` è raggruppato come le altre colonne della cache: due titoli
+    // distinti non devono mai scambiarsi l'istante di rilevamento.
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio Due Rilevamenti');
+
+    const rilevatoPrimo = 1_768_000_000;
+    const rilevatoSecondo = 1_771_000_000;
+
+    await addPosition(app, portfolioId, 'IE00B3RBWM25', 115.20, 20);
+    await addPosition(app, portfolioId, 'IE00B3RBWM25', 117.00, 5);
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.00, 40);
+    insertSecurity('IE00B3RBWM25', 'Vanguard FTSE All-World UCITS ETF', 120.00, rilevatoPrimo);
+    insertSecurity('IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF', 95.50, rilevatoSecondo);
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    expect(res.statusCode).toBe(200);
+    const rows = res.json<EnrichedPositionSummary[]>();
+    expect(rows).toHaveLength(2);
+    expect(rows[0].isin).toBe('IE00B3RBWM25');
+    expect(rows[0].fetchedAt).toBe(rilevatoPrimo);
+    expect(rows[1].isin).toBe('IE00B4L5Y983');
+    expect(rows[1].fetchedAt).toBe(rilevatoSecondo);
   });
 });

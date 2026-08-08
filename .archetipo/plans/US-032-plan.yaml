@@ -1,0 +1,173 @@
+schema: archetipo/plan/v2
+spec_code: US-032
+body: |
+  # US-032: Mostrare prezzo unitario e data di rilevamento nella tabella del riepilogo — Piano di implementazione
+
+  **Prodotto da:** Team di Pianificazione ARchetipo
+  **Data:** 2026-08-08
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-005 — Visualizzazione dei titoli
+  **Priorità:** HIGH | **Punti:** 3
+  **Bloccata da:** US-017 (stato DONE — nessun impedimento)
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio vedere nella tabella dei titoli del riepilogo il prezzo unitario attuale di ogni titolo e la data e ora dell'ultimo rilevamento di quel prezzo,
+  in modo da capire a colpo d'occhio a quale prezzo è valorizzata ciascuna posizione e quanto è fresco il dato, senza aprire la scheda titolo per titolo.
+
+  **Criteri di Accettazione**
+  - La tabella del riepilogo mostra, per ogni titolo, una colonna, in quarta posizione, con il prezzo unitario attuale, nello stesso formato numerico già usato per il prezzo medio di carico
+  - La tabella mostra una colonna, in quinta posizione, con data e ora dell'ultimo rilevamento del prezzo, nel formato gg/mm/aaaa hh:mm
+  - Per un titolo il cui prezzo non è in archivio entrambe le nuove colonne mostrano «–», coerentemente con quanto già fanno «Valore attuale» e «Differenza»
+  - Il timestamp dell'ultimo rilevamento è esposto dall'endpoint delle posizioni arricchite, con test che ne verificano presenza e valore
+  - La riga di totale in fondo alla tabella resta allineata alle nuove colonne
+  - Il clic (e l'attivazione da tastiera) su una riga continua ad aprire la scheda del titolo come oggi
+
+  ---
+
+  ## Soluzione Tecnica
+
+  L'incremento è quasi interamente di *esposizione*: il prezzo unitario corrente è già calcolato e trasportato dall'endpoint arricchito (`EnrichedPositionSummary.currentPrice`) e semplicemente non viene mai reso a schermo. L'unico dato realmente mancante è il timestamp dell'ultimo rilevamento, che vive in `securities.fetched_at` ed è già nella LEFT JOIN dell'endpoint — va solo selezionato e propagato. Nessuna migrazione, nessuna nuova chiamata alla fonte esterna, nessun nuovo endpoint.
+
+  - **Contratto condiviso** — `shared/types/index.ts`: `EnrichedPositionSummary` acquisisce `fetchedAt: number | null` (unix, secondi), con la stessa semantica già adottata da `PositionDetail.fetchedAt`: `null` significa «l'ISIN non è nella cache `securities`», mai «rilevato all'epoca zero». Il campo è additivo e non rompe nessun consumatore esistente.
+
+  - **Endpoint arricchito** — `server/src/api/positions.ts`, rotta `GET /api/portfolios/:id/positions/enriched`: aggiungere `fetchedAt: securities.fetched_at` alla `select` **e** `securities.fetched_at` alla `groupBy`. La seconda parte non è cosmetica: la query raggruppa per `positions.isin, securities.name, securities.price`, e una colonna selezionata ma non raggruppata verrebbe risolta da SQLite pescando una riga arbitraria del gruppo. Poiché la relazione con `securities` è 1-a-1 sull'ISIN, aggiungerla alla `groupBy` non altera il numero di gruppi. Il mapping riporta `row.fetchedAt ?? null`.
+
+  - **Formattazione della data** — `client/src/pages/PortfolioDetailPage.tsx`: nuova funzione locale `dataRilevamento(fetchedAt: number): string` che rende `gg/mm/aaaa hh:mm` da un unix timestamp in secondi. **Non** si riusa `dataRilevazione` di `SchedaTitolo.tsx`: quella produce lo stile registro a numeri romani (`15.III.2026 · 14:32`), mentre i criteri chiedono esplicitamente il formato numerico con le barre. Sono due rappresentazioni volutamente diverse, non una duplicazione da fattorizzare.
+
+  - **Tabella del riepilogo** — la `table.mastro` `data-testid="tabella-riepilogo"` passa da cinque a sette colonne. Le due nuove si inseriscono **fra** «Pr. medio carico» e «Valore attuale»: `Denominazione · ISIN | Quantità | Pr. medio carico | Prezzo attuale | Ultimo rilevamento | Valore attuale | Differenza`. Il prezzo attuale usa `toFixed(4)` con classe `cifra euro`, identico a come è già reso `avgLoadPrice` («stesso formato numerico del prezzo medio di carico»). La cella del rilevamento usa `cifra` senza `euro`.
+
+  - **Regola del dato mancante, un solo predicato** — entrambe le nuove celle degradano a «–» con classe `cifra dato-mancante` quando `ep.currentPrice === null`, esattamente come già fanno «Valore attuale» e «Differenza». La scelta è deliberata: una riga può esistere in `securities` con anagrafica popolata ma `price` a `NULL` (la colonna è nullable), e in quel caso mostrare un timestamp accanto a un prezzo assente racconterebbe che «il prezzo è stato rilevato», che è falso. Il criterio di accettazione lega infatti entrambe le colonne alla presenza del prezzo. La cella del rilevamento resta comunque difesa anche su `fetchedAt === null`, per l'ISIN fuori cache.
+
+  - **Riga di totale** — nel `tfoot` la cella etichetta è oggi `colSpan={3}` su cinque colonne; con sette colonne va portata a `colSpan={5}`. Senza questa modifica il totale del valore attuale finirebbe sotto «Prezzo attuale» e la differenza sotto «Ultimo rilevamento»: un difetto silenzioso, perché la tabella resta ben formata e solo i numeri sono nella colonna sbagliata. Le due colonne nuove non hanno un totale (sommare prezzi unitari o timestamp non ha significato contabile).
+
+  - **Interazione di riga invariata** — `onClick`/`onKeyDown` restano sul `<tr>`, quindi `apriSchedaTitolo` continua a rispondere su tutta la riga, comprese le celle nuove, senza alcuna modifica. Il criterio è coperto per costruzione, ma va comunque asserito in e2e per proteggerlo da regressioni future.
+
+  - **CSS** — nessuna modifica: `client/src/ledger.css` non contiene regole per-colonna su `.mastro` (solo `:first-child` e la zebratura per riga), e il contenitore `.tabella-scroll` ha già `overflow-x: auto`. La larghezza utile è inoltre appena cresciuta con US-031 (`--larghezza-foglio: 1440px`), quindi le sette colonne trovano posto senza scroll orizzontale alle soglie tipiche.
+
+  **Assunzioni registrate**
+  1. Il timestamp è reso nel fuso orario locale del client (`new Date(fetchedAt * 1000)`), coerentemente con `SchedaTitolo`. Non è previsto alcun indicatore di fuso.
+  2. `fetchedAt` è trasportato come unix in secondi, non come stringa già formattata: la formattazione è responsabilità della vista, come per ogni altro campo numerico del contratto.
+  3. Non si introduce alcuna evidenziazione di «dato stantio» (età del rilevamento): la spec chiede di *mostrare* il timestamp, non di giudicarlo.
+
+  ---
+
+  ## Strategia di Test
+
+  La copertura si articola su due livelli, perché il rischio è distribuito su due punti distinti: che il timestamp non arrivi correttamente dal server (query e aggregazione) e che la tabella lo presenti male o disallineato (rendering e riga di totale).
+
+  - **Integrazione API** — in `server/tests/api.positions.enriched.test.ts`, sulla suite esistente con database SQLite temporaneo: (a) un ISIN presente in `securities` espone `fetchedAt` con il valore esatto seminato, insieme a `currentPrice`; (b) un ISIN assente dalla cache espone `fetchedAt: null` insieme a `currentPrice: null`; (c) con più carichi sullo stesso ISIN il raggruppamento resta una sola riga e `fetchedAt` non si moltiplica né cambia — è la verifica che la `groupBy` sia stata estesa correttamente; (d) con due ISIN distinti in cache ciascuna riga porta il proprio `fetchedAt`, cioè nessuno scambio fra gruppi.
+
+  - **Regressione sul contratto** — le asserzioni esistenti su `currentValue`, `difference` e sull'ordinamento per ISIN devono restare verdi senza modifiche: il campo è additivo.
+
+  - **Verifica finale** — `npm run check` (lint + typecheck + test) e l'intera suite Playwright, per intercettare eventuali specs esistenti che contano le colonne o le celle della tabella di riepilogo (in particolare `US-014__valore-totale-portafoglio`, `US-017__visualizza-tabella-titoli`, `US-026__apre-scheda-riepilogo`).
+
+  ### Test E2E — Simulazione utente
+
+  **Framework:** Playwright (`e2e/`, con la fixture `archivio` di `e2e/support/fixtures.ts`)
+  **Registrazione video:** solo lo scenario demo (`docs/test-results/US-032/`); gli altri scenari girano senza video
+
+  Vincoli operativi del progetto da rispettare (da `CLAUDE.md`):
+  - **Due file spec, non uno.** `launchOptions.slowMo` non è scopabile a un `describe`, quindi lo scenario demo vive in un file dedicato con `test.use()` a livello di file, e le varianti in un file fratello — la coppia `US-026__*` è il modello.
+  - **Un ISIN scrivibile per file.** Il file demo *semina* il proprio titolo, il file varianti lo *rimuove* dalla cache: entrambe le direzioni sono scritture sullo stesso stack di undo, quindi servono due costanti distinte in `e2e/support/titoli.ts` (`TITOLO_US_032` e `ISIN_SENZA_PREZZO_US_032`), sul modello già adottato da US-018.
+  - **Pulizia nella fixture, mai in `finally`.** I portafogli si creano con `archivio.creaPortafoglio(...)` e le posizioni con `archivio.aggiungiPosizione(...)`; il teardown li rimuove anche in caso di timeout.
+  - **Timestamp atteso calcolato, non scritto a mano.** `seminaTitolo` accetta `fetched_at` esplicito fra i campi: lo scenario semina un istante noto e ricostruisce nel test la stringa attesa dallo stesso timestamp, così l'asserzione non dipende dal fuso orario né dall'ora di esecuzione. È sicuro seminare un `fetched_at` passato perché l'endpoint arricchito legge la cache con una LEFT JOIN e non contatta mai la fonte esterna — nessuno di questi scenari attraversa la ricerca titoli.
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Demo (con video) | L'utente ha un portafoglio con un titolo il cui prezzo è in archivio; apre il portafoglio, passa alla scheda «Riepilogo» e vede la tabella con sette colonne: verifica le intestazioni «Prezzo attuale» e «Ultimo rilevamento» in quarta e quinta posizione, il prezzo unitario reso con quattro decimali e la data nel formato gg/mm/aaaa hh:mm corrispondente all'istante di rilevamento; infine clicca la riga e la scheda titolo si apre come prima. |
+  | Prezzo non in archivio | Il portafoglio contiene un titolo assente dalla cache prezzi (rimosso via `archivio.rimuoviTitolo`): nella riga corrispondente «Prezzo attuale» e «Ultimo rilevamento» mostrano entrambe «–», in coerenza con «Valore attuale» e «Differenza» già mancanti. |
+  | Riga di totale allineata | Con almeno un titolo valorizzato, il piè di tabella espone la cella etichetta a `colSpan=5` e i due totali (valore attuale e differenza) nelle ultime due colonne, verificando che il totale del valore attuale coincida con quello mostrato nel riquadro «Valore attuale totale». |
+  | Attivazione da tastiera | Con il fuoco sulla riga del titolo, `Enter` apre la scheda titolo esattamente come il clic: la regressione più probabile di un rimaneggiamento della `<tr>`. |
+
+  ---
+
+  _Piano generato da ARchetipo Planning — 2026-08-08_
+tasks:
+  - id: TASK-01
+    title: Estendere EnrichedPositionSummary con fetchedAt
+    description: 'In shared/types/index.ts aggiungere il campo `fetchedAt: number | null` all''interfaccia EnrichedPositionSummary, documentandone la semantica (unix in secondi; null quando l''ISIN non è nella cache securities) con lo stesso linguaggio già usato per PositionDetail.fetchedAt.'
+    type: Impl
+    status: DONE
+    body: 'In shared/types/index.ts aggiungere il campo `fetchedAt: number | null` all''interfaccia EnrichedPositionSummary, documentandone la semantica (unix in secondi; null quando l''ISIN non è nella cache securities) con lo stesso linguaggio già usato per PositionDetail.fetchedAt.'
+    ref: TASK-01
+  - id: TASK-02
+    title: Esporre fetched_at dall'endpoint delle posizioni arricchite
+    description: 'In server/src/api/positions.ts, rotta GET /api/portfolios/:id/positions/enriched, aggiungere `fetchedAt: securities.fetched_at` alla select e `securities.fetched_at` alla groupBy, quindi propagare `row.fetchedAt ?? null` nel mapping verso EnrichedPositionSummary. Estendere la groupBy è obbligatorio: una colonna selezionata ma non raggruppata sarebbe risolta da SQLite su una riga arbitraria del gruppo.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'In server/src/api/positions.ts, rotta GET /api/portfolios/:id/positions/enriched, aggiungere `fetchedAt: securities.fetched_at` alla select e `securities.fetched_at` alla groupBy, quindi propagare `row.fetchedAt ?? null` nel mapping verso EnrichedPositionSummary. Estendere la groupBy è obbligatorio: una colonna selezionata ma non raggruppata sarebbe risolta da SQLite su una riga arbitraria del gruppo.'
+    ref: TASK-02
+  - id: TASK-03
+    title: Test di integrazione su fetchedAt nell'endpoint arricchito
+    description: 'In server/tests/api.positions.enriched.test.ts aggiungere i casi: valore esatto di fetchedAt per un ISIN in cache, null per un ISIN fuori cache, invarianza con più carichi sullo stesso ISIN (una sola riga aggregata), e nessuno scambio di timestamp fra due ISIN distinti. Verificare che le asserzioni preesistenti restino verdi.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+    body: 'In server/tests/api.positions.enriched.test.ts aggiungere i casi: valore esatto di fetchedAt per un ISIN in cache, null per un ISIN fuori cache, invarianza con più carichi sullo stesso ISIN (una sola riga aggregata), e nessuno scambio di timestamp fra due ISIN distinti. Verificare che le asserzioni preesistenti restino verdi.'
+    ref: TASK-03
+  - id: TASK-04
+    title: Aggiungere le colonne «Prezzo attuale» e «Ultimo rilevamento» alla tabella del riepilogo
+    description: 'In client/src/pages/PortfolioDetailPage.tsx introdurre la funzione locale `dataRilevamento(fetchedAt: number): string` nel formato gg/mm/aaaa hh:mm e inserire le due nuove colonne (intestazioni e celle) fra «Pr. medio carico» e «Valore attuale». Il prezzo usa toFixed(4) con classe `cifra euro`; entrambe le celle degradano a «–» con classe `cifra dato-mancante` quando currentPrice è null (o fetchedAt è null). Aggiungere data-testid stabili per le due celle, sul modello di `diff-${isin}`.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    body: 'In client/src/pages/PortfolioDetailPage.tsx introdurre la funzione locale `dataRilevamento(fetchedAt: number): string` nel formato gg/mm/aaaa hh:mm e inserire le due nuove colonne (intestazioni e celle) fra «Pr. medio carico» e «Valore attuale». Il prezzo usa toFixed(4) con classe `cifra euro`; entrambe le celle degradano a «–» con classe `cifra dato-mancante` quando currentPrice è null (o fetchedAt è null). Aggiungere data-testid stabili per le due celle, sul modello di `diff-${isin}`.'
+    ref: TASK-04
+  - id: TASK-05
+    title: Riallineare la riga di totale alle sette colonne
+    description: Nel tfoot della tabella di riepilogo portare la cella etichetta da colSpan={3} a colSpan={5}, così che i totali di valore attuale e differenza restino sotto le rispettive colonne. Le colonne di prezzo unitario e rilevamento non hanno totale.
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-04
+    body: Nel tfoot della tabella di riepilogo portare la cella etichetta da colSpan={3} a colSpan={5}, così che i totali di valore attuale e differenza restino sotto le rispettive colonne. Le colonne di prezzo unitario e rilevamento non hanno totale.
+    ref: TASK-05
+  - id: TASK-06
+    title: Riservare gli ISIN e2e di US-032
+    description: 'In e2e/support/titoli.ts aggiungere `TITOLO_US_032` (seminato dal file demo, con campi anagrafici e price espliciti) e `ISIN_SENZA_PREZZO_US_032` (rimosso dal file varianti), documentando in commento perché servono due costanti distinte: seminare e rimuovere sono entrambe scritture sullo stesso stack di undo dell''archivio.'
+    type: Test
+    status: DONE
+    body: 'In e2e/support/titoli.ts aggiungere `TITOLO_US_032` (seminato dal file demo, con campi anagrafici e price espliciti) e `ISIN_SENZA_PREZZO_US_032` (rimosso dal file varianti), documentando in commento perché servono due costanti distinte: seminare e rimuovere sono entrambe scritture sullo stesso stack di undo dell''archivio.'
+    ref: TASK-06
+  - id: TASK-07
+    title: 'E2E demo con video: prezzo unitario e data di rilevamento visibili nel riepilogo'
+    description: 'Creare e2e/US-032__prezzo-e-rilevamento.spec.ts con test.use({ video: ''on'', launchOptions: { slowMo } }) a livello di file. Lo scenario semina TITOLO_US_032 con un fetched_at noto, crea il portafoglio e la posizione via fixture archivio, apre la scheda Riepilogo, verifica intestazioni e valori delle due nuove colonne (stringa attesa ricostruita dal timestamp seminato, non scritta a mano), poi conferma che il clic sulla riga apre la scheda titolo. Salvare il video con page.video().saveAs(''docs/test-results/US-032/...webm'') in un afterEach dopo page.close().'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+      - TASK-05
+      - TASK-06
+    body: 'Creare e2e/US-032__prezzo-e-rilevamento.spec.ts con test.use({ video: ''on'', launchOptions: { slowMo } }) a livello di file. Lo scenario semina TITOLO_US_032 con un fetched_at noto, crea il portafoglio e la posizione via fixture archivio, apre la scheda Riepilogo, verifica intestazioni e valori delle due nuove colonne (stringa attesa ricostruita dal timestamp seminato, non scritta a mano), poi conferma che il clic sulla riga apre la scheda titolo. Salvare il video con page.video().saveAs(''docs/test-results/US-032/...webm'') in un afterEach dopo page.close().'
+    ref: TASK-07
+  - id: TASK-08
+    title: 'E2E varianti: dato mancante, riga di totale e attivazione da tastiera'
+    description: 'Creare e2e/US-032__prezzo-e-rilevamento-varianti.spec.ts (senza video) con tre scenari: (a) titolo il cui prezzo non è in archivio — rimosso con archivio.rimuoviTitolo(ISIN_SENZA_PREZZO_US_032) — mostra «–» in entrambe le nuove colonne; (b) la riga di totale resta allineata, con i due totali nelle ultime due colonne e il valore attuale coerente con il riquadro «Valore attuale totale»; (c) Enter sulla riga apre la scheda titolo come il clic.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+      - TASK-05
+      - TASK-06
+    body: 'Creare e2e/US-032__prezzo-e-rilevamento-varianti.spec.ts (senza video) con tre scenari: (a) titolo il cui prezzo non è in archivio — rimosso con archivio.rimuoviTitolo(ISIN_SENZA_PREZZO_US_032) — mostra «–» in entrambe le nuove colonne; (b) la riga di totale resta allineata, con i due totali nelle ultime due colonne e il valore attuale coerente con il riquadro «Valore attuale totale»; (c) Enter sulla riga apre la scheda titolo come il clic.'
+    ref: TASK-08
+  - id: TASK-09
+    title: 'Verifica finale: check completo e suite Playwright'
+    description: Eseguire `npm run check` e l'intera suite `npx playwright test`, correggendo eventuali specs esistenti che dipendono dal numero di colonne o dalla posizione delle celle nella tabella di riepilogo (US-014, US-017, US-026).
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+      - TASK-07
+      - TASK-08
+    body: Eseguire `npm run check` e l'intera suite `npx playwright test`, correggendo eventuali specs esistenti che dipendono dal numero di colonne o dalla posizione delle celle nella tabella di riepilogo (US-014, US-017, US-026).
+    ref: TASK-09

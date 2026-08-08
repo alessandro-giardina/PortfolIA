@@ -162,6 +162,48 @@ export const TITOLO_US_030_VARIANTI: TitoloSeminabile = {
   },
 };
 
+/**
+ * Riservato a `US-032__prezzo-e-rilevamento.spec.ts` (il file demo).
+ *
+ * Il prezzo è esplicito perché lo scenario legge la colonna «Prezzo attuale»
+ * della tabella di riepilogo e ne confronta il valore formattato. Il
+ * `fetched_at` non sta qui: lo scenario lo fissa a un istante noto per poter
+ * ricostruire la stringa attesa della colonna «Ultimo rilevamento» invece di
+ * scriverla a mano.
+ */
+export const TITOLO_US_032: TitoloSeminabile = {
+  isin: 'IE00BFY0GT14',
+  campi: {
+    name: 'Spdr Msci World Ucits Etf',
+    price: 137.92,
+    ticker: 'SWRD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,12%',
+    currency: 'EUR',
+    issuer: 'SSGA SPDR ETFS EUROPE I PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservato a `US-032__prezzo-e-rilevamento-varianti.spec.ts`.
+ *
+ * Il file lo semina *e* lo rimuove, a seconda dello scenario: le due nuove
+ * colonne a «–» partono da un cache miss (o da una riga senza prezzo), mentre
+ * l'allineamento della riga di totale e l'attivazione da tastiera hanno bisogno
+ * di una posizione valorizzata. Entrambe le direzioni sono la stessa pila di
+ * undo, quindi vale comunque la riserva per file — con in più il vincolo che gli
+ * scenari girino in serie dentro il file, come già fa Playwright
+ * (`fullyParallel: false`).
+ *
+ * L'anagrafica seminata sta nello scenario e non qui: cambia da uno scenario
+ * all'altro (con prezzo, con prezzo nullo) ed è la variabile che ciascuno mette
+ * alla prova, quindi tenerla sotto gli occhi del test vale più della simmetria
+ * con le altre costanti.
+ */
+export const ISIN_SENZA_PREZZO_US_032 = 'LU1650487413';
+
 /** Riservato a `US-026__schede-portafoglio.spec.ts`. */
 export const TITOLO_US_026: TitoloSeminabile = {
   isin: 'IE00BMVB5R75',

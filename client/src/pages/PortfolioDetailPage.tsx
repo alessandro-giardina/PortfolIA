@@ -12,6 +12,21 @@ function dataCarico(iso: string): string {
   return `${String(d).padStart(2,'0')}.${MESI_ROMANI[m - 1]}.${y}`;
 }
 
+/**
+ * Formatta il momento dell'ultimo rilevamento del prezzo (unix, secondi) come
+ * `gg/mm/aaaa hh:mm`. In tabella la data compatta si legge meglio della forma
+ * a mese romano usata dalla scheda titolo: la colonna è stretta e affiancata a
+ * cifre, e il confronto fra righe deve essere immediato.
+ */
+function dataRilevamento(fetchedAt: number): string {
+  const d = new Date(fetchedAt * 1000);
+  const gg = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${gg}/${mm}/${d.getFullYear()} ${hh}:${min}`;
+}
+
 type Scheda = 'riepilogo' | 'carico' | 'titolo';
 
 interface PrefillState {
@@ -527,6 +542,8 @@ export default function PortfolioDetailPage() {
                           <th>Denominazione &middot; ISIN</th>
                           <th>Quantità</th>
                           <th>Pr. medio carico</th>
+                          <th>Prezzo attuale</th>
+                          <th>Ultimo rilevamento</th>
                           <th>Valore attuale</th>
                           <th>Differenza</th>
                         </tr>
@@ -559,6 +576,31 @@ export default function PortfolioDetailPage() {
                             </td>
                             <td className="cifra">{ep.totalQuantity.toLocaleString('it-IT')}</td>
                             <td className="cifra euro">{ep.avgLoadPrice.toFixed(4)}</td>
+                            <td
+                              className={ep.currentPrice !== null ? 'cifra euro' : 'cifra dato-mancante'}
+                              data-testid={`prezzo-attuale-${ep.isin}`}
+                            >
+                              {ep.currentPrice !== null ? ep.currentPrice.toFixed(4) : '–'}
+                            </td>
+                            {/*
+                              Un solo predicato per entrambe le nuove colonne, e
+                              include `currentPrice`: una riga in cache può avere
+                              `fetched_at` valorizzato e `price` nullo, e mostrare
+                              lì un istante racconterebbe che «il prezzo è stato
+                              rilevato» — falso, e proprio accanto a un «–».
+                            */}
+                            <td
+                              className={
+                                ep.currentPrice !== null && ep.fetchedAt !== null
+                                  ? 'cifra'
+                                  : 'cifra dato-mancante'
+                              }
+                              data-testid={`rilevamento-${ep.isin}`}
+                            >
+                              {ep.currentPrice !== null && ep.fetchedAt !== null
+                                ? dataRilevamento(ep.fetchedAt)
+                                : '–'}
+                            </td>
                             <td className={ep.currentValue !== null ? 'cifra euro' : 'cifra dato-mancante'}>
                               {ep.currentValue !== null
                                 ? ep.currentValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -586,7 +628,7 @@ export default function PortfolioDetailPage() {
                         return (
                           <tfoot>
                             <tr>
-                              <td colSpan={3}>Totale portafoglio ({enrichedWithPrice.length} {enrichedWithPrice.length === 1 ? 'posizione valorizzata' : 'posizioni valorizzate'}{enrichedWithPrice.length < enrichedPositions.length ? ` di ${enrichedPositions.length}` : ''})</td>
+                              <td colSpan={5}>Totale portafoglio ({enrichedWithPrice.length} {enrichedWithPrice.length === 1 ? 'posizione valorizzata' : 'posizioni valorizzate'}{enrichedWithPrice.length < enrichedPositions.length ? ` di ${enrichedPositions.length}` : ''})</td>
                               <td className="cifra euro">{totalCurrentValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                               <td className={totalDiff >= 0 ? 'cifra guadagno' : 'cifra perdita'}>
                                 {`${totalDiff >= 0 ? '+' : ''}${totalDiff.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}

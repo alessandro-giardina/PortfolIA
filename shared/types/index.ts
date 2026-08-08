@@ -204,6 +204,8 @@ export interface EnrichedPositionSummary {
   currentValue: number | null;
   /** Differenza rispetto al carico: currentValue − (avgLoadPrice × totalQuantity), null se currentPrice è null. */
   difference: number | null;
+  /** Momento dell'ultimo rilevamento del prezzo (unix, secondi), null se l'ISIN non è nella cache securities. */
+  fetchedAt: number | null;
 }
 
 /**

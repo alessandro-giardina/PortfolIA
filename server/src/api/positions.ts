@@ -212,11 +212,16 @@ export async function positionsRoutes(fastify: FastifyInstance): Promise<void> {
         totalQuantity: sql<number>`SUM(${positions.quantity})`,
         weightedSum: sql<number>`SUM(${positions.load_price} * ${positions.quantity})`,
         currentPrice: securities.price,
+        fetchedAt: securities.fetched_at,
       })
       .from(positions)
       .leftJoin(securities, eq(positions.isin, securities.isin))
       .where(eq(positions.portfolio_id, portfolioId))
-      .groupBy(positions.isin, securities.name, securities.price)
+      // `fetched_at` sta nella GROUP BY come le altre colonne della cache: la join
+      // è 1-a-1 sull'ISIN, quindi oggi il valore sarebbe comunque univoco, ma
+      // raggruppare ciò che si seleziona tiene la query corretta per costruzione
+      // e non dipendente da come SQLite risolve una colonna non aggregata.
+      .groupBy(positions.isin, securities.name, securities.price, securities.fetched_at)
       .orderBy(positions.isin)
       .all();
 
@@ -233,6 +238,7 @@ export async function positionsRoutes(fastify: FastifyInstance): Promise<void> {
         currentPrice,
         currentValue,
         difference,
+        fetchedAt: row.fetchedAt ?? null,
       };
     });
 

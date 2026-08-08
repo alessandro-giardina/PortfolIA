@@ -6,7 +6,7 @@ epic:
   title: Visualizzazione dei titoli
 priority: HIGH
 points: 3
-status: TODO
+status: REVIEW
 scope: MVP
 body: |-
   #### US-032: Mostrare prezzo unitario e data di rilevamento nella tabella del riepilogo
@@ -20,11 +20,11 @@ body: |-
   in modo da capire a colpo d'occhio a quale prezzo è valorizzata ciascuna posizione e quanto è fresco il dato, senza aprire la scheda titolo per titolo.
 
   **Dimostra**
-  Dopo l'implementazione di questa spec, la tabella del riepilogo mostra sette colonne anziché cinque: alle attuali si aggiungono «Prezzo attuale» e «Ultimo rilevamento» (es. 08/08/2026 14:32), valorizzate per ogni titolo il cui prezzo è in archivio e riportate come «–» per gli altri.
+  Dopo l'implementazione di questa spec, la tabella del riepilogo mostra sette colonne anziché cinque: alle attuali si aggiungono, in quarta e quinta posizione, «Prezzo attuale» e «Ultimo rilevamento» (es. 08/08/2026 14:32), valorizzate per ogni titolo il cui prezzo è in archivio e riportate come «–» per gli altri.
 
   **Criteri di Accettazione**
-  - [ ] La tabella del riepilogo mostra, per ogni titolo, una colonna con il prezzo unitario attuale, nello stesso formato numerico già usato per il prezzo medio di carico
-  - [ ] La tabella mostra una colonna con data e ora dell'ultimo rilevamento del prezzo, nel formato gg/mm/aaaa hh:mm
+  - [ ] La tabella del riepilogo mostra, per ogni titolo, una colonna, in quarta posizione, con il prezzo unitario attuale, nello stesso formato numerico già usato per il prezzo medio di carico
+  - [ ] La tabella mostra una colonna, in quinta posizione, con data e ora dell'ultimo rilevamento del prezzo, nel formato gg/mm/aaaa hh:mm
   - [ ] Per un titolo il cui prezzo non è in archivio entrambe le nuove colonne mostrano «–», coerentemente con quanto già fanno «Valore attuale» e «Differenza»
   - [ ] Il timestamp dell'ultimo rilevamento è esposto dall'endpoint delle posizioni arricchite, con test che ne verificano presenza e valore
   - [ ] La riga di totale in fondo alla tabella resta allineata alle nuove colonne
@@ -32,3 +32,9 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-08T14:23:11Z"
+  - status: PLANNED
+    at: "2026-08-08T15:03:00Z"
+  - status: IN PROGRESS
+    at: "2026-08-08T15:04:01Z"
+  - status: REVIEW
+    at: "2026-08-08T15:38:31Z"
