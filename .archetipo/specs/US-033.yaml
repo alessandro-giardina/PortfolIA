@@ -1,0 +1,36 @@
+schema: archetipo/spec/v2
+code: US-033
+title: Rendere leggibili le sotto-etichette del modulo di iscrizione carico
+epic:
+  code: EP-003
+  title: Gestione delle posizioni
+priority: MEDIUM
+points: 2
+status: TODO
+body: |-
+  #### US-033: Rendere leggibili le sotto-etichette del modulo di iscrizione carico
+
+  **Epic:** EP-003 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che sotto ogni etichetta del modulo di iscrizione carico la nota esplicativa si legga come testo secondario a sé stante,
+  in modo da capire cosa inserire in ciascun campo senza dover districare due frasi fuse in una.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, aprendo la scheda di iscrizione carico ogni riga del modulo mostra l'etichetta in maiuscoletto e, su riga propria sotto di essa, la nota esplicativa in minuscolo — dove oggi si legge "QUANTITÀNUMERO INTERO DI QUOTE" si leggerà "QUANTITÀ" e sotto "numero intero di quote".
+
+  **Criteri di Accettazione**
+  - [ ] Nel modulo di iscrizione carico ogni sotto-etichetta è resa su riga propria sotto l'etichetta principale, in minuscolo, con corpo minore e colore attenuato che la distinguono a colpo d'occhio
+  - [ ] Tutte e cinque le note del modulo sono corrette: denominazione, ISIN, data carico, prezzo di acquisto e quantità
+  - [ ] L'associazione fra etichetta e campo resta intatta: un clic sull'etichetta, o sulla sua nota, porta ancora il focus sul campo corrispondente
+  - [ ] Un test fissa la resa su riga propria misurandola, e fallirebbe sullo stato attuale in cui le due parti sono affiancate
+  - [ ] Il modulo resta leggibile e senza scroll orizzontale alle soglie responsive già esistenti (840, 760 e 640px)
+  - [ ] La suite E2E esistente passa senza modifiche alle asserzioni funzionali
+
+  **Note**
+  Difetto pre-esistente, non una regressione: intercettato durante l'acceptance review di US-031 e verificato identico anche alle larghezze di foglio precedenti. La classe `.sotto-etichetta` non ha alcuna regola in `client/src/ledger.css`, mentre `.riga-modulo label` è `display: flex; align-items: center` con `text-transform: uppercase`: gli span diventano così flex item affiancati all'etichetta, in maiuscolo e senza spaziatura.
+history:
+  - status: TODO
+    at: "2026-08-08T15:52:49Z"
