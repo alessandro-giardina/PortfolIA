@@ -6,7 +6,7 @@ epic:
   title: Fondazione del progetto
 priority: HIGH
 points: 2
-status: REVIEW
+status: DONE
 scope: MVP
 body: |-
   #### US-031: Allargare la pagina per sfruttare gli schermi ad alta risoluzione
@@ -37,3 +37,5 @@ history:
     at: "2026-08-08T14:35:01Z"
   - status: REVIEW
     at: "2026-08-08T14:58:39Z"
+  - status: DONE
+    at: "2026-08-08T15:44:33Z"

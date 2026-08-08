@@ -6,7 +6,7 @@ epic:
   title: Visualizzazione dei titoli
 priority: HIGH
 points: 3
-status: REVIEW
+status: DONE
 scope: MVP
 body: |-
   #### US-032: Mostrare prezzo unitario e data di rilevamento nella tabella del riepilogo
@@ -38,3 +38,5 @@ history:
     at: "2026-08-08T15:04:01Z"
   - status: REVIEW
     at: "2026-08-08T15:38:31Z"
+  - status: DONE
+    at: "2026-08-08T15:44:33Z"
