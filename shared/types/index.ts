@@ -58,6 +58,20 @@ export interface SecurityInfo {
 export type DataSource = 'borsaitaliana' | 'morningstar';
 
 /**
+ * Normalizza in `DataSource` un valore letto dall'archivio, dove la colonna è un
+ * TEXT libero: `null` per un valore assente o non riconosciuto.
+ *
+ * Vive qui, accanto al tipo, perché la lettura di quella colonna avviene in più
+ * punti — l'anagrafica, il dettaglio del titolo, lo storico dei prezzi — e la
+ * regola «assenza ≠ Borsa Italiana» (FR-021) deve avere una sola
+ * implementazione: aggiungere un giorno una terza fonte con tre copie del
+ * controllo in giro significa dimenticarne una.
+ */
+export function normalizzaDataSource(value: string | null | undefined): DataSource | null {
+  return value === 'borsaitaliana' || value === 'morningstar' ? value : null;
+}
+
+/**
  * Conferma richiesta dalla guardia di buona cittadinanza prima di ripetere
  * lo scraping di un ISIN già in cache.
  * - `intra-session`: ricerca già effettuata nella sessione di mercato corrente
@@ -235,6 +249,28 @@ export interface EnrichedPositionSummary {
 }
 
 /**
+ * Una singola rilevazione di prezzo conservata nello storico locale (FR-018,
+ * ADR-008).
+ *
+ * Non è un punto di una serie storica recuperata dalla fonte: è il registro di
+ * ciò che gli aggiornamenti già esistenti hanno *osservato*. Lo storico è quindi
+ * rado per costruzione, e i giorni non osservati restano vuoti — nessun valore
+ * viene stimato né interpolato (ADR-003).
+ */
+export interface PriceObservation {
+  /** Prezzo rilevato. Sempre valorizzato: un'osservazione senza prezzo non esiste. */
+  price: number;
+  /** Istante del rilevamento (unix, secondi). */
+  observedAt: number;
+  /**
+   * Fonte che ha risposto al rilevamento, `null` quando non è registrata —
+   * l'osservazione discende da una riga di cache anteriore alla persistenza
+   * della provenienza. `null` non equivale a `'borsaitaliana'` (FR-021).
+   */
+  dataSource: DataSource | null;
+}
+
+/**
  * Dettaglio completo di un titolo iscritto a un portafoglio (FR-014).
  *
  * Compone in un'unica vista di sola lettura ciò che l'archivio già contiene:
@@ -300,4 +336,12 @@ export interface PositionDetail {
   // ─── Carichi individuali ──────────────────────────────────────────────────
   /** I carichi che compongono la posizione, ordinati per data di carico crescente. */
   loads: Position[];
+
+  // ─── Storico dei prezzi osservati (FR-018, ADR-008) ───────────────────────
+  /**
+   * Le rilevazioni di prezzo già registrate per questo ISIN, dalla più recente
+   * alla più antica. Vuoto quando nessuna rilevazione risulta in archivio: un
+   * array vuoto significa "nulla osservato", non "prezzo zero".
+   */
+  priceHistory: PriceObservation[];
 }

@@ -94,6 +94,49 @@ export interface IstantaneaTitolo {
   lasciata: RigaTitolo | undefined;
 }
 
+/**
+ * Un'osservazione di prezzo come la si semina: l'istante e la fonte sono
+ * espliciti, perché sono precisamente ciò che lo scenario mette alla prova.
+ */
+export interface OsservazioneSeminabile {
+  /** Prezzo rilevato. */
+  price: number;
+  /** Istante del rilevamento (unix, secondi). */
+  observed_at: number;
+  /**
+   * Fonte che ha risposto, oppure `null` per «fonte non registrata». Va
+   * dichiarata: lasciarla al caso renderebbe il timbro di riga dipendente da
+   * quale fonte ha popolato la cache per ultima.
+   */
+  data_source?: string | null;
+}
+
+/**
+ * Ciò che un test ha lasciato sulle osservazioni di un ISIN.
+ *
+ * Le osservazioni non hanno una chiave stabile come l'ISIN di `securities`:
+ * sono un insieme di righe. Il ripristino registra quindi l'insieme
+ * *precedente* per intero e lo riscrive in blocco, dopo aver rimosso tutto
+ * quanto risulta ora per quell'ISIN. Vale la stessa regola un-ISIN-per-file dei
+ * titoli: due file che seminassero osservazioni sulla stessa chiave si
+ * sovrascriverebbero l'undo a vicenda.
+ */
+export interface IstantaneaOsservazioni {
+  isin: string;
+  /** Le righe presenti prima dell'intervento del test: è qui che si torna. */
+  precedenti: RigaOsservazione[];
+}
+
+/** Riga della tabella `price_observations`. */
+export interface RigaOsservazione {
+  id: number;
+  isin: string;
+  price: number;
+  observed_at: number;
+  observed_day: string;
+  data_source: string | null;
+}
+
 /** Apre l'archivio, esegue `fn` e chiude sempre la connessione. */
 function conArchivio<T>(fn: (db: ConnessioneSQLite) => T): T {
   let db: ConnessioneSQLite;
@@ -196,6 +239,118 @@ export function rimuoviTitolo(isin: string): IstantaneaTitolo {
       return { isin, precedente, lasciata: undefined };
     }).immediate(),
   );
+}
+
+/**
+ * Il giorno civile di Roma di un istante, in formato `YYYY-MM-DD`.
+ *
+ * Deliberatamente *non* importato da `server/src/domain/marketHours.ts`, benché
+ * la regola sia la stessa. Il giorno civile è parte di ciò che la spec mette
+ * alla prova: prendendolo in prestito dal server, una sua eventuale svista lo
+ * seminerebbe anche nei dati di prova e diventerebbe invisibile. Le due
+ * implementazioni si controllano a vicenda.
+ */
+function giornoCivileRoma(observedAt: number): string {
+  const dtf = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Rome',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  // Il locale `en-CA` rende la data già come YYYY-MM-DD.
+  return dtf.format(new Date(observedAt * 1000));
+}
+
+/** Legge le osservazioni di un ISIN su una connessione già aperta. */
+function leggiOsservazioniSu(db: ConnessioneSQLite, isin: string): RigaOsservazione[] {
+  return db
+    .prepare('SELECT * FROM price_observations WHERE isin = ? ORDER BY observed_at DESC, id DESC')
+    .all(isin) as RigaOsservazione[];
+}
+
+/**
+ * Legge lo storico osservato di un ISIN, dal più recente al più antico.
+ *
+ * Di sola lettura e senza registrazione per il teardown: serve ad asserire cosa
+ * il server ha (o non ha) registrato, non a modificare l'archivio.
+ */
+export function leggiOsservazioni(isin: string): RigaOsservazione[] {
+  return conArchivio((db) => leggiOsservazioniSu(db, isin));
+}
+
+/**
+ * Semina lo storico di un ISIN con le osservazioni indicate, sostituendo quanto
+ * risulta ora, e restituisce l'istantanea per il ripristino.
+ *
+ * Sostituzione e non aggiunta: uno scenario che asserisce «due righe in ordine
+ * decrescente» deve poter garantire la propria premessa, e una riga residua —
+ * lasciata dal backfill all'avvio del server, o da un run precedente — la
+ * romperebbe in modo intermittente.
+ *
+ * `observed_day` è calcolato qui dall'istante seminato: è la colonna su cui
+ * poggia la deduplica, e lasciarla al chiamante significherebbe permettere a un
+ * test di seminare uno stato che il server non potrebbe mai produrre.
+ */
+export function seminaOsservazioni(
+  isin: string,
+  osservazioni: OsservazioneSeminabile[],
+): IstantaneaOsservazioni {
+  return conArchivio((db) =>
+    db.transaction((): IstantaneaOsservazioni => {
+      const precedenti = leggiOsservazioniSu(db, isin);
+      db.prepare('DELETE FROM price_observations WHERE isin = ?').run(isin);
+      const inserisci = db.prepare(
+        'INSERT INTO price_observations (isin, price, observed_at, observed_day, data_source) ' +
+          'VALUES (?, ?, ?, ?, ?)',
+      );
+      for (const osservazione of osservazioni) {
+        inserisci.run(
+          isin,
+          osservazione.price,
+          osservazione.observed_at,
+          giornoCivileRoma(osservazione.observed_at),
+          osservazione.data_source ?? null,
+        );
+      }
+      return { isin, precedenti };
+    }).immediate(),
+  );
+}
+
+/**
+ * Svuota lo storico di un ISIN, garantendo allo scenario che segue una scheda
+ * senza osservazioni, e restituisce l'istantanea per il ripristino.
+ */
+export function rimuoviOsservazioni(isin: string): IstantaneaOsservazioni {
+  return seminaOsservazioni(isin, []);
+}
+
+/**
+ * Riporta lo storico degli ISIN toccati allo stato precedente.
+ *
+ * Il ripristino non è condizionato come quello di `securities`, e la ragione è
+ * la regola un-ISIN-per-file: nessun altro file semina osservazioni sulla stessa
+ * chiave, quindi non esiste lo stato intermedio da riconoscere. Gli `id` non
+ * sono ripristinati — sono autoincrementali e nessuna asserzione li osserva —
+ * mentre le colonne che lo storico mostra tornano esattamente quelle di prima.
+ *
+ * Le istantanee sono applicate in ordine inverso, come uno stack di undo.
+ */
+export function ripristinaOsservazioni(istantanee: IstantaneaOsservazioni[]): void {
+  for (const istantanea of [...istantanee].reverse()) {
+    conArchivio((db) =>
+      db.transaction(() => {
+        db.prepare('DELETE FROM price_observations WHERE isin = ?').run(istantanea.isin);
+        const inserisci = db.prepare(
+          'INSERT INTO price_observations (isin, price, observed_at, observed_day, data_source) ' +
+            'VALUES (?, ?, ?, ?, ?)',
+        );
+        for (const riga of istantanea.precedenti) {
+          inserisci.run(riga.isin, riga.price, riga.observed_at, riga.observed_day, riga.data_source);
+        }
+      }).immediate(),
+    );
+  }
 }
 
 /**

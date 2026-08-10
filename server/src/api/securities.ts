@@ -2,11 +2,12 @@ import type { FastifyInstance } from 'fastify';
 import { eq } from 'drizzle-orm';
 import { db as defaultDb } from '../db/index.js';
 import { securities, type SecurityRow } from '../db/schema.js';
-import { isValidIsin, normalizeIsin } from '@portfolia/shared';
+import { isValidIsin, normalizeIsin, normalizzaDataSource } from '@portfolia/shared';
 import type { DataSource, SecurityInfo, SecurityLookupResponse } from '@portfolia/shared';
 import { fetchSecurityByIsin, type AdapterResult } from '../market/borsaItalianaAdapter.js';
 import { fetchSecurityByIsin as fetchSecurityByIsinMorningStar } from '../market/morningStarAdapter.js';
 import { classifyRefetch } from '../domain/marketHours.js';
+import { registraOsservazione } from '../domain/storicoPrezzi.js';
 
 type Db = typeof defaultDb;
 
@@ -152,9 +153,10 @@ function upsertSecurity(db: Db, sec: SecurityInfo, fetchedAt: number, dataSource
  * client dichiara la provenienza come non registrata.
  */
 function cachedDataSource(row: SecurityRow): DataSource | undefined {
-  return row.data_source === 'borsaitaliana' || row.data_source === 'morningstar'
-    ? row.data_source
-    : undefined;
+  // La regola di riconoscimento vive in un posto solo (`normalizzaDataSource`);
+  // qui cambia solo come si dichiara l'assenza, perché `SecurityLookupResponse`
+  // omette il campo invece di valorizzarlo a `null`.
+  return normalizzaDataSource(row.data_source) ?? undefined;
 }
 
 /**
@@ -236,6 +238,14 @@ export function securitiesRoutes(deps: SecuritiesDeps = {}) {
       }
 
       upsertSecurity(db, result.security, nowSeconds, result.dataSource);
+      // Lo storico dei prezzi osservati (US-009, FR-018) cresce esattamente qui:
+      // accanto alla scrittura in cache, con l'istante e la fonte del recupero
+      // appena avvenuto. Nessuno degli altri rami passa da questa riga — la
+      // guardia che risponde dalla cache, il 404 e il 502 lasciano l'archivio
+      // com'era — ed è ciò che rende vero il criterio «nessuna richiesta
+      // aggiuntiva alla fonte»: lo storico registra ciò che gli aggiornamenti
+      // già esistenti rilevano, e non provoca il minimo traffico proprio.
+      registraOsservazione(db, isin, result.security.price, nowDate, result.dataSource);
       const response: SecurityLookupResponse = {
         security: result.security,
         fromCache: false,

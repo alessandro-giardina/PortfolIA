@@ -475,3 +475,70 @@ export const TITOLO_US_035_VARIANTI_FRESCO: TitoloSeminabile = {
  * contattata.
  */
 export const ISIN_GUARDIA_US_035 = 'IE00B52VJ196';
+
+/**
+ * Riservato a `US-009__storico-prezzi.spec.ts` (il file demo).
+ *
+ * È il titolo di cui lo scenario dimostrativo semina due rilevazioni, in giorni
+ * e a prezzi diversi. `price` coincide con l'osservazione più recente seminata
+ * dalla spec: la scheda dichiara *quel* prezzo come attuale, e una divergenza
+ * fra la cifra in cima allo storico e quella del cartellino sarebbe, per chi
+ * guarda, un dato falso.
+ */
+export const TITOLO_US_009: TitoloSeminabile = {
+  isin: 'IE00BFY0GT14',
+  campi: {
+    name: 'Spdr Msci World Ucits Etf',
+    price: 128.46,
+    ticker: 'SWRD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,12%',
+    currency: 'EUR',
+    issuer: 'SPDR ETFS EUROPE I PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-009__storico-prezzi-varianti.spec.ts`.
+ *
+ * Regge tre scenari sullo stesso ISIN — una sola osservazione, due prezzi
+ * diversi nello stesso giorno, fonte non registrata — perché sono varianti dello
+ * stesso storico e ciascuno lo semina da capo. `data_source` resta esplicito per
+ * la stessa ragione di US-018: senza fissarlo, il timbro dipenderebbe da quale
+ * fonte ha popolato la cache per ultima.
+ */
+export const TITOLO_US_009_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00B3XXRP09',
+  campi: {
+    name: 'Vanguard S&P 500 Ucits Etf',
+    price: 104.2,
+    ticker: 'VUSA',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,07%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009).
+ *
+ * Serve alla bonifica di `globalSetup`, che è la rete sotto il run ucciso con
+ * SIGKILL: senza teardown, lo storico seminato resterebbe in archivio e il run
+ * successivo troverebbe righe in più dove asserisce un conteggio esatto.
+ *
+ * L'elenco è esplicito e non euristico, per la stessa ragione per cui la
+ * bonifica dei portafogli riconosce solo il marcatore di `nomeUnico`: qui si
+ * cancellano righe vere dall'archivio di sviluppo, e l'unico errore che non ci si
+ * può permettere è cancellare un'osservazione dell'utente.
+ */
+export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
+  TITOLO_US_009.isin,
+  TITOLO_US_009_VARIANTI.isin,
+];

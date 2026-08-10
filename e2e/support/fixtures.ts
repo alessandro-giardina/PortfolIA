@@ -21,12 +21,19 @@ import {
   type Portafoglio,
 } from './api.js';
 import {
+  leggiOsservazioni,
   leggiTitolo,
+  rimuoviOsservazioni,
   rimuoviTitolo,
+  ripristinaOsservazioni,
   ripristinaTitoli,
+  seminaOsservazioni,
   seminaTitolo,
   type CampiTitolo,
+  type IstantaneaOsservazioni,
   type IstantaneaTitolo,
+  type OsservazioneSeminabile,
+  type RigaOsservazione,
   type RigaTitolo,
 } from './archivio.js';
 import { nomeUnico } from './nomi.js';
@@ -74,6 +81,28 @@ export interface GestoreArchivio {
    * che l'archivio sia rimasto com'era, non a modificarlo.
    */
   leggiTitolo(isin: string): RigaTitolo | undefined;
+
+  /**
+   * Semina lo storico osservato di un ISIN (US-009), sostituendo quanto risulta
+   * ora; lo stato precedente è ripristinato in teardown.
+   *
+   * Seminare è l'unico modo corretto di mettere alla prova lo storico:
+   * intercettare la rotta di dettaglio con `route.fulfill()` proverebbe solo che
+   * il client sa disegnare una tabella, non che il server registra e ordina le
+   * rilevazioni.
+   */
+  seminaOsservazioni(isin: string, osservazioni: OsservazioneSeminabile[]): void;
+
+  /** Svuota lo storico di un ISIN; lo stato precedente è ripristinato. */
+  rimuoviOsservazioni(isin: string): void;
+
+  /**
+   * Legge lo storico di un ISIN, dal più recente al più antico.
+   *
+   * Di sola lettura e senza registrazione per il teardown: serve ad asserire che
+   * il server abbia (o non abbia) registrato una rilevazione.
+   */
+  leggiOsservazioni(isin: string): RigaOsservazione[];
 }
 
 export const test = base.extend<{ archivio: GestoreArchivio }>({
@@ -85,6 +114,7 @@ export const test = base.extend<{ archivio: GestoreArchivio }>({
     const idRegistrati: number[] = [];
     const nomiRegistrati: string[] = [];
     const istantanee: IstantaneaTitolo[] = [];
+    const istantaneeOsservazioni: IstantaneaOsservazioni[] = [];
 
     /**
      * Registra l'esito di un'operazione sulla cache. Lo stato *precedente* resta
@@ -98,6 +128,18 @@ export const test = base.extend<{ archivio: GestoreArchivio }>({
         istantanee.push(nuova);
       } else {
         esistente.lasciata = nuova.lasciata;
+      }
+    };
+
+    /**
+     * Registra l'esito di un'operazione sullo storico di un ISIN. Solo la
+     * *prima* istantanea è conservata: è quella che porta lo stato originale, e
+     * ogni operazione successiva sullo stesso ISIN parte già da uno stato
+     * prodotto da questo test.
+     */
+    const registraIstantaneaOsservazioni = (nuova: IstantaneaOsservazioni): void => {
+      if (!istantaneeOsservazioni.some((i) => i.isin === nuova.isin)) {
+        istantaneeOsservazioni.push(nuova);
       }
     };
 
@@ -126,6 +168,13 @@ export const test = base.extend<{ archivio: GestoreArchivio }>({
         registraIstantanea(rimuoviTitolo(isin));
       },
       leggiTitolo,
+      seminaOsservazioni(isin, osservazioni) {
+        registraIstantaneaOsservazioni(seminaOsservazioni(isin, osservazioni));
+      },
+      rimuoviOsservazioni(isin) {
+        registraIstantaneaOsservazioni(rimuoviOsservazioni(isin));
+      },
+      leggiOsservazioni,
     };
 
     await use(gestore);
@@ -168,6 +217,12 @@ export const test = base.extend<{ archivio: GestoreArchivio }>({
       ripristinaTitoli(istantanee);
     } catch {
       /* archivio bloccato: meglio un residuo in cache che un teardown che esplode */
+    }
+
+    try {
+      ripristinaOsservazioni(istantaneeOsservazioni);
+    } catch {
+      /* come sopra: la bonifica al run successivo rimedia */
     }
   },
 });

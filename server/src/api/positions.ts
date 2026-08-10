@@ -1,9 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, desc, sql, and } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { portfolios, positions, securities } from '../db/schema.js';
-import type { Position, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, DataSource } from '@portfolia/shared';
-import { isValidIsin, normalizeIsin } from '@portfolia/shared';
+import { portfolios, positions, priceObservations, securities } from '../db/schema.js';
+import type { Position, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, PriceObservation } from '@portfolia/shared';
+import { isValidIsin, normalizeIsin, normalizzaDataSource } from '@portfolia/shared';
 import { classifyPriceFreshness } from '../domain/marketHours.js';
 
 /**
@@ -32,13 +32,13 @@ function toPosition(row: typeof positions.$inferSelect): Position {
 /** RegExp formato data ISO-8601 YYYY-MM-DD */
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-/**
- * Normalizza la colonna `securities.data_source` nel tipo condiviso.
- * Un valore assente o non riconosciuto diventa `null` — "fonte non registrata" —
- * e non viene mai reinterpretato come Borsa Italiana (FR-021).
- */
-function toDataSource(value: string | null | undefined): DataSource | null {
-  return value === 'borsaitaliana' || value === 'morningstar' ? value : null;
+/** Mappa una riga di `price_observations` nell'osservazione condivisa (US-009). */
+function toPriceObservation(row: typeof priceObservations.$inferSelect): PriceObservation {
+  return {
+    price: row.price,
+    observedAt: row.observed_at,
+    dataSource: normalizzaDataSource(row.data_source),
+  };
 }
 
 export async function positionsRoutes(
@@ -159,6 +159,19 @@ export async function positionsRoutes(
 
     const security = db.select().from(securities).where(eq(securities.isin, isin)).get();
 
+    // Lo storico delle rilevazioni già osservate (US-009, FR-018): dalla più
+    // recente alla più antica. `id DESC` scioglie il pari merito fra due
+    // osservazioni dello stesso istante — prezzi diversi rilevati nello stesso
+    // secondo — mettendo comunque per prima quella registrata per ultima, così
+    // l'ordine è totale e la prima riga è sempre l'ultima rilevazione.
+    // È una lettura d'archivio: nessuna fonte esterna viene contattata.
+    const observationRows = db
+      .select()
+      .from(priceObservations)
+      .where(eq(priceObservations.isin, isin))
+      .orderBy(desc(priceObservations.observed_at), desc(priceObservations.id))
+      .all();
+
     const totalQuantity = loadRows.reduce((sum, row) => sum + row.quantity, 0);
     const weightedSum = loadRows.reduce((sum, row) => sum + row.load_price * row.quantity, 0);
     const avgLoadPrice = totalQuantity > 0 ? weightedSum / totalQuantity : 0;
@@ -189,9 +202,10 @@ export async function positionsRoutes(
       issuer: security?.issuer ?? null,
       segment: security?.segment ?? null,
       dividendPolicy: security?.dividend_policy ?? null,
-      dataSource: toDataSource(security?.data_source),
+      dataSource: normalizzaDataSource(security?.data_source),
       fetchedAt: security?.fetched_at ?? null,
       loads: loadRows.map(toPosition),
+      priceHistory: observationRows.map(toPriceObservation),
     };
 
     return reply.status(200).send(detail);

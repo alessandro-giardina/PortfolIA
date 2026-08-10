@@ -19,7 +19,9 @@
  * il passo ai test, che falliranno da soli con un messaggio più utile.
  */
 import { BASE_API, elencaPortafogli, eliminaPortafoglio, type Portafoglio } from './api.js';
+import { rimuoviOsservazioni } from './archivio.js';
 import { MARCATORE_E2E } from './nomi.js';
+import { ISIN_CON_OSSERVAZIONI_E2E } from './titoli.js';
 
 /**
  * Un portafoglio è residuo della suite se porta il marcatore di `nomeUnico`.
@@ -52,11 +54,40 @@ async function attendiServer(tentativi = 20): Promise<boolean> {
   return false;
 }
 
+/**
+ * Rimuove lo storico dei prezzi seminato dalla suite (US-009).
+ *
+ * Va per SQL diretto e non per API — non esiste un endpoint che cancelli
+ * osservazioni, e non deve esistere — e non ha bisogno della cautela della
+ * cancellazione a cascata: `price_observations` non ha figli.
+ *
+ * Il raggio d'azione è limitato agli ISIN che la suite si è riservata, elencati
+ * in `titoli.ts`. Un criterio più largo — «tutte le osservazioni antecedenti al
+ * run», o quelle di ISIN mai iscritti a un portafoglio — cancellerebbe lo storico
+ * di un titolo dell'utente, che è precisamente il dato che US-009 promette di
+ * conservare.
+ */
+function bonificaOsservazioni(): void {
+  let rimossi = 0;
+  for (const isin of ISIN_CON_OSSERVAZIONI_E2E) {
+    try {
+      rimossi += rimuoviOsservazioni(isin).precedenti.length;
+    } catch (causa) {
+      console.warn(`[e2e] bonifica osservazioni di ${isin} non completata: ${String(causa)}`);
+    }
+  }
+  if (rimossi > 0) {
+    console.log(`[e2e] bonifica: rimosse ${rimossi} osservazioni residue.`);
+  }
+}
+
 export default async function bonifica(): Promise<void> {
   if (!(await attendiServer())) {
     console.warn(`[e2e] bonifica saltata: ${BASE_API} non raggiungibile.`);
     return;
   }
+
+  bonificaOsservazioni();
 
   try {
     const residui = (await elencaPortafogli()).filter(eResiduoDiTest);

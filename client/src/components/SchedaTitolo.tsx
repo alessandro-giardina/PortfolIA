@@ -47,6 +47,11 @@ function dataCarico(iso: string): string {
   return `${String(d).padStart(2, '0')}.${MESI_ROMANI[m - 1]}.${y}`;
 }
 
+/** Giorno della settimana di una rilevazione, es. "lunedì". */
+function giornoSettimana(observedAt: number): string {
+  return new Date(observedAt * 1000).toLocaleDateString('it-IT', { weekday: 'long' });
+}
+
 /** Cifra con due decimali all'italiana, es. "28.261,20". */
 function importo(valore: number): string {
   return valore.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -85,9 +90,13 @@ function VoceAnagrafica({ etichetta, valore }: { etichetta: string; valore: stri
 /**
  * Scheda di dettaglio di un titolo iscritto a portafoglio (US-018, FR-014).
  *
- * Tre sezioni, come da mockup `docs/mockups/US-018/index.html`: il cartellino
- * della posizione a conto, l'anagrafica ufficiale con la riga di provenienza
- * del dato (FR-021) e l'elenco dei carichi registrati.
+ * Quattro sezioni: il cartellino della posizione a conto, l'anagrafica ufficiale
+ * con la riga di provenienza del dato (FR-021) e l'elenco dei carichi registrati
+ * — come da mockup `docs/mockups/US-018/index.html` — seguiti dallo storico dei
+ * prezzi osservati (US-009, `docs/mockups/US-009/index.html` e
+ * `prima-osservazione.html`). Lo storico è una lettura d'archivio come tutto il
+ * resto della scheda: mostra le rilevazioni che gli aggiornamenti già esistenti
+ * hanno prodotto, senza provocarne di nuove.
  *
  * Dalla riga di provenienza si può chiedere l'aggiornamento dei dati (US-030):
  * è l'unica azione della scheda che contatta la fonte, e passa dallo stesso
@@ -260,6 +269,7 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
   if (detail === null) return null;
 
   const numeroCarichi = detail.loads.length;
+  const numeroOsservazioni = detail.priceHistory.length;
   const inGuadagno = detail.difference !== null && detail.difference >= 0;
   const simboloValuta = simboloDi(detail.currency);
   const inAttesa = esito?.tipo === 'in-corso';
@@ -543,6 +553,123 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
           <>
             I campi contrassegnati &laquo;{NON_DISPONIBILE}&raquo; non sono presenti in archivio:
             PortfolIA non mostra denominazioni, prezzi o valori stimati.
+          </>
+        )}
+      </p>
+
+      {/* ===== 4. Storico prezzi (US-009, FR-018) ===== */}
+      <div className="sezione-titolo">
+        Storico prezzi
+        <span className="nota">
+          FR-018 &middot; le quotazioni gi&agrave; rilevate &middot; nessuna richiesta in pi&ugrave;
+          alla fonte
+        </span>
+      </div>
+
+      <div className="tabella-scroll">
+        <table
+          className="mastro"
+          data-testid="tabella-storico-prezzi"
+          aria-label="Storico dei prezzi rilevati per questo titolo"
+        >
+          <thead>
+            <tr>
+              <th>Data di rilevamento</th>
+              <th>Prezzo rilevato</th>
+              <th>Fonte</th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* La sezione c'è anche senza osservazioni: una tabella assente sarebbe
+                indistinguibile da una funzionalità che non ha caricato. La riga
+                vuota dichiara l'assenza invece di lasciarla interpretare. */}
+            {numeroOsservazioni === 0 ? (
+              <tr className="riga-vuota">
+                <td colSpan={3} data-testid="storico-prezzi-vuoto">
+                  Nessuna rilevazione registrata per questo titolo.
+                </td>
+              </tr>
+            ) : (
+              detail.priceHistory.map((osservazione, indice) => (
+                <tr
+                  key={`${osservazione.observedAt}-${osservazione.price}`}
+                  className={indice === 0 ? 'rilevazione-ultima' : undefined}
+                  data-testid={`osservazione-${indice}`}
+                >
+                  <td>
+                    <span className="voce">
+                      <strong>
+                        {dataRilevazione(osservazione.observedAt)}
+                        {indice === 0 && (
+                          <span className="postilla-ultima">
+                            {numeroOsservazioni === 1 ? 'unica' : 'ultima'}
+                          </span>
+                        )}
+                      </strong>
+                      <small>{giornoSettimana(osservazione.observedAt)}</small>
+                    </span>
+                  </td>
+                  <td className="cifra" data-testid={`osservazione-prezzo-${indice}`}>
+                    {simboloValuta} {prezzo(osservazione.price)}
+                  </td>
+                  <td>
+                    {/* Come nel timbro di provenienza: la fonte non registrata è
+                        dichiarata tale, non attribuita d'ufficio alla primaria. */}
+                    {osservazione.dataSource === null ? (
+                      <span className="timbro-riga ignota">Fonte non registrata</span>
+                    ) : (
+                      <span
+                        className={`timbro-riga${osservazione.dataSource === 'morningstar' ? ' di-backup' : ''}`}
+                      >
+                        {nomeFonte(osservazione.dataSource)}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* L'avviso di radità sta sotto la tabella, non dentro: non riguarda una
+          riga, ma ciò che fra le righe manca. È la trasparenza di ADR-003
+          applicata a una copertura storica parziale per costruzione. */}
+      <div className="avviso-rado" data-testid="avviso-storico-rado">
+        {numeroOsservazioni === 0 ? (
+          <span>
+            Lo storico si popola dai tuoi aggiornamenti &mdash; ricerca titolo, scheda titolo,
+            aggiornamento dei titoli obsoleti. Per questo titolo nessun prezzo risulta ancora
+            rilevato, e nessuna quotazione viene ricostruita.
+          </span>
+        ) : numeroOsservazioni === 1 ? (
+          <span>
+            Lo storico contiene per ora <b>una sola</b> rilevazione: <b>parte da qui</b> e cresce
+            dai prossimi aggiornamenti. Non esistono quotazioni anteriori, e nessuna viene
+            ricostruita.
+          </span>
+        ) : (
+          <span>
+            Lo storico registra soltanto le <b>{numeroOsservazioni}</b> quotazioni che i tuoi
+            aggiornamenti hanno gi&agrave; rilevato &mdash; ricerca titolo, scheda titolo,
+            aggiornamento dei titoli obsoleti. I giorni non osservati restano vuoti: PortfolIA non
+            li stima e non li interpola.
+          </span>
+        )}
+      </div>
+
+      <p className="nota-sezione" data-testid="nota-storico-prezzi">
+        {numeroOsservazioni <= 1 ? (
+          <>
+            Una riga sola non &egrave; un difetto della scheda: &egrave; quanto l&rsquo;archivio
+            contiene. Il prossimo aggiornamento in un giorno diverso, o a un prezzo diverso,
+            aggiunger&agrave; la seconda.
+          </>
+        ) : (
+          <>
+            Due rilevazioni dello stesso giorno con lo stesso prezzo contano come una sola
+            osservazione; con prezzi diversi restano entrambe. Il giorno &egrave; quello civile di
+            Roma.
           </>
         )}
       </p>

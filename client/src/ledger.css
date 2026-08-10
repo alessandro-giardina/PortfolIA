@@ -1662,3 +1662,74 @@ body {
   .riquadro-conteggio .motivo-inattivo { text-align: left; max-width: none; }
   .riga-lavoro .azione-lavoro { margin-left: 0; width: 100%; }
 }
+
+/* ============================================================
+   US-009 — Storico dei prezzi osservati
+   (portato da docs/mockups/US-009/shared.css)
+
+   Il registro delle rilevazioni che gli aggiornamenti dell'utente hanno già
+   prodotto: rado per costruzione, mai interpolato (ADR-008, ADR-003).
+   ============================================================ */
+
+/* Nessuna regola di allineamento portata dal mockup: là `.allineato-dx` serviva
+   perché quel foglio allineava a sinistra le intestazioni del mastro, mentre qui
+   `.mastro thead th` e `.mastro tbody td` sono già a destra per difetto (solo la
+   prima colonna è a sinistra). Riportarla darebbe una classe che non fa nulla. */
+
+/* Timbro di fonte in formato minuto, per stare dentro una cella di tabella:
+   la stessa grammatica di `.timbro-fonte`, senza la rotazione — in tabella un
+   timbro storto sfalserebbe l'allineamento della colonna. */
+.timbro-riga {
+  display: inline-block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 10px;
+  padding: 2px 7px;
+  border: 1.5px solid var(--ottone);
+  color: var(--ottone);
+  white-space: nowrap;
+}
+.timbro-riga.di-backup { border-color: var(--rosso-margine); color: var(--rosso-margine); }
+.timbro-riga.ignota    { border-color: var(--seppia); color: var(--seppia); border-style: dashed; }
+
+/* La riga più recente porta il filo rosso del margine: è la rilevazione da cui
+   discendono prezzo attuale, valore e differenza mostrati sopra. */
+.mastro tbody tr.rilevazione-ultima td:first-child {
+  box-shadow: inset 3px 0 0 var(--rosso-margine);
+}
+.mastro tbody tr.rilevazione-ultima td { background: rgba(217,191,120,.2); }
+.postilla-ultima {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 9.5px;
+  color: var(--rosso-margine);
+  margin-left: 8px;
+  vertical-align: 1px;
+}
+
+/* Avviso di radità: sta sotto la tabella, non dentro, perché non riguarda una
+   riga ma ciò che fra le righe manca. Il filo punteggiato lo distingue dagli
+   avvisi a filo pieno, che parlano di dati presenti. */
+.avviso-rado {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(110,90,54,.5);
+  border-left: 4px dotted var(--seppia);
+  background: rgba(110,90,54,.06);
+  font-family: 'IM Fell English', serif;
+  font-size: 13.5px;
+  font-style: italic;
+  color: var(--seppia);
+}
+.avviso-rado b {
+  font-style: normal;
+  font-family: 'Courier Prime', monospace;
+  font-size: 13px;
+  color: var(--inchiostro);
+}

@@ -1,4 +1,4 @@
-import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 export const portfolios = sqliteTable('portfolios', {
@@ -62,3 +62,49 @@ export const positions = sqliteTable('positions', {
 });
 
 export type PositionRow = typeof positions.$inferSelect;
+
+/**
+ * Storico dei prezzi *osservati* (FR-018, ADR-008).
+ *
+ * Non è una serie storica recuperata dalla fonte: ogni riga è una rilevazione
+ * che un aggiornamento già esistente ha prodotto — ricerca titolo, scheda
+ * titolo, aggiornamento massivo dei titoli obsoleti. Nessuna richiesta in più
+ * alla fonte nasce da questa tabella, ed è ciò che rende la buona cittadinanza
+ * vera per costruzione al prezzo di una copertura rada.
+ *
+ * `price` è NOT NULL: una rilevazione senza prezzo non è un'osservazione e non
+ * va registrata. `observed_day` è il giorno civile di Roma (YYYY-MM-DD) del
+ * rilevamento, denormalizzato perché è la chiave della deduplica: SQLite non sa
+ * convertire un unix timestamp in un giorno DST-aware, quindi il giorno viene
+ * calcolato in TypeScript e scritto qui. `data_source` è nullable con la stessa
+ * semantica di `securities.data_source`: NULL è "fonte non registrata", mai
+ * Borsa Italiana per default (FR-021).
+ *
+ * L'indice UNIQUE su (isin, observed_day, price) *è* la regola di deduplica:
+ * due rilevazioni dello stesso giorno allo stesso prezzo sono la stessa
+ * osservazione, mentre prezzi diversi nello stesso giorno restano entrambi.
+ */
+export const priceObservations = sqliteTable(
+  'price_observations',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    isin: text('isin').notNull(),
+    price: real('price').notNull(),
+    observed_at: integer('observed_at')
+      .notNull()
+      .default(sql`(unixepoch())`),
+    /** Giorno civile di Roma del rilevamento, formato TEXT YYYY-MM-DD. */
+    observed_day: text('observed_day').notNull(),
+    data_source: text('data_source'),
+  },
+  (table) => ({
+    osservazioneUnica: uniqueIndex('price_observations_isin_day_price_unique').on(
+      table.isin,
+      table.observed_day,
+      table.price,
+    ),
+    perLettura: index('price_observations_isin_observed_at_idx').on(table.isin, table.observed_at),
+  }),
+);
+
+export type PriceObservationRow = typeof priceObservations.$inferSelect;

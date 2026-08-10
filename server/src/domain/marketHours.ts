@@ -157,6 +157,24 @@ function formatDate(p: RomeParts): string {
 }
 
 /**
+ * Il giorno civile di Roma di un istante, in formato `YYYY-MM-DD` (US-009).
+ *
+ * È la chiave con cui lo storico dei prezzi decide se due rilevazioni cadono
+ * nello stesso giorno. Vive qui, e non in un modulo suo, per riusare
+ * `getRomeParts`: una seconda implementazione del fuso potrebbe divergere da
+ * quella della guardia di buona cittadinanza proprio ai confini DST, dove
+ * l'errore è più difficile da vedere e più facile da introdurre.
+ *
+ * Il giorno è quello *locale*, non quello UTC: alle 23:30 UTC del 9 agosto a
+ * Roma è già l'1:30 del 10, e le due rilevazioni non appartengono allo stesso
+ * giorno civile anche se lo stesso `Date` UTC lo suggerirebbe.
+ */
+export function giornoCivileRoma(date: Date): string {
+  const p = getRomeParts(date);
+  return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+}
+
+/**
  * Classifica una richiesta di ri-recupero di un ISIN già in cache rispetto agli
  * orari di mercato:
  * - `intra-session`: già recuperato nella sessione corrente (advisory soft).

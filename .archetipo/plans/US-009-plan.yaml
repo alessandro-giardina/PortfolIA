@@ -6,103 +6,116 @@ tasks:
     title: Definire i tipi condivisi dell'osservazione di prezzo
     description: 'Aggiungere in shared/types l''interfaccia PriceObservation ({ price, observedAt, dataSource: DataSource | null }) e il campo priceHistory: PriceObservation[] su PositionDetail, documentando che dataSource null significa «fonte non registrata» e non equivale a ''borsaitaliana''.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'Aggiungere in shared/types l''interfaccia PriceObservation ({ price, observedAt, dataSource: DataSource | null }) e il campo priceHistory: PriceObservation[] su PositionDetail, documentando che dataSource null significa «fonte non registrata» e non equivale a ''borsaitaliana''.'
+    ref: TASK-01
   - id: TASK-02
     title: Aggiungere la tabella price_observations con il vincolo di deduplica
     description: Estendere lo schema Drizzle con price_observations (isin, price NOT NULL, observed_at, observed_day TEXT YYYY-MM-DD, data_source nullable), un indice UNIQUE su (isin, observed_day, price) e un indice di lettura su (isin, observed_at); generare la migrazione con npm run db:generate --workspace=server.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: Estendere lo schema Drizzle con price_observations (isin, price NOT NULL, observed_at, observed_day TEXT YYYY-MM-DD, data_source nullable), un indice UNIQUE su (isin, observed_day, price) e un indice di lettura su (isin, observed_at); generare la migrazione con npm run db:generate --workspace=server.
+    ref: TASK-02
   - id: TASK-03
     title: Scrivere il giorno civile di Roma e la registrazione dell'osservazione
     description: 'Esportare giornoCivileRoma(date) da server/src/domain/marketHours.ts riusando getRomeParts (nessuna seconda implementazione del fuso) e creare server/src/domain/storicoPrezzi.ts con registraOsservazione(db, isin, price, observedAt, dataSource): omette la scrittura quando price è null e delega la deduplica all''indice UNIQUE con onConflictDoNothing().'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
     body: 'Esportare giornoCivileRoma(date) da server/src/domain/marketHours.ts riusando getRomeParts (nessuna seconda implementazione del fuso) e creare server/src/domain/storicoPrezzi.ts con registraOsservazione(db, isin, price, observedAt, dataSource): omette la scrittura quando price è null e delega la deduplica all''indice UNIQUE con onConflictDoNothing().'
+    ref: TASK-03
   - id: TASK-04
     title: Provare il giorno civile e la semantica di deduplica
     description: 'Test unitari su giornoCivileRoma (23:30 UTC d''estate, i due passaggi di ora legale, mezzanotte locale) e su registraOsservazione nei quattro casi: stesso giorno stesso prezzo → una riga, stesso giorno prezzi diversi → due, giorni diversi prezzo invariato → due, prezzo nullo → nessuna.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: 'Test unitari su giornoCivileRoma (23:30 UTC d''estate, i due passaggi di ora legale, mezzanotte locale) e su registraOsservazione nei quattro casi: stesso giorno stesso prezzo → una riga, stesso giorno prezzi diversi → due, giorni diversi prezzo invariato → due, prezzo nullo → nessuna.'
+    ref: TASK-04
   - id: TASK-05
     title: Registrare l'osservazione nel solo ramo di recupero fresco
     description: 'In server/src/api/securities.ts invocare registraOsservazione accanto a upsertSecurity, con l''istante e la fonte del recupero appena avvenuto. Il ramo in cui la guardia risponde dalla cache con confirmation, e i rami 404 e 502, non registrano nulla: nessuna fonte è stata contattata e l''archivio resta com''era.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: 'In server/src/api/securities.ts invocare registraOsservazione accanto a upsertSecurity, con l''istante e la fonte del recupero appena avvenuto. Il ramo in cui la guardia risponde dalla cache con confirmation, e i rami 404 e 502, non registrano nulla: nessuna fonte è stata contattata e l''archivio resta com''era.'
+    ref: TASK-05
   - id: TASK-06
     title: Provare quali rami dell'endpoint registrano e quali no
     description: 'Test di integrazione su GET /api/securities/:isin con adapter finto e orologio iniettato: recupero fresco → una osservazione con fonte e istante corretti; risposta della guardia con confirmation → zero osservazioni; 404 e 502 → zero; due recuperi a orologio spostato su giorni distinti → due righe.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-05
     body: 'Test di integrazione su GET /api/securities/:isin con adapter finto e orologio iniettato: recupero fresco → una osservazione con fonte e istante corretti; risposta della guardia con confirmation → zero osservazioni; 404 e 502 → zero; due recuperi a orologio spostato su giorni distinti → due righe.'
+    ref: TASK-06
   - id: TASK-07
     title: Popolare lo storico dai titoli già in archivio
     description: 'Aggiungere un backfill idempotente invocato da runMigrations() dopo migrate(): una osservazione per ogni riga di securities con price non nullo, usando fetched_at come istante, il suo data_source e giornoCivileRoma(fetched_at). In TypeScript e non in SQL, perché il giorno civile deve venire dalla stessa implementazione DST-aware del percorso di runtime.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: 'Aggiungere un backfill idempotente invocato da runMigrations() dopo migrate(): una osservazione per ogni riga di securities con price non nullo, usando fetched_at come istante, il suo data_source e giornoCivileRoma(fetched_at). In TypeScript e non in SQL, perché il giorno civile deve venire dalla stessa implementazione DST-aware del percorso di runtime.'
+    ref: TASK-07
   - id: TASK-08
     title: Provare il backfill e la sua idempotenza
     description: 'Test di integrazione su un db di prova: una osservazione per ogni titolo con prezzo, nessuna per i titoli senza prezzo, fonte e istante ripresi dalla riga di cache, e una seconda esecuzione che non aggiunge alcuna riga.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-07
     body: 'Test di integrazione su un db di prova: una osservazione per ogni titolo con prezzo, nessuna per i titoli senza prezzo, fonte e istante ripresi dalla riga di cache, e una seconda esecuzione che non aggiunge alcuna riga.'
+    ref: TASK-08
   - id: TASK-09
     title: Restituire lo storico nel dettaglio del titolo
     description: 'In GET /api/portfolios/:id/positions/:isin/detail leggere price_observations per l''ISIN ordinate per observed_at DESC, id DESC e valorizzare priceHistory. Resta una vista di sola lettura: nessuna fonte esterna viene contattata.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
       - TASK-02
     body: 'In GET /api/portfolios/:id/positions/:isin/detail leggere price_observations per l''ISIN ordinate per observed_at DESC, id DESC e valorizzare priceHistory. Resta una vista di sola lettura: nessuna fonte esterna viene contattata.'
+    ref: TASK-09
   - id: TASK-10
     title: Provare ordinamento e casi vuoti di priceHistory
     description: 'Test di integrazione sull''endpoint di dettaglio: ordine decrescente rispettato, priceHistory vuoto per un titolo senza osservazioni, data_source non riconosciuto o assente restituito come null e mai come ''borsaitaliana''.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-09
     body: 'Test di integrazione sull''endpoint di dettaglio: ordine decrescente rispettato, priceHistory vuoto per un titolo senza osservazioni, data_source non riconosciuto o assente restituito come null e mai come ''borsaitaliana''.'
+    ref: TASK-10
   - id: TASK-11
     title: Mostrare la sezione «Storico prezzi» nella scheda titolo
     description: Aggiungere in client/src/components/SchedaTitolo.tsx la quarta sezione dopo «Carichi registrati» — tabella con data di rilevamento, prezzo e timbro di fonte, righe in ordine decrescente, prima riga marcata come ultima rilevazione, nota di sezione sui giorni non osservati — con gli stili in client/src/ledger.css portati dai mockup docs/mockups/US-009/ (index.html e prima-osservazione.html). La tabella è presente anche con una sola osservazione; il «pettine» dei mockup è fuori scopo.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-09
     body: Aggiungere in client/src/components/SchedaTitolo.tsx la quarta sezione dopo «Carichi registrati» — tabella con data di rilevamento, prezzo e timbro di fonte, righe in ordine decrescente, prima riga marcata come ultima rilevazione, nota di sezione sui giorni non osservati — con gli stili in client/src/ledger.css portati dai mockup docs/mockups/US-009/ (index.html e prima-osservazione.html). La tabella è presente anche con una sola osservazione; il «pettine» dei mockup è fuori scopo.
+    ref: TASK-11
   - id: TASK-12
     title: Aggiungere le primitive di test sulle osservazioni
     description: Estendere e2e/support/archivio.ts con le primitive per seminare, rimuovere e ripristinare le osservazioni di price_observations (test-only, mai importate dal server), esporle sulla fixture archivio, riservare gli ISIN delle nuove spec in e2e/support/titoli.ts e far rimuovere a bonifica.ts le osservazioni residue della suite.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
     body: Estendere e2e/support/archivio.ts con le primitive per seminare, rimuovere e ripristinare le osservazioni di price_observations (test-only, mai importate dal server), esporle sulla fixture archivio, riservare gli ISIN delle nuove spec in e2e/support/titoli.ts e far rimuovere a bonifica.ts le osservazioni residue della suite.
+    ref: TASK-12
   - id: TASK-13
     title: Provare la scheda con lo storico dal lato utente
     description: 'Due spec Playwright: US-009__storico-prezzi.spec.ts (dimostrativa, con slowMo e video salvato in docs/test-results/US-009/ tramite page.video().saveAs() dopo page.close()) per le due rilevazioni in giorni e a prezzi diversi in ordine decrescente; e US-009__storico-prezzi-varianti.spec.ts per la singola osservazione, i due prezzi diversi nello stesso giorno e la fonte non registrata. Le osservazioni sono seminate con la fixture archivio, mai prodotte intercettando la rotta.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-11
       - TASK-12
     body: 'Due spec Playwright: US-009__storico-prezzi.spec.ts (dimostrativa, con slowMo e video salvato in docs/test-results/US-009/ tramite page.video().saveAs() dopo page.close()) per le due rilevazioni in giorni e a prezzi diversi in ordine decrescente; e US-009__storico-prezzi-varianti.spec.ts per la singola osservazione, i due prezzi diversi nello stesso giorno e la fonte non registrata. Le osservazioni sono seminate con la fixture archivio, mai prodotte intercettando la rotta.'
+    ref: TASK-13
