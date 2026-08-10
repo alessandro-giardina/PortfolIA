@@ -1,0 +1,32 @@
+schema: archetipo/spec/v2
+code: US-039
+title: Commutare il grafico fra prezzo unitario e valore della posizione
+epic:
+  code: EP-007
+  title: P&L e grafico del singolo titolo
+priority: MEDIUM
+points: 3
+status: TODO
+body: |
+  #### US-039: Commutare il grafico fra prezzo unitario e valore della posizione
+
+  **Epic:** EP-007 | **Priorità:** MEDIUM | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** US-036
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio poter commutare il grafico del titolo fra l'andamento del prezzo unitario e quello del valore della mia posizione,
+  in modo da vedere sia come si è mosso il mercato sia quanto vale nel tempo il pacchetto che detengo.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, su un titolo con un carico nel 2021 e uno nel 2023 la vista "valore della posizione" mostra il gradino verticale in corrispondenza del secondo carico, esplicitamente etichettato come capitale versato e non come rendimento.
+
+  **Criteri di Accettazione**
+  - [ ] Un comando commuta la curva fra prezzo unitario e valore della posizione, mantenendo invariata la scala temporale selezionata
+  - [ ] Il prezzo unitario resta la vista predefinita
+  - [ ] Nella vista valore, la quantità applicata a ogni data è quella effettivamente detenuta a quella data: i carichi successivi non retroagiscono sul passato
+  - [ ] Ogni gradino verticale dovuto a un nuovo carico è dichiarato come capitale versato, distinto dalla performance
+  - [ ] La linea del prezzo medio di carico ha senso solo nella vista prezzo unitario e non compare come riferimento nella vista valore
+history:
+  - status: TODO
+    at: "2026-08-10T20:06:17Z"

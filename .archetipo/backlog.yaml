@@ -15,6 +15,8 @@ epics:
     title: Visualizzazione dei titoli
   - code: EP-006
     title: Grafico andamento del portafoglio
+  - code: EP-007
+    title: P&L e grafico del singolo titolo
 order:
   - US-015
   - US-016
@@ -50,3 +52,7 @@ order:
   - US-035
   - US-033
   - US-009
+  - US-036
+  - US-037
+  - US-038
+  - US-039

@@ -1,0 +1,37 @@
+schema: archetipo/spec/v2
+code: US-036
+title: Visualizzare il grafico dell'andamento del prezzo del titolo
+epic:
+  code: EP-007
+  title: P&L e grafico del singolo titolo
+priority: HIGH
+points: 5
+status: TODO
+body: |
+  #### US-036: Visualizzare il grafico dell'andamento del prezzo del titolo
+
+  **Epic:** EP-007 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio vedere in fondo alla scheda titolo un grafico dell'andamento del suo prezzo dal primo carico registrato a oggi,
+  in modo da cogliere a colpo d'occhio come si è mosso quel titolo rispetto a quanto l'ho pagato (FR-015, ADR-008).
+
+  **Nota di scopo**
+  È la fetta sul singolo ISIN che precede il grafico del portafoglio intero (EP-006): stessa disciplina sui dati, superficie più piccola e verificabile. La serie non viene richiesta alla fonte — si compone di ciò che l'archivio già contiene, cioè le rilevazioni registrate da US-009 e i prezzi dei carichi, che sono quotazioni reali a date reali.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, aprendo la scheda di un titolo con due carichi e due rilevazioni l'utente vede, sotto la tabella "Storico prezzi", un grafico con quattro punti — due prezzi di carico e due quotazioni rilevate, graficamente distinti — attraversato dalla linea orizzontale del prezzo medio di carico.
+
+  **Criteri di Accettazione**
+  - [ ] In fondo alla scheda titolo, sotto "Storico prezzi", compare un grafico dell'andamento del prezzo unitario del titolo
+  - [ ] La serie copre di default dal primo carico registrato a oggi
+  - [ ] I punti provengono da due sole origini d'archivio — le rilevazioni registrate e i prezzi dei carichi — distinguibili fra loro nel grafico e dichiarati in legenda
+  - [ ] Una linea di riferimento orizzontale segna il prezzo medio ponderato di carico, così che il guadagno latente sia leggibile come distanza fra curva e linea
+  - [ ] Ogni punto corrisponde a un dato presente in archivio: nessun valore è stimato o interpolato, e il grafico dichiara che fra due punti non esistono rilevazioni
+  - [ ] Un titolo con un solo carico e nessuna rilevazione mostra comunque il grafico con il punto disponibile, senza area vuota ambigua
+  - [ ] La costruzione del grafico non genera alcuna richiesta alla fonte
+history:
+  - status: TODO
+    at: "2026-08-10T20:06:17Z"

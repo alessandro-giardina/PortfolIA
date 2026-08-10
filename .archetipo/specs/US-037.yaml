@@ -1,0 +1,32 @@
+schema: archetipo/spec/v2
+code: US-037
+title: Selezionare la scala temporale del grafico del titolo
+epic:
+  code: EP-007
+  title: P&L e grafico del singolo titolo
+priority: HIGH
+points: 2
+status: TODO
+body: |
+  #### US-037: Selezionare la scala temporale del grafico del titolo
+
+  **Epic:** EP-007 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** US-036
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio cambiare la scala temporale del grafico del titolo fra ultimo mese, ultimo anno, ultimi 5 anni, ultimi 10 anni e tutto lo storico,
+  in modo da analizzare l'andamento sull'orizzonte che mi interessa senza dover leggere l'intera serie (FR-016).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, l'utente seleziona "ultimo mese" su un titolo le cui uniche rilevazioni sono di quest'anno e il grafico si restringe a quell'intervallo; selezionando "ultimi 10 anni" ottiene la dichiarazione esplicita di quando la copertura dei dati comincia davvero.
+
+  **Criteri di Accettazione**
+  - [ ] L'utente può scegliere fra cinque scale: ultimo mese, ultimo anno, ultimi 5 anni, ultimi 10 anni, tutto lo storico
+  - [ ] "Tutto lo storico" — dal primo carico a oggi — è la scala predefinita all'apertura della scheda
+  - [ ] Il grafico si aggiorna coerentemente con la scala selezionata
+  - [ ] Una scala priva di dati nell'intervallo dichiara "dato non disponibile" invece di mostrare un grafico vuoto (ADR-003)
+  - [ ] Una scala più lunga della storia disponibile dichiara da quando i dati esistono, senza lasciar intendere una copertura piena
+history:
+  - status: TODO
+    at: "2026-08-10T20:06:17Z"

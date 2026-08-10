@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-038
+title: Mostrare il P&L del titolo accanto al suo grafico
+epic:
+  code: EP-007
+  title: P&L e grafico del singolo titolo
+priority: HIGH
+points: 3
+status: TODO
+body: |
+  #### US-038: Mostrare il P&L del titolo accanto al suo grafico
+
+  **Epic:** EP-007 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** US-037
+
+  **User Story**
+  Come Giulia, investitrice prudente,
+  voglio vedere accanto al grafico il guadagno complessivo rispetto a quanto ho speso e, separatamente, quanto il titolo si è mosso nel periodo che sto guardando,
+  in modo da non scambiare la performance di un periodo per il mio guadagno reale (FR-011, FR-012).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, sotto il grafico compaiono due metriche etichettate distintamente: il P&L da carico — che con due carichi a prezzi diversi coincide con la "Differenza" già mostrata in *Posizione a conto* — e la variazione di periodo, che cambia al cambiare della scala e si dichiara non disponibile sulle scale prive di rilevazioni.
+
+  **Criteri di Accettazione**
+  - [ ] Sotto il grafico compaiono due metriche distinte ed etichettate: P&L da carico e variazione di periodo, ciascuna in € e in percentuale
+  - [ ] Il P&L da carico considera tutti i carichi del titolo tramite il prezzo medio ponderato sulle quantità, e coincide con la "Differenza" di *Posizione a conto*: due letture dello stesso fatto non possono divergere
+  - [ ] La variazione di periodo confronta la prima e l'ultima rilevazione comprese nella scala selezionata
+  - [ ] Una scala che contiene meno di due rilevazioni mostra "dato non disponibile" per la variazione di periodo, mai zero
+  - [ ] Cambiando scala la variazione di periodo si aggiorna, mentre il P&L da carico resta invariato perché non dipende dall'orizzonte
+  - [ ] Le definizioni delle due metriche sono verificate da test sui calcoli, incluso il caso di più carichi a prezzi e quantità diversi
+history:
+  - status: TODO
+    at: "2026-08-10T20:06:17Z"
