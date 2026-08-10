@@ -244,9 +244,10 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 - **ADR-002 — Scraping di Borsa Italiana isolato in un adapter:** la fonte dati è il sito ufficiale via `searchengine/search.html?q=<ISIN>`; tutta la logica fragile di parsing HTML è confinata in un unico modulo (anti-corruption layer).
 - **ADR-003 — Trasparenza totale sui dati mancanti:** quando un orizzonte storico non è disponibile, l'app dichiara "dato non disponibile" e non stima né interpola valori.
 - **ADR-004 — Nessuna autenticazione:** l'app è single-user, locale e non esposta all'esterno; l'auth è esplicitamente fuori scope.
-- **ADR-005 — Cache locale dei prezzi storici:** le serie storiche recuperate sono persistite su SQLite per performance e per minimizzare le richieste alla fonte.
+- **ADR-005 — Cache locale dei prezzi storici** *(superata da ADR-008)*: le serie storiche recuperate sono persistite su SQLite per performance e per minimizzare le richieste alla fonte. Decisione presa quando si dava per acquisito il recupero della serie storica completa dalla fonte; conservata come record storico.
 - **ADR-006 — Full-stack TypeScript:** un solo linguaggio e tipi condivisi tra client e server per ridurre la complessità.
 - **ADR-007 — Fonte di backup MorningStar con fallback e provenienza visibile:** quando Borsa Italiana non trova il titolo o è irraggiungibile, il sistema interroga MorningStar (`https://global.morningstar.com/it`) tramite un secondo adapter isolato dietro la stessa interfaccia della fonte primaria. La provenienza (fonte primaria o di backup) è mostrata all'utente. Estende ADR-002 e mitiga il rischio di blocco/fragilità della singola fonte; le regole di Buona Cittadinanza (User-Agent corretto, basso volume, caching) valgono per entrambe le fonti.
+- **ADR-008 — Storico prezzi osservazionale invece di serie storica recuperata** *(supera ADR-005)*: lo storico dei prezzi non viene richiesto alla fonte, ma si accumula registrando le quotazioni già rilevate durante gli aggiornamenti che l'utente provoca (ricerca titolo, scheda titolo, aggiornamento massivo dei titoli obsoleti). Motivazione: il recupero della serie storica decennale via scraping era l'assunzione a maggior rischio del progetto — copertura incerta per gli ETF di emissione recente e muro anti-bot già incontrato con la fonte di backup — e la sua riuscita non dipendeva da noi. Con lo storico osservazionale la Buona Cittadinanza diventa vera per costruzione: la funzionalità non aggiunge una sola richiesta alla fonte. Costo accettato: lo storico è **rado** e parte dall'entrata in esercizio, quindi gli orizzonti lunghi (5 e 10 anni) resteranno a lungo "dato non disponibile" secondo ADR-003. La deduplica delle osservazioni è per giorno civile (Europe/Rome) e non per prezzo: due giorni consecutivi a prezzo invariato restano due osservazioni distinte, perché comprimerle renderebbe un dato piatto indistinguibile da un dato assente.
 
 ---
 
@@ -290,7 +291,7 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 
 ### Persistenza e dati iniziali
 
-- **FR-017:** Tutti i dati (portafogli, posizioni, anagrafica e serie storiche in cache) sono persistiti localmente su SQLite tra le sessioni.
+- **FR-017:** Tutti i dati (portafogli, posizioni, anagrafica in cache e storico dei prezzi osservati) sono persistiti localmente su SQLite tra le sessioni.
 - **FR-018:** Il sistema registra localmente le quotazioni rilevate durante gli aggiornamenti richiesti dall'utente (ricerca titolo, scheda titolo, aggiornamento massivo), costruendo nel tempo uno storico dei prezzi senza mai contattare la fonte per ottenerlo. Lo storico è rado per costruzione — contiene solo i giorni effettivamente osservati — e i periodi non osservati sono dichiarati mancanti secondo ADR-003, mai stimati.
 - **FR-019:** All'inizializzazione il sistema popola i dati con gli ISIN seed `IT0003128367`, `IE00BMVB5S82`, `IE00BMVB5R75`.
 
