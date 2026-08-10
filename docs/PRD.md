@@ -8,6 +8,8 @@
 
 ## Elevator Pitch
 
+<!-- archetipo:prd section=elevator_pitch required=true -->
+
 > PortfolIA è una web app locale e privata che ti permette di tracciare il rendimento reale dei tuoi portafogli di titoli nel tempo, partendo dai dati ufficiali di Borsa Italiana.
 >
 > Per un **investitore privato che gestisce in autonomia i propri investimenti**, che ha il problema di **non avere una visione unificata e veritiera del rendimento reale dei propri titoli nel tempo**, **PortfolIA** è una **web app personale di portfolio tracking** che **calcola valore attuale e profit & loss multi-orizzonte a partire dai dati ufficiali di mercato**. A differenza di **un foglio di calcolo manuale o dell'area clienti del singolo broker**, il nostro prodotto **aggrega più portafogli, recupera automaticamente i dati per ISIN e gira interamente in locale, senza account, cloud o condivisione di dati finanziari sensibili**.
@@ -15,6 +17,8 @@
 ---
 
 ## Vision
+
+<!-- archetipo:prd section=vision required=true -->
 
 PortfolIA nasce per dare a un investitore privato uno strumento personale, onesto e sotto pieno controllo per rispondere a una domanda semplice ma difficile: *"i miei investimenti stanno effettivamente rendendo, e quanto?"*. La vision è uno strumento che privilegia la **verità del dato** sopra ogni cosa: nessun numero stimato o inventato, solo ciò che proviene da fonti ufficiali; quando un dato non esiste, l'app lo dichiara apertamente. Tutto questo girando in locale, senza autenticazione né esposizione esterna, perché i dati finanziari personali non devono lasciare la macchina dell'utente.
 
@@ -30,6 +34,8 @@ A differenza dei portali dei broker (che mostrano solo i titoli detenuti presso 
 ---
 
 ## User Personas
+
+<!-- archetipo:prd section=user_personas required=true -->
 
 ### Persona 1: Alessandro, l'investitore-proprietario
 
@@ -97,6 +103,8 @@ A differenza dei portali dei broker (che mostrano solo i titoli detenuti presso 
 
 ## Brainstorming Insights
 
+<!-- archetipo:prd section=brainstorming_insights required=true -->
+
 > Scoperte chiave e direzioni alternative esplorate durante la sessione di inception.
 
 ### Assunzioni messe in discussione
@@ -131,6 +139,8 @@ A differenza dei portali dei broker (che mostrano solo i titoli detenuti presso 
 
 ## Product Scope
 
+<!-- archetipo:prd section=product_scope required=true -->
+
 ### MVP - Minimum Viable Product
 
 1. **Gestione multi-portafoglio:** creare, rinominare ed eliminare più portafogli virtuali.
@@ -161,6 +171,8 @@ A differenza dei portali dei broker (che mostrano solo i titoli detenuti presso 
 ---
 
 ## Technical Architecture
+
+<!-- archetipo:prd section=technical_architecture required=true -->
 
 > **Proposta da:** Leonardo (Architect)
 
@@ -253,6 +265,8 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 
 ## Functional Requirements
 
+<!-- archetipo:prd section=functional_requirements required=true -->
+
 ### Gestione portafogli
 
 - **FR-001:** L'utente può creare un nuovo portafoglio assegnandogli un nome.
@@ -299,6 +313,8 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 
 ## Non-Functional Requirements
 
+<!-- archetipo:prd section=non_functional_requirements required=true -->
+
 ### Sicurezza
 
 - L'applicazione gira esclusivamente in locale (`localhost`) e non espone alcuna interfaccia di rete verso l'esterno.
@@ -316,6 +332,8 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 ---
 
 ## Next Steps
+
+<!-- archetipo:prd section=next_steps required=true -->
 
 1. **Backlog** - Esegui `/archetipo-spec` per trasformare questo PRD in un backlog
 2. **Design** - Esegui `/archetipo-design` per i mockup della UI (quando applicabile)
