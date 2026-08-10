@@ -204,6 +204,85 @@ export const TITOLO_US_032: TitoloSeminabile = {
  */
 export const ISIN_SENZA_PREZZO_US_032 = 'LU1650487413';
 
+/**
+ * Riservati a `US-034__rilevamento-obsoleto.spec.ts` (il file demo).
+ *
+ * Due titoli, perché lo scenario deve mostrare la *differenza*: uno seminato con
+ * `fetched_at` fissato a una sessione di borsa passata, l'altro senza istante
+ * esplicito — cioè adesso, per il default di `seminaTitolo`.
+ *
+ * Perché i due verdetti sono stabili a qualunque ora giri la suite: un
+ * rilevamento «adesso» non può risultare obsoleto, perché
+ * `classifyRefetch(now, now)` è `intra-session` a mercato aperto e `no-session`
+ * altrimenti — mai `none`, l'unico esito che il server mappa su «obsoleto».
+ * Simmetricamente, un istante fissato nel passato resta obsoleto per sempre,
+ * perché il passato non si avvicina. Nessuno dei due scenari dipende dall'orario
+ * di esecuzione.
+ *
+ * Seminare un `fetched_at` vecchio è sicuro qui: la vista di riepilogo legge la
+ * cache con una LEFT JOIN e non attraversa mai `GET /api/securities/:isin`,
+ * quindi la cautela sul timestamp stantio scritta in testa a questo file non si
+ * applica (vale la stessa nota già registrata per US-032).
+ */
+export const TITOLO_US_034_OBSOLETO: TitoloSeminabile = {
+  isin: 'IE00B3RBWM25',
+  campi: {
+    name: 'Vanguard Ftse All-World Ucits Etf Dist',
+    price: 128.4,
+    ticker: 'VWRL',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,22%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+  },
+};
+
+/** Riservato a `US-034__rilevamento-obsoleto.spec.ts`: il titolo rilevato adesso. */
+export const TITOLO_US_034_FRESCO: TitoloSeminabile = {
+  isin: 'IE00BFNM3P36',
+  campi: {
+    name: 'Amundi Msci World Ucits Etf Acc',
+    price: 96.75,
+    ticker: 'MWRD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,12%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservato a `US-034__rilevamento-obsoleto-varianti.spec.ts`: il titolo
+ * seminato adesso, che nello scenario «tutti allineati» non deve portare alcuna
+ * marcatura.
+ */
+export const TITOLO_US_034_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00BK5BQV03',
+  campi: {
+    name: 'Vanguard S&P 500 Ucits Etf Usd Acc',
+    price: 108.32,
+    ticker: 'VUAA',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,07%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservato a `US-034__rilevamento-obsoleto-varianti.spec.ts`: l'ISIN che quel
+ * file *rimuove* dalla cache, per garantire il «mai rilevato» che lo scenario
+ * deve dimostrare. Rimuovere e ripristinare è la stessa pila di undo del
+ * seeding, quindi vale comunque la riserva per file.
+ */
+export const ISIN_MAI_RILEVATO_US_034 = 'LU1437016972';
+
 /** Riservato a `US-026__schede-portafoglio.spec.ts`. */
 export const TITOLO_US_026: TitoloSeminabile = {
   isin: 'IE00BMVB5R75',

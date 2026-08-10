@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Stati del conteggio e anatomia della cella (US-034)</title>
+  <meta name="description" content="Mockup US-034: i quattro stati del riquadro di conteggio, l'anatomia della cella «Ultimo rilevamento» e il riepilogo con tutti i titoli allineati.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; tavola degli stati</p>
+      <h1>Rilevamenti <span class="corsivo">obsoleti</span></h1>
+      <p class="sottotesto">US-034 &middot; ogni stato annotato col criterio di accettazione che copre</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Verdetto &nbsp;&nbsp;&nbsp;&nbsp;<b>dal server</b></div>
+      <div>Casi &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>3 di riga &middot; 4 di conteggio</b></div>
+      <div>Colonne &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>7, invariate</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="index.html">Riepilogo</a>
+    <a href="stati-conteggio.html" class="attiva">Tavola degli stati</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- ================= ANATOMIA DELLA CELLA ================= -->
+    <div class="sezione-titolo">
+      Anatomia della cella &laquo;Ultimo rilevamento&raquo;
+      <span class="nota">tre condizioni, una sola colonna</span>
+    </div>
+
+    <p class="glossa" style="margin:0 0 14px">
+      La marcatura vive <em>dentro</em> la cella del rilevamento, su riga propria: affianca
+      l&rsquo;istante che qualifica, e non aggiunge un&rsquo;ottava colonna che disallineerebbe i totali
+      in calce. Sopra: l&rsquo;istante, come lo scrive oggi il registro. Sotto: la postilla, in
+      maiuscoletto minuto, preceduta dal segno di richiamo.
+    </p>
+
+    <div class="tabella-scroll" style="max-width:760px">
+      <table class="mastro" style="min-width:0">
+        <thead>
+          <tr>
+            <th>Condizione</th>
+            <th class="allineato-dx">Ultimo rilevamento</th>
+            <th>Come si legge</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="voce"><strong>Allineato</strong><small>current</small></span></td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante">07/08/2026 17:28</span>
+            </td>
+            <td style="font-family:'IM Fell English',serif; font-style:italic; color:var(--seppia)">
+              Nessuna sessione si &egrave; conclusa da allora. La cella resta a una riga sola.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="voce"><strong>Obsoleto</strong><small>stale</small></span></td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante segnato">04/08/2026 17:31</span>
+              <small class="marca-rilevamento obsoleto">da aggiornare</small>
+            </td>
+            <td style="font-family:'IM Fell English',serif; font-style:italic; color:var(--seppia)">
+              Almeno una sessione chiusa dopo il rilevamento. L&rsquo;istante resta, sottolineato a matita.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="voce"><strong>Mai rilevato</strong><small>never-fetched</small></span></td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante dato-mancante">&ndash;</span>
+              <small class="marca-rilevamento mai-rilevato">mai rilevato</small>
+            </td>
+            <td style="font-family:'IM Fell English',serif; font-style:italic; color:var(--seppia)">
+              Prezzo o istante assenti. Il &laquo;&ndash;&raquo; di US-032 resta; la postilla dice <em>quale</em> assenza &egrave;.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="glossa">
+      Le due postille non si distinguono per tinta ma per parola, e portano segni di richiamo
+      diversi (&dagger; contro &mdash;): chi legge in bianco e nero, o non distingue il rosso dal
+      seppia, riceve comunque due messaggi diversi.
+    </p>
+
+    <!-- ================= I QUATTRO STATI DEL CONTEGGIO ================= -->
+    <div class="sezione-titolo">
+      I quattro stati del riquadro di conteggio
+      <span class="nota">il riquadro non sparisce mai: a zero cambia frase, non esistenza</span>
+    </div>
+
+    <div class="didascalia-stato" style="margin-top:6px">
+      1. Solo obsoleti <span class="ac">&mdash; il caso corrente pi&ugrave; comune</span>
+    </div>
+    <div class="riquadro-conteggio" role="status">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio"><b>1</b> titolo su <b>4</b> con rilevamento obsoleto.</span>
+        <span class="rinvio">&dagger; segnato in tabella</span>
+      </div>
+    </div>
+    <p class="glossa">Al singolare la frase si accorda: &laquo;titolo&raquo;, non &laquo;titoli&raquo;.</p>
+
+    <div class="didascalia-stato">
+      2. Solo mai rilevati <span class="ac">&mdash; distinti dagli obsoleti, ma nel conteggio</span>
+    </div>
+    <div class="riquadro-conteggio mancante" role="status">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio"><b>2</b> titoli su <b>6</b> mai rilevati.</span>
+        <span class="rinvio">&mdash; segnati in tabella</span>
+      </div>
+    </div>
+    <p class="glossa">
+      Quando non c&rsquo;&egrave; nulla di vecchio ma qualcosa manca del tutto, la fascia passa al seppia:
+      non &egrave; un allarme sulla vecchiaia di una cifra, &egrave; l&rsquo;assenza della cifra.
+    </p>
+
+    <div class="didascalia-stato">
+      3. Entrambi <span class="ac">&mdash; la frase distingue le due quantit&agrave;</span>
+    </div>
+    <div class="riquadro-conteggio" role="status">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio"><b>3</b> titoli su <b>5</b> da aggiornare: <b>2</b> con rilevamento obsoleto, <b>1</b> mai rilevato.</span>
+        <span class="rinvio">&dagger; segnati in tabella</span>
+      </div>
+    </div>
+    <p class="glossa">
+      Il totale viene per primo, perch&eacute; &egrave; la cifra che serve a decidere se fidarsi del
+      valore letto sopra; la scomposizione segue, per chi vuole sapere di che genere di
+      inattendibilit&agrave; si tratta.
+    </p>
+
+    <div class="didascalia-stato">
+      4. Nessuno <span class="ac">&mdash; il riquadro resta, e dichiara l&rsquo;esito positivo</span>
+    </div>
+    <div class="riquadro-conteggio allineato" role="status">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio">Tutti i <b>5</b> titoli sono allineati all&rsquo;ultima sessione di borsa.</span>
+        <span class="rinvio">nessuna postilla in tabella</span>
+      </div>
+    </div>
+    <div class="riquadro-conteggio allineato" role="status" style="margin-top:10px">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio">L&rsquo;unico titolo &egrave; allineato all&rsquo;ultima sessione di borsa.</span>
+        <span class="rinvio">nessuna postilla in tabella</span>
+      </div>
+    </div>
+    <p class="glossa">
+      A zero il riquadro <strong>non sparisce</strong>: uno spazio vuoto sarebbe indistinguibile
+      da una funzionalit&agrave; che non ha caricato, e l&rsquo;utente non saprebbe se le cifre sono fresche
+      o se nessuno gliel&rsquo;ha detto. La variante al singolare esiste perch&eacute; un portafoglio con un
+      titolo solo &egrave; il caso di chi comincia.
+    </p>
+
+    <!-- ================= TABELLA TUTTI ALLINEATI ================= -->
+    <div class="sezione-titolo">
+      Riepilogo con tutti i titoli allineati
+      <span class="nota">nessuna postilla, nessuna riga cresciuta: la tabella di prima</span>
+    </div>
+
+    <div class="riquadro-conteggio allineato" role="status">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio">Tutti i <b>3</b> titoli sono allineati all&rsquo;ultima sessione di borsa.</span>
+        <span class="rinvio">nessuna postilla in tabella</span>
+      </div>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro" aria-label="Tabella titoli con rilevamenti tutti allineati">
+        <thead>
+          <tr>
+            <th>Denominazione &middot; ISIN</th>
+            <th class="allineato-dx">Quantit&agrave;</th>
+            <th class="allineato-dx">Pr. medio carico</th>
+            <th class="allineato-dx">Prezzo attuale</th>
+            <th class="allineato-dx">Ultimo rilevamento</th>
+            <th class="allineato-dx">Valore attuale</th>
+            <th class="allineato-dx">Differenza</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="cliccabile">
+            <td><span class="voce"><strong>Ishares Core Msci World Ucits Etf</strong><small>IE00B4L5Y983</small></span></td>
+            <td class="cifra">220</td>
+            <td class="cifra euro">68,3000</td>
+            <td class="cifra euro">128,4600</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:28</span></td>
+            <td class="cifra euro">28.261,20</td>
+            <td class="cifra guadagno">+13.235,20</td>
+          </tr>
+          <tr class="cliccabile">
+            <td><span class="voce"><strong>Vanguard Ftse All-World Ucits Etf Acc</strong><small>IE00BK5BQT80</small></span></td>
+            <td class="cifra">95</td>
+            <td class="cifra euro">92,1500</td>
+            <td class="cifra euro">118,7400</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:30</span></td>
+            <td class="cifra euro">11.280,30</td>
+            <td class="cifra guadagno">+2.526,05</td>
+          </tr>
+          <tr class="cliccabile">
+            <td><span class="voce"><strong>Ishares Core Euro Corp Bond Ucits Etf</strong><small>IE00B3F81R35</small></span></td>
+            <td class="cifra">75</td>
+            <td class="cifra euro">129,4000</td>
+            <td class="cifra euro">126,1200</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:30</span></td>
+            <td class="cifra euro">9.459,00</td>
+            <td class="cifra perdita">&minus;246,00</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">Totale portafoglio (3 posizioni valorizzate)</td>
+            <td class="cifra euro">49.000,50</td>
+            <td class="cifra guadagno">+15.515,25</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p class="glossa">
+      &Egrave; la stessa tabella dell&rsquo;altra pagina, senza una sola postilla. Serve a verificare a
+      occhio ci&ograve; che il test asserisce: quando nulla &egrave; da aggiornare, nessuna riga cresce in
+      altezza e la colonna &laquo;Ultimo rilevamento&raquo; torna identica a quella consegnata da US-032.
+    </p>
+
+    <div class="nav-mockup">
+      Mockup US-034 &middot;
+      <a href="index.html">Riepilogo marcato</a> &middot;
+      <a href="stati-conteggio.html">I quattro stati del conteggio</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span>PortfolIA &middot; libro mastro degli investimenti &middot; US-034</span>
+    <span class="firma">tavola degli stati</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

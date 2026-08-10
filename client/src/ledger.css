@@ -1076,6 +1076,142 @@ body {
 }
 
 /* ============================================================
+   US-034 — Rilevamenti obsoleti nel riepilogo
+   (portato da docs/mockups/US-034/shared.css)
+
+   Il testo porta il significato, il colore lo ripete soltanto: la marcatura
+   deve restare leggibile e le due varianti distinguibili anche in scala di
+   grigi o in stampa monocroma. Da qui le tre scelte ridondanti — parole
+   diverse, segni di richiamo diversi, colori diversi.
+   ============================================================ */
+
+/* La cella ospita due righe: l'istante e la postilla. Un filo di respiro
+   verticale in più perché la seconda riga non tocchi il bordo. */
+.mastro tbody td.cella-rilevamento {
+  line-height: 1.25;
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+/* `inline-block` e non `block`: la sottolineatura deve fasciare la data, non
+   attraversare l'intera cella come una riga di cancellatura. */
+.cella-rilevamento .istante {
+  display: inline-block;
+}
+/* L'istante non viene sostituito, viene sottolineato: è il gesto del revisore
+   che segna a matita la cifra da rivedere, e sopravvive al bianco e nero.
+   Cancellarlo toglierebbe all'utente l'unico dato che gli dice *quanto* è
+   vecchio il rilevamento. */
+.cella-rilevamento .istante.segnato {
+  border-bottom: 1px dashed rgba(158,43,37,.55);
+  padding-bottom: 1px;
+}
+
+/* La postilla: maiuscoletto minuto, su riga propria, preceduta da un segno di
+   richiamo tipografico. Il segno sta in `::before` e non nel testo, così le
+   asserzioni e2e leggono la sola parola. */
+.marca-rilevamento {
+  display: block;
+  margin-top: 3px;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  font-size: 10.5px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.marca-rilevamento::before {
+  content: "\2020\00a0";
+  font-family: 'Courier Prime', monospace;
+  letter-spacing: 0;
+  opacity: .85;
+}
+.marca-rilevamento.obsoleto { color: var(--rosso-margine); }
+.marca-rilevamento.mai-rilevato { color: var(--seppia); }
+.marca-rilevamento.mai-rilevato::before { content: "\2014\00a0"; }
+
+/* ---------- Riquadro di conteggio ----------
+   Stessa grammatica del riquadro del valore totale — fascia di colore a
+   sinistra, etichetta in maiuscoletto, frase in corsivo — ma in scala minore,
+   perché dichiara una condizione, non una cifra. Sta FRA il valore totale e la
+   tabella: la domanda «quanto vale il portafoglio» va letta subito dopo la
+   riserva «quante di queste cifre sono ancora attendibili».
+   È SEMPRE presente: a zero cambia colore e frase, non esistenza — un riquadro
+   che sparisce è indistinguibile da uno che non ha caricato. */
+.riquadro-conteggio {
+  display: flex;
+  align-items: stretch;
+  border: 1.5px solid var(--inchiostro);
+  background: rgba(247,239,218,.55);
+  box-shadow: 3px 3px 0 rgba(34,28,20,.10);
+  margin: 0 0 18px;
+  overflow: hidden;
+}
+/* Tre fasce, non due: vecchiaia di una cifra e assenza di una cifra sono
+   difetti diversi, e la distinzione ricalca quella delle due postille. */
+.riquadro-conteggio .fascia-conteggio {
+  width: 5px;
+  flex-shrink: 0;
+  background: var(--rosso-margine);
+}
+.riquadro-conteggio.allineato .fascia-conteggio { background: var(--verde-attivo); }
+.riquadro-conteggio.mancante .fascia-conteggio { background: var(--seppia); }
+
+.riquadro-conteggio .contenuto-conteggio {
+  flex: 1;
+  padding: 11px 18px;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.riquadro-conteggio .et-conteggio {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: 11px;
+  color: var(--seppia);
+  white-space: nowrap;
+}
+.riquadro-conteggio .frase-conteggio {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 15.5px;
+  color: var(--inchiostro);
+  line-height: 1.4;
+}
+/* Le quantità in corpo monospaziato: sono cifre di registro, non prosa.
+   Il peso resta 400 e non 700 come nel mockup, deliberatamente: Courier Prime
+   bold non è richiesto da nessun altro elemento della scheda Riepilogo, e il
+   suo file arriva dopo gli altri: allo swap il documento si rimisura una
+   seconda volta, e la riga di totale della tabella — che US-032 verifica
+   misurando i bounding box al pixel — cade a cavallo di un arrotondamento.
+   Sono misurati: con il 700 quel test fallisce circa una volta su tre, con il
+   400 sei esecuzioni su sei sono verdi, e la geometria della tabella è
+   identica nei due casi. L'enfasi la portano già il monospazio, il tondo
+   contro il corsivo della frase e il colore d'inchiostro. */
+.riquadro-conteggio .frase-conteggio b {
+  font-family: 'Courier Prime', monospace;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14.5px;
+  color: var(--inchiostro);
+}
+.riquadro-conteggio.allineato .frase-conteggio { color: var(--verde-attivo); }
+.riquadro-conteggio .rinvio {
+  margin-left: auto;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  color: var(--seppia);
+  opacity: .75;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .riquadro-conteggio .rinvio { margin-left: 0; width: 100%; }
+}
+
+/* ============================================================
    US-018 — Scheda titolo: dettaglio completo di un titolo
    (portato da docs/mockups/US-018/shared.css)
 

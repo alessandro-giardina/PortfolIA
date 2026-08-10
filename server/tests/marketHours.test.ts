@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { isMarketOpen, hasSessionInInterval, classifyRefetch } from '../src/domain/marketHours.js';
+import {
+  isMarketOpen,
+  hasSessionInInterval,
+  classifyRefetch,
+  classifyPriceFreshness,
+} from '../src/domain/marketHours.js';
 
 // Helper: costruisce un istante a partire dall'orario civile di Roma esplicito.
 // Estate (DST) = +02:00, inverno = +01:00.
@@ -124,5 +129,81 @@ describe('classifyRefetch', () => {
     );
     expect(res.kind).toBe('intra-session');
     expect(res.message).toContain('09:30');
+  });
+});
+
+describe('classifyPriceFreshness', () => {
+  it('almeno una sessione conclusa (lun 10:00 → mar 10:00) → stale', () => {
+    expect(
+      classifyPriceFreshness(rome('2026-06-29T10:00:00+02:00'), rome('2026-06-30T10:00:00+02:00'))
+    ).toBe('stale');
+  });
+
+  it('rilevamento nella sessione corrente (mar 10:00 → mar 11:00) → current', () => {
+    expect(
+      classifyPriceFreshness(rome('2026-06-30T10:00:00+02:00'), rome('2026-06-30T11:00:00+02:00'))
+    ).toBe('current');
+  });
+
+  it('nessuna sessione trascorsa (ven 18:00 → dom 14:00) → current', () => {
+    expect(
+      classifyPriceFreshness(rome('2026-07-03T18:00:00+02:00'), rome('2026-07-05T14:00:00+02:00'))
+    ).toBe('current');
+  });
+
+  it('nessun istante di rilevamento → never-fetched', () => {
+    expect(classifyPriceFreshness(null, rome('2026-06-30T10:00:00+02:00'))).toBe('never-fetched');
+  });
+
+  it('dopo la chiusura delle 17:30 della stessa giornata → stale', () => {
+    expect(
+      classifyPriceFreshness(rome('2026-06-30T10:00:00+02:00'), rome('2026-06-30T18:00:00+02:00'))
+    ).toBe('stale');
+  });
+
+  it('sera stessa, prima della chiusura del giorno seguente → stale', () => {
+    // Lun 19:00 → mar 03:00 non ha sessioni nel mezzo (quindi `current`), ma
+    // basta arrivare a mercato aperto perché la sessione di martedì conti.
+    expect(
+      classifyPriceFreshness(rome('2026-06-29T19:00:00+02:00'), rome('2026-06-30T03:00:00+02:00'))
+    ).toBe('current');
+    expect(
+      classifyPriceFreshness(rome('2026-06-29T19:00:00+02:00'), rome('2026-06-30T09:30:00+02:00'))
+    ).toBe('stale');
+  });
+
+  it('attraversamento del passaggio all’ora legale: le sessioni contano comunque', () => {
+    // L'ora legale 2026 scatta nella notte fra sabato 28 e domenica 29 marzo.
+    // Ven 17:00 (+01:00) → lun 10:00 (+02:00): la sessione di venerdì si è
+    // conclusa, quindi la cifra è vecchia nonostante il cambio di offset.
+    expect(
+      classifyPriceFreshness(rome('2026-03-27T17:00:00+01:00'), rome('2026-03-30T10:00:00+02:00'))
+    ).toBe('stale');
+  });
+
+  it('attraversamento dell’ora legale senza sessioni nel mezzo → current', () => {
+    // Ven 18:00 (+01:00, a mercato già chiuso) → dom 14:00 (+02:00): fra i due
+    // istanti non si è aperta alcuna sessione, il prezzo non può essere cambiato.
+    expect(
+      classifyPriceFreshness(rome('2026-03-27T18:00:00+01:00'), rome('2026-03-29T14:00:00+02:00'))
+    ).toBe('current');
+  });
+
+  it('pre-apertura: rilevato alle 08:00 e letto alle 10:00 dello stesso giorno → stale', () => {
+    // Angolo consapevole, non una svista. Nessuna sessione si è *conclusa* fra i
+    // due istanti, ma `classifyRefetch` risponde `none` perché l'intervallo
+    // interseca la sessione corrente senza cadervi dentro. Il criterio vincola il
+    // verdetto alla classificazione della guardia di buona cittadinanza: far
+    // divergere le due letture — «da aggiornare» in tabella e «hai già chiesto il
+    // recupero oggi» sulla stessa riga — sarebbe un difetto peggiore dell'angolo.
+    expect(
+      classifyPriceFreshness(rome('2026-06-30T08:00:00+02:00'), rome('2026-06-30T10:00:00+02:00'))
+    ).toBe('stale');
+  });
+
+  it('non anticipa il futuro: un rilevamento successivo ad «adesso» resta current', () => {
+    expect(
+      classifyPriceFreshness(rome('2026-06-30T11:00:00+02:00'), rome('2026-06-30T10:00:00+02:00'))
+    ).toBe('current');
   });
 });

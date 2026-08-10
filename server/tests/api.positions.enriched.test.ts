@@ -36,7 +36,13 @@ const { positionsRoutes } = await import('../src/api/positions.js');
 // buildApp — crea un db SQLite temporaneo per ogni test
 // ---------------------------------------------------------------------------
 
-async function buildApp() {
+/**
+ * `now` viene inoltrato al plugin come opzione di registrazione: è l'orologio
+ * che il verdetto di freschezza (US-034) usa al posto di `new Date()`. Omesso,
+ * la rotta si comporta esattamente come in produzione — è la retrocompatibilità
+ * che tutti i test preesistenti di questo file continuano a esercitare.
+ */
+async function buildApp(opzioni: { now?: () => Date } = {}) {
   testDbPath = join(tmpdir(), `test-api-enriched-${Date.now()}-${Math.random().toString(36).slice(2)}.db`);
   conn = new Database(testDbPath);
   testDb = drizzle(conn, { schema });
@@ -54,7 +60,7 @@ async function buildApp() {
     return reply.status(201).send(result);
   });
 
-  await fastify.register(positionsRoutes);
+  await fastify.register(positionsRoutes, opzioni);
   await fastify.ready();
   return fastify;
 }
@@ -372,5 +378,136 @@ describe('GET /api/portfolios/:id/positions/enriched', () => {
     expect(rows[0].fetchedAt).toBe(rilevatoPrimo);
     expect(rows[1].isin).toBe('IE00B4L5Y983');
     expect(rows[1].fetchedAt).toBe(rilevatoSecondo);
+  });
+
+  // -------------------------------------------------------------------------
+  // freshness — verdetto di obsolescenza del rilevamento (US-034)
+  //
+  // L'orologio è congelato dalla registrazione della rotta: senza, l'esito
+  // dipenderebbe dal giorno e dall'ora in cui la suite gira, cioè da tutto
+  // tranne che dal dato sotto esame.
+  // -------------------------------------------------------------------------
+
+  /** Istante assoluto da un orario civile di Roma esplicito, in secondi unix. */
+  const unix = (iso: string): number => Math.floor(new Date(iso).getTime() / 1000);
+
+  /** Martedì 30 giugno 2026, 11:00 — mercato aperto, sessione in corso. */
+  const ADESSO = (): Date => new Date('2026-06-30T11:00:00+02:00');
+
+  it('rilevamento di una sessione precedente → freshness stale', async () => {
+    const app = await buildApp({ now: ADESSO });
+    const portfolioId = await createPortfolio(app, 'Portfolio Obsoleto');
+
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.0, 40);
+    // Lunedì 10:00: la sessione di lunedì si è conclusa prima di martedì mattina.
+    insertSecurity('IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF', 95.5, unix('2026-06-29T10:00:00+02:00'));
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    expect(res.statusCode).toBe(200);
+    const rows = res.json<EnrichedPositionSummary[]>();
+    expect(rows[0].freshness).toBe('stale');
+    // Nessuna cifra cambia per effetto del verdetto.
+    expect(rows[0].currentPrice).toBeCloseTo(95.5, 4);
+    expect(rows[0].currentValue).toBeCloseTo(3820.0, 2);
+    expect(rows[0].difference).toBeCloseTo(260.0, 2);
+  });
+
+  it('rilevamento nella sessione corrente → freshness current', async () => {
+    const app = await buildApp({ now: ADESSO });
+    const portfolioId = await createPortfolio(app, 'Portfolio Allineato');
+
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.0, 40);
+    // Martedì 10:00, un'ora prima dell'istante congelato: stessa sessione.
+    insertSecurity('IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF', 95.5, unix('2026-06-30T10:00:00+02:00'));
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    expect(res.json<EnrichedPositionSummary[]>()[0].freshness).toBe('current');
+  });
+
+  it('ISIN fuori cache → freshness never-fetched, con currentPrice null', async () => {
+    const app = await buildApp({ now: ADESSO });
+    const portfolioId = await createPortfolio(app, 'Portfolio Mai Rilevato');
+
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.0, 40);
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    const row = res.json<EnrichedPositionSummary[]>()[0];
+    expect(row.freshness).toBe('never-fetched');
+    expect(row.currentPrice).toBeNull();
+    expect(row.fetchedAt).toBeNull();
+  });
+
+  it('riga in cache con prezzo nullo → never-fetched, non stale', async () => {
+    // Il caso misto: `fetched_at` valorizzato ma `price` a NULL. Chiamarla
+    // «obsoleta» direbbe che un prezzo è stato rilevato, mentre la colonna
+    // accanto mostra «–». Il verdetto usa lo stesso predicato della cella.
+    const app = await buildApp({ now: ADESSO });
+    const portfolioId = await createPortfolio(app, 'Portfolio Prezzo Nullo Freschezza');
+
+    const rilevatoIl = unix('2026-06-29T10:00:00+02:00');
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.0, 40);
+    insertSecurity('IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF', null, rilevatoIl);
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    const row = res.json<EnrichedPositionSummary[]>()[0];
+    expect(row.freshness).toBe('never-fetched');
+    // L'istante resta esposto: è il client a decidere di non mostrarlo.
+    expect(row.fetchedAt).toBe(rilevatoIl);
+  });
+
+  it('due ISIN con verdetti diversi — nessuno prende quello dell’altro', async () => {
+    const app = await buildApp({ now: ADESSO });
+    const portfolioId = await createPortfolio(app, 'Portfolio Verdetti Misti');
+
+    await addPosition(app, portfolioId, 'IE00B3RBWM25', 115.2, 20);
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.0, 40);
+    insertSecurity('IE00B3RBWM25', 'Vanguard FTSE All-World UCITS ETF', 120.0, unix('2026-06-29T10:00:00+02:00'));
+    insertSecurity('IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF', 95.5, unix('2026-06-30T10:00:00+02:00'));
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    const rows = res.json<EnrichedPositionSummary[]>();
+    expect(rows.map((r) => [r.isin, r.freshness])).toEqual([
+      ['IE00B3RBWM25', 'stale'],
+      ['IE00B4L5Y983', 'current'],
+    ]);
+  });
+
+  it('senza orologio iniettato la rotta resta registrabile e risponde comunque un verdetto', async () => {
+    // La retrocompatibilità della firma è il punto: `register(positionsRoutes)`
+    // senza opzioni continua a funzionare, e `freshness` è sempre definito.
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio Senza Orologio');
+
+    await addPosition(app, portfolioId, 'IE00B4L5Y983', 89.0, 40);
+    insertSecurity('IE00B4L5Y983', 'iShares Core MSCI World UCITS ETF', 95.5);
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/portfolios/${portfolioId}/positions/enriched`,
+    });
+
+    // Seminato "adesso": qualunque sia l'ora di esecuzione, non può essere
+    // obsoleto — `classifyRefetch(now, now)` non restituisce mai `none`.
+    expect(res.json<EnrichedPositionSummary[]>()[0].freshness).toBe('current');
   });
 });

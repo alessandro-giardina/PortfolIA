@@ -589,17 +589,44 @@ export default function PortfolioDetailPage() {
                               lì un istante racconterebbe che «il prezzo è stato
                               rilevato» — falso, e proprio accanto a un «–».
                             */}
-                            <td
-                              className={
-                                ep.currentPrice !== null && ep.fetchedAt !== null
-                                  ? 'cifra'
-                                  : 'cifra dato-mancante'
-                              }
-                              data-testid={`rilevamento-${ep.isin}`}
-                            >
-                              {ep.currentPrice !== null && ep.fetchedAt !== null
-                                ? dataRilevamento(ep.fetchedAt)
-                                : '–'}
+                            {/*
+                              La marcatura di US-034 sta DENTRO questa cella, su
+                              riga propria: nessuna ottava colonna, quindi il
+                              `tfoot` conserva il suo colSpan={5} e i due totali
+                              restano incolonnati sotto le rispettive intestazioni.
+                              Il `data-testid` e la classe `dato-mancante` vivono
+                              sullo <span> dell'istante e non sul <td>: le
+                              asserzioni di US-032 leggono il testo *completo*
+                              dell'elemento marcato, e la postilla lo sporcherebbe.
+                            */}
+                            <td className="cifra cella-rilevamento">
+                              <span
+                                className={
+                                  ep.currentPrice !== null && ep.fetchedAt !== null
+                                    ? `istante${ep.freshness === 'stale' ? ' segnato' : ''}`
+                                    : 'istante dato-mancante'
+                                }
+                                data-testid={`rilevamento-${ep.isin}`}
+                              >
+                                {ep.currentPrice !== null && ep.fetchedAt !== null
+                                  ? dataRilevamento(ep.fetchedAt)
+                                  : '–'}
+                              </span>
+                              {/*
+                                Il verdetto arriva già deciso dal server: qui si
+                                sceglie solo la parola. Le due varianti portano
+                                testi diversi — non soltanto colori diversi —
+                                perché la marcatura deve restare leggibile in
+                                scala di grigi.
+                              */}
+                              {ep.freshness !== 'current' && (
+                                <small
+                                  className={`marca-rilevamento ${ep.freshness === 'stale' ? 'obsoleto' : 'mai-rilevato'}`}
+                                  data-testid={`marca-rilevamento-${ep.isin}`}
+                                >
+                                  {ep.freshness === 'stale' ? 'da aggiornare' : 'mai rilevato'}
+                                </small>
+                              )}
                             </td>
                             <td className={ep.currentValue !== null ? 'cifra euro' : 'cifra dato-mancante'}>
                               {ep.currentValue !== null

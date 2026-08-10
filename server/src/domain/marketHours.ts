@@ -10,6 +10,8 @@
  * consente un normale recupero); la gestione festivi è una miglioria futura.
  */
 
+import type { PriceFreshness } from '@portfolia/shared';
+
 const TZ = 'Europe/Rome';
 const OPEN_MIN = 9 * 60; // 09:00
 const CLOSE_MIN = 17 * 60 + 30; // 17:30
@@ -183,4 +185,26 @@ export function classifyRefetch(fetchedAt: Date, now: Date): RefetchResult {
   }
 
   return { kind: 'none', message: null };
+}
+
+/**
+ * Classifica la freschezza di un prezzo già rilevato (US-034).
+ *
+ * Non è una seconda regola oraria: è `classifyRefetch` letta dall'altro lato.
+ * Dove la guardia di buona cittadinanza dice «puoi ricontattare la fonte senza
+ * chiedere conferma» (`none`, cioè almeno una sessione conclusa), il riepilogo
+ * dice «questa cifra è vecchia». Gli altri due esiti — rilevamento nella
+ * sessione corrente, oppure nessuna sessione trascorsa — significano entrambi
+ * che il prezzo non può essere cambiato, quindi `current`.
+ *
+ * La delega è il punto: `hasSessionInInterval` e `isSameSession` restano
+ * l'unica implementazione delle regole di sessione (DST compreso), e le due
+ * letture non possono divergere nel tempo.
+ *
+ * `fetchedAt` a `null` significa «mai rilevato»: nessun istante da classificare.
+ * Come le altre funzioni di questo modulo è pura e non ha orologio interno.
+ */
+export function classifyPriceFreshness(fetchedAt: Date | null, now: Date): PriceFreshness {
+  if (fetchedAt === null) return 'never-fetched';
+  return classifyRefetch(fetchedAt, now).kind === 'none' ? 'stale' : 'current';
 }

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Rilevamenti obsoleti nel riepilogo (US-034)</title>
+  <meta name="description" content="Mockup US-034: marcatura dei titoli con rilevamento obsoleto nella tabella della scheda Riepilogo, con il riquadro di conteggio sopra la tabella.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda riepilogo</p>
+      <h1>Portafoglio <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">5 titoli iscritti &middot; registro consultato sabato 08.VIII.2026 &middot; 10:04</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Valore di carico &nbsp;<b>€&thinsp;49.214,05</b></div>
+      <div>Valore attuale &nbsp;&nbsp;<b>€&thinsp;52.200,90</b></div>
+      <div>Differenza &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b class="totale-positivo">+€&thinsp;15.856,85</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="index.html" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <div class="sezione-titolo">
+      Titoli iscritti a conto
+      <span class="nota">FR-013 &middot; valore attuale, differenza e stato del rilevamento</span>
+    </div>
+
+    <!-- ===== Riquadro del valore totale (US-014, invariato) ===== -->
+    <div class="riquadro-valore-totale" aria-label="Valore attuale totale del portafoglio">
+      <div class="fascia-colore parziale"></div>
+      <div class="contenuto-totale">
+        <div class="blocco-cifra">
+          <span class="et-totale">Valore attuale totale</span>
+          <span class="cifra-totale parziale"><span class="valuta">EUR</span>52.200,90</span>
+        </div>
+        <div class="nota-mancante" role="note">
+          <strong>Valore parziale</strong>
+          1 posizione senza prezzo corrente: il totale esclude questo titolo.
+        </div>
+        <div class="timestamp-totale">4 di 5 posizioni valorizzate</div>
+      </div>
+    </div>
+
+    <!--
+      ===== Riquadro di conteggio (US-034) =====
+      Sta FRA il valore totale e la tabella, e non è un caso: la domanda
+      «quanto vale il portafoglio» va letta subito dopo la riserva
+      «quante di queste cifre sono ancora attendibili». Il riquadro è
+      sempre presente; a zero cambia colore e frase, mai esistenza.
+    -->
+    <div class="riquadro-conteggio" role="status" data-testid="conteggio-da-aggiornare">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio">
+          <b>3</b> titoli su <b>5</b> da aggiornare: <b>2</b> con rilevamento obsoleto, <b>1</b> mai rilevato.
+        </span>
+        <span class="rinvio">&dagger; segnati in tabella</span>
+      </div>
+    </div>
+
+    <!-- ===== Tabella del riepilogo: sette colonne, come oggi ===== -->
+    <div class="tabella-scroll">
+      <table class="mastro" aria-label="Tabella titoli del portafoglio">
+        <thead>
+          <tr>
+            <th>Denominazione &middot; ISIN</th>
+            <th class="allineato-dx">Quantit&agrave;</th>
+            <th class="allineato-dx">Pr. medio carico</th>
+            <th class="allineato-dx">Prezzo attuale</th>
+            <th class="allineato-dx">Ultimo rilevamento</th>
+            <th class="allineato-dx">Valore attuale</th>
+            <th class="allineato-dx">Differenza</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- RIGA FRESCA — rilevata alla chiusura di ieri, nessuna sessione
+               conclusa da allora: nessuna marcatura, la cella resta a una riga. -->
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Ishares Core Msci World Ucits Etf</strong>
+                <small>IE00B4L5Y983</small>
+              </span>
+            </td>
+            <td class="cifra">220</td>
+            <td class="cifra euro">68,3000</td>
+            <td class="cifra euro">128,4600</td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante">07/08/2026 17:28</span>
+            </td>
+            <td class="cifra euro">28.261,20</td>
+            <td class="cifra guadagno">+13.235,20</td>
+          </tr>
+
+          <!-- RIGA OBSOLETA — rilevata martedì, da allora tre sessioni si sono
+               chiuse. L'istante resta al suo posto, sottolineato a tratteggio;
+               la postilla sta sotto, dentro la stessa cella. -->
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Vanguard Ftse All-World Ucits Etf Acc</strong>
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">95</td>
+            <td class="cifra euro">92,1500</td>
+            <td class="cifra euro">118,7400</td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante segnato">04/08/2026 17:31</span>
+              <small class="marca-rilevamento obsoleto">da aggiornare</small>
+            </td>
+            <td class="cifra euro">11.280,30</td>
+            <td class="cifra guadagno">+2.526,05</td>
+          </tr>
+
+          <!-- RIGA OBSOLETA — seconda occorrenza, per mostrare che la marcatura
+               è di riga e non un avviso unico di pagina. -->
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Amundi Msci Emerging Markets Ucits Etf</strong>
+                <small>LU1681045370</small>
+              </span>
+            </td>
+            <td class="cifra">140</td>
+            <td class="cifra euro">20,4200</td>
+            <td class="cifra euro">22,8600</td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante segnato">31/07/2026 17:29</span>
+              <small class="marca-rilevamento obsoleto">da aggiornare</small>
+            </td>
+            <td class="cifra euro">3.200,40</td>
+            <td class="cifra guadagno">+341,60</td>
+          </tr>
+
+          <!-- RIGA MAI RILEVATA — la cella dell'istante continua a mostrare «–»
+               come stabilito da US-032, perché il prezzo non è mai stato
+               rilevato; la postilla dice quale delle due assenze è. -->
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Xtrackers Eurozone Government Bond Ucits Etf</strong>
+                <small>LU0290355717</small>
+              </span>
+            </td>
+            <td class="cifra">60</td>
+            <td class="cifra euro">214,5000</td>
+            <td class="cifra dato-mancante">&ndash;</td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante dato-mancante">&ndash;</span>
+              <small class="marca-rilevamento mai-rilevato">mai rilevato</small>
+            </td>
+            <td class="cifra dato-mancante">&ndash;</td>
+            <td class="cifra dato-mancante">&ndash;</td>
+          </tr>
+
+          <!-- RIGA FRESCA in perdita — la marcatura non ha nulla a che vedere
+               col segno della differenza: rosso di perdita e rosso di postilla
+               convivono senza confondersi, perché stanno in colonne diverse e
+               portano parole diverse. -->
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Ishares Core Euro Corp Bond Ucits Etf</strong>
+                <small>IE00B3F81R35</small>
+              </span>
+            </td>
+            <td class="cifra">75</td>
+            <td class="cifra euro">129,4000</td>
+            <td class="cifra euro">126,1200</td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante">07/08/2026 17:30</span>
+            </td>
+            <td class="cifra euro">9.459,00</td>
+            <td class="cifra perdita">&minus;246,00</td>
+          </tr>
+
+        </tbody>
+        <!-- tfoot invariato: colSpan = 5, sette colonne, totali incolonnati
+             sotto «Valore attuale» e «Differenza» (US-032 lo verifica
+             misurando i bounding box). -->
+        <tfoot>
+          <tr>
+            <td colspan="5">Totale portafoglio (4 posizioni valorizzate di 5)</td>
+            <td class="cifra euro">52.200,90</td>
+            <td class="cifra guadagno">+15.856,85</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p class="nota-sezione">
+      I valori contrassegnati con &laquo;&ndash;&raquo; indicano che il prezzo corrente non &egrave; ancora
+      disponibile in archivio; la differenza non pu&ograve; essere calcolata.
+      La postilla &laquo;&dagger;&nbsp;da aggiornare&raquo; segnala che dall&rsquo;ultimo rilevamento almeno una
+      sessione di borsa si &egrave; conclusa: la cifra a schermo &egrave; quella dell&rsquo;archivio, non quella
+      di oggi. Seleziona una riga per aprirne la <em>scheda titolo</em>, da cui il dato si aggiorna.
+    </p>
+
+    <div class="didascalia-stato" style="margin-top:34px">
+      Prova di leggibilit&agrave; senza colore <span class="ac">&mdash; criterio &laquo;non affidata al solo colore&raquo;</span>
+    </div>
+    <p class="glossa" style="margin-bottom:12px">
+      La marcatura &egrave; una parola, non una tinta. Premi il comando qui sotto per rileggere la
+      tabella in scala di grigi: le tre condizioni restano distinguibili perch&eacute; ciascuna
+      porta scritto il proprio nome.
+    </p>
+    <p>
+      <button type="button" id="interruttore-grigi" class="et-conteggio"
+              style="cursor:pointer; background:var(--carta-scura); border:1.5px solid var(--inchiostro); padding:7px 16px; box-shadow:2px 2px 0 rgba(34,28,20,.2);">
+        Togli il colore
+      </button>
+    </p>
+
+    <div class="nav-mockup">
+      Mockup US-034 &middot;
+      <a href="index.html">Riepilogo marcato</a> &middot;
+      <a href="stati-conteggio.html">I quattro stati del conteggio</a>
+    </div>
+
+  </main>
+
+  <!-- PI&Egrave; DI PAGINA -->
+  <footer class="pie">
+    <span>PortfolIA &middot; libro mastro degli investimenti &middot; US-034</span>
+    <span class="firma">visto, si segnali</span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

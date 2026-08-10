@@ -184,6 +184,26 @@ export interface PositionSummary {
 }
 
 /**
+ * Freschezza del prezzo di un titolo, decisa dal server (US-034).
+ *
+ * I valori sono in kebab-case come `RefetchKind`, la classificazione oraria da
+ * cui questo verdetto è derivato: è la stessa frase letta dai due lati — la
+ * guardia di buona cittadinanza dice «puoi ricontattare la fonte», il riepilogo
+ * dice «questa cifra è vecchia».
+ *
+ * - `current`: il rilevamento cade nella sessione corrente, oppure nessuna
+ *   sessione di borsa è trascorsa da allora. La cifra a schermo è attendibile.
+ * - `stale`: almeno una sessione di borsa si è conclusa dall'ultimo rilevamento.
+ * - `never-fetched`: l'archivio non ha né prezzo né istante di rilevamento.
+ *
+ * Non è nullable, e non deve diventarlo: l'assenza di dato è **essa stessa** uno
+ * dei tre valori (`never-fetched`). Un `null` riaprirebbe nel client la domanda
+ * «e adesso cosa scrivo?», cioè proprio la decisione che il criterio di US-034
+ * vuole tenere sul server.
+ */
+export type PriceFreshness = 'current' | 'stale' | 'never-fetched';
+
+/**
  * Vista arricchita per ISIN di un portafoglio (FR-013).
  * Aggrega tutti i carichi e, quando disponibile dalla cache securities,
  * arricchisce con il prezzo corrente e calcola la differenza rispetto al carico.
@@ -206,6 +226,12 @@ export interface EnrichedPositionSummary {
   difference: number | null;
   /** Momento dell'ultimo rilevamento del prezzo (unix, secondi), null se l'ISIN non è nella cache securities. */
   fetchedAt: number | null;
+  /**
+   * Verdetto di freschezza del prezzo, calcolato dal server con la stessa
+   * classificazione oraria della guardia di buona cittadinanza (US-034).
+   * Sempre definito: `never-fetched` copre l'assenza di dato.
+   */
+  freshness: PriceFreshness;
 }
 
 /**

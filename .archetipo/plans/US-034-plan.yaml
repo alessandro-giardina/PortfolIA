@@ -1,0 +1,254 @@
+schema: archetipo/plan/v2
+spec_code: US-034
+body: |
+  # US-034: Segnalare nel riepilogo i titoli con rilevamento obsoleto — Piano di implementazione
+
+  **Prodotto da:** Team di Pianificazione ARchetipo
+  **Data:** 2026-08-08
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-005 — Visualizzazione dei titoli
+  **Priorità:** HIGH | **Punti:** 2
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che il riepilogo dichiari quali titoli hanno un rilevamento obsoleto e quanti sono,
+  in modo da sapere quali cifre a schermo sono ancora attendibili prima di leggere il valore totale.
+
+  **Criteri di Accettazione**
+  - Il verdetto di obsolescenza è calcolato dal server con la stessa classificazione oraria della guardia di buona cittadinanza
+  - Un titolo senza prezzo né istante di rilevamento è dichiarato «mai rilevato», distinto da «obsoleto», e rientra nel conteggio
+  - La marcatura è leggibile come testo sulla riga, non affidata al solo colore, e affianca la colonna «Ultimo rilevamento»
+  - Il conteggio è mostrato sopra la tabella; a zero il riepilogo dichiara che tutti i titoli sono allineati all'ultima sessione
+  - Nessuna regola di orario di borsa è replicata nel client
+  - Test lato server con tempo deterministico coprono i quattro casi; un test E2E verifica la marcatura con due istanti diversi
+  - Valore attuale, differenza e totale restano quelli di oggi
+
+  ---
+
+  ## Soluzione Tecnica
+
+  Il verdetto non va inventato: esiste già, ed è `classifyRefetch` in `server/src/domain/marketHours.ts`. La guardia di buona cittadinanza classifica da US-009 la distanza fra un rilevamento e adesso in tre esiti, e quei tre esiti sono **esattamente** i tre casi che il criterio elenca. L'incremento consiste quindi nel *riusare* quella classificazione da un secondo punto (l'endpoint arricchito) e nel presentarne l'esito, non nello scrivere una seconda regola oraria che col tempo divergerebbe dalla prima.
+
+  ### La mappatura, e perché è un'identità
+
+  | `classifyRefetch(...).kind` | Significato | Verdetto US-034 |
+  |---|---|---|
+  | `none` | almeno una sessione si è conclusa: il recupero è lecito senza conferma | **obsoleto** |
+  | `intra-session` | il rilevamento cade nella sessione corrente | **non obsoleto** |
+  | `no-session` | nessuna sessione fra il rilevamento e adesso | **non obsoleto** |
+
+  Obsoleto ⟺ `kind === 'none'`. È la stessa frase, letta dai due lati: la guardia dice «puoi ricontattare la fonte», il riepilogo dice «questa cifra è vecchia». Tenere le due letture su un solo predicato è il punto del criterio «la stessa classificazione oraria».
+
+  - **Contratto condiviso** — `shared/types/index.ts`: nuovo tipo `export type PriceFreshness = 'current' | 'stale' | 'never-fetched'` (valori in kebab-case come `RefetchKind`), e nuovo campo `freshness: PriceFreshness` su `EnrichedPositionSummary`. Non è nullable: il verdetto è **sempre** definito, perché l'assenza di dato è essa stessa uno dei tre valori (`never-fetched`). Un `null` qui riaprirebbe nel client la domanda «e adesso cosa scrivo?», cioè proprio la decisione che la spec vuole spostare sul server.
+
+  - **Dominio** — in `marketHours.ts` una nuova funzione pura, accanto a `classifyRefetch` e con la stessa disciplina (nessun orologio interno, `now` sempre parametro):
+
+    ```ts
+    export function classifyPriceFreshness(fetchedAt: Date | null, now: Date): PriceFreshness {
+      if (fetchedAt === null) return 'never-fetched';
+      return classifyRefetch(fetchedAt, now).kind === 'none' ? 'stale' : 'current';
+    }
+    ```
+
+    Delega, non duplica: `hasSessionInInterval` e `isSameSession` restano l'unica implementazione delle regole di sessione, DST compreso.
+
+  - **Endpoint arricchito** — `server/src/api/positions.ts`, rotta `GET /api/portfolios/:id/positions/enriched`. Il mapping già dispone di `currentPrice` e `fetchedAt`; aggiunge `freshness: classifyPriceFreshness(istante, now())`, dove `istante` è `null` quando **o** il prezzo **o** il timestamp mancano, e `new Date(row.fetchedAt * 1000)` altrimenti. Nessuna nuova query, nessuna colonna in più nella `select` o nella `groupBy`, nessuna migrazione: tutto il materiale è già nella LEFT JOIN introdotta da US-032.
+
+  - **Perché `price === null` conta come «mai rilevato»** — il criterio dice «né prezzo né istante di rilevamento», ed è il caso comune (ISIN fuori cache: entrambi `null`). Resta il caso misto, reale: una riga in `securities` con anagrafica e `fetched_at` valorizzati ma `price` a `NULL`, che la fonte può produrre. US-032 ha già deciso che in quel caso la colonna «Ultimo rilevamento» mostra «–», con questa motivazione scritta in commento: mostrare lì un istante racconterebbe che «il prezzo è stato rilevato», che è falso. Il verdetto **deve** usare lo stesso predicato della cella che affianca, altrimenti la riga direbbe due cose incompatibili — «–» accanto a «obsoleto dal…». Quindi: `currentPrice === null || fetchedAt === null` ⇒ `never-fetched`. La riga rientra nel conteggio in entrambe le letture, come il criterio richiede.
+
+  - **Tempo iniettabile senza rompere le registrazioni esistenti** — `positionsRoutes` è oggi un plugin Fastify semplice, registrato senza opzioni dal server e da sei file di test. Diventare una factory come `securitiesRoutes` obbligherebbe a toccare tutte quelle chiamate. Si usa invece il **secondo parametro** che Fastify già passa a ogni plugin: `positionsRoutes(fastify, opts)` legge `opts.now ?? (() => new Date())`. `fastify.register(positionsRoutes)` continua a funzionare identico (`opts` arriva come oggetto vuoto), e un test può congelare l'orologio con `fastify.register(positionsRoutes, { now: () => new Date('2026-...') })`. Retrocompatibile per costruzione.
+
+  - **Marcatura di riga: dentro la cella, non in una colonna nuova** — la marcatura va *dentro* il `<td>` di «Ultimo rilevamento», come seconda riga, con lo stesso schema a due livelli già usato dalla prima colonna (`.voce` + `.voce small { display: block }`). Un'ottava colonna sarebbe la lettura alternativa di «affianca», ma costerebbe cara e per nulla: `tfoot` tornerebbe disallineato (`colSpan` da 5 a 6) e `US-032__prezzo-e-rilevamento-varianti` asserisce **misurando i bounding box** che ogni totale cada sotto la propria intestazione, oltre a `colspan === '5'`. La cella a due righe lascia sette colonne, `tfoot` intatto e quelle asserzioni verdi.
+
+  - **Il `data-testid` scende di un livello, e non è un dettaglio** — oggi `data-testid="rilevamento-${isin}"` sta sul `<td>`, e tre asserzioni esistenti di US-032 fanno `toHaveText('–')` / `toHaveText('21/07/2026 14:32')` su di esso. `toHaveText` confronta l'**intero** testo dell'elemento: aggiungere la marcatura dentro quel `<td>` le romperebbe tutte e tre. Si ristruttura quindi così:
+
+    ```tsx
+    <td className="cifra">
+      <span className={ha ? undefined : 'dato-mancante'} data-testid={`rilevamento-${ep.isin}`}>
+        {ha ? dataRilevamento(ep.fetchedAt!) : '–'}
+      </span>
+      {ep.freshness !== 'current' && (
+        <small className={`marca-rilevamento ${ep.freshness === 'stale' ? 'obsoleto' : 'mai-rilevato'}`}
+               data-testid={`marca-rilevamento-${ep.isin}`}>
+          {ep.freshness === 'stale' ? 'da aggiornare' : 'mai rilevato'}
+        </small>
+      )}
+    </td>
+    ```
+
+    Il testid e la classe `dato-mancante` viaggiano insieme sullo `span`, quindi sia `toHaveText` sia `toHaveClass(/dato-mancante/)` continuano a vedere quello che vedevano prima. **Le specs di US-032 non vanno modificate**; se una di esse fallisse, è segno che la ristrutturazione è stata fatta male, non che l'asserzione è superata.
+
+  - **Conteggio sopra la tabella** — un riquadro sempre presente fra il riquadro «Valore attuale totale» e `.tabella-scroll`, `role="status"`, `data-testid="conteggio-da-aggiornare"`. Testo:
+    - solo obsoleti: «{s} titol{o|i} su {tot} con rilevamento obsoleto»
+    - solo mai rilevati: «{m} titol{o|i} su {tot} mai rilevat{o|i}»
+    - entrambi: «{n} titoli su {tot} da aggiornare: {s} con rilevamento obsoleto, {m} mai rilevat{o|i}»
+    - nessuno: «Tutti i {tot} titoli sono allineati all'ultima sessione di borsa.» (al singolare: «L'unico titolo è allineato all'ultima sessione di borsa.»)
+
+    A zero il riquadro **resta**, con l'esito positivo: il criterio vieta esplicitamente lo spazio vuoto, e un'assenza sarebbe indistinguibile da una funzionalità non caricata.
+
+  - **Il conteggio si fa nel client, e non viola il criterio** — la tentazione è avvolgere la risposta in `{ positions, staleCount }`. Sarebbe un errore: cambierebbe la forma dell'array per l'unico consumatore e per i test di US-032/US-014, e non comprerebbe nulla. Contare quante righe hanno `freshness !== 'current'` non è replicare una regola di orario di borsa — è la stessa aritmetica già fatta a due righe di distanza per `positionsWithPrice.length`. Il criterio vieta al client di *decidere* cosa è obsoleto, e il client non lo decide: legge un verdetto.
+
+  - **CSS** — `client/src/ledger.css`: `.marca-rilevamento` come blocco su riga propria (`display: block`, corpo ridotto, maiuscoletto coerente con il registro), con `.obsoleto` in `--rosso-margine` e `.mai-rilevato` in `--seppia`. Il colore è ridondante rispetto al testo, mai portatore unico del significato. Il riquadro del conteggio riusa il linguaggio visivo di `.nota-mancante`, già presente.
+
+  - **Nessuna cifra cambia** — `currentPrice`, `currentValue`, `difference` e i totali non sono toccati: il campo è additivo e la vista aggiunge testo. Il criterio è soddisfatto per costruzione, e i test di regressione esistenti sono la prova.
+
+  **Assunzioni registrate**
+  1. *Angolo del pre-apertura.* Rilevamento oggi alle 08:00, adesso le 10:00 a mercato aperto: `classifyRefetch` risponde `none` (l'intervallo interseca la sessione senza cadervi dentro) e la riga risulta quindi «obsoleta», benché nessuna sessione si sia *conclusa*. Si accetta consapevolmente: il criterio vincola il verdetto alla classificazione della guardia, e una divergenza fra ciò che il riepilogo dichiara e ciò che la guardia dice all'utente sulla stessa riga sarebbe un difetto peggiore dell'angolo.
+  2. Il calendario dei festivi di Borsa Italiana resta ignorato, come già documentato in `marketHours.ts`: un festivo infrasettimanale conta come sessione. Ereditato, non introdotto qui.
+  3. La scheda titolo (`PositionDetail` / `SchedaTitolo.tsx`) **non** riceve il verdetto: la spec parla del riepilogo. Estenderlo è una spec successiva.
+  4. Nessuna azione è offerta dalla marcatura (niente «aggiorna ora» dalla riga): la spec chiede di *dichiarare*, non di rimediare. L'aggiornamento vive già in US-030, dalla scheda titolo.
+
+  ---
+
+  ## Strategia di Test
+
+  Il rischio si concentra in due punti indipendenti: che la classificazione oraria sbagli caso (dominio) e che la presentazione rompa ciò che US-032 ha appena stabilizzato (vista). La copertura li aggredisce separatamente.
+
+  - **Unità di dominio, tempo deterministico** — in `server/tests/marketHours.test.ts`, con lo stesso stile già in uso (istanti costruiti da ISO con offset di Roma esplicito, `+02:00` d'estate e `+01:00` d'inverno). I quattro casi del criterio: (a) **obsoleto** — lunedì 10:00 → martedì 10:00; (b) **sessione corrente** — martedì 10:00 → martedì 11:00; (c) **nessuna sessione trascorsa** — venerdì 18:00 → domenica 14:00; (d) **mai rilevato** — `fetchedAt` a `null`. Più i confini che la delega deve preservare: chiusura alle 17:30 dello stesso giorno (obsoleto), attraversamento del passaggio ora legale/solare, e l'angolo del pre-apertura dell'assunzione 1, asserito **come tale** perché sia una scelta registrata e non una scoperta futura.
+
+  - **Integrazione API, orologio congelato** — in `server/tests/api.positions.enriched.test.ts`, registrando la rotta con `{ now: () => new Date(...) }`: un ISIN seminato in una sessione passata espone `freshness: 'stale'`; uno seminato nella stessa sessione dell'istante congelato espone `'current'`; un ISIN fuori cache espone `'never-fetched'` insieme a `currentPrice: null`; una riga in cache con `price` a `NULL` ma `fetched_at` valorizzato espone anch'essa `'never-fetched'` — è il caso misto, quello che nessuno scriverebbe per caso. Si verifica inoltre che due ISIN con verdetti diversi nella stessa risposta non si scambino il valore.
+
+  - **Regressione** — le asserzioni esistenti su `currentPrice`, `fetchedAt`, `currentValue`, `difference` e sull'ordinamento per ISIN restano verdi senza modifiche: il campo è additivo e nessuna cifra cambia.
+
+  - **Verifica finale** — `npm run check` e l'intera suite Playwright. Attenzione particolare a `US-032__prezzo-e-rilevamento*`: se falliscono, la ristrutturazione della cella è sbagliata (vedi sopra), non l'asserzione.
+
+  ### Test E2E — Simulazione utente
+
+  **Framework:** Playwright (`e2e/`, con la fixture `archivio` di `e2e/support/fixtures.ts`)
+  **Registrazione video:** solo lo scenario demo (`docs/test-results/US-034/`); gli altri scenari girano senza video
+
+  Vincoli operativi da rispettare (da `CLAUDE.md`), e una proprietà che rende gli scenari deterministici:
+
+  - **Due file spec, non uno.** `launchOptions.slowMo` non è scopabile a un `describe`: lo scenario demo vive in un file dedicato con `test.use()` a livello di file, le varianti in un file fratello. Modello: la coppia `US-026__*`, poi `US-032__*`.
+  - **ISIN riservati per file, mai condivisi.** Il file demo ne semina due (uno obsoleto, uno della sessione corrente), il file varianti ne semina uno e ne rimuove un altro: quattro costanti nuove in `e2e/support/titoli.ts`, nessuna condivisa fra i due file.
+  - **Un rilevamento «adesso» è non-obsoleto a qualunque ora giri la suite.** `classifyRefetch(now, now)` non può restituire `none`: se il mercato è aperto è `intra-session`, altrimenti nessuna sessione è trascorsa ed è `no-session`. Entrambi mappano su `current`. Quindi il titolo «fresco» si semina **omettendo** `fetched_at` (il default di `seminaTitolo` è già adesso) e resta verde alle 22:00 di sabato come alle 10:00 di martedì. Simmetricamente, un `fetched_at` fissato a una data passata nota resta obsoleto per sempre, perché il passato non si avvicina.
+  - **Seminare un `fetched_at` passato è sicuro qui.** L'endpoint arricchito legge la cache con una LEFT JOIN e non contatta mai la fonte: nessuno di questi scenari attraversa la ricerca titoli, quindi la cautela sul timestamp stantio di `CLAUDE.md` non si applica (vale la stessa nota già scritta per US-032).
+  - **Pulizia nella fixture, mai in `finally`.**
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Demo (con video) | L'utente ha un portafoglio con due titoli rilevati in momenti diversi: uno con `fetched_at` fissato a una sessione di borsa passata, l'altro rilevato adesso. Apre il portafoglio, passa alla scheda «Riepilogo» e vede: sopra la tabella il conteggio «1 titolo su 2 con rilevamento obsoleto»; sulla riga del titolo vecchio, accanto all'istante nella colonna «Ultimo rilevamento», la dicitura «da aggiornare»; sulla riga del titolo fresco nessuna marcatura. Verifica infine che il valore attuale totale sia rimasto quello di prima — la spec non tocca le cifre. |
+  | Tutti allineati | Portafoglio i cui titoli sono tutti rilevati adesso: nessuna riga porta una marcatura (`marca-rilevamento-*` non esiste in pagina) e il riquadro sopra la tabella **è presente** e dichiara che tutti i titoli sono allineati all'ultima sessione — la verifica che lo stato a zero non lasci spazio vuoto. |
+  | Mai rilevato | Un titolo rimosso dalla cache con `archivio.rimuoviTitolo` mostra «mai rilevato», dicitura distinta da «da aggiornare», mentre la cella «Ultimo rilevamento» continua a mostrare «–» come stabilito da US-032; il conteggio sopra la tabella lo include fra i titoli da aggiornare. |
+  | Marcatura leggibile come testo | Sulla riga obsoleta la marcatura è asserita per **testo** (`toHaveText('da aggiornare')`) e non per colore, ed è visibile: è il criterio di accessibilità reso eseguibile. |
+
+  ---
+
+  _Piano generato da ARchetipo Planning — 2026-08-08_
+tasks:
+  - id: TASK-01
+    title: Introdurre PriceFreshness e il campo freshness nel contratto condiviso
+    description: 'In shared/types/index.ts aggiungere `export type PriceFreshness = ''current'' | ''stale'' | ''never-fetched''` (kebab-case come RefetchKind) e il campo non nullable `freshness: PriceFreshness` su EnrichedPositionSummary. Documentare in commento che il verdetto è sempre definito perché l''assenza di dato è essa stessa uno dei tre valori, e che ''stale'' significa «almeno una sessione di borsa conclusa dall''ultimo rilevamento».'
+    type: Impl
+    status: DONE
+    body: 'In shared/types/index.ts aggiungere `export type PriceFreshness = ''current'' | ''stale'' | ''never-fetched''` (kebab-case come RefetchKind) e il campo non nullable `freshness: PriceFreshness` su EnrichedPositionSummary. Documentare in commento che il verdetto è sempre definito perché l''assenza di dato è essa stessa uno dei tre valori, e che ''stale'' significa «almeno una sessione di borsa conclusa dall''ultimo rilevamento».'
+    ref: TASK-01
+  - id: TASK-02
+    title: Aggiungere classifyPriceFreshness al dominio degli orari di borsa
+    description: 'In server/src/domain/marketHours.ts esportare `classifyPriceFreshness(fetchedAt: Date | null, now: Date): PriceFreshness`, che restituisce ''never-fetched'' su fetchedAt null e altrimenti delega a classifyRefetch mappando kind ''none'' su ''stale'' e ''intra-session''/''no-session'' su ''current''. Funzione pura, nessun orologio interno. Non reimplementare hasSessionInInterval né isSameSession: la delega è il punto: una sola regola oraria in tutto il progetto.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'In server/src/domain/marketHours.ts esportare `classifyPriceFreshness(fetchedAt: Date | null, now: Date): PriceFreshness`, che restituisce ''never-fetched'' su fetchedAt null e altrimenti delega a classifyRefetch mappando kind ''none'' su ''stale'' e ''intra-session''/''no-session'' su ''current''. Funzione pura, nessun orologio interno. Non reimplementare hasSessionInInterval né isSameSession: la delega è il punto: una sola regola oraria in tutto il progetto.'
+    ref: TASK-02
+  - id: TASK-03
+    title: Test unitari deterministici sui quattro casi di freschezza
+    description: 'In server/tests/marketHours.test.ts aggiungere un describe per classifyPriceFreshness con istanti costruiti da ISO con offset di Roma esplicito: obsoleto (lun 10:00 → mar 10:00), sessione corrente (mar 10:00 → mar 11:00), nessuna sessione trascorsa (ven 18:00 → dom 14:00), mai rilevato (null). Aggiungere i confini: dopo la chiusura delle 17:30 dello stesso giorno → ''stale'', attraversamento DST, e l''angolo del pre-apertura (rilevamento alle 08:00, adesso alle 10:00 → ''stale'') asserito esplicitamente come scelta registrata.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+    body: 'In server/tests/marketHours.test.ts aggiungere un describe per classifyPriceFreshness con istanti costruiti da ISO con offset di Roma esplicito: obsoleto (lun 10:00 → mar 10:00), sessione corrente (mar 10:00 → mar 11:00), nessuna sessione trascorsa (ven 18:00 → dom 14:00), mai rilevato (null). Aggiungere i confini: dopo la chiusura delle 17:30 dello stesso giorno → ''stale'', attraversamento DST, e l''angolo del pre-apertura (rilevamento alle 08:00, adesso alle 10:00 → ''stale'') asserito esplicitamente come scelta registrata.'
+    ref: TASK-03
+  - id: TASK-04
+    title: Calcolare il verdetto nell'endpoint delle posizioni arricchite
+    description: 'In server/src/api/positions.ts far leggere a positionsRoutes il secondo parametro del plugin Fastify (`opts.now ?? (() => new Date())`) e, nel mapping di GET /api/portfolios/:id/positions/enriched, valorizzare `freshness: classifyPriceFreshness(istante, now())` dove `istante` è null quando currentPrice o fetchedAt sono null, e `new Date(row.fetchedAt * 1000)` altrimenti. Nessuna modifica a select, groupBy o migrazioni. La firma resta compatibile: `fastify.register(positionsRoutes)` continua a funzionare senza opzioni.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    body: 'In server/src/api/positions.ts far leggere a positionsRoutes il secondo parametro del plugin Fastify (`opts.now ?? (() => new Date())`) e, nel mapping di GET /api/portfolios/:id/positions/enriched, valorizzare `freshness: classifyPriceFreshness(istante, now())` dove `istante` è null quando currentPrice o fetchedAt sono null, e `new Date(row.fetchedAt * 1000)` altrimenti. Nessuna modifica a select, groupBy o migrazioni. La firma resta compatibile: `fastify.register(positionsRoutes)` continua a funzionare senza opzioni.'
+    ref: TASK-04
+  - id: TASK-05
+    title: Test di integrazione sull'endpoint con orologio congelato
+    description: 'In server/tests/api.positions.enriched.test.ts registrare la rotta con `{ now: () => new Date(...) }` e verificare: ISIN seminato in una sessione passata → ''stale''; ISIN seminato nella stessa sessione dell''istante congelato → ''current''; ISIN fuori cache → ''never-fetched'' con currentPrice null; riga in cache con price NULL ma fetched_at valorizzato → ''never-fetched'' (caso misto); due ISIN con verdetti diversi nella stessa risposta non si scambiano il valore. Verificare che le asserzioni preesistenti su currentPrice, fetchedAt, currentValue e difference restino verdi.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    body: 'In server/tests/api.positions.enriched.test.ts registrare la rotta con `{ now: () => new Date(...) }` e verificare: ISIN seminato in una sessione passata → ''stale''; ISIN seminato nella stessa sessione dell''istante congelato → ''current''; ISIN fuori cache → ''never-fetched'' con currentPrice null; riga in cache con price NULL ma fetched_at valorizzato → ''never-fetched'' (caso misto); due ISIN con verdetti diversi nella stessa risposta non si scambiano il valore. Verificare che le asserzioni preesistenti su currentPrice, fetchedAt, currentValue e difference restino verdi.'
+    ref: TASK-05
+  - id: TASK-06
+    title: Marcare la riga dentro la cella «Ultimo rilevamento»
+    description: 'In client/src/pages/PortfolioDetailPage.tsx ristrutturare la cella del rilevamento: il `<td>` mantiene la classe `cifra`, mentre `data-testid="rilevamento-${isin}"` e la classe `dato-mancante` scendono su uno `<span>` interno che contiene l''istante o «–». Sotto, quando `freshness !== ''current''`, un `<small className="marca-rilevamento obsoleto|mai-rilevato" data-testid="marca-rilevamento-${isin}">` con il testo «da aggiornare» oppure «mai rilevato». Lo spostamento del testid è obbligatorio: tre asserzioni `toHaveText` di US-032 leggono il testo completo dell''elemento con quel testid e si romperebbero se la marcatura finisse dentro il `<td>`. Non aggiungere colonne: sette colonne e il colSpan={5} del tfoot restano invariati.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-04
+    body: 'In client/src/pages/PortfolioDetailPage.tsx ristrutturare la cella del rilevamento: il `<td>` mantiene la classe `cifra`, mentre `data-testid="rilevamento-${isin}"` e la classe `dato-mancante` scendono su uno `<span>` interno che contiene l''istante o «–». Sotto, quando `freshness !== ''current''`, un `<small className="marca-rilevamento obsoleto|mai-rilevato" data-testid="marca-rilevamento-${isin}">` con il testo «da aggiornare» oppure «mai rilevato». Lo spostamento del testid è obbligatorio: tre asserzioni `toHaveText` di US-032 leggono il testo completo dell''elemento con quel testid e si romperebbero se la marcatura finisse dentro il `<td>`. Non aggiungere colonne: sette colonne e il colSpan={5} del tfoot restano invariati.'
+    ref: TASK-06
+  - id: TASK-07
+    title: Mostrare il conteggio dei titoli da aggiornare sopra la tabella
+    description: 'In client/src/pages/PortfolioDetailPage.tsx inserire fra il riquadro «Valore attuale totale» e `.tabella-scroll` un riquadro sempre presente con `role="status"` e `data-testid="conteggio-da-aggiornare"`. Testo secondo i quattro casi definiti nel piano (solo obsoleti / solo mai rilevati / entrambi / nessuno), con le forme singolari corrette. A zero il riquadro resta e dichiara che tutti i titoli sono allineati all''ultima sessione di borsa. Il conteggio si ottiene filtrando `enrichedPositions` su `freshness`: nessuna regola di orario di borsa nel client.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-06
+    body: 'In client/src/pages/PortfolioDetailPage.tsx inserire fra il riquadro «Valore attuale totale» e `.tabella-scroll` un riquadro sempre presente con `role="status"` e `data-testid="conteggio-da-aggiornare"`. Testo secondo i quattro casi definiti nel piano (solo obsoleti / solo mai rilevati / entrambi / nessuno), con le forme singolari corrette. A zero il riquadro resta e dichiara che tutti i titoli sono allineati all''ultima sessione di borsa. Il conteggio si ottiene filtrando `enrichedPositions` su `freshness`: nessuna regola di orario di borsa nel client.'
+    ref: TASK-07
+  - id: TASK-08
+    title: Stile della marcatura e del riquadro di conteggio
+    description: 'In client/src/ledger.css aggiungere `.marca-rilevamento` (display: block su riga propria, corpo ridotto, coerente con il maiuscoletto del registro) con le varianti `.obsoleto` in var(--rosso-margine) e `.mai-rilevato` in var(--seppia), e lo stile del riquadro di conteggio riusando il linguaggio visivo di `.nota-mancante`. Il colore resta ridondante rispetto al testo: la marcatura deve restare comprensibile in scala di grigi.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-07
+    body: 'In client/src/ledger.css aggiungere `.marca-rilevamento` (display: block su riga propria, corpo ridotto, coerente con il maiuscoletto del registro) con le varianti `.obsoleto` in var(--rosso-margine) e `.mai-rilevato` in var(--seppia), e lo stile del riquadro di conteggio riusando il linguaggio visivo di `.nota-mancante`. Il colore resta ridondante rispetto al testo: la marcatura deve restare comprensibile in scala di grigi.'
+    ref: TASK-08
+  - id: TASK-09
+    title: Riservare gli ISIN e2e di US-034
+    description: 'In e2e/support/titoli.ts aggiungere quattro costanti nuove, nessuna condivisa fra i due file spec: due per il file demo (il titolo che sarà seminato con fetched_at in una sessione passata e quello seminato adesso) e due per il file varianti (uno seminato fresco, uno che il file rimuove dalla cache). Documentare in commento la proprietà che rende gli scenari deterministici: un rilevamento «adesso» non può risultare obsoleto a nessuna ora, perché classifyRefetch(now, now) è ''intra-session'' o ''no-session'', mai ''none''.'
+    type: Test
+    status: DONE
+    body: 'In e2e/support/titoli.ts aggiungere quattro costanti nuove, nessuna condivisa fra i due file spec: due per il file demo (il titolo che sarà seminato con fetched_at in una sessione passata e quello seminato adesso) e due per il file varianti (uno seminato fresco, uno che il file rimuove dalla cache). Documentare in commento la proprietà che rende gli scenari deterministici: un rilevamento «adesso» non può risultare obsoleto a nessuna ora, perché classifyRefetch(now, now) è ''intra-session'' o ''no-session'', mai ''none''.'
+    ref: TASK-09
+  - id: TASK-10
+    title: 'E2E demo con video: marcatura e conteggio nel riepilogo'
+    description: 'Creare e2e/US-034__rilevamento-obsoleto.spec.ts con `test.use({ video: ''on'', launchOptions: { slowMo } })` a livello di file. Lo scenario semina due titoli — uno con fetched_at fissato a una sessione di borsa passata, l''altro senza fetched_at esplicito (quindi adesso) — crea portafoglio e posizioni via fixture archivio, apre la scheda «Riepilogo» e verifica: il conteggio «1 titolo su 2 con rilevamento obsoleto» sopra la tabella, la marcatura «da aggiornare» sulla riga vecchia asserita per testo, l''assenza di marcatura sulla riga fresca, e che il valore attuale totale non sia cambiato. Salvare il video con page.video().saveAs(''docs/test-results/US-034/...webm'') in un afterEach dopo page.close().'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-07
+      - TASK-08
+      - TASK-09
+    body: 'Creare e2e/US-034__rilevamento-obsoleto.spec.ts con `test.use({ video: ''on'', launchOptions: { slowMo } })` a livello di file. Lo scenario semina due titoli — uno con fetched_at fissato a una sessione di borsa passata, l''altro senza fetched_at esplicito (quindi adesso) — crea portafoglio e posizioni via fixture archivio, apre la scheda «Riepilogo» e verifica: il conteggio «1 titolo su 2 con rilevamento obsoleto» sopra la tabella, la marcatura «da aggiornare» sulla riga vecchia asserita per testo, l''assenza di marcatura sulla riga fresca, e che il valore attuale totale non sia cambiato. Salvare il video con page.video().saveAs(''docs/test-results/US-034/...webm'') in un afterEach dopo page.close().'
+    ref: TASK-10
+  - id: TASK-11
+    title: 'E2E varianti: portafoglio allineato e titolo mai rilevato'
+    description: 'Creare e2e/US-034__rilevamento-obsoleto-varianti.spec.ts (senza video) con due scenari: (a) portafoglio i cui titoli sono tutti rilevati adesso — nessun elemento `marca-rilevamento-*` in pagina e il riquadro `conteggio-da-aggiornare` presente che dichiara tutti i titoli allineati all''ultima sessione; (b) titolo rimosso dalla cache con archivio.rimuoviTitolo — marcatura «mai rilevato», distinta da «da aggiornare», con la cella «Ultimo rilevamento» che continua a mostrare «–», e il titolo incluso nel conteggio sopra la tabella.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-07
+      - TASK-08
+      - TASK-09
+    body: 'Creare e2e/US-034__rilevamento-obsoleto-varianti.spec.ts (senza video) con due scenari: (a) portafoglio i cui titoli sono tutti rilevati adesso — nessun elemento `marca-rilevamento-*` in pagina e il riquadro `conteggio-da-aggiornare` presente che dichiara tutti i titoli allineati all''ultima sessione; (b) titolo rimosso dalla cache con archivio.rimuoviTitolo — marcatura «mai rilevato», distinta da «da aggiornare», con la cella «Ultimo rilevamento» che continua a mostrare «–», e il titolo incluso nel conteggio sopra la tabella.'
+    ref: TASK-11
+  - id: TASK-12
+    title: 'Verifica finale: check completo e suite Playwright'
+    description: 'Eseguire `npm run check` e l''intera suite `npx playwright test`. Attenzione particolare a US-032__prezzo-e-rilevamento e US-032__prezzo-e-rilevamento-varianti: quelle specs non vanno modificate — se falliscono è la ristrutturazione della cella del rilevamento a essere sbagliata (testid e classe dato-mancante devono stare sullo span interno). Controllare anche US-014 e US-017, che leggono la zona sopra la tabella di riepilogo.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+      - TASK-05
+      - TASK-10
+      - TASK-11
+    body: 'Eseguire `npm run check` e l''intera suite `npx playwright test`. Attenzione particolare a US-032__prezzo-e-rilevamento e US-032__prezzo-e-rilevamento-varianti: quelle specs non vanno modificate — se falliscono è la ristrutturazione della cella del rilevamento a essere sbagliata (testid e classe dato-mancante devono stare sullo span interno). Controllare anche US-014 e US-017, che leggono la zona sopra la tabella di riepilogo.'
+    ref: TASK-12

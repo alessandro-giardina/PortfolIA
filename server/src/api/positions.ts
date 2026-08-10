@@ -4,6 +4,17 @@ import { db } from '../db/index.js';
 import { portfolios, positions, securities } from '../db/schema.js';
 import type { Position, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, DataSource } from '@portfolia/shared';
 import { isValidIsin, normalizeIsin } from '@portfolia/shared';
+import { classifyPriceFreshness } from '../domain/marketHours.js';
+
+/**
+ * Opzioni del plugin. `now` esiste solo per congelare l'orologio nei test del
+ * verdetto di freschezza (US-034): si usa il secondo parametro che Fastify passa
+ * già a ogni plugin, così `fastify.register(positionsRoutes)` resta valido
+ * ovunque sia già scritto e nessuna registrazione esistente va toccata.
+ */
+export interface PositionsRoutesOptions {
+  now?: () => Date;
+}
 
 /** Mappa una PositionRow Drizzle nell'interfaccia condivisa Position. */
 function toPosition(row: typeof positions.$inferSelect): Position {
@@ -30,7 +41,12 @@ function toDataSource(value: string | null | undefined): DataSource | null {
   return value === 'borsaitaliana' || value === 'morningstar' ? value : null;
 }
 
-export async function positionsRoutes(fastify: FastifyInstance): Promise<void> {
+export async function positionsRoutes(
+  fastify: FastifyInstance,
+  opts: PositionsRoutesOptions = {},
+): Promise<void> {
+  const now = opts.now ?? ((): Date => new Date());
+
   /**
    * POST /api/portfolios/:id/positions
    * Crea una nuova posizione (carico titolo) nel portafoglio specificato.
@@ -225,11 +241,23 @@ export async function positionsRoutes(fastify: FastifyInstance): Promise<void> {
       .orderBy(positions.isin)
       .all();
 
+    // Un solo istante per l'intera risposta: righe della stessa tabella devono
+    // essere classificate rispetto allo stesso "adesso", altrimenti due titoli
+    // rilevati insieme potrebbero cadere ai due lati del confine di sessione.
+    const adesso = now();
+
     const result: EnrichedPositionSummary[] = rows.map((row) => {
       const avgLoadPrice = row.totalQuantity > 0 ? row.weightedSum / row.totalQuantity : 0;
       const currentPrice = row.currentPrice ?? null;
       const currentValue = currentPrice !== null ? currentPrice * row.totalQuantity : null;
       const difference = currentValue !== null ? currentValue - avgLoadPrice * row.totalQuantity : null;
+      const fetchedAt = row.fetchedAt ?? null;
+      // Stesso predicato della cella «Ultimo rilevamento» del riepilogo, e per
+      // la stessa ragione: una riga in cache può avere `fetched_at` valorizzato
+      // e `price` nullo, e chiamarla «obsoleta» accanto a un «–» direbbe che un
+      // prezzo è stato rilevato — falso. Senza prezzo il rilevamento non c'è
+      // stato: «mai rilevato».
+      const istante = currentPrice !== null && fetchedAt !== null ? new Date(fetchedAt * 1000) : null;
       return {
         isin: row.isin,
         name: row.name ?? null,
@@ -238,7 +266,8 @@ export async function positionsRoutes(fastify: FastifyInstance): Promise<void> {
         currentPrice,
         currentValue,
         difference,
-        fetchedAt: row.fetchedAt ?? null,
+        fetchedAt,
+        freshness: classifyPriceFreshness(istante, adesso),
       };
     });
 
