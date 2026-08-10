@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Storico prezzi osservati (US-009)</title>
+  <meta name="description" content="Mockup US-009: la tabella «Storico prezzi» in fondo alla scheda titolo — il registro delle rilevazioni provocate dall'utente, rado per costruzione.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda anagrafica del titolo</p>
+      <h1>Ishares Core <span class="corsivo">Msci World</span></h1>
+      <p class="sottotesto">ISIN IE00B4L5Y983 &middot; iscritto al Conto <em>Lungo Periodo</em></p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantit&agrave; &nbsp;&nbsp;&nbsp;&nbsp;<b>220</b></div>
+      <div>Pr. attuale &nbsp;<b>€&thinsp;128,4600</b></div>
+      <div>Osservazioni &nbsp;<b>5</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a href="index.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <!-- Le tre sezioni consegnate da US-018 restano invariate: qui compaiono
+         ridotte all'essenziale, perché ciò che US-009 aggiunge sta in fondo. -->
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      Posizione a conto
+      <span class="nota">FR-014 &middot; dati della posizione nel portafoglio</span>
+    </div>
+
+    <div class="orizzonti">
+      <div class="orizzonte">
+        <span class="et">Quantit&agrave;</span>
+        <span class="valore">220</span>
+        <span class="perc">su 3 carichi</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore medio di carico</span>
+        <span class="valore">€&thinsp;68,3000</span>
+        <span class="perc">carico € 15.026,00</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore attuale</span>
+        <span class="valore">€&thinsp;28.261,20</span>
+        <span class="perc">€ 128,4600/quota</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Differenza</span>
+        <span class="valore guadagno">+€&thinsp;13.235,20</span>
+        <span class="perc guadagno">+88,08&thinsp;%</span>
+      </div>
+    </div>
+
+    <div class="sezione-titolo">
+      Anagrafica ufficiale
+      <span class="nota">dati come rilevati alla fonte &middot; nessun valore stimato</span>
+    </div>
+
+    <div class="anagrafica">
+      <div class="voce-def"><span class="et">Denominazione</span><span class="dato">Ishares Core Msci World Ucits Etf Acc</span></div>
+      <div class="voce-def"><span class="et">ISIN</span><span class="dato">IE00B4L5Y983</span></div>
+      <div class="voce-def"><span class="et">Ticker</span><span class="dato">SWDA</span></div>
+      <div class="voce-def"><span class="et">Tipo strumento</span><span class="dato">ETF</span></div>
+      <div class="voce-def"><span class="et">Valuta</span><span class="dato">EUR</span></div>
+      <div class="voce-def"><span class="et">Prezzo attuale</span><span class="dato">€&thinsp;128,4600</span></div>
+    </div>
+
+    <div class="riga-fonte">
+      <span class="timbro-fonte">Fonte primaria</span>
+      <span>Fonte: <b>Borsa Italiana</b></span>
+      <span>Rilevato il <b>10.VIII.2026 &middot; 09:14</b></span>
+      <span class="azione-fonte"><button class="bottone-minuto" type="button"><span class="glifo">&#x21bb;</span> Aggiorna dati</button></span>
+    </div>
+
+    <div class="sezione-titolo">
+      Carichi registrati
+      <span class="nota">le iscrizioni individuali che compongono la posizione</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Data di carico</th>
+            <th class="allineato-dx">Quantit&agrave;</th>
+            <th class="allineato-dx">Prezzo d&rsquo;acquisto</th>
+            <th class="allineato-dx">Controvalore carico</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="voce"><strong>19.IX.2021</strong></span></td>
+            <td class="cifra">80</td>
+            <td class="cifra">€&thinsp;61,4000</td>
+            <td class="cifra">€&thinsp;4.912,00</td>
+          </tr>
+          <tr>
+            <td><span class="voce"><strong>07.III.2023</strong></span></td>
+            <td class="cifra">90</td>
+            <td class="cifra">€&thinsp;70,1000</td>
+            <td class="cifra">€&thinsp;6.309,00</td>
+          </tr>
+          <tr>
+            <td><span class="voce"><strong>14.II.2025</strong></span></td>
+            <td class="cifra">50</td>
+            <td class="cifra">€&thinsp;76,1000</td>
+            <td class="cifra">€&thinsp;3.805,00</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Totale &middot; prezzo medio</td>
+            <td class="cifra">220</td>
+            <td class="cifra">€&thinsp;68,3000</td>
+            <td class="cifra">€&thinsp;15.026,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- ===== 4. Storico prezzi — la sezione nuova di US-009 ===== -->
+    <div class="sezione-titolo">
+      Storico prezzi
+      <span class="nota">FR-018 &middot; le quotazioni gi&agrave; rilevate &middot; nessuna richiesta in pi&ugrave; alla fonte</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Data di rilevamento</th>
+            <th class="allineato-dx">Prezzo rilevato</th>
+            <th>Fonte</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="rilevazione-ultima">
+            <td>
+              <span class="voce">
+                <strong>10.VIII.2026 &middot; 09:14<span class="postilla-ultima">ultima</span></strong>
+                <small>luned&igrave;</small>
+              </span>
+            </td>
+            <td class="cifra">€&thinsp;128,4600</td>
+            <td><span class="timbro-riga">Borsa Italiana</span></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="voce">
+                <strong>07.VIII.2026 &middot; 17:41</strong>
+                <small>venerd&igrave;</small>
+              </span>
+            </td>
+            <td class="cifra">€&thinsp;126,9000</td>
+            <td><span class="timbro-riga">Borsa Italiana</span></td>
+          </tr>
+          <tr>
+            <!-- Stesso giorno della riga sotto, prezzo diverso: due osservazioni
+                 distinte, perché il prezzo è cambiato fra le due rilevazioni. -->
+            <td>
+              <span class="voce">
+                <strong>05.VIII.2026 &middot; 16:02</strong>
+                <small>mercoled&igrave;</small>
+              </span>
+            </td>
+            <td class="cifra">€&thinsp;127,3100</td>
+            <td><span class="timbro-riga">Borsa Italiana</span></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="voce">
+                <strong>05.VIII.2026 &middot; 09:31</strong>
+                <small>mercoled&igrave;</small>
+              </span>
+            </td>
+            <td class="cifra">€&thinsp;125,8800</td>
+            <td><span class="timbro-riga di-backup">MorningStar (backup)</span></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="voce">
+                <strong>21.VII.2026 &middot; 11:07</strong>
+                <small>marted&igrave;</small>
+              </span>
+            </td>
+            <td class="cifra">€&thinsp;122,4000</td>
+            <td><span class="timbro-riga ignota">Fonte non registrata</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Il pettine: una tacca per rilevazione sull'asse dei giorni civili. Mostra
+         la radità dello storico senza tracciare una curva fra i punti, che
+         sarebbe interpolazione (ADR-003). -->
+    <div class="pettine-osservazioni" aria-hidden="true">
+      <i class="media"></i>
+      <span style="width:150px"></span>
+      <i></i><i class="media"></i>
+      <span style="width:26px"></span>
+      <i class="alta"></i>
+      <span style="width:38px"></span>
+      <i class="ultima"></i>
+    </div>
+    <p class="didascalia-pettine">
+      <span>21.VII.2026</span>
+      <span>5 rilevazioni in 20 giorni civili &middot; i giorni senza tacca non sono stati osservati</span>
+      <span>10.VIII.2026</span>
+    </p>
+
+    <div class="avviso-rado">
+      <span>
+        Lo storico registra soltanto le <b>5</b> quotazioni che i tuoi aggiornamenti hanno gi&agrave;
+        rilevato &mdash; ricerca titolo, scheda titolo, aggiornamento dei titoli obsoleti. I giorni
+        non osservati restano vuoti: PortfolIA non li stima e non li interpola.
+      </span>
+    </div>
+
+    <p class="nota-sezione">
+      Due rilevazioni dello stesso giorno con lo stesso prezzo contano come una sola osservazione;
+      con prezzi diversi restano entrambe, come il <b>5.VIII</b> qui sopra. Il giorno &egrave; quello
+      civile di Roma.
+    </p>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="#">&larr; Torna al riepilogo</a>
+      <a class="bottone secondario" href="prima-osservazione.html">Vedi variante &laquo;una sola osservazione&raquo; &rarr;</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">Registro delle rilevazioni &mdash; nessuna richiesta aggiuntiva alla fonte</span>
+    <span><span class="timbro">Dati osservati</span> PortfolIA &middot; US-009</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-009 &middot; <a href="index.html">Storico con pi&ugrave; osservazioni</a> &middot;
+  <a href="prima-osservazione.html">Una sola osservazione</a>
+</p>
+
+<script src="app.js"></script>
+</body>
+</html>

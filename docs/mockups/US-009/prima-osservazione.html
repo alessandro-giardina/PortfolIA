@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Storico con una sola osservazione (US-009)</title>
+  <meta name="description" content="Mockup US-009, variante: un titolo già in archivio all'entrata in esercizio dello storico — una riga sola, e nessun valore stimato per i periodi non osservati.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda anagrafica del titolo</p>
+      <h1>Vanguard Ftse <span class="corsivo">All-World</span></h1>
+      <p class="sottotesto">ISIN IE00BK5BQT80 &middot; iscritto al Conto <em>Lungo Periodo</em></p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantit&agrave; &nbsp;&nbsp;&nbsp;&nbsp;<b>60</b></div>
+      <div>Pr. attuale &nbsp;<b>€&thinsp;118,4200</b></div>
+      <div>Osservazioni &nbsp;<b>1</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a href="prima-osservazione.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      Posizione a conto
+      <span class="nota">FR-014 &middot; dati della posizione nel portafoglio</span>
+    </div>
+
+    <div class="orizzonti">
+      <div class="orizzonte">
+        <span class="et">Quantit&agrave;</span>
+        <span class="valore">60</span>
+        <span class="perc">su 1 carico</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore medio di carico</span>
+        <span class="valore">€&thinsp;104,2000</span>
+        <span class="perc">carico € 6.252,00</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore attuale</span>
+        <span class="valore">€&thinsp;7.105,20</span>
+        <span class="perc">€ 118,4200/quota</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Differenza</span>
+        <span class="valore guadagno">+€&thinsp;853,20</span>
+        <span class="perc guadagno">+13,65&thinsp;%</span>
+      </div>
+    </div>
+
+    <div class="sezione-titolo">
+      Carichi registrati
+      <span class="nota">le iscrizioni individuali che compongono la posizione</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Data di carico</th>
+            <th class="allineato-dx">Quantit&agrave;</th>
+            <th class="allineato-dx">Prezzo d&rsquo;acquisto</th>
+            <th class="allineato-dx">Controvalore carico</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="voce"><strong>03.VI.2026</strong></span></td>
+            <td class="cifra">60</td>
+            <td class="cifra">€&thinsp;104,2000</td>
+            <td class="cifra">€&thinsp;6.252,00</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Totale &middot; prezzo medio</td>
+            <td class="cifra">60</td>
+            <td class="cifra">€&thinsp;104,2000</td>
+            <td class="cifra">€&thinsp;6.252,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- ===== Storico prezzi — una riga sola ===== -->
+    <div class="sezione-titolo">
+      Storico prezzi
+      <span class="nota">FR-018 &middot; le quotazioni gi&agrave; rilevate &middot; nessuna richiesta in pi&ugrave; alla fonte</span>
+    </div>
+
+    <!-- La tabella c'è comunque: una sezione assente sarebbe indistinguibile da
+         una funzionalità che non ha caricato. -->
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Data di rilevamento</th>
+            <th class="allineato-dx">Prezzo rilevato</th>
+            <th>Fonte</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="rilevazione-ultima">
+            <td>
+              <span class="voce">
+                <strong>04.VI.2026 &middot; 10:22<span class="postilla-ultima">unica</span></strong>
+                <small>gi&agrave; in archivio</small>
+              </span>
+            </td>
+            <td class="cifra">€&thinsp;118,4200</td>
+            <td><span class="timbro-riga">Borsa Italiana</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pettine-osservazioni" aria-hidden="true">
+      <i class="ultima"></i>
+    </div>
+    <p class="didascalia-pettine">
+      <span>04.VI.2026</span>
+      <span>1 rilevazione &middot; lo storico parte da qui</span>
+      <span>04.VI.2026</span>
+    </p>
+
+    <div class="avviso-rado">
+      <span>
+        Questo titolo era gi&agrave; in archivio: la sua <b>prima osservazione</b> &egrave; il prezzo
+        che vi risultava, con l&rsquo;istante in cui era stato rilevato. Non esistono quotazioni
+        anteriori, e nessuna viene ricostruita: lo storico cresce dai prossimi aggiornamenti.
+      </span>
+    </div>
+
+    <p class="nota-sezione">
+      Una sola riga non &egrave; un difetto della scheda: &egrave; quanto l&rsquo;archivio contiene.
+      Il prossimo aggiornamento in un giorno diverso, o a un prezzo diverso, aggiunger&agrave; la
+      seconda.
+    </p>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="#">&larr; Torna al riepilogo</a>
+      <a class="bottone secondario" href="index.html">&larr; Vedi lo storico con pi&ugrave; osservazioni</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">Registro delle rilevazioni &mdash; nessuna richiesta aggiuntiva alla fonte</span>
+    <span><span class="timbro">Dati osservati</span> PortfolIA &middot; US-009</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-009 &middot; <a href="index.html">Storico con pi&ugrave; osservazioni</a> &middot;
+  <a href="prima-osservazione.html">Una sola osservazione</a>
+</p>
+
+<script src="app.js"></script>
+</body>
+</html>

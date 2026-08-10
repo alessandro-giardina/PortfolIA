@@ -6,7 +6,7 @@ epic:
   title: Ricerca titoli e dati di mercato
 priority: HIGH
 points: 3
-status: TODO
+status: PLANNED
 blocked_by:
   - US-007
 scope: MVP
@@ -38,3 +38,5 @@ body: |-
 history:
   - status: TODO
     at: "2026-06-26T15:47:52Z"
+  - status: PLANNED
+    at: "2026-08-10T16:01:44Z"
