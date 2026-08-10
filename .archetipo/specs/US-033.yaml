@@ -6,7 +6,7 @@ epic:
   title: Gestione delle posizioni
 priority: MEDIUM
 points: 2
-status: REVIEW
+status: DONE
 body: |-
   #### US-033: Rendere leggibili le sotto-etichette del modulo di iscrizione carico
 
@@ -40,3 +40,5 @@ history:
     at: "2026-08-08T17:27:35Z"
   - status: REVIEW
     at: "2026-08-08T19:17:16Z"
+  - status: DONE
+    at: "2026-08-10T14:42:41Z"

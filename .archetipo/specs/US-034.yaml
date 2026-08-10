@@ -6,7 +6,7 @@ epic:
   title: Visualizzazione dei titoli
 priority: HIGH
 points: 2
-status: REVIEW
+status: DONE
 body: |-
   #### US-034: Segnalare nel riepilogo i titoli con rilevamento obsoleto
 
@@ -38,3 +38,5 @@ history:
     at: "2026-08-08T19:44:10Z"
   - status: REVIEW
     at: "2026-08-10T10:05:33Z"
+  - status: DONE
+    at: "2026-08-10T14:34:55Z"
