@@ -1,34 +1,40 @@
 schema: archetipo/spec/v2
 code: US-009
-title: Recuperare la serie storica dei prezzi con cache su SQLite
+title: Registrare lo storico dei prezzi osservati e mostrarlo nella scheda titolo
 epic:
   code: EP-002
   title: Ricerca titoli e dati di mercato
 priority: HIGH
-points: 5
+points: 3
 status: TODO
 blocked_by:
   - US-007
 scope: MVP
 body: |-
-  #### US-009: Recuperare la serie storica dei prezzi con cache su SQLite
+  #### US-009: Registrare lo storico dei prezzi osservati e mostrarlo nella scheda titolo
 
-  **Epic:** EP-002 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Epic:** EP-002 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
   **Bloccata da:** US-007
 
   **User Story**
   Come Alessandro, investitore-proprietario,
-  voglio che l'app recuperi la serie storica dei prezzi di un titolo e la memorizzi in cache localmente,
-  in modo da abilitare i calcoli storici e i grafici riducendo le richieste alla fonte (FR-018, ADR-005).
+  voglio che ogni prezzo rilevato durante gli aggiornamenti che faccio venga conservato in uno storico locale e mostrato nella scheda del titolo,
+  in modo da vedere come si è mosso un titolo nel tempo senza che l'app faccia una sola richiesta in più alla fonte (FR-018, ADR-005).
+
+  **Nota di scopo**
+  Lo storico di PortfolIA non è una serie storica completa recuperata dalla fonte: è il registro delle rilevazioni che l'utente stesso provoca visitando un titolo o aggiornando un portafoglio. È rado per costruzione e parte dal momento in cui la funzionalità entra in esercizio. Questa scelta rende la buona cittadinanza vera per costruzione — nessuna richiesta aggiuntiva alla fonte — al prezzo di una copertura storica parziale, gestita con la trasparenza totale di ADR-003.
 
   **Dimostra**
-  Dopo l'implementazione di questa spec, alla prima richiesta la serie storica di un ISIN viene recuperata dalla fonte e salvata su SQLite; una seconda richiesta per lo stesso ISIN/orizzonte è servita dalla cache senza nuove chiamate alla fonte.
+  Dopo l'implementazione di questa spec, aggiornando due volte il prezzo di un titolo in giorni diversi e con quotazione diversa, la sua scheda mostra in fondo — sotto "Carichi registrati" — una tabella "Storico prezzi" con due righe in ordine temporale decrescente, ciascuna con prezzo, data di rilevamento e fonte.
 
   **Criteri di Accettazione**
-  - [ ] L'adapter recupera la serie storica dei prezzi per un ISIN seguendo il percorso ricerca → scheda strumento → serie storica
-  - [ ] La serie storica recuperata è persistita in cache su SQLite
-  - [ ] Una richiesta successiva per dati già in cache è servita senza nuova chiamata alla fonte
-  - [ ] Gli intervalli storici non disponibili sono marcati come tali e non interpolati
+  - [ ] Ogni rilevazione di prezzo andata a buon fine registra un'osservazione (ISIN, prezzo, istante di rilevamento, fonte) nello storico locale
+  - [ ] La registrazione non genera alcuna richiesta aggiuntiva alla fonte: avviene solo lungo gli aggiornamenti già esistenti (ricerca titolo, scheda titolo, aggiornamento massivo dei titoli obsoleti)
+  - [ ] Una rilevazione il cui prezzo coincide con un'osservazione già registrata per lo stesso ISIN nello stesso giorno (giorno civile di Roma) non produce una nuova riga; due giorni distinti generano due righe anche a prezzo invariato
+  - [ ] Due rilevazioni dello stesso giorno con prezzi diversi restano entrambe registrate, come osservazioni distinte
+  - [ ] La scheda del titolo mostra sotto "Carichi registrati" una tabella "Storico prezzi" con le osservazioni in ordine temporale decrescente
+  - [ ] I titoli già presenti in archivio compaiono nello storico con il prezzo attualmente in cache come prima osservazione
+  - [ ] Un titolo con una sola osservazione mostra comunque la tabella con quella riga; nessun valore è stimato o interpolato per i periodi non osservati
 history:
   - status: TODO
     at: "2026-06-26T15:47:52Z"

@@ -291,7 +291,7 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 ### Persistenza e dati iniziali
 
 - **FR-017:** Tutti i dati (portafogli, posizioni, anagrafica e serie storiche in cache) sono persistiti localmente su SQLite tra le sessioni.
-- **FR-018:** Il sistema memorizza in cache le serie storiche dei prezzi recuperate per riutilizzarle senza nuove richieste alla fonte.
+- **FR-018:** Il sistema registra localmente le quotazioni rilevate durante gli aggiornamenti richiesti dall'utente (ricerca titolo, scheda titolo, aggiornamento massivo), costruendo nel tempo uno storico dei prezzi senza mai contattare la fonte per ottenerlo. Lo storico è rado per costruzione — contiene solo i giorni effettivamente osservati — e i periodi non osservati sono dichiarati mancanti secondo ADR-003, mai stimati.
 - **FR-019:** All'inizializzazione il sistema popola i dati con gli ISIN seed `IT0003128367`, `IE00BMVB5S82`, `IE00BMVB5R75`.
 
 ---
