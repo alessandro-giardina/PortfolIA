@@ -1,0 +1,150 @@
+schema: archetipo/plan/v2
+spec_code: US-033
+body: |
+  # US-033: Rendere leggibili le sotto-etichette del modulo di iscrizione carico — Piano di implementazione
+
+  **Prodotto da:** Team di Pianificazione ARchetipo
+  **Data:** 2026-08-08
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-003 — Gestione delle posizioni
+  **Priorità:** MEDIUM | **Punti:** 2
+  **Bloccata da:** — (nessun impedimento)
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che sotto ogni etichetta del modulo di iscrizione carico la nota esplicativa si legga come testo secondario a sé stante,
+  in modo da capire cosa inserire in ciascun campo senza dover districare due frasi fuse in una.
+
+  **Criteri di Accettazione**
+  - Nel modulo di iscrizione carico ogni sotto-etichetta è resa su riga propria sotto l'etichetta principale, in minuscolo, con corpo minore e colore attenuato che la distinguono a colpo d'occhio
+  - Tutte e cinque le note del modulo sono corrette: denominazione, ISIN, data carico, prezzo di acquisto e quantità
+  - L'associazione fra etichetta e campo resta intatta: un clic sull'etichetta, o sulla sua nota, porta ancora il focus sul campo corrispondente
+  - Un test fissa la resa su riga propria misurandola, e fallirebbe sullo stato attuale in cui le due parti sono affiancate
+  - Il modulo resta leggibile e senza scroll orizzontale alle soglie responsive già esistenti (840, 760 e 640px)
+  - La suite E2E esistente passa senza modifiche alle asserzioni funzionali
+
+  ---
+
+  ## Soluzione Tecnica
+
+  L'intervento è interamente di presentazione e vive in un solo file: `client/src/ledger.css`. Il markup è già quello giusto — le cinque note sono `<span class="sotto-etichetta">` dentro la `<label htmlFor=...>` della propria riga — e la regola che le rende manca semplicemente dal foglio di stile dell'applicazione, pur esistendo da sempre nei mockup di riferimento (`docs/mockups/US-011/shared.css:263` e `docs/mockups/US-025/shared.css:368`). È un pezzo di stile mai portato dal mockup al codice, non una scelta da rifare: la soluzione è quella già disegnata, applicata dove serve.
+
+  - **Diagnosi, per non curare il sintomo sbagliato.** `.riga-modulo label` (ledger.css:402) è `display: flex; align-items: center` con `text-transform: uppercase` e `letter-spacing: .08em`. Il testo dell'etichetta è un nodo di testo anonimo che il flex container promuove a *flex item*: nodo e `<span>` diventano così due item affiancati sulla stessa riga, senza `gap`, e lo span eredita maiuscolo e spaziatura. Da qui l'aggregato illeggibile «QUANTITÀNUMERO INTERO DI QUOTE». La causa è quindi doppia — direzione dell'asse **e** ereditarietà tipografica — e correggerne una sola lascerebbe il difetto a metà: solo la direzione darebbe una seconda riga ancora in maiuscoletto e indistinguibile dalla prima.
+
+  - **Prima regola — l'asse.** `.riga-modulo label` passa a `flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px`. `justify-content: center` è la parte non ovvia e non va omessa: in direzione colonna è lei a fornire il centraggio verticale che oggi dà `align-items: center`, e senza di lei le etichette a riga singola degli **altri due moduli** che condividono la classe — `client/src/components/CreatePortfolioForm.tsx:62` («Denominazione del conto») e il riquadro «Rinomina conto» in `PortfolioDetailPage.tsx:662` — si incollerebbero al bordo superiore della cella. `align-items: flex-start`, per contro, non cambia nulla per loro: sull'asse orizzontale erano già a sinistra.
+
+  - **Seconda regola — la tipografia.** Nuova regola `.riga-modulo label .sotto-etichetta`: `font-family: 'IM Fell English', serif; font-style: italic; text-transform: none; letter-spacing: 0; font-size: 11.5px; line-height: 1.35; color: var(--seppia); font-weight: normal`. `text-transform` e `letter-spacing` sono proprietà ereditate e vanno **annullate esplicitamente**: è esattamente il motivo per cui oggi la nota si legge in maiuscolo. Il corpo scende da 12.5px a 11.5px e il colore da `--inchiostro` a `--seppia`, i due segnali che i criteri chiedono («corpo minore e colore attenuato»). Il contrasto di `--seppia` (#6e5a36) sul fondo `--verde-tenue` (#d7ddc4) della cella etichetta resta ≈ 4.8:1, sopra la soglia AA per testo normale: attenuato non deve voler dire illeggibile.
+
+  - **Selettore scoped, non nudo.** La regola si àncora a `.riga-modulo label .sotto-etichetta` e non al solo `.sotto-etichetta`. Nell'applicazione la classe ha oggi cinque soli portatori, tutti dentro il modulo di carico, ma è un nome generico che nei mockup compare anche altrove: legarla al contesto in cui il valore tipografico ha senso evita di prenotarla per usi futuri che potrebbero volerne un altro.
+
+  - **Nessuna modifica al TSX.** Le note stanno già dentro la `<label>` associata al campo via `htmlFor`, quindi il clic sulla nota porta il fuoco al campo *per costruzione*. Vale però la pena dirlo a voce alta, perché la tentazione naturale davanti a «mettila su una riga sua» è spostare lo `<span>` fuori dalla label: sarebbe la regressione che il terzo criterio di accettazione esiste per intercettare.
+
+  - **Cinque note, ma una condizionale.** Le righe del modulo sono cinque solo quando la pagina riceve `prefill.name` nello state del router: la riga «Nome titolo» è dietro `{prefillName && ...}` (`PortfolioDetailPage.tsx:777`) e quello state arriva unicamente dal percorso `/ricerca` → «Aggiungi a portafoglio» → scelta del conto (`SecuritySearchPage.tsx:64`). Entrando direttamente su `/portfolio/:id` se ne vedono quattro. Il test che vuole verificare *tutte e cinque* le note deve quindi percorrere il flusso di precompilazione: è la differenza fra un criterio verificato e uno creduto verificato.
+
+  - **Righe più alte, e va bene così.** La colonna etichetta resta a 200px (`grid-template-columns: 200px 1fr`) e note come «per singola quota, in euro» andranno a capo su due righe dentro i 168px utili. Nessuna altezza fissa da introdurre: la griglia dimensiona la riga sul contenuto e il campo, centrato dal proprio `align-items: center`, resta allineato.
+
+  - **Responsive invariato.** Sotto i 760px `.riga-modulo` è già `grid-template-columns: 1fr` con l'etichetta impilata sopra il campo (ledger.css:635): la direzione colonna della label è coerente con quel layout e non introduce nuove soglie. Le regole a 840 e 640px non toccano il modulo. Nessuna media query nuova.
+
+  - **Nessun mockup da produrre.** L'intervento cambia la resa tipografica dentro un layout che esiste già — nessuna pagina, nessun componente, nessuna sezione riorganizzata — e il disegno di riferimento è per giunta già agli atti in `docs/mockups/US-011/`.
+
+  **Assunzioni registrate**
+  1. «Le cinque note sono corrette» si legge come «ciascuna è resa su riga propria sotto la rispettiva etichetta e associata al campo giusto»: i testi attuali («da ricerca — sola lettura», «12 caratteri alfanumerici», «data di acquisto», «per singola quota, in euro», «numero intero di quote») sono già quelli voluti e non vengono riscritti.
+  2. La nota resta **dentro** la `<label>` e continua quindi a entrare nel nome accessibile del campo («ISIN 12 caratteri alfanumerici»). È deliberato: è la stessa informazione che legge un vedente, e portarla fuori richiederebbe `aria-describedby` più un id per campo senza alcun guadagno per l'utente.
+  3. Gli scenari e2e non seminano alcun titolo in cache: servono la risposta della ricerca con `route.fulfill()` su `**/api/securities/**`, come già fa `US-008__trasparenza-dati.spec.ts`. Nessuna costante nuova in `e2e/support/titoli.ts` e nessuna scrittura sullo stack di undo dell'archivio.
+
+  ---
+
+  ## Strategia di Test
+
+  Una regola CSS si verifica solo in un browser reale: la suite Vitest è interamente lato server e non ha DOM, quindi tutta la copertura di questa spec è Playwright. Il rischio si divide in due, e le asserzioni lo seguono: che la nota non finisca su una riga sua (geometria) e che, pur essendoci, non si distingua dall'etichetta (tipografia). A queste si aggiunge la non-regressione sugli altri moduli che condividono `.riga-modulo label`, che è il vero effetto collaterale possibile di questa modifica.
+
+  - **Misura geometrica — è il criterio «fallirebbe oggi».** Per ogni riga si confronta il rettangolo del *nodo di testo* dell'etichetta con quello dello span. Il testo è anonimo e non ha un elemento proprio, quindi lo si misura con un `Range`: `document.createRange().selectNodeContents(nodoTesto).getBoundingClientRect()`. Attesi due fatti: `span.top >= testo.bottom` (riga propria) e `|span.left - testo.left| < 1` (stessa incolonnatura, non un rientro). Oggi entrambi falliscono — gli item sono affiancati e condividono la banda verticale — che è precisamente ciò che il criterio chiede di dimostrare.
+
+  - **Distinzione tipografica via `getComputedStyle`.** `textTransform === 'none'`, `fontSize` della nota strettamente minore di quello dell'etichetta, `color` diverso da quello dell'etichetta. Sono i tre segnali del primo criterio, e sono valori risolti dal browser: non si asserisce sulla stringa della regola CSS ma su ciò che il browser ne ha fatto.
+
+  - **Associazione etichetta↔campo.** Per ciascuna delle cinque righe: clic sull'etichetta e clic sulla nota, e in entrambi i casi `document.activeElement` deve essere l'input della riga. Il campo «Nome titolo» è `disabled`, quindi non riceve fuoco: per quella riga si asserisce l'associazione strutturale (`label.control` punta all'input) invece del fuoco, senza fingere che il clic faccia qualcosa che non può fare.
+
+  - **Non-regressione sugli altri moduli.** Le etichette a riga singola di «Crea portafoglio» e «Rinomina conto» devono restare centrate verticalmente nella loro cella (scarto fra centro dell'etichetta e centro della cella sotto i 2px). È la verifica che `justify-content: center` sia stato messo davvero e non dimenticato per strada.
+
+  - **Soglie responsive.** A 840, 760 e 640px: nessuno scroll orizzontale (`scrollWidth <= clientWidth` sia sul `documentElement` sia sul `.riquadro-modulo`) e note ancora su riga propria. Le soglie sono quelle già sorvegliate da `US-031__soglie-responsive.spec.ts`, che resta il modello per la tecnica di misura.
+
+  - **Verifica finale.** `npm run check` e l'intera suite Playwright, con attenzione alle spec che attraversano il modulo di carico (US-011, US-012, US-013, US-025): nessuna di esse usa `getByLabel` sui campi del carico — lavorano per `data-testid` — quindi l'allargamento del nome accessibile non dovrebbe toccarle, ma è un'ipotesi da confermare eseguendo, non da dare per buona.
+
+  ### Test E2E — Simulazione utente
+
+  **Framework:** Playwright (`e2e/`, con la fixture `archivio` di `e2e/support/fixtures.ts`)
+  **Registrazione video:** solo lo scenario demo (`docs/test-results/US-033/`); gli altri scenari girano senza video
+
+  Vincoli operativi del progetto da rispettare (da `CLAUDE.md`):
+  - **Due file spec, non uno.** `launchOptions.slowMo` non è scopabile a un `describe`: lo scenario demo vive in un file dedicato con `test.use()` a livello di file, le varianti in un file fratello. La coppia `US-032__*` è il modello più recente.
+  - **Pulizia nella fixture, mai in `finally`.** Il portafoglio si crea con `archivio.creaPortafoglio('Sotto Etichette')`; il teardown lo rimuove anche in caso di timeout.
+  - **Nessun ISIN seminato.** La risposta della ricerca è servita da `route.fulfill()`: nessuna scrittura in cache, nessuna costante da riservare in `titoli.ts`, e in più lo scenario resta istantaneo invece di dipendere dalla freschezza della riga in archivio.
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Demo (con video) | L'utente cerca un ISIN in `/ricerca` (anagrafica servita da `route.fulfill`), clicca «Aggiungi a portafoglio», sceglie il proprio conto e atterra sul dettaglio con il modulo di carico precompilato. Tutte e cinque le righe — Nome titolo, ISIN, Data di carico, Prezzo di acquisto, Quantità — mostrano l'etichetta in maiuscoletto e, sotto, la nota in minuscolo su riga propria; il test misura riga per riga (`span.top >= testo.bottom`, stessa incolonnatura a sinistra) e verifica corpo, colore e `text-transform` della nota. |
+  | Clic su etichetta e su nota | Sul modulo aperto direttamente da `/portfolio/:id` (quattro righe, senza precompilazione), per ogni campo abilitato il clic sull'etichetta e poi sulla nota porta il fuoco sull'input corrispondente; per la riga «Nome titolo», disabilitata, si verifica l'associazione `label.control`. |
+  | Altri moduli a etichetta singola invariati | Il modulo «Crea portafoglio» della dashboard e il riquadro «Rinomina conto» del dettaglio: l'etichetta a riga unica resta centrata verticalmente nella propria cella, a dimostrare che la nuova direzione di flex non ha spostato ciò che non doveva toccare. |
+  | Soglie responsive | A 840, 760 e 640px il modulo non produce scroll orizzontale (documento e `.riquadro-modulo`) e la nota resta su riga propria anche quando l'etichetta si impila sopra il campo sotto i 760px. |
+
+  ---
+
+  _Piano generato da ARchetipo Planning — 2026-08-08_
+tasks:
+  - id: TASK-01
+    title: Portare in ledger.css la resa a due righe dell'etichetta di modulo
+    description: 'In client/src/ledger.css modificare `.riga-modulo label` (riga ~402) in `flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px`, mantenendo il resto della regola. `justify-content: center` non è opzionale: sostituisce il centraggio verticale che `align-items: center` dava in direzione riga e senza di esso le etichette a riga singola di CreatePortfolioForm e del riquadro «Rinomina conto» si incollerebbero al bordo superiore della cella.'
+    type: Impl
+    status: DONE
+    body: 'In client/src/ledger.css modificare `.riga-modulo label` (riga ~402) in `flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px`, mantenendo il resto della regola. `justify-content: center` non è opzionale: sostituisce il centraggio verticale che `align-items: center` dava in direzione riga e senza di esso le etichette a riga singola di CreatePortfolioForm e del riquadro «Rinomina conto» si incollerebbero al bordo superiore della cella.'
+    ref: TASK-01
+  - id: TASK-02
+    title: Aggiungere la regola tipografica della sotto-etichetta
+    description: 'Sempre in client/src/ledger.css, subito dopo `.riga-modulo label`, aggiungere `.riga-modulo label .sotto-etichetta` con: font-family ''IM Fell English'' serif, font-style italic, text-transform none, letter-spacing 0, font-size 11.5px, line-height 1.35, color var(--seppia), font-weight normal. Annullare esplicitamente text-transform e letter-spacing è indispensabile — sono ereditate dalla label ed è il motivo per cui oggi la nota si legge in maiuscolo. Il selettore resta scoped alla riga di modulo, non `.sotto-etichetta` nudo. Valori allineati a docs/mockups/US-011/shared.css:263.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'Sempre in client/src/ledger.css, subito dopo `.riga-modulo label`, aggiungere `.riga-modulo label .sotto-etichetta` con: font-family ''IM Fell English'' serif, font-style italic, text-transform none, letter-spacing 0, font-size 11.5px, line-height 1.35, color var(--seppia), font-weight normal. Annullare esplicitamente text-transform e letter-spacing è indispensabile — sono ereditate dalla label ed è il motivo per cui oggi la nota si legge in maiuscolo. Il selettore resta scoped alla riga di modulo, non `.sotto-etichetta` nudo. Valori allineati a docs/mockups/US-011/shared.css:263.'
+    ref: TASK-02
+  - id: TASK-03
+    title: Verificare le cinque note del modulo di carico nel markup
+    description: 'In client/src/pages/PortfolioDetailPage.tsx controllare che ciascuna delle cinque righe (Nome titolo, ISIN, Data di carico, Prezzo di acquisto, Quantità) porti la propria nota in uno `span.sotto-etichetta` collocato dentro la `<label htmlFor=...>` della riga, correggendo eventuali difformità. Nessuna nota va spostata fuori dalla label: è ciò che oggi garantisce il clic-per-fuoco richiesto dai criteri.'
+    type: Impl
+    status: DONE
+    body: 'In client/src/pages/PortfolioDetailPage.tsx controllare che ciascuna delle cinque righe (Nome titolo, ISIN, Data di carico, Prezzo di acquisto, Quantità) porti la propria nota in uno `span.sotto-etichetta` collocato dentro la `<label htmlFor=...>` della riga, correggendo eventuali difformità. Nessuna nota va spostata fuori dalla label: è ciò che oggi garantisce il clic-per-fuoco richiesto dai criteri.'
+    ref: TASK-03
+  - id: TASK-04
+    title: 'E2E demo con video: le cinque note su riga propria, misurate'
+    description: 'Creare e2e/US-033__sotto-etichette-modulo.spec.ts con `test.use({ video, launchOptions: { slowMo }, viewport })` a livello di file. Lo scenario serve l''anagrafica con `route.fulfill()` su `**/api/securities/**`, crea il portafoglio con la fixture `archivio`, percorre /ricerca → «Aggiungi a portafoglio» → scelta del conto (l''unico percorso che rende la riga «Nome titolo») e misura riga per riga: rettangolo del nodo di testo dell''etichetta via `document.createRange().selectNodeContents(...)` contro quello dello span, attendendosi `span.top >= testo.bottom` e stessa incolonnatura a sinistra; più corpo minore, colore diverso e `text-transform: none` da `getComputedStyle`. Salvare il video con `page.video().saveAs(''docs/test-results/US-033/demo-sotto-etichette.webm'')` in un afterEach dopo `page.close()`.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+      - TASK-03
+    body: 'Creare e2e/US-033__sotto-etichette-modulo.spec.ts con `test.use({ video, launchOptions: { slowMo }, viewport })` a livello di file. Lo scenario serve l''anagrafica con `route.fulfill()` su `**/api/securities/**`, crea il portafoglio con la fixture `archivio`, percorre /ricerca → «Aggiungi a portafoglio» → scelta del conto (l''unico percorso che rende la riga «Nome titolo») e misura riga per riga: rettangolo del nodo di testo dell''etichetta via `document.createRange().selectNodeContents(...)` contro quello dello span, attendendosi `span.top >= testo.bottom` e stessa incolonnatura a sinistra; più corpo minore, colore diverso e `text-transform: none` da `getComputedStyle`. Salvare il video con `page.video().saveAs(''docs/test-results/US-033/demo-sotto-etichette.webm'')` in un afterEach dopo `page.close()`.'
+    ref: TASK-04
+  - id: TASK-05
+    title: 'E2E varianti: fuoco dalla nota, altri moduli e soglie responsive'
+    description: 'Creare e2e/US-033__sotto-etichette-varianti.spec.ts (senza video) con tre scenari: (a) sul modulo aperto direttamente da /portfolio/:id, clic sull''etichetta e clic sulla nota portano il fuoco sull''input della riga per ogni campo abilitato, mentre per «Nome titolo» (disabilitato) si asserisce l''associazione via `label.control`; (b) le etichette a riga singola di «Crea portafoglio» e «Rinomina conto» restano centrate verticalmente nella cella (scarto < 2px fra i centri); (c) a 840, 760 e 640px non c''è scroll orizzontale su documentElement né su `.riquadro-modulo` e la nota resta su riga propria. Usare la fixture `archivio` per i portafogli e US-031__soglie-responsive.spec.ts come modello di misura.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+      - TASK-03
+    body: 'Creare e2e/US-033__sotto-etichette-varianti.spec.ts (senza video) con tre scenari: (a) sul modulo aperto direttamente da /portfolio/:id, clic sull''etichetta e clic sulla nota portano il fuoco sull''input della riga per ogni campo abilitato, mentre per «Nome titolo» (disabilitato) si asserisce l''associazione via `label.control`; (b) le etichette a riga singola di «Crea portafoglio» e «Rinomina conto» restano centrate verticalmente nella cella (scarto < 2px fra i centri); (c) a 840, 760 e 640px non c''è scroll orizzontale su documentElement né su `.riquadro-modulo` e la nota resta su riga propria. Usare la fixture `archivio` per i portafogli e US-031__soglie-responsive.spec.ts come modello di misura.'
+    ref: TASK-05
+  - id: TASK-06
+    title: 'Verifica finale: check completo e suite Playwright'
+    description: 'Eseguire `npm run check` e l''intera suite `npx playwright test`, verificando in particolare le spec che attraversano il modulo di carico (US-011, US-012, US-013, US-025): usano data-testid e non `getByLabel` sui campi del carico, quindi non dovrebbero risentire del nome accessibile più lungo, ma la conferma va ottenuta eseguendo.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+      - TASK-05
+    body: 'Eseguire `npm run check` e l''intera suite `npx playwright test`, verificando in particolare le spec che attraversano il modulo di carico (US-011, US-012, US-013, US-025): usano data-testid e non `getByLabel` sui campi del carico, quindi non dovrebbero risentire del nome accessibile più lungo, ma la conferma va ottenuta eseguendo.'
+    ref: TASK-06

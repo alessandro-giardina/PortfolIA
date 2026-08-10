@@ -408,8 +408,33 @@ body {
   background: var(--verde-tenue);
   padding: 14px 16px;
   display: flex;
-  align-items: center;
+  /* Colonna, non riga: il testo dell'etichetta è un nodo anonimo che il flex
+     container promuove a item, quindi in direzione riga finiva affiancato allo
+     span della nota («QUANTITÀNUMERO INTERO DI QUOTE»). `justify-content: center`
+     non è decorativo: in colonna è lui a fornire il centraggio verticale che
+     prima dava `align-items: center`, e senza di lui le etichette a riga singola
+     che condividono questa classe — «Denominazione del conto» e «Rinomina
+     conto» — si incollerebbero al bordo superiore della cella. */
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
   border-right: 1px solid rgba(34,28,20,.22);
+}
+/* Nota esplicativa sotto l'etichetta. `text-transform` e `letter-spacing` sono
+   ereditate dalla label e vanno annullate esplicitamente: è per quello che la
+   nota si leggeva in maiuscoletto spaziato. Corpo minore e `--seppia` sul fondo
+   `--verde-tenue` restano a ~4.8:1, sopra la soglia AA. Il selettore è ancorato
+   alla riga di modulo e non al solo `.sotto-etichetta`, che è un nome generico. */
+.riga-modulo label .sotto-etichetta {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--seppia);
 }
 .campo {
   padding: 8px 14px;
