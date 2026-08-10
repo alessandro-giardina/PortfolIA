@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Aggiornamento in blocco dei titoli obsoleti (US-035)</title>
+  <meta name="description" content="Mockup US-035: il riepilogo del portafoglio durante l'aggiornamento in blocco dei titoli obsoleti — comando, riga di stato, avanzamento e riscrittura progressiva della tabella.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda riepilogo</p>
+      <h1>Portafoglio <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">11 titoli iscritti &middot; registro consultato sabato 08.VIII.2026 &middot; 11:12</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Valore di carico &nbsp;<b>&euro;&thinsp;91.676,55</b></div>
+      <div>Valore attuale &nbsp;&nbsp;<b>&euro;&thinsp;<span data-tot="valore">114.476,70</span></b></div>
+      <div>Differenza &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b class="totale-positivo">+&euro;&thinsp;<span data-tot="differenza-testata">22.800,15</span></b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="index.html" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <div class="sezione-titolo">
+      Titoli iscritti a conto
+      <span class="nota">FR-013 &middot; aggiornamento in blocco dei rilevamenti obsoleti</span>
+    </div>
+
+    <!-- ===== Riquadro del valore totale (US-014, invariato) =====
+         Durante la corsa la cifra NON si congela e non si annebbia:
+         si riscrive dopo ogni titolo rilevato. È l'unico modo perché
+         l'utente veda a che cosa serve l'attesa. -->
+    <div class="riquadro-valore-totale" aria-label="Valore attuale totale del portafoglio">
+      <div class="fascia-colore"></div>
+      <div class="contenuto-totale">
+        <div class="blocco-cifra">
+          <span class="et-totale">Valore attuale totale</span>
+          <span class="cifra-totale"><span class="valuta">EUR</span><span data-tot="valore">114.476,70</span></span>
+        </div>
+        <div class="timestamp-totale">11 posizioni valorizzate di 11</div>
+      </div>
+    </div>
+
+    <!--
+      ===== Riquadro di conteggio (US-034) + comando (US-035) =====
+      Il comando sta DENTRO il riquadro che conta i titoli obsoleti:
+      accanto alla cifra che lo giustifica, e non in una barra di
+      strumenti dove sarebbe un'azione senza motivo dichiarato.
+      Sotto, agganciata come un cassetto estratto, la riga di lavoro.
+    -->
+    <div class="blocco-aggiornamento">
+
+      <div class="riquadro-conteggio" role="status" data-testid="conteggio-da-aggiornare">
+        <div class="fascia-conteggio"></div>
+        <div class="contenuto-conteggio">
+          <span class="et-conteggio">Stato dei rilevamenti</span>
+          <span class="frase-conteggio" data-ruolo="frase-conteggio">
+            <b>2</b> titoli su <b>11</b> con rilevamento obsoleto.
+          </span>
+          <span class="rinvio">&dagger; segnati in tabella</span>
+          <span class="azione-conteggio">
+            <!-- Durante la corsa il comando è disabilitato e lo dichiara:
+                 non è avviabile due volte in parallelo. -->
+            <button type="button" id="comando-aggiorna" class="bottone-minuto in-corso" disabled aria-busy="true">
+              <span class="glifo">&#x21bb;</span> <span class="etichetta">Aggiornamento in corso&hellip;</span>
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <!-- Riga di lavoro: titolo in corso, avanzamento sul totale,
+           nota sui tempi della fonte di backup, comando d'arresto.
+           `aria-live="polite"` perché l'avanzamento sia annunciato
+           senza rubare il fuoco. -->
+      <div id="riga-lavoro" class="riga-lavoro in-corso" role="status" aria-live="polite">
+        <span class="timbro-lavoro">In corso</span>
+        <span class="testo-lavoro">
+          Rilevamento di <b>LU1681045370</b> &mdash; <b>2</b> di <b>3</b>.
+        </span>
+        <span class="tacche" aria-hidden="true">
+          <i class="tacca fatta"></i><i class="tacca corrente"></i><i class="tacca"></i>
+        </span>
+        <span class="azione-lavoro">
+          <button type="button" id="comando-interrompi" class="bottone-minuto fermata">
+            <span class="glifo">&#x25a0;</span> Interrompi
+          </button>
+        </span>
+        <p class="nota-lavoro">
+          I titoli sono interrogati <b>uno alla volta</b>: la fonte di backup pu&ograve; richiedere
+          <b>una decina di secondi</b> per titolo. Gli altri <b>8</b> titoli non vengono richiesti
+          alla fonte: il loro rilevamento &egrave; gi&agrave; allineato all&rsquo;ultima sessione.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ===== Tabella del riepilogo: sette colonne, come oggi ===== -->
+    <div class="tabella-scroll">
+      <table class="mastro" aria-label="Tabella titoli del portafoglio">
+        <thead>
+          <tr>
+            <th>Denominazione &middot; ISIN</th>
+            <th class="allineato-dx">Quantit&agrave;</th>
+            <th class="allineato-dx">Pr. medio carico</th>
+            <th class="allineato-dx">Prezzo attuale</th>
+            <th class="allineato-dx">Ultimo rilevamento</th>
+            <th class="allineato-dx">Valore attuale</th>
+            <th class="allineato-dx">Differenza</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Ishares Core Msci World Ucits Etf</strong>
+                <small>IE00B4L5Y983</small>
+              </span>
+            </td>
+            <td class="cifra">220</td>
+            <td class="cifra euro">68,3000</td>
+            <td class="cifra euro">128,4600</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:28</span></td>
+            <td class="cifra euro">28.261,20</td>
+            <td class="cifra guadagno">+13.235,20</td>
+          </tr>
+
+          <!-- TITOLO 1 DELLA CORSA — già rilevato: la postilla «da
+               aggiornare» è sparita, la sottolineatura a tratteggio con
+               essa, e prezzo, valore e differenza sono i nuovi. La riga
+               non aspetta la fine del lavoro per riscriversi. -->
+          <tr class="cliccabile" data-isin="IE00BK5BQT80">
+            <td>
+              <span class="voce">
+                <strong>Vanguard Ftse All-World Ucits Etf Acc</strong>
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">95</td>
+            <td class="cifra euro">92,1500</td>
+            <td class="cifra euro" data-campo="prezzo">121,3800</td>
+            <td class="cifra cella-rilevamento" data-campo="rilevamento">
+              <span class="istante">08/08/2026 11:12</span>
+            </td>
+            <td class="cifra euro" data-campo="valore">11.531,10</td>
+            <td class="cifra guadagno" data-campo="differenza">+2.776,85</td>
+          </tr>
+
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Ishares Core S&amp;P 500 Ucits Etf</strong>
+                <small>IE00B5BMR087</small>
+              </span>
+            </td>
+            <td class="cifra">40</td>
+            <td class="cifra euro">380,0000</td>
+            <td class="cifra euro">512,5000</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:29</span></td>
+            <td class="cifra euro">20.500,00</td>
+            <td class="cifra guadagno">+5.300,00</td>
+          </tr>
+
+          <!-- TITOLO 2 DELLA CORSA — interrogato in questo istante:
+               segno di margine sulla riga, e nella cella del rilevamento
+               la terza variante della postilla di US-034. I valori a
+               schermo restano quelli d'archivio, dichiarati come tali:
+               la riga non si svuota mentre si aspetta. -->
+          <tr class="cliccabile in-lavorazione" data-isin="LU1681045370">
+            <td>
+              <span class="voce">
+                <strong>Amundi Msci Emerging Markets Ucits Etf</strong>
+                <small>LU1681045370</small>
+              </span>
+            </td>
+            <td class="cifra">140</td>
+            <td class="cifra euro">20,4200</td>
+            <td class="cifra euro" data-campo="prezzo">22,8600</td>
+            <td class="cifra cella-rilevamento" data-campo="rilevamento">
+              <span class="istante segnato">31/07/2026 17:29</span>
+              <small class="marca-rilevamento in-lavorazione">in aggiornamento</small>
+            </td>
+            <td class="cifra euro" data-campo="valore">3.200,40</td>
+            <td class="cifra guadagno" data-campo="differenza">+341,60</td>
+          </tr>
+
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Ishares Core Euro Corp Bond Ucits Etf</strong>
+                <small>IE00B3F81R35</small>
+              </span>
+            </td>
+            <td class="cifra">75</td>
+            <td class="cifra euro">129,4000</td>
+            <td class="cifra euro">126,1200</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:30</span></td>
+            <td class="cifra euro">9.459,00</td>
+            <td class="cifra perdita">&minus;246,00</td>
+          </tr>
+
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Xtrackers Eurozone Government Bond Ucits Etf</strong>
+                <small>LU0290355717</small>
+              </span>
+            </td>
+            <td class="cifra">60</td>
+            <td class="cifra euro">214,5000</td>
+            <td class="cifra euro">219,3000</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:30</span></td>
+            <td class="cifra euro">13.158,00</td>
+            <td class="cifra guadagno">+288,00</td>
+          </tr>
+
+          <!-- TITOLO 3 DELLA CORSA — ancora in attesa del suo turno:
+               porta la postilla di US-034, identica a com'era prima che
+               il comando partisse. La coda non ha una marcatura propria:
+               «da aggiornare» è già la verità su quella riga. -->
+          <tr class="cliccabile" data-isin="IE00BFY0GT14">
+            <td>
+              <span class="voce">
+                <strong>Spdr Msci World Small Cap Ucits Etf</strong>
+                <small>IE00BFY0GT14</small>
+              </span>
+            </td>
+            <td class="cifra">55</td>
+            <td class="cifra euro">45,6000</td>
+            <td class="cifra euro" data-campo="prezzo">52,4000</td>
+            <td class="cifra cella-rilevamento" data-campo="rilevamento">
+              <span class="istante segnato">03/08/2026 17:30</span>
+              <small class="marca-rilevamento obsoleto">da aggiornare</small>
+            </td>
+            <td class="cifra euro" data-campo="valore">2.882,00</td>
+            <td class="cifra guadagno" data-campo="differenza">+374,00</td>
+          </tr>
+
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Lyxor Core Msci Europe Ucits Etf</strong>
+                <small>FR0010315770</small>
+              </span>
+            </td>
+            <td class="cifra">130</td>
+            <td class="cifra euro">24,8000</td>
+            <td class="cifra euro">27,1000</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:28</span></td>
+            <td class="cifra euro">3.523,00</td>
+            <td class="cifra guadagno">+299,00</td>
+          </tr>
+
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Ishares Global Infrastructure Ucits Etf</strong>
+                <small>IE00B1FZS350</small>
+              </span>
+            </td>
+            <td class="cifra">90</td>
+            <td class="cifra euro">30,2000</td>
+            <td class="cifra euro">33,6000</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:31</span></td>
+            <td class="cifra euro">3.024,00</td>
+            <td class="cifra guadagno">+306,00</td>
+          </tr>
+
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Amundi Msci Japan Ucits Etf</strong>
+                <small>LU1437018838</small>
+              </span>
+            </td>
+            <td class="cifra">210</td>
+            <td class="cifra euro">18,7500</td>
+            <td class="cifra euro">20,4000</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:29</span></td>
+            <td class="cifra euro">4.284,00</td>
+            <td class="cifra guadagno">+346,50</td>
+          </tr>
+
+          <tr class="cliccabile">
+            <td>
+              <span class="voce">
+                <strong>Ishares Usd Treasury Bond 3-7yr Ucits Etf</strong>
+                <small>IE00B3VWN518</small>
+              </span>
+            </td>
+            <td class="cifra">85</td>
+            <td class="cifra euro">175,0000</td>
+            <td class="cifra euro">172,4000</td>
+            <td class="cifra cella-rilevamento"><span class="istante">07/08/2026 17:30</span></td>
+            <td class="cifra euro">14.654,00</td>
+            <td class="cifra perdita">&minus;221,00</td>
+          </tr>
+
+        </tbody>
+        <!-- tfoot invariato: colSpan = 5, sette colonne. I due totali si
+             riscrivono con le righe, non a fine corsa. -->
+        <tfoot>
+          <tr>
+            <td colspan="5">Totale portafoglio (11 posizioni valorizzate)</td>
+            <td class="cifra euro" data-tot="valore">114.476,70</td>
+            <td class="cifra guadagno" data-tot="differenza">+22.800,15</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p class="nota-sezione">
+      La postilla &laquo;&dagger;&nbsp;da aggiornare&raquo; segnala che dall&rsquo;ultimo rilevamento almeno una
+      sessione di borsa si &egrave; conclusa. Il comando in testa alla tabella interroga <em>soltanto</em>
+      quei titoli, uno alla volta: gli altri non vengono chiesti alla fonte, perch&eacute; il loro dato
+      non pu&ograve; essere cambiato dall&rsquo;ultima rilevazione. Il singolo titolo resta aggiornabile anche
+      dalla sua <em>scheda titolo</em>, con lo stesso identico recupero.
+    </p>
+
+    <!-- ================= COMANDI DEL MOCKUP ================= -->
+    <div class="didascalia-stato" style="margin-top:34px">
+      Prova della corsa <span class="ac">&mdash; il registro si riscrive man mano, non alla fine</span>
+    </div>
+    <p class="glossa" style="margin-bottom:4px">
+      La pagina &egrave; ferma sull&rsquo;istante &laquo;2 di 3&raquo;. Premi <em>Rigioca la corsa</em> per vederla
+      dall&rsquo;inizio: il comando parte, il primo titolo si riscrive e perde la postilla, il secondo
+      non trova risposta e la conserva, il terzo chiude il lavoro. Le attese sono compresse a un
+      secondo &mdash; nella realt&agrave; la fonte di backup ne chiede una decina per titolo.
+      <em>Interrompi</em> &egrave; vivo: premilo durante la corsa e vedrai l&rsquo;interruzione attendere la
+      risposta del titolo corrente prima di fermarsi.
+    </p>
+    <div class="comandi-mockup">
+      <button type="button" id="rigioca" class="bottone-mockup">Rigioca la corsa</button>
+      <button type="button" id="interruttore-grigi" class="bottone-mockup">Togli il colore</button>
+    </div>
+
+    <div class="nav-mockup">
+      Mockup US-035 &middot;
+      <a href="index.html">Riepilogo durante la corsa</a> &middot;
+      <a href="stati-aggiornamento.html">Stati del comando e consuntivi</a>
+    </div>
+
+  </main>
+
+  <!-- PI&Egrave; DI PAGINA -->
+  <footer class="pie">
+    <span>PortfolIA &middot; libro mastro degli investimenti &middot; US-035</span>
+    <span class="firma">un titolo per volta, e ognuno col suo esito</span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

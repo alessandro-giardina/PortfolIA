@@ -6,7 +6,7 @@ epic:
   title: Visualizzazione dei titoli
 priority: HIGH
 points: 5
-status: TODO
+status: REVIEW
 blocked_by:
   - US-034
 body: |-
@@ -45,3 +45,9 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-08T17:19:21Z"
+  - status: PLANNED
+    at: "2026-08-10T10:21:59Z"
+  - status: IN PROGRESS
+    at: "2026-08-10T10:23:19Z"
+  - status: REVIEW
+    at: "2026-08-10T11:01:38Z"

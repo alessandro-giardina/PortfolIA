@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { DataSource, PositionDetail, RefetchConfirmation, SecurityLookupResponse } from '@portfolia/shared';
+import type { DataSource, PositionDetail, RefetchConfirmation } from '@portfolia/shared';
 import { dataRegistro } from './Foglio.js';
+import { recuperaTitolo } from '../domain/recuperoTitolo.js';
 
 interface SchedaTitoloProps {
   /** Portafoglio a cui il titolo è iscritto. */
@@ -177,38 +178,47 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
     /** L'utente ha cambiato titolo mentre la fonte rispondeva? */
     const titoloAbbandonato = () => isinMostrato.current !== isin;
 
+    // L'interrogazione e la lettura del suo esito vivono in un posto solo
+    // (`domain/recuperoTitolo`), condiviso con l'aggiornamento in blocco del
+    // riepilogo (US-035). Le frasi qui sotto restano invece di questa scheda:
+    // dicono che cosa succede *ai dati in scheda*, cosa che il consuntivo di un
+    // lavoro su più titoli non potrebbe affermare.
+    const recupero = await recuperaTitolo(isin, force);
+    if (titoloAbbandonato()) return;
+
+    if (recupero.tipo === 'non-trovato') {
+      setEsito({
+        tipo: 'fallito',
+        motivo: 'Nessuna delle due fonti ha trovato il titolo. I dati in scheda restano quelli in archivio.',
+      });
+      return;
+    }
+    if (recupero.tipo === 'fonte-muta') {
+      setEsito({
+        tipo: 'fallito',
+        motivo: 'Nessuna delle due fonti ha risposto. I dati in scheda restano quelli già rilevati.',
+      });
+      return;
+    }
+    if (recupero.tipo === 'errore') {
+      setEsito({
+        tipo: 'fallito',
+        motivo: recupero.rete
+          ? 'Backend non raggiungibile. I dati in scheda restano quelli già rilevati.'
+          : 'Errore inatteso durante l’aggiornamento. I dati in scheda restano quelli già rilevati.',
+      });
+      return;
+    }
+
+    // La guardia ha risposto dalla cache senza contattare la fonte: nulla è
+    // cambiato in archivio, e la decisione di procedere spetta all'utente.
+    if (recupero.tipo === 'guardia') {
+      setConferma(recupero.conferma);
+      setEsito(null);
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/securities/${isin}${force ? '?force=true' : ''}`);
-      if (titoloAbbandonato()) return;
-
-      if (res.status === 404) {
-        setEsito({
-          tipo: 'fallito',
-          motivo: 'Nessuna delle due fonti ha trovato il titolo. I dati in scheda restano quelli in archivio.',
-        });
-        return;
-      }
-      if (!res.ok) {
-        setEsito({
-          tipo: 'fallito',
-          motivo:
-            res.status === 502
-              ? 'Nessuna delle due fonti ha risposto. I dati in scheda restano quelli già rilevati.'
-              : 'Errore inatteso durante l’aggiornamento. I dati in scheda restano quelli già rilevati.',
-        });
-        return;
-      }
-
-      const body = (await res.json()) as SecurityLookupResponse;
-
-      // La guardia ha risposto dalla cache senza contattare la fonte: nulla è
-      // cambiato in archivio, e la decisione di procedere spetta all'utente.
-      if (body.confirmation) {
-        setConferma(body.confirmation);
-        setEsito(null);
-        return;
-      }
-
       const aggiornato = await leggiDettaglio();
       if (titoloAbbandonato()) return;
 

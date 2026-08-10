@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Stati del comando e consuntivi (US-035)</title>
+  <meta name="description" content="Mockup US-035: gli stati del comando «Aggiorna i titoli obsoleti», della riga di lavoro e dei consuntivi, più il prima/dopo della marcatura in tabella.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; tavola degli stati</p>
+      <h1>Aggiornamento <span class="corsivo">in blocco</span></h1>
+      <p class="sottotesto">US-035 &middot; ogni stato annotato col criterio di accettazione che copre</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Comando &nbsp;&nbsp;<b>4 stati</b></div>
+      <div>Lavoro &nbsp;&nbsp;&nbsp;<b>2 stati &middot; 4 consuntivi</b></div>
+      <div>Colonne &nbsp;&nbsp;<b>7, invariate</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="index.html">Riepilogo</a>
+    <a href="stati-aggiornamento.html" class="attiva">Tavola degli stati</a>
+  </nav>
+
+  <main class="corpo tavola-stati">
+
+    <!-- ================================================================
+         1. IL COMANDO
+         ================================================================ -->
+    <div class="sezione-titolo" style="margin-top:6px">
+      Il comando, dentro il riquadro di conteggio
+      <span class="nota">accanto alla cifra che lo giustifica, non in una barra di strumenti</span>
+    </div>
+
+    <p class="glossa" style="margin:0 0 16px">
+      US-034 ha messo sopra la tabella un riquadro che dichiara quanti titoli hanno il rilevamento
+      obsoleto. Il comando di US-035 nasce l&igrave;, alla destra di quella frase: la cifra &egrave; la
+      ragione del comando, e tenerli separati vorrebbe dire chiedere all&rsquo;utente di ricostruirla.
+      Il riquadro non cambia grammatica &mdash; fascia di colore, etichetta in maiuscoletto, frase
+      in corsivo, cifre in monospazio &mdash; ne guadagna una colonna a destra.
+    </p>
+
+    <p class="didascalia-stato">1 &middot; Pronto &mdash; N &egrave; il numero scritto nella frase accanto <span class="ac">AC-1</span></p>
+    <div class="riquadro-conteggio" role="status">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio"><b>3</b> titoli su <b>11</b> con rilevamento obsoleto.</span>
+        <span class="rinvio">&dagger; segnati in tabella</span>
+        <span class="azione-conteggio">
+          <button type="button" class="bottone-minuto">
+            <span class="glifo">&#x21bb;</span> Aggiorna i titoli obsoleti (3)
+          </button>
+        </span>
+      </div>
+    </div>
+    <p class="glossa">
+      Il numero fra parentesi non &egrave; un&rsquo;informazione in pi&ugrave;: &egrave; la <em>stessa</em> cifra della
+      frase, ripetuta dove si preme. Chi legge solo il bottone sa gi&agrave; quanto lavoro sta per
+      chiedere, e che non toccher&agrave; gli altri otto titoli.
+    </p>
+
+    <p class="didascalia-stato">2 &middot; Inattivo a N = 0 &mdash; la ragione &egrave; scritta, non dedotta dal grigio <span class="ac">AC-1</span></p>
+    <div class="riquadro-conteggio allineato" role="status">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio">Tutti gli <b>11</b> titoli sono allineati all&rsquo;ultima sessione di borsa.</span>
+        <span class="rinvio">nessuna postilla in tabella</span>
+        <span class="azione-conteggio">
+          <span class="motivo-inattivo">Nessun titolo da aggiornare: ogni rilevamento &egrave; gi&agrave; allineato all&rsquo;ultima sessione di borsa.</span>
+          <button type="button" class="bottone-minuto inattivo" disabled>
+            <span class="glifo">&#x21bb;</span> Aggiorna i titoli obsoleti (0)
+          </button>
+        </span>
+      </div>
+    </div>
+    <p class="glossa">
+      Il comando resta a schermo, spento e con accanto il perch&eacute;. Toglierlo dalla pagina
+      obbligherebbe l&rsquo;utente a distinguere &laquo;non c&rsquo;&egrave; niente da fare&raquo; da &laquo;questa
+      funzione non ha caricato&raquo;, che &egrave; la stessa ragione per cui, in US-034, il riquadro a
+      zero non spariva. Il cursore &egrave; <code>not-allowed</code>, non &laquo;attesa&raquo;: la condizione
+      &egrave; stabile, non transitoria.
+    </p>
+
+    <p class="didascalia-stato">3 &middot; In corso &mdash; il comando non &egrave; avviabile due volte <span class="ac">AC-13</span></p>
+    <div class="riquadro-conteggio" role="status">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio"><b>2</b> titoli su <b>11</b> con rilevamento obsoleto.</span>
+        <span class="rinvio">&dagger; segnati in tabella</span>
+        <span class="azione-conteggio">
+          <button type="button" class="bottone-minuto in-corso" disabled aria-busy="true">
+            <span class="glifo">&#x21bb;</span> Aggiornamento in corso&hellip;
+          </button>
+        </span>
+      </div>
+    </div>
+    <p class="glossa">
+      Durante la corsa il comando cambia verbo e si disabilita: la seconda corsa in parallelo non
+      &egrave; impedita da una guardia invisibile, &egrave; impedita da un bottone che non si pu&ograve; premere e
+      che dice perch&eacute;. La cifra del riquadro nel frattempo <em>&egrave; gi&agrave; scesa a 2</em>: il primo
+      titolo &egrave; stato rilevato, e il conteggio non aspetta la fine del lavoro per accorgersene.
+    </p>
+
+    <p class="didascalia-stato">4 &middot; Obsoleti e mai rilevati insieme &mdash; N segue il totale del riquadro <span class="ac">AC-2</span></p>
+    <div class="riquadro-conteggio" role="status">
+      <div class="fascia-conteggio"></div>
+      <div class="contenuto-conteggio">
+        <span class="et-conteggio">Stato dei rilevamenti</span>
+        <span class="frase-conteggio"><b>4</b> titoli su <b>11</b> da aggiornare: <b>3</b> con rilevamento obsoleto, <b>1</b> mai rilevato.</span>
+        <span class="rinvio">&dagger; segnati in tabella</span>
+        <span class="azione-conteggio">
+          <button type="button" class="bottone-minuto">
+            <span class="glifo">&#x21bb;</span> Aggiorna i titoli obsoleti (4)
+          </button>
+        </span>
+      </div>
+    </div>
+    <p class="glossa">
+      Il lavoro interroga gli obsoleti <em>e</em> i mai rilevati: sono i due casi in cui la cifra a
+      schermo non &egrave; quella di oggi. N li conta entrambi, e la frase accanto scompone la somma,
+      cos&igrave; che l&rsquo;etichetta del bottone &mdash; volutamente breve &mdash; non debba dirlo due volte.
+    </p>
+
+    <!-- ================================================================
+         2. LA RIGA DI LAVORO
+         ================================================================ -->
+    <div class="sezione-titolo">
+      La riga di lavoro
+      <span class="nota">un cassetto che si apre sotto il riquadro, non un altro riquadro</span>
+    </div>
+
+    <p class="glossa" style="margin:0 0 16px">
+      &Egrave; la parente stretta della riga d&rsquo;esito di US-030 &mdash; timbro a sinistra, frase in
+      corsivo, cifre in monospazio &mdash; agganciata sotto il riquadro con bordo continuo e senza
+      filetto superiore, cos&igrave; che riquadro e riga si leggano come un corpo solo. Le fasce di
+      colore delle due si incolonnano.
+    </p>
+
+    <p class="didascalia-stato">5 &middot; In corso &mdash; titolo, avanzamento, nota sui tempi <span class="ac">AC-5</span></p>
+    <div class="blocco-aggiornamento">
+      <div class="riquadro-conteggio" role="status">
+        <div class="fascia-conteggio"></div>
+        <div class="contenuto-conteggio">
+          <span class="et-conteggio">Stato dei rilevamenti</span>
+          <span class="frase-conteggio"><b>2</b> titoli su <b>11</b> con rilevamento obsoleto.</span>
+          <span class="rinvio">&dagger; segnati in tabella</span>
+          <span class="azione-conteggio">
+            <button type="button" class="bottone-minuto in-corso" disabled aria-busy="true">
+              <span class="glifo">&#x21bb;</span> Aggiornamento in corso&hellip;
+            </button>
+          </span>
+        </div>
+      </div>
+      <div class="riga-lavoro in-corso" role="status" aria-live="polite">
+        <span class="timbro-lavoro">In corso</span>
+        <span class="testo-lavoro">Rilevamento di <b>LU1681045370</b> &mdash; <b>2</b> di <b>3</b>.</span>
+        <span class="tacche" aria-hidden="true">
+          <i class="tacca fatta"></i><i class="tacca corrente"></i><i class="tacca"></i>
+        </span>
+        <span class="azione-lavoro">
+          <button type="button" class="bottone-minuto fermata"><span class="glifo">&#x25a0;</span> Interrompi</button>
+        </span>
+        <p class="nota-lavoro">
+          I titoli sono interrogati <b>uno alla volta</b>: la fonte di backup pu&ograve; richiedere
+          <b>una decina di secondi</b> per titolo. Gli altri <b>8</b> titoli non vengono richiesti
+          alla fonte: il loro rilevamento &egrave; gi&agrave; allineato all&rsquo;ultima sessione.
+        </p>
+      </div>
+    </div>
+    <p class="glossa">
+      Tre cose, e in quest&rsquo;ordine: <em>chi</em> &egrave; in corso (l&rsquo;ISIN, che &egrave; l&rsquo;unico nome che
+      compare anche in tabella), <em>a che punto</em> siamo, <em>quanto</em> pu&ograve; durare. La nota
+      sui dieci secondi &egrave; una riga a s&eacute; e non una parentesi in fondo alla frase: &egrave; la premessa
+      che rende sopportabile l&rsquo;attesa, non un dettaglio. Le tacche &mdash; una casella per titolo,
+      nell&rsquo;ordine in cui saranno interrogati &mdash; ripetono un&rsquo;informazione gi&agrave; scritta
+      (&laquo;2 di 3&raquo;); si distinguono per glifo, non per tinta, e restano leggibili in grigio.
+    </p>
+
+    <p class="didascalia-stato">6 &middot; Interruzione richiesta &mdash; si attende la risposta del titolo in corso <span class="ac">AC-9</span></p>
+    <div class="riga-lavoro fermata" role="status" aria-live="polite">
+      <span class="timbro-lavoro">Interruzione richiesta</span>
+      <span class="testo-lavoro">Attendo la risposta di <b>LU1681045370</b>, poi il lavoro si ferma. &mdash; <b>2</b> di <b>3</b>.</span>
+      <span class="tacche" aria-hidden="true">
+        <i class="tacca fatta"></i><i class="tacca corrente"></i><i class="tacca"></i>
+      </span>
+      <span class="azione-lavoro">
+        <button type="button" class="bottone-minuto fermata" disabled><span class="glifo">&#x25a0;</span> Interruzione in corso&hellip;</button>
+      </span>
+      <p class="nota-lavoro">
+        Il titolo gi&agrave; chiesto alla fonte non viene abbandonato: la sua risposta sar&agrave; registrata.
+        Il titolo rimanente non sar&agrave; interrogato.
+      </p>
+    </div>
+    <p class="glossa">
+      L&rsquo;interruzione &egrave; uno stato dichiarato, non un ritorno immediato al riposo: la richiesta
+      in volo non pu&ograve; essere richiamata indietro, e fingere il contrario porterebbe la risposta
+      a scrivere su una pagina che si crede ferma. Il comando d&rsquo;arresto si disabilita subito,
+      per la stessa ragione per cui si disabilita quello d&rsquo;avvio. La fascia passa al seppia:
+      n&eacute; riuscita n&eacute; fallimento, sospensione.
+    </p>
+
+    <!-- ================================================================
+         3. I CONSUNTIVI
+         ================================================================ -->
+    <div class="sezione-titolo">
+      I consuntivi
+      <span class="nota">lo stesso cassetto, che smette di dire &laquo;sto lavorando&raquo;</span>
+    </div>
+
+    <p class="didascalia-stato">7 &middot; Tutti rilevati &mdash; nessun elenco, perch&eacute; non c&rsquo;&egrave; nulla da elencare <span class="ac">AC-8</span></p>
+    <div class="riga-lavoro consuntivo" role="status">
+      <span class="timbro-lavoro">Lavoro concluso</span>
+      <span class="testo-lavoro">Aggiornati <b>3</b> titoli su <b>3</b>.</span>
+      <span class="tacche" aria-hidden="true">
+        <i class="tacca fatta"></i><i class="tacca fatta"></i><i class="tacca fatta"></i>
+      </span>
+      <span class="azione-lavoro">
+        <button type="button" class="bottone-minuto congedo">Chiudi il consuntivo</button>
+      </span>
+    </div>
+
+    <p class="didascalia-stato">8 &middot; In parte riusciti &mdash; ISIN e ragione, uno per riga <span class="ac">AC-7 &middot; AC-8</span></p>
+    <div class="riga-lavoro consuntivo parziale" role="status">
+      <span class="timbro-lavoro">Lavoro concluso</span>
+      <span class="testo-lavoro">Aggiornati <b>2</b> titoli su <b>5</b>.</span>
+      <span class="tacche" aria-hidden="true">
+        <i class="tacca fatta"></i><i class="tacca fallita"></i><i class="tacca fatta"></i><i class="tacca fallita"></i><i class="tacca fallita"></i>
+      </span>
+      <span class="azione-lavoro">
+        <button type="button" class="bottone-minuto congedo">Chiudi il consuntivo</button>
+      </span>
+      <ul class="elenco-esiti">
+        <li class="capo">Titoli non aggiornati</li>
+        <li>
+          <span class="segno">&dagger;</span>
+          <span class="isin">LU1681045370</span>
+          <span class="ragione">nessuna fonte ha trovato il titolo</span>
+        </li>
+        <li>
+          <span class="segno">&dagger;</span>
+          <span class="isin">IE00BK5BQT80</span>
+          <span class="ragione">nessuna fonte ha risposto</span>
+        </li>
+        <li>
+          <span class="segno">&dagger;</span>
+          <span class="isin">IE00B3VWN518</span>
+          <span class="ragione">l&rsquo;archivio ha risposto senza contattare la fonte</span>
+        </li>
+      </ul>
+    </div>
+    <p class="glossa">
+      Le tre ragioni sono <em>diverse</em> e vanno tenute diverse: &laquo;non trovato&raquo; dice che
+      l&rsquo;ISIN non esiste per quelle fonti, &laquo;nessuna risposta&raquo; dice che le fonti erano
+      irraggiungibili e che vale la pena riprovare, &laquo;l&rsquo;archivio ha risposto senza contattare
+      la fonte&raquo; dice che la guardia di buona cittadinanza di US-030 ha fermato una richiesta
+      troppo ravvicinata &mdash; e non &egrave; un guasto, &egrave; il sistema che si comporta bene. Un unico
+      &laquo;3 non riusciti&raquo; le avrebbe rese indistinguibili, e l&rsquo;utente non saprebbe quale
+      riprovare.
+    </p>
+
+    <p class="didascalia-stato">9 &middot; Dopo un&rsquo;interruzione &mdash; quanti fatti, quanti mai chiesti <span class="ac">AC-9</span></p>
+    <div class="blocco-aggiornamento">
+      <div class="riquadro-conteggio" role="status">
+        <div class="fascia-conteggio"></div>
+        <div class="contenuto-conteggio">
+          <span class="et-conteggio">Stato dei rilevamenti</span>
+          <span class="frase-conteggio"><b>3</b> titoli su <b>11</b> con rilevamento obsoleto.</span>
+          <span class="rinvio">&dagger; segnati in tabella</span>
+          <span class="azione-conteggio">
+            <button type="button" class="bottone-minuto">
+              <span class="glifo">&#x21bb;</span> Aggiorna i titoli obsoleti (3)
+            </button>
+          </span>
+        </div>
+      </div>
+      <div class="riga-lavoro consuntivo interrotto" role="status">
+        <span class="timbro-lavoro">Lavoro interrotto</span>
+        <span class="testo-lavoro">Aggiornati <b>2</b> titoli su <b>5</b>. <b>2</b> non sono stati interrogati.</span>
+        <span class="tacche" aria-hidden="true">
+          <i class="tacca fatta"></i><i class="tacca fallita"></i><i class="tacca fatta"></i><i class="tacca saltata"></i><i class="tacca saltata"></i>
+        </span>
+        <span class="azione-lavoro">
+          <button type="button" class="bottone-minuto congedo">Chiudi il consuntivo</button>
+        </span>
+        <p class="nota-lavoro">
+          I titoli gi&agrave; rilevati conservano i valori appena letti: l&rsquo;interruzione non annulla il
+          lavoro fatto. Il conteggio qui sopra &egrave; gi&agrave; ricalcolato, e dice quanto resta.
+        </p>
+        <ul class="elenco-esiti">
+          <li class="capo">Titoli non aggiornati</li>
+          <li>
+            <span class="segno">&dagger;</span>
+            <span class="isin">LU1681045370</span>
+            <span class="ragione">nessuna fonte ha trovato il titolo</span>
+          </li>
+          <li class="non-interrogato">
+            <span class="segno">&middot;</span>
+            <span class="isin">FR0010315770</span>
+            <span class="ragione">non interrogato: il lavoro &egrave; stato interrotto prima del suo turno</span>
+          </li>
+          <li class="non-interrogato">
+            <span class="segno">&middot;</span>
+            <span class="isin">IE00B1FZS350</span>
+            <span class="ragione">non interrogato: il lavoro &egrave; stato interrotto prima del suo turno</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <p class="glossa">
+      &laquo;Non riuscito&raquo; e &laquo;non interrogato&raquo; sono due cose che l&rsquo;utente deve poter
+      separare: il primo ha consumato un tentativo, il secondo no. Portano segni diversi
+      (&dagger; contro &middot;), parole diverse e tacche diverse. Il riquadro sopra il consuntivo
+      &egrave; gi&agrave; tornato a <b>3</b>: due titoli sono stati rilevati, ma uno di quelli non riusciti
+      &egrave; ancora obsoleto e due non sono mai stati chiesti &mdash; rientrando nella scheda si
+      legge lo stesso numero, senza confrontare le date a mano.
+    </p>
+
+    <p class="didascalia-stato">10 &middot; Nulla di fatto &mdash; l&rsquo;archivio &egrave; rimasto com&rsquo;era <span class="ac">AC-7</span></p>
+    <div class="riga-lavoro consuntivo nulla" role="status">
+      <span class="timbro-lavoro">Nessun titolo aggiornato</span>
+      <span class="testo-lavoro">Aggiornati <b>0</b> titoli su <b>2</b>.</span>
+      <span class="tacche" aria-hidden="true">
+        <i class="tacca fallita"></i><i class="tacca fallita"></i>
+      </span>
+      <span class="azione-lavoro">
+        <button type="button" class="bottone-minuto congedo">Chiudi il consuntivo</button>
+      </span>
+      <ul class="elenco-esiti">
+        <li class="capo">Titoli non aggiornati</li>
+        <li><span class="segno">&dagger;</span><span class="isin">IE00BK5BQT80</span><span class="ragione">nessuna fonte ha risposto</span></li>
+        <li><span class="segno">&dagger;</span><span class="isin">IE00BFY0GT14</span><span class="ragione">nessuna fonte ha risposto</span></li>
+      </ul>
+    </div>
+    <p class="glossa">
+      Quando nessuna fonte risponde nulla viene riscritto e nulla viene stimato &mdash; &egrave; la
+      stessa promessa di US-030, ripetuta a fine corsa. La fascia passa al rosso margine perch&eacute;
+      il lavoro ha prodotto zero, ma il testo &egrave; comunque un consuntivo: dice quanti (nessuno) e
+      quali, con la ragione. Nessun valore in tabella &egrave; cambiato, e nessuna postilla &egrave; sparita.
+    </p>
+
+    <!-- ================================================================
+         4. LA MARCATURA IN TABELLA, PRIMA E DOPO
+         ================================================================ -->
+    <div class="sezione-titolo">
+      La marcatura di US-034, prima e dopo
+      <span class="nota">la postilla sparisce dalla riga rilevata, non dalla pagina</span>
+    </div>
+
+    <p class="glossa" style="margin:0 0 6px">
+      La cella &laquo;Ultimo rilevamento&raquo; consegnata da US-034 ospita l&rsquo;istante e, sotto, la
+      postilla. US-035 non la ridisegna: le aggiunge un terzo valore transitorio,
+      &laquo;in aggiornamento&raquo;, e poi la riporta alla forma a una riga sola quando il dato &egrave;
+      stato riscritto. Le tre righe qui sotto sono le stesse tre righe, in tre istanti.
+    </p>
+
+    <div class="confronto">
+
+      <div class="anta prima">
+        <div class="capo-anta">Prima &mdash; il comando non &egrave; ancora partito</div>
+        <div class="corpo-anta">
+          <div class="tabella-scroll">
+            <table class="mastro" style="min-width:0">
+              <thead>
+                <tr>
+                  <th>ISIN</th>
+                  <th class="allineato-dx">Prezzo</th>
+                  <th class="allineato-dx">Ultimo rilevamento</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="voce"><small>IE00BK5BQT80</small></span></td>
+                  <td class="cifra euro">118,7400</td>
+                  <td class="cifra cella-rilevamento">
+                    <span class="istante segnato">04/08/2026 17:31</span>
+                    <small class="marca-rilevamento obsoleto">da aggiornare</small>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="voce"><small>LU1681045370</small></span></td>
+                  <td class="cifra euro">22,8600</td>
+                  <td class="cifra cella-rilevamento">
+                    <span class="istante segnato">31/07/2026 17:29</span>
+                    <small class="marca-rilevamento obsoleto">da aggiornare</small>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="voce"><small>IE00BFY0GT14</small></span></td>
+                  <td class="cifra euro">52,4000</td>
+                  <td class="cifra cella-rilevamento">
+                    <span class="istante segnato">03/08/2026 17:30</span>
+                    <small class="marca-rilevamento obsoleto">da aggiornare</small>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="didascalia-anta">
+          Tre postille, tre istanti sottolineati a tratteggio. &Egrave; esattamente la tabella
+          consegnata da US-034.
+        </p>
+      </div>
+
+      <div class="anta dopo">
+        <div class="capo-anta">Dopo &mdash; a lavoro concluso</div>
+        <div class="corpo-anta">
+          <div class="tabella-scroll">
+            <table class="mastro" style="min-width:0">
+              <thead>
+                <tr>
+                  <th>ISIN</th>
+                  <th class="allineato-dx">Prezzo</th>
+                  <th class="allineato-dx">Ultimo rilevamento</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="voce"><small>IE00BK5BQT80</small></span></td>
+                  <td class="cifra euro">121,3800</td>
+                  <td class="cifra cella-rilevamento">
+                    <span class="istante">08/08/2026 11:12</span>
+                  </td>
+                </tr>
+                <!-- Il titolo che nessuna fonte ha trovato conserva la sua
+                     postilla: il dato NON è stato aggiornato, e dire il
+                     contrario sarebbe una bugia sulla riga. Il consuntivo
+                     dice perché; la tabella continua a dire che cosa. -->
+                <tr>
+                  <td><span class="voce"><small>LU1681045370</small></span></td>
+                  <td class="cifra euro">22,8600</td>
+                  <td class="cifra cella-rilevamento">
+                    <span class="istante segnato">31/07/2026 17:29</span>
+                    <small class="marca-rilevamento obsoleto">da aggiornare</small>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="voce"><small>IE00BFY0GT14</small></span></td>
+                  <td class="cifra euro">53,1000</td>
+                  <td class="cifra cella-rilevamento">
+                    <span class="istante">08/08/2026 11:13</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="didascalia-anta">
+          Due postille sparite con la loro sottolineatura, e due celle tornate a una riga sola.
+          La terza resta: quel titolo &egrave; ancora obsoleto, e la riga non pu&ograve; dire altro.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="didascalia-stato" style="margin-top:30px">
+      L&rsquo;istante intermedio <span class="ac">&mdash; la terza variante della postilla</span>
+    </div>
+    <div class="tabella-scroll" style="max-width:780px">
+      <table class="mastro" style="min-width:0">
+        <thead>
+          <tr>
+            <th>Fase della riga</th>
+            <th class="allineato-dx">Ultimo rilevamento</th>
+            <th>Come si legge</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="voce"><strong>In coda</strong><small>stale</small></span></td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante segnato">03/08/2026 17:30</span>
+              <small class="marca-rilevamento obsoleto">da aggiornare</small>
+            </td>
+            <td style="font-family:'IM Fell English',serif; font-style:italic; color:var(--seppia)">
+              Nessuna marcatura propria: &laquo;da aggiornare&raquo; &egrave; gi&agrave; la verit&agrave; su quella riga.
+            </td>
+          </tr>
+          <tr class="in-lavorazione">
+            <td><span class="voce"><strong>Interrogata ora</strong><small>fetching</small></span></td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante segnato">31/07/2026 17:29</span>
+              <small class="marca-rilevamento in-lavorazione">in aggiornamento</small>
+            </td>
+            <td style="font-family:'IM Fell English',serif; font-style:italic; color:var(--seppia)">
+              Segno di margine sulla riga e postilla in ottone. Le cifre restano quelle
+              d&rsquo;archivio: la riga non si svuota mentre si aspetta.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="voce"><strong>Rilevata</strong><small>current</small></span></td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante">08/08/2026 11:12</span>
+            </td>
+            <td style="font-family:'IM Fell English',serif; font-style:italic; color:var(--seppia)">
+              La cella torna a una riga sola, come per un titolo che non &egrave; mai stato obsoleto.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="voce"><strong>Non riuscita</strong><small>stale</small></span></td>
+            <td class="cifra cella-rilevamento">
+              <span class="istante segnato">31/07/2026 17:29</span>
+              <small class="marca-rilevamento obsoleto">da aggiornare</small>
+            </td>
+            <td style="font-family:'IM Fell English',serif; font-style:italic; color:var(--seppia)">
+              Identica a &laquo;in coda&raquo;: la riga dichiara lo stato del dato, il consuntivo
+              dichiara l&rsquo;esito del tentativo.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="glossa">
+      Le tre postille si distinguono per parola e per segno di richiamo &mdash; &dagger; per
+      l&rsquo;obsoleto, &mdash; per il mai rilevato, &#x21bb; per quello in corso &mdash; prima ancora
+      che per colore. La riga in lavorazione &egrave; l&rsquo;unica animata, e l&rsquo;animazione &egrave;
+      ridondante rispetto al testo: senza di essa la riga si legge lo stesso.
+    </p>
+
+    <div class="nav-mockup">
+      Mockup US-035 &middot;
+      <a href="index.html">Riepilogo durante la corsa</a> &middot;
+      <a href="stati-aggiornamento.html">Stati del comando e consuntivi</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span>PortfolIA &middot; libro mastro degli investimenti &middot; US-035</span>
+    <span class="firma">tavola degli stati</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

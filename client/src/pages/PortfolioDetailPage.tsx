@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import type { Portfolio, Position, PositionSummary, EnrichedPositionSummary, CreatePositionRequest, UpdatePositionRequest } from '@portfolia/shared';
 import { isValidIsin } from '@portfolia/shared';
 import Foglio, { dataRegistro } from '../components/Foglio.js';
 import SchedaTitolo from '../components/SchedaTitolo.js';
+import AggiornaObsoleti from '../components/AggiornaObsoleti.js';
 
 /** Formatta una data ISO-8601 (YYYY-MM-DD) in stile registro (es. "15.III.2026"). */
 const MESI_ROMANI = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -70,6 +71,10 @@ export default function PortfolioDetailPage() {
   // ISIN del titolo aperto nella scheda di dettaglio (US-018). Finché è null la
   // linguetta "Scheda titolo" resta disabilitata: non c'è nulla da mostrare.
   const [isinSelezionato, setIsinSelezionato] = useState<string | null>(null);
+  // ISIN interrogato in questo istante dall'aggiornamento in blocco (US-035).
+  // Vive qui e non nel componente del comando perché è la *tabella* a doverne
+  // marcare la riga: è la terza variante della postilla di US-034.
+  const [isinInLavorazione, setIsinInLavorazione] = useState<string | null>(null);
   const [positionsLoading, setPositionsLoading] = useState(false);
   const [newPositionId, setNewPositionId] = useState<number | null>(null);
 
@@ -123,18 +128,37 @@ export default function PortfolioDetailPage() {
       .catch(() => setSummaries([]));
   }, [id]);
 
-  const fetchEnriched = useCallback(() => {
-    if (!id) return;
-    setEnrichedLoading(true);
-    fetch(`/api/portfolios/${id}/positions/enriched`)
-      .then((res) => {
-        if (!res.ok) return [];
-        return res.json() as Promise<EnrichedPositionSummary[]>;
-      })
-      .then((data) => setEnrichedPositions(data))
-      .catch(() => setEnrichedPositions([]))
-      .finally(() => setEnrichedLoading(false));
-  }, [id]);
+  /**
+   * Rilegge la vista arricchita: prezzi, valori, differenze e `freshness`
+   * ricalcolati dal server a ogni chiamata.
+   *
+   * `silenzioso` non cambia *cosa* si legge, cambia se la lettura si dichiara.
+   * In modalità rumorosa alza `enrichedLoading` e il riepilogo sostituisce la
+   * tabella con «Caricamento titoli…»: giusto al primo caricamento, sbagliato
+   * durante l'aggiornamento in blocco (US-035), che rilegge dopo *ogni* titolo e
+   * farebbe lampeggiare via la tabella una volta per titolo — l'opposto del
+   * criterio «i valori si aggiornano dopo ogni titolo rilevato».
+   *
+   * Restituisce la promessa della lettura, così il ciclo di US-035 può attendere
+   * che la tabella sia riscritta prima di passare al titolo successivo.
+   */
+  const fetchEnriched = useCallback(
+    (silenzioso = false): Promise<void> => {
+      if (!id) return Promise.resolve();
+      if (!silenzioso) setEnrichedLoading(true);
+      return fetch(`/api/portfolios/${id}/positions/enriched`)
+        .then((res) => {
+          if (!res.ok) return [];
+          return res.json() as Promise<EnrichedPositionSummary[]>;
+        })
+        .then((data) => setEnrichedPositions(data))
+        .catch(() => setEnrichedPositions([]))
+        .finally(() => {
+          if (!silenzioso) setEnrichedLoading(false);
+        });
+    },
+    [id],
+  );
 
   useEffect(() => {
     if (!id) return;
@@ -161,6 +185,38 @@ export default function PortfolioDetailPage() {
       fetchEnriched();
     }
   }, [loading, notFound, error, fetchPositions, fetchSummary, fetchEnriched]);
+
+  /**
+   * Il ricalcolo che l'aggiornamento in blocco chiama dopo ogni titolo.
+   *
+   * Identità stabile (dipende dal solo `fetchEnriched`, a sua volta stabile per
+   * `id`): il ciclo di US-035 la tiene in un riferimento e una nuova identità a
+   * ogni render sarebbe rumore inutile.
+   */
+  const ricalcolaSilenzioso = useCallback(() => fetchEnriched(true), [fetchEnriched]);
+
+  /**
+   * Rientro sulla linguetta Riepilogo: il conteggio dei titoli obsoleti va
+   * ricalcolato (US-035).
+   *
+   * Cambiare linguetta non smonta la pagina, quindi il ricalcolo al montaggio
+   * qui sopra non basta: chi lascia il riepilogo mentre un aggiornamento in
+   * blocco è in corso e poi ci torna troverebbe la fotografia di prima. La
+   * lettura è silenziosa perché sostituire la tabella con «Caricamento titoli…»
+   * a ogni cambio di linguetta sarebbe un lampeggio senza informazione.
+   *
+   * Il primo giro è saltato: al montaggio il riepilogo è già letto dall'effetto
+   * precedente, e leggerlo due volte sarebbe una richiesta in più a ogni
+   * apertura di portafoglio.
+   */
+  const primoGiroDellaScheda = useRef(true);
+  useEffect(() => {
+    if (primoGiroDellaScheda.current) {
+      primoGiroDellaScheda.current = false;
+      return;
+    }
+    if (scheda === 'riepilogo') void fetchEnriched(true);
+  }, [scheda, fetchEnriched]);
 
   // Un titolo può sparire dal portafoglio mentre la sua scheda è aperta: basta
   // rimuoverne l'ultimo carico dalla scheda "Carico titoli". Senza questo,
@@ -535,6 +591,22 @@ export default function PortfolioDetailPage() {
                       </div>
                     );
                   })()}
+                  {/*
+                    Il riquadro di conteggio di US-034 e il comando di
+                    aggiornamento in blocco di US-035 sono un corpo solo: la
+                    cifra del riquadro *è* la ragione del comando. Vivono
+                    perciò in un componente unico, che ospita anche la macchina
+                    a stati del lavoro — fuori di qui, dove sarebbe l'ennesima
+                    parentesi di una pagina già lunga.
+                  */}
+                  {id && (
+                    <AggiornaObsoleti
+                      portfolioId={id}
+                      posizioni={enrichedPositions}
+                      onRicalcola={ricalcolaSilenzioso}
+                      onTitoloInCorso={setIsinInLavorazione}
+                    />
+                  )}
                   <div className="tabella-scroll">
                     <table className="mastro" data-testid="tabella-riepilogo" aria-label="Tabella titoli del portafoglio">
                       <thead>
@@ -552,7 +624,7 @@ export default function PortfolioDetailPage() {
                         {enrichedPositions.map((ep) => (
                           <tr
                             key={ep.isin}
-                            className="cliccabile"
+                            className={`cliccabile${isinInLavorazione === ep.isin ? ' in-lavorazione' : ''}`}
                             data-testid={`riepilogo-${ep.isin}`}
                             role="button"
                             tabIndex={0}
@@ -614,18 +686,35 @@ export default function PortfolioDetailPage() {
                               </span>
                               {/*
                                 Il verdetto arriva già deciso dal server: qui si
-                                sceglie solo la parola. Le due varianti portano
+                                sceglie solo la parola. Le tre varianti portano
                                 testi diversi — non soltanto colori diversi —
                                 perché la marcatura deve restare leggibile in
                                 scala di grigi.
+
+                                «In aggiornamento» (US-035) è transitoria e non
+                                viene dal server: dice che *questa* riga è quella
+                                in volo, e prevale sulle altre due perché mentre
+                                si aspetta la risposta il verdetto d'archivio non
+                                è più l'informazione utile. Le cifre restano però
+                                quelle in archivio: la riga non si svuota mentre
+                                si aspetta, com'era già la regola di US-030.
                               */}
-                              {ep.freshness !== 'current' && (
+                              {isinInLavorazione === ep.isin ? (
                                 <small
-                                  className={`marca-rilevamento ${ep.freshness === 'stale' ? 'obsoleto' : 'mai-rilevato'}`}
+                                  className="marca-rilevamento in-lavorazione"
                                   data-testid={`marca-rilevamento-${ep.isin}`}
                                 >
-                                  {ep.freshness === 'stale' ? 'da aggiornare' : 'mai rilevato'}
+                                  in aggiornamento
                                 </small>
+                              ) : (
+                                ep.freshness !== 'current' && (
+                                  <small
+                                    className={`marca-rilevamento ${ep.freshness === 'stale' ? 'obsoleto' : 'mai-rilevato'}`}
+                                    data-testid={`marca-rilevamento-${ep.isin}`}
+                                  >
+                                    {ep.freshness === 'stale' ? 'da aggiornare' : 'mai rilevato'}
+                                  </small>
+                                )
                               )}
                             </td>
                             <td className={ep.currentValue !== null ? 'cifra euro' : 'cifra dato-mancante'}>

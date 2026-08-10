@@ -295,3 +295,183 @@ export const TITOLO_US_026: TitoloSeminabile = {
     issuer: 'VANGUARD FUNDS PLC',
   },
 };
+
+/**
+ * Riservati a `US-035__aggiorna-obsoleti.spec.ts` (il file demo).
+ *
+ * Quattro titoli, e ciascuno serve a dimostrare una cosa diversa: **tre**
+ * seminati con `fetched_at` all'indietro da adesso — la lista di lavoro della
+ * corsa — e **uno** seminato senza istante esplicito, cioè adesso, che il lavoro
+ * non deve mai chiedere alla fonte.
+ *
+ * Perché i verdetti sono stabili a qualunque ora giri la suite (stesso
+ * argomento di US-034, ripetuto qui perché è la premessa dello scenario): un
+ * rilevamento «adesso» non può risultare obsoleto, perché
+ * `classifyRefetch(now, now)` è `intra-session` a mercato aperto e `no-session`
+ * altrimenti — mai `none`, l'unico esito che il server mappa su «obsoleto».
+ * Simmetricamente un istante fissato quattordici giorni indietro resta obsoleto
+ * per sempre, perché il passato non si avvicina.
+ *
+ * I prezzi seminati qui sono quelli **di partenza**: lo scenario semina i valori
+ * aggiornati nel gestore di rotta, un istante prima di servire la risposta stub,
+ * com'è già il pattern di `US-030__aggiorna-dati-titolo-varianti.spec.ts`. È
+ * l'unico modo per far cambiare la tabella senza contattare la rete reale, e
+ * l'unico che riproduce ciò che il server avrebbe scritto.
+ */
+export const TITOLI_US_035_OBSOLETI: TitoloSeminabile[] = [
+  {
+    isin: 'IE00B4L5YC18',
+    campi: {
+      name: 'Ishares Core Msci Emerging Markets Imi Ucits Etf',
+      price: 31.2,
+      ticker: 'EIMI',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,18%',
+      currency: 'EUR',
+      issuer: 'ISHARES VI PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+  {
+    isin: 'LU0290358497',
+    campi: {
+      name: 'Xtrackers Ii Eur Overnight Rate Swap Ucits Etf',
+      price: 142.5,
+      ticker: 'XEON',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,10%',
+      currency: 'EUR',
+      issuer: 'XTRACKERS II',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+  {
+    isin: 'IE00B3XXRP09',
+    campi: {
+      name: 'Vanguard S&P 500 Ucits Etf Usd Dist',
+      price: 88.4,
+      ticker: 'VUSA',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,07%',
+      currency: 'EUR',
+      issuer: 'VANGUARD FUNDS PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'a distribuzione',
+    },
+  },
+];
+
+/**
+ * Riservato a `US-035__aggiorna-obsoleti.spec.ts`: il titolo rilevato adesso.
+ *
+ * Non entra nella lista di lavoro, e il gestore di rotta della demo fa fallire
+ * il test se qualcuno lo chiede comunque alla fonte — è il criterio «nessuna
+ * richiesta parte per un titolo rilevato nella sessione corrente» reso
+ * eseguibile invece che dichiarato.
+ */
+export const TITOLO_US_035_FRESCO: TitoloSeminabile = {
+  isin: 'IE00BJ0KDQ92',
+  campi: {
+    name: 'Xtrackers Msci World Ucits Etf 1c',
+    price: 96.1,
+    ticker: 'XDWD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,19%',
+    currency: 'EUR',
+    issuer: 'XTRACKERS IE PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservati a `US-035__aggiorna-obsoleti-varianti.spec.ts`.
+ *
+ * Tre titoli da rendere obsoleti: bastano a coprire l'interruzione (uno
+ * concluso, uno in volo, uno mai interrogato) e il doppio avvio. Il file li
+ * semina e li ripristina in ogni scenario; gli scenari girano in serie dentro
+ * il file (`fullyParallel: false`), quindi la pila di undo resta consistente.
+ */
+export const TITOLI_US_035_VARIANTI: TitoloSeminabile[] = [
+  {
+    isin: 'IE00BGV5VN51',
+    campi: {
+      name: 'Xtrackers S&P 500 Equal Weight Ucits Etf 1c',
+      price: 76.3,
+      ticker: 'XDEW',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,20%',
+      currency: 'EUR',
+      issuer: 'XTRACKERS IE PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+  {
+    isin: 'IE00BDBRDM35',
+    campi: {
+      name: 'Ishares Core Global Aggregate Bond Ucits Etf',
+      price: 4.68,
+      ticker: 'AGGH',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,10%',
+      currency: 'EUR',
+      issuer: 'ISHARES III PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+  {
+    isin: 'IE00BF4RFH31',
+    campi: {
+      name: 'Ishares Msci World Small Cap Ucits Etf',
+      price: 6.94,
+      ticker: 'WSML',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,35%',
+      currency: 'EUR',
+      issuer: 'ISHARES III PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+];
+
+/**
+ * Riservato a `US-035__aggiorna-obsoleti-varianti.spec.ts`: il titolo rilevato
+ * adesso, che regge sia lo scenario «nessun titolo da aggiornare» sia il
+ * portafoglio d'arrivo dell'interruzione per cambio di conto.
+ */
+export const TITOLO_US_035_VARIANTI_FRESCO: TitoloSeminabile = {
+  isin: 'LU1737652237',
+  campi: {
+    name: 'Amundi Index Msci World Ucits Etf Dr',
+    price: 54.7,
+    ticker: 'MWRD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,18%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservato a `US-035__aggiorna-obsoleti-varianti.spec.ts`: la crepa dichiarata
+ * dell'equivalenza «obsoleto ⟺ la guardia lascia passare».
+ *
+ * Va seminato con **prezzo nullo e `fetched_at` di adesso**. La vista arricchita
+ * lo classifica `never-fetched` — l'istante è nullo quando manca il prezzo —
+ * quindi entra nella lista di lavoro; ma per la guardia di buona cittadinanza
+ * quella riga è recentissima, e `GET /api/securities/:isin` risponde 200 con
+ * `confirmation` **senza contattare la fonte**. Il ciclo lo registra fra i non
+ * aggiornati invece di ripetere con `?force=true`, che il criterio vieta.
+ *
+ * Lo scenario non intercetta la rotta: la guardia che risponde è quella del
+ * server, e proprio perché risponde dall'archivio nessuna fonte reale viene
+ * contattata.
+ */
+export const ISIN_GUARDIA_US_035 = 'IE00B52VJ196';

@@ -207,3 +207,90 @@ describe('classifyPriceFreshness', () => {
     ).toBe('current');
   });
 });
+
+/**
+ * L'equivalenza su cui poggia US-035, fissata come contratto e non lasciata come
+ * coincidenza fortunata.
+ *
+ * Il ciclo di aggiornamento in blocco costruisce la propria lista di lavoro dal
+ * solo `freshness` restituito dal riepilogo, e chiama `GET /api/securities/:isin`
+ * **nudo**, senza `?force=true`. Perché quella scelta sia lecita — «nessun
+ * recupero è forzato oltre la guardia di buona cittadinanza» — la lista di
+ * lavoro e l'autorizzazione a contattare la fonte devono essere la stessa frase
+ * letta due volte:
+ *
+ *     classifyPriceFreshness(t, now) === 'stale'  ⟺  classifyRefetch(t, now).kind === 'none'
+ *
+ * Il ramo destro è la condizione con cui `server/src/api/securities.ts` decide di
+ * interrogare la fonte invece di rispondere con `confirmation`. Se un domani
+ * `classifyPriceFreshness` smettesse di delegare a `classifyRefetch`, il difetto
+ * cadrebbe qui invece che in pagina, dove si manifesterebbe come una corsa che
+ * chiede conferma su ogni titolo o che non aggiorna nulla.
+ */
+describe('contratto US-035: «stale» ⟺ la guardia non chiede conferma', () => {
+  /** Gli istanti già usati sopra, ripresi perché il contratto valga sui casi noti. */
+  const casi: { descrizione: string; fetchedAt: Date; now: Date }[] = [
+    {
+      descrizione: 'sessione conclusa (lun 10:00 → mar 10:00)',
+      fetchedAt: rome('2026-06-29T10:00:00+02:00'),
+      now: rome('2026-06-30T10:00:00+02:00'),
+    },
+    {
+      descrizione: 'stessa sessione (mar 10:00 → mar 11:00)',
+      fetchedAt: rome('2026-06-30T10:00:00+02:00'),
+      now: rome('2026-06-30T11:00:00+02:00'),
+    },
+    {
+      descrizione: 'nessuna sessione trascorsa (ven 18:00 → dom 14:00)',
+      fetchedAt: rome('2026-07-03T18:00:00+02:00'),
+      now: rome('2026-07-05T14:00:00+02:00'),
+    },
+    {
+      descrizione: 'dopo la chiusura della stessa giornata (mar 10:00 → mar 18:00)',
+      fetchedAt: rome('2026-06-30T10:00:00+02:00'),
+      now: rome('2026-06-30T18:00:00+02:00'),
+    },
+    {
+      descrizione: 'attraversamento dell’ora legale con sessione nel mezzo',
+      fetchedAt: rome('2026-03-27T17:00:00+01:00'),
+      now: rome('2026-03-30T10:00:00+02:00'),
+    },
+    {
+      descrizione: 'pre-apertura (08:00 → 10:00 dello stesso giorno)',
+      fetchedAt: rome('2026-06-30T08:00:00+02:00'),
+      now: rome('2026-06-30T10:00:00+02:00'),
+    },
+    {
+      descrizione: 'rilevamento nel futuro rispetto ad «adesso»',
+      fetchedAt: rome('2026-06-30T11:00:00+02:00'),
+      now: rome('2026-06-30T10:00:00+02:00'),
+    },
+  ];
+
+  for (const caso of casi) {
+    it(`${caso.descrizione}: le due letture coincidono`, () => {
+      const obsoleto = classifyPriceFreshness(caso.fetchedAt, caso.now) === 'stale';
+      const senzaConferma = classifyRefetch(caso.fetchedAt, caso.now).kind === 'none';
+      expect(obsoleto).toBe(senzaConferma);
+    });
+  }
+
+  it('un titolo «current» non entra mai in lista, ed è proprio quello per cui la guardia chiederebbe conferma', () => {
+    const correnti = casi.filter((c) => classifyPriceFreshness(c.fetchedAt, c.now) === 'current');
+    // Senza questa riga il test resterebbe verde anche se l'elenco dei casi
+    // perdesse ogni esempio `current`: passerebbe non avendo verificato nulla.
+    expect(correnti.length).toBeGreaterThan(0);
+    for (const caso of correnti) {
+      expect(classifyRefetch(caso.fetchedAt, caso.now).message).not.toBeNull();
+    }
+  });
+
+  it('«mai rilevato» non ha istante da classificare: la guardia non ha nulla su cui pronunciarsi', () => {
+    // Il ramo `never-fetched` non passa dalla guardia perché in archivio non c'è
+    // alcun `fetched_at` da confrontare: il server tratta il cache miss come
+    // recupero diretto. Resta però la crepa nota (riga in cache con `fetched_at`
+    // valorizzato e `price` nullo), che il client registra come non aggiornata
+    // invece di forzare il recupero.
+    expect(classifyPriceFreshness(null, rome('2026-06-30T10:00:00+02:00'))).toBe('never-fetched');
+  });
+});
