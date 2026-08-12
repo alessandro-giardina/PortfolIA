@@ -1,0 +1,36 @@
+schema: archetipo/spec/v2
+code: US-043
+title: Mostrare il P&L realizzato congelato accanto al P&L latente
+epic:
+  code: EP-008
+  title: Vendite e posizioni chiuse
+priority: HIGH
+points: 6
+status: TODO
+blocked_by:
+  - US-042
+scope: MVP
+body: |-
+  #### US-043: Mostrare il P&L realizzato congelato accanto al P&L latente
+
+  **Epic:** EP-008 | **Priorità:** HIGH | **Punti:** 6 | **Stato:** TODO
+  **Bloccata da:** US-042
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio vedere separati il guadagno già incassato con le vendite e quello ancora sulla carta,
+  in modo da sapere quanto ho realmente realizzato e quanto dipende ancora dal mercato (FR-025, ADR-009).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, in seguito a una vendita di 400 quote a 12,50 su un costo attribuito LIFO, il riepilogo mostra il P&L realizzato dell'operazione, il P&L latente calcolato sulle sole 600 quote residue e il totale come somma dei due; registrando una nuova rilevazione di prezzo il latente cambia e il realizzato resta identico al centesimo.
+
+  **Criteri di Accettazione**
+  - [ ] Il riepilogo del portafoglio mostra P&L realizzato, P&L latente e P&L totale, con il totale pari alla somma dei due
+  - [ ] Il P&L realizzato di una vendita è calcolato all'atto della registrazione come (prezzo di vendita − costo LIFO attribuito) × quantità venduta e non varia al sopraggiungere di nuove rilevazioni di prezzo
+  - [ ] Il P&L latente è calcolato sulla sola quantità residua, e vale 0 — non "dato non disponibile" — quando la quantità residua è 0
+  - [ ] Un test copre l'invariante P&L realizzato + P&L latente = P&L totale, prima e dopo una vendita a prezzo di mercato invariato
+  - [ ] La percentuale del P&L totale ha per base il costo di tutti i carichi, lotti venduti inclusi, e un test verifica che costo dei lotti consumati + costo dei lotti residui = costo complessivo dei carichi
+  - [ ] Il riepilogo dichiara esplicitamente che l'incasso delle vendite non è trattenuto come liquidità nel portafoglio: il valore attuale comprende i soli titoli posseduti, mentre il risultato dell'operazione è nel P&L realizzato
+history:
+  - status: TODO
+    at: "2026-08-12T14:13:45Z"

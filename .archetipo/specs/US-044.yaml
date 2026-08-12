@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-044
+title: Elencare le posizioni chiuse in una sezione dedicata
+epic:
+  code: EP-008
+  title: Vendite e posizioni chiuse
+priority: MEDIUM
+points: 3
+status: TODO
+blocked_by:
+  - US-042
+scope: MVP
+body: |-
+  #### US-044: Elencare le posizioni chiuse in una sezione dedicata
+
+  **Epic:** EP-008 | **Priorità:** MEDIUM | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** US-042
+
+  **User Story**
+  Come Giulia, investitrice prudente,
+  voglio che un titolo venduto interamente esca dalla tabella dei titoli posseduti ma resti consultabile con il suo risultato,
+  in modo da non perdere la traccia di che cosa ha prodotto il guadagno già incassato (FR-026, FR-013).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, in seguito alla vendita totale di un ISIN la tabella dei titoli del portafoglio non lo elenca più, mentre una sezione "Posizioni chiuse" ne mostra ISIN, quantità complessivamente venduta, incasso e P&L realizzato; il valore attuale del portafoglio non include più quel titolo.
+
+  **Criteri di Accettazione**
+  - [ ] Un ISIN con quantità residua 0 non compare nella tabella dei titoli posseduti
+  - [ ] Una sezione "Posizioni chiuse" elenca ISIN, quantità complessivamente venduta, incasso e P&L realizzato
+  - [ ] Il P&L realizzato di una posizione chiusa resta incluso nel P&L totale del portafoglio e non è mai sommato al valore attuale, a cui una posizione chiusa contribuisce 0
+  - [ ] Un nuovo carico sullo stesso ISIN dopo una chiusura riapre la posizione nella tabella dei titoli posseduti senza cancellare la riga storica delle vendite
+history:
+  - status: TODO
+    at: "2026-08-12T14:13:45Z"

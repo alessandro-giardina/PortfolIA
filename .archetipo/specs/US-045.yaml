@@ -1,0 +1,35 @@
+schema: archetipo/spec/v2
+code: US-045
+title: Sottrarre le vendite dalla quantità detenuta nelle serie storiche
+epic:
+  code: EP-008
+  title: Vendite e posizioni chiuse
+priority: HIGH
+points: 3
+status: TODO
+blocked_by:
+  - US-042
+scope: MVP
+body: |-
+  #### US-045: Sottrarre le vendite dalla quantità detenuta nelle serie storiche
+
+  **Epic:** EP-008 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** US-042
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che il grafico del valore della posizione rifletta le quote effettivamente detenute a ciascuna data anche dopo una vendita,
+  in modo da non leggere una storia più liscia e più ricca di quella vera (FR-027, FR-015).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, su un titolo con 1000 quote caricate nel 2023 e 400 vendute nel 2025 la curva del valore della posizione moltiplica per 1000 i punti precedenti la vendita e per 600 quelli successivi, con lo scalino visibile alla data di vendita; la vista "prezzo unitario" resta invariata.
+
+  **Criteri di Accettazione**
+  - [ ] La quantità detenuta a un istante è Σ carichi non successivi a quell'istante − Σ vendite non successive a quell'istante
+  - [ ] La vista "valore della posizione" applica la quantità detenuta alla data di ciascun punto, non quella odierna
+  - [ ] Dopo una vendita totale i punti successivi alla data di vendita valgono 0 e non sono né omessi né interpolati
+  - [ ] La vista "prezzo unitario" non è influenzata dalle vendite
+  - [ ] Test unitari puri coprono la quantità detenuta con carichi e vendite interlacciati nel tempo
+history:
+  - status: TODO
+    at: "2026-08-12T14:13:45Z"

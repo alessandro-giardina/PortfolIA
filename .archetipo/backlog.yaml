@@ -17,6 +17,8 @@ epics:
     title: Grafico andamento del portafoglio
   - code: EP-007
     title: P&L e grafico del singolo titolo
+  - code: EP-008
+    title: Vendite e posizioni chiuse
 order:
   - US-015
   - US-016
@@ -58,3 +60,7 @@ order:
   - US-038
   - US-039
   - US-040
+  - US-042
+  - US-043
+  - US-044
+  - US-045

@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-042
+title: Registrare la vendita parziale o totale di una posizione con attribuzione LIFO
+epic:
+  code: EP-008
+  title: Vendite e posizioni chiuse
+priority: HIGH
+points: 5
+status: TODO
+scope: MVP
+body: |-
+  #### US-042: Registrare la vendita parziale o totale di una posizione con attribuzione LIFO
+
+  **Epic:** EP-008 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio registrare la vendita di una parte o di tutta la quantità posseduta di un titolo,
+  in modo da tenere il portafoglio allineato alle operazioni realmente eseguite senza falsificare i carichi passati (FR-022, FR-023, FR-024, ADR-009).
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, partendo da 1000 quote su un ISIN, registrando una vendita di 400 il Registro mostra una nuova iscrizione di scarico e la quantità residua passa a 600 con il prezzo medio del residuo ricalcolato secondo LIFO; registrando poi la vendita delle restanti 600 la quantità residua diventa 0 — e nessun carico è stato modificato o cancellato.
+
+  **Criteri di Accettazione**
+  - [ ] Dal Registro carichi è possibile registrare una vendita indicando data, prezzo di vendita e quantità
+  - [ ] La vendita è registrata come nuova iscrizione: nessun carico esistente viene modificato o cancellato
+  - [ ] La quantità residua per ISIN è Σ carichi − Σ vendite, e il prezzo medio del residuo è ricalcolato consumando i lotti in ordine LIFO (prima i carichi con data più recente fra quelli non successivi alla data di vendita)
+  - [ ] Una vendita di quantità superiore a quella disponibile alla data indicata è rifiutata con messaggio esplicito, e la quantità residua non è mai negativa
+  - [ ] Una vendita con data anteriore al carico che dovrebbe consumare è rifiutata
+  - [ ] La rimozione di un carico già consumato, anche solo in parte, da una vendita è impedita con un messaggio che distingue la correzione di un'iscrizione errata dalla vendita
+history:
+  - status: TODO
+    at: "2026-08-12T14:13:45Z"
