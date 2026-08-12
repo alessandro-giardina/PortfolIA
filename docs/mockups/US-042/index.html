@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-042 · Scarico titoli con attribuzione LIFO</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro · partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Carico e scarico · iscrizioni del registro</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> — ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#" class="attiva">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- ══ Esito dell'operazione appena iscritta ══ -->
+    <div class="avviso-successo">
+      <span class="timbro-ok">Iscritto</span>
+      <p>
+        Scarico di <b>400</b> quote <b>IE00BK5BQT80</b> del <b>03.VI.2026</b> a
+        <b>€&nbsp;12,5000</b> iscritto nel registro. Nessun carico è stato modificato o cancellato.
+      </p>
+    </div>
+
+    <!-- ══ Il modulo di scarico ══ -->
+    <div class="sezione-titolo">
+      Scarico titoli · registrazione di una vendita
+      <span class="nota">FR-022 · la vendita è una nuova iscrizione, non la rettifica di un carico</span>
+    </div>
+
+    <div class="riquadro-modulo scarico">
+      <div class="intestazione-modulo">
+        <span>Modulo di scarico titolo</span>
+        <span class="num-modulo">MOD/SCA-002 · rev. I</span>
+      </div>
+      <div class="corpo-modulo">
+        <form onsubmit="return false">
+
+          <div class="riga-modulo">
+            <label for="sca-titolo">
+              Titolo
+              <span class="sotto-etichetta">fra quelli con quantità residua</span>
+            </label>
+            <div class="campo">
+              <select id="sca-titolo">
+                <option>IE00BK5BQT80 — Vanguard FTSE All-World UCITS ETF Acc</option>
+                <option>IT0003128367 — Enel S.p.A.</option>
+              </select>
+              <span class="giacenza">residuo <b>600</b> quote</span>
+            </div>
+          </div>
+
+          <div class="riga-modulo">
+            <label for="sca-data">
+              Data di vendita
+              <span class="sotto-etichetta">giorno dell'operazione eseguita</span>
+            </label>
+            <div class="campo">
+              <input id="sca-data" type="date" value="2026-06-03">
+            </div>
+          </div>
+
+          <div class="riga-modulo">
+            <label for="sca-prezzo">
+              Prezzo di vendita
+              <span class="sotto-etichetta">per singola quota, in euro</span>
+            </label>
+            <div class="campo">
+              <span class="unita">EUR</span>
+              <input id="sca-prezzo" type="number" step="0.0001" placeholder="0,0000" value="12,5000">
+            </div>
+          </div>
+
+          <div class="riga-modulo">
+            <label for="sca-quantita">
+              Quantità venduta
+              <span class="sotto-etichetta">numero intero di quote</span>
+            </label>
+            <div class="campo">
+              <span class="unita">QTÀ</span>
+              <input id="sca-quantita" type="number" step="1" placeholder="0" value="400">
+            </div>
+          </div>
+
+        </form>
+
+        <p class="nota-contabile">
+          L'incasso dell'operazione — prezzo &times; quantità — <b>non</b> è trattenuto come liquidità
+          del portafoglio: PortfolIA tiene i titoli, non la cassa (ADR-009). L'esito dell'operazione
+          si legge nel P&amp;L realizzato.
+        </p>
+
+        <div class="bottoni">
+          <button type="submit" class="bottone rosso">Iscrive lo scarico</button>
+          <a href="#" class="bottone secondario">Annulla</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ La fascia dei lotti: l'attribuzione LIFO resa visibile ══ -->
+    <div class="sezione-titolo">
+      Attribuzione del costo · criterio LIFO
+      <span class="nota">FR-023 · si consumano per primi i carichi più recenti fra quelli non successivi alla data di vendita</span>
+    </div>
+
+    <div class="fascia-lifo">
+      <div class="capo">
+        <h3>IE00BK5BQT80 — lotti al 03.VI.2026</h3>
+        <span class="freccia-lifo">ordine di consumo</span>
+      </div>
+
+      <div class="lotti">
+
+        <div class="lotto">
+          <div class="targa">
+            <b>Carico n. 2</b>
+            <small>07.II.2025 · 400 quote · € 11,5000</small>
+          </div>
+          <div class="barra">
+            <div class="quota consumata" style="flex: 400">400 consumate</div>
+          </div>
+          <div class="esito">
+            consumato per intero
+            <b>costo attribuito € 4.600,00</b>
+          </div>
+        </div>
+
+        <div class="lotto intatto">
+          <div class="targa">
+            <b>Carico n. 1</b>
+            <small>12.IV.2023 · 600 quote · € 9,8000</small>
+          </div>
+          <div class="barra">
+            <div class="quota residua" style="flex: 600">600 residue</div>
+          </div>
+          <div class="esito">
+            non toccato
+            <b>costo residuo € 5.880,00</b>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="legenda-lifo">
+        <span><i class="consumata"></i> quote consumate dalla vendita</span>
+        <span><i class="residua"></i> quote ancora detenute</span>
+        <span>costo attribuito € 4.600,00 + costo residuo € 5.880,00 = costo dei carichi € 10.480,00</span>
+      </div>
+    </div>
+
+    <!-- ══ Il residuo dopo l'operazione ══ -->
+    <div class="riquadro-residuo">
+      <div class="fascia-colore"></div>
+      <div class="contenuto">
+        <div class="casella-residuo">
+          <span class="et">Quantità residua</span>
+          <span class="cifra-grande">600</span>
+          <span class="prima-dopo">Σ carichi 1.000 − Σ vendite 400</span>
+        </div>
+        <div class="casella-residuo">
+          <span class="et">Prezzo medio del residuo</span>
+          <span class="cifra-grande"><span class="valuta">EUR</span>9,8000</span>
+          <span class="prima-dopo">prima dell'operazione <s>€ 10,4800</s> — ricalcolato sui soli lotti non consumati</span>
+        </div>
+        <div class="casella-residuo">
+          <span class="et">Controvalore di carico residuo</span>
+          <span class="cifra-grande"><span class="valuta">EUR</span>5.880,00</span>
+          <span class="prima-dopo">nessun carico modificato: il registro conserva entrambe le iscrizioni</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Il registro ══ -->
+    <div class="sezione-titolo" style="margin-top: 34px;">
+      Registro delle iscrizioni
+      <span class="nota">carichi e scarichi in ordine di data · nessuna riga è mai riscritta</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Iscrizione</th>
+            <th>Titolo (ISIN)</th>
+            <th>Data</th>
+            <th>Prezzo</th>
+            <th>Quantità</th>
+            <th>Controvalore</th>
+            <th>Residuo del lotto</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr>
+            <td><span class="marca">Carico</span></td>
+            <td><span class="voce">IE00BK5BQT80</span></td>
+            <td class="cifra">12.IV.2023</td>
+            <td class="cifra euro">9,8000</td>
+            <td class="cifra">600</td>
+            <td class="cifra euro">5.880,00</td>
+            <td class="cifra">600</td>
+            <td>
+              <button type="button" class="bottone secondario">Modifica</button>
+              <button type="button" class="bottone rosso">Rimuovi</button>
+            </td>
+          </tr>
+
+          <tr class="lotto-esaurito">
+            <td><span class="marca esaurito">Carico · esaurito</span></td>
+            <td><span class="voce">IE00BK5BQT80</span></td>
+            <td class="cifra">07.II.2025</td>
+            <td class="cifra euro">11,5000</td>
+            <td class="cifra">400</td>
+            <td class="cifra euro">4.600,00</td>
+            <td class="cifra">0</td>
+            <td>
+              <button type="button" class="bottone secondario impedito">Modifica</button>
+              <button type="button" class="bottone rosso impedito">Rimuovi</button>
+              <span class="perche">consumato da una vendita: si rettifica solo un'iscrizione errata</span>
+            </td>
+          </tr>
+
+          <tr class="iscrizione-scarico riga-nuova">
+            <td><span class="marca scarico">Scarico</span></td>
+            <td><span class="voce">IE00BK5BQT80</span></td>
+            <td class="cifra">03.VI.2026</td>
+            <td class="cifra euro">12,5000</td>
+            <td class="cifra">400</td>
+            <td class="cifra euro">5.000,00</td>
+            <td class="cifra dato-mancante">—</td>
+            <td>
+              <button type="button" class="bottone secondario">Dettaglio attribuzione</button>
+            </td>
+          </tr>
+
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">Quantità residua a registro</td>
+            <td class="cifra">600</td>
+            <td class="cifra euro">5.880,00</td>
+            <td class="cifra">600</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- ══ La distinzione che la spec esiste per rendere impossibile da confondere ══ -->
+    <div class="cartiglio">
+      <h4>Rimuovere un carico non è venderlo</h4>
+      <p>
+        Le due operazioni sembrano ridurre la stessa cifra, e producono registri opposti.
+      </p>
+      <div class="coppia">
+        <div>
+          <b>Rimozione del carico — errata</b>
+          Cancella un'iscrizione sbagliata come se non fosse mai avvenuta. Non produce alcun
+          risultato realizzato. È impedita su un carico già consumato, anche solo in parte,
+          da una vendita.
+        </div>
+        <div>
+          <b>Scarico — vendita</b>
+          Registra un fatto realmente accaduto come <em>nuova</em> iscrizione. Lascia intatti
+          i carichi passati, riduce la quantità residua e attribuisce il costo secondo LIFO.
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-mockup">
+      Mockup US-042 &nbsp;·&nbsp;
+      <a href="index.html">Vendita parziale</a>
+      <a href="vendita-totale.html">Vendita totale</a>
+      <a href="rifiuti.html">Iscrizioni rifiutate</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto — A. Giardina, contabile in proprio</span>
+    <span>PortfolIA · libro mastro · c. 1</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

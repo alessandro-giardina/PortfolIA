@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-042 · Vendita totale, residuo azzerato</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro · partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Carico e scarico · posizione azzerata dallo scarico del 10.VIII.2026</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> — ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#" class="attiva">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="avviso-successo">
+      <span class="timbro-ok">Iscritto</span>
+      <p>
+        Scarico di <b>600</b> quote <b>IE00BK5BQT80</b> del <b>10.VIII.2026</b> a
+        <b>€&nbsp;12,9000</b> iscritto nel registro. La quantità residua è <b>0</b>:
+        i due carichi restano iscritti, integri e leggibili.
+      </p>
+    </div>
+
+    <div class="sezione-titolo">
+      Attribuzione del costo · criterio LIFO
+      <span class="nota">FR-023 · il secondo scarico trova il carico n. 2 già esaurito e consuma il carico n. 1</span>
+    </div>
+
+    <div class="fascia-lifo">
+      <div class="capo">
+        <h3>IE00BK5BQT80 — lotti al 10.VIII.2026</h3>
+        <span class="freccia-lifo">ordine di consumo</span>
+      </div>
+
+      <div class="lotti">
+
+        <div class="lotto">
+          <div class="targa">
+            <b>Carico n. 2</b>
+            <small>07.II.2025 · 400 quote · € 11,5000</small>
+          </div>
+          <div class="barra">
+            <div class="quota consumata" style="flex: 400">400 già consumate — scarico 03.VI.2026</div>
+          </div>
+          <div class="esito">
+            nulla da consumare
+            <b>residuo 0</b>
+          </div>
+        </div>
+
+        <div class="lotto">
+          <div class="targa">
+            <b>Carico n. 1</b>
+            <small>12.IV.2023 · 600 quote · € 9,8000</small>
+          </div>
+          <div class="barra">
+            <div class="quota consumata" style="flex: 600">600 consumate</div>
+          </div>
+          <div class="esito">
+            consumato per intero
+            <b>costo attribuito € 5.880,00</b>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="legenda-lifo">
+        <span><i class="consumata"></i> quote consumate da una vendita</span>
+        <span>costo attribuito complessivo € 10.480,00 = costo dei due carichi</span>
+      </div>
+    </div>
+
+    <div class="riquadro-residuo chiuso">
+      <div class="fascia-colore"></div>
+      <div class="contenuto">
+        <div class="casella-residuo">
+          <span class="et">Quantità residua</span>
+          <span class="cifra-grande">0</span>
+          <span class="prima-dopo">Σ carichi 1.000 − Σ vendite 1.000</span>
+        </div>
+        <div class="casella-residuo">
+          <span class="et">Prezzo medio del residuo</span>
+          <span class="cifra-grande assente">—</span>
+          <span class="prima-dopo">non esiste un residuo su cui calcolarlo: dichiarato assente, mai scritto «0,0000»</span>
+        </div>
+        <div class="casella-residuo">
+          <span class="et">Controvalore di carico residuo</span>
+          <span class="cifra-grande"><span class="valuta">EUR</span>0,00</span>
+          <span class="prima-dopo">il titolo contribuisce 0 al valore attuale del portafoglio</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sezione-titolo" style="margin-top: 34px;">
+      Registro delle iscrizioni
+      <span class="nota">quattro iscrizioni, nessuna cancellata</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Iscrizione</th>
+            <th>Titolo (ISIN)</th>
+            <th>Data</th>
+            <th>Prezzo</th>
+            <th>Quantità</th>
+            <th>Controvalore</th>
+            <th>Residuo del lotto</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="lotto-esaurito">
+            <td><span class="marca esaurito">Carico · esaurito</span></td>
+            <td><span class="voce">IE00BK5BQT80</span></td>
+            <td class="cifra">12.IV.2023</td>
+            <td class="cifra euro">9,8000</td>
+            <td class="cifra">600</td>
+            <td class="cifra euro">5.880,00</td>
+            <td class="cifra">0</td>
+            <td>
+              <button type="button" class="bottone secondario impedito">Modifica</button>
+              <button type="button" class="bottone rosso impedito">Rimuovi</button>
+              <span class="perche">consumato da una vendita: si rettifica solo un'iscrizione errata</span>
+            </td>
+          </tr>
+
+          <tr class="lotto-esaurito">
+            <td><span class="marca esaurito">Carico · esaurito</span></td>
+            <td><span class="voce">IE00BK5BQT80</span></td>
+            <td class="cifra">07.II.2025</td>
+            <td class="cifra euro">11,5000</td>
+            <td class="cifra">400</td>
+            <td class="cifra euro">4.600,00</td>
+            <td class="cifra">0</td>
+            <td>
+              <button type="button" class="bottone secondario impedito">Modifica</button>
+              <button type="button" class="bottone rosso impedito">Rimuovi</button>
+              <span class="perche">consumato da una vendita: si rettifica solo un'iscrizione errata</span>
+            </td>
+          </tr>
+
+          <tr class="iscrizione-scarico">
+            <td><span class="marca scarico">Scarico</span></td>
+            <td><span class="voce">IE00BK5BQT80</span></td>
+            <td class="cifra">03.VI.2026</td>
+            <td class="cifra euro">12,5000</td>
+            <td class="cifra">400</td>
+            <td class="cifra euro">5.000,00</td>
+            <td class="cifra dato-mancante">—</td>
+            <td><button type="button" class="bottone secondario">Dettaglio attribuzione</button></td>
+          </tr>
+
+          <tr class="iscrizione-scarico riga-nuova">
+            <td><span class="marca scarico">Scarico</span></td>
+            <td><span class="voce">IE00BK5BQT80</span></td>
+            <td class="cifra">10.VIII.2026</td>
+            <td class="cifra euro">12,9000</td>
+            <td class="cifra">600</td>
+            <td class="cifra euro">7.740,00</td>
+            <td class="cifra dato-mancante">—</td>
+            <td><button type="button" class="bottone secondario">Dettaglio attribuzione</button></td>
+          </tr>
+
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">Quantità residua a registro</td>
+            <td class="cifra">0</td>
+            <td class="cifra euro">0,00</td>
+            <td class="cifra">0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="cartiglio">
+      <h4>Che cosa questa pagina non mostra</h4>
+      <p>
+        La sezione <em>Posizioni chiuse</em> — con quantità venduta, incasso e P&amp;L realizzato del
+        titolo azzerato — appartiene a <b>US-044</b>, e la separazione fra P&amp;L realizzato e latente
+        a <b>US-043</b>. Qui la vendita totale si limita a portare a <b>0</b> la quantità residua
+        lasciando intatti i carichi: è tutto ciò che US-042 promette, ed è tutto ciò che deve
+        comparire finché le due spec seguenti non arrivano.
+      </p>
+      <p>
+        Il titolo resta perciò elencato con quantità <b>0</b> fino a US-044: una riga a zero è
+        un'informazione vera, una riga sparita senza spiegazione no.
+      </p>
+    </div>
+
+    <div class="nav-mockup">
+      Mockup US-042 &nbsp;·&nbsp;
+      <a href="index.html">Vendita parziale</a>
+      <a href="vendita-totale.html">Vendita totale</a>
+      <a href="rifiuti.html">Iscrizioni rifiutate</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto — A. Giardina, contabile in proprio</span>
+    <span>PortfolIA · libro mastro · c. 1</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

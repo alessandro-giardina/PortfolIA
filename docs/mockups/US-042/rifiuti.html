@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-042 · Iscrizioni rifiutate</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro · partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Carico e scarico · le tre iscrizioni che il registro non accetta</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> — ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#" class="attiva">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <p class="messaggio attesa" style="margin-top: 6px;">
+      Premessa comune alle tre pagine: carico n.&nbsp;1 del <b>12.IV.2023</b> — 600 quote a
+      €&nbsp;9,8000 — e carico n.&nbsp;2 del <b>07.II.2025</b> — 400 quote a €&nbsp;11,5000 —
+      con lo scarico di 400 quote del <b>03.VI.2026</b> già iscritto. Quantità residua: <b>600</b>.
+    </p>
+
+    <!-- ════════ Caso A ════════ -->
+    <div class="sezione-titolo">
+      Caso A · quantità superiore a quella disponibile
+      <span class="nota">FR-024 · la quantità residua non è mai negativa</span>
+    </div>
+
+    <div class="banner-errore">
+      <span class="timbro-ko">Rifiutato</span>
+      <div>
+        <p>
+          Non è possibile vendere <b>700</b> quote: al <b>10.VIII.2026</b> la quantità disponibile
+          è <b>600</b>.
+        </p>
+        <p>
+          Nessuna iscrizione è stata registrata. Correggere la quantità, oppure verificare che
+          i carichi mancanti siano stati iscritti.
+        </p>
+      </div>
+    </div>
+
+    <div class="riquadro-modulo scarico">
+      <div class="intestazione-modulo">
+        <span>Modulo di scarico titolo</span>
+        <span class="num-modulo">MOD/SCA-002 · rev. I</span>
+      </div>
+      <div class="corpo-modulo">
+        <form onsubmit="return false">
+          <div class="riga-modulo">
+            <label>Titolo<span class="sotto-etichetta">fra quelli con quantità residua</span></label>
+            <div class="campo">
+              <select><option>IE00BK5BQT80 — Vanguard FTSE All-World UCITS ETF Acc</option></select>
+              <span class="giacenza">residuo <b>600</b> quote</span>
+            </div>
+          </div>
+          <div class="riga-modulo">
+            <label>Data di vendita<span class="sotto-etichetta">giorno dell'operazione eseguita</span></label>
+            <div class="campo"><input type="date" value="2026-08-10"></div>
+          </div>
+          <div class="riga-modulo">
+            <label>Prezzo di vendita<span class="sotto-etichetta">per singola quota, in euro</span></label>
+            <div class="campo"><span class="unita">EUR</span><input type="number" value="12,9000"></div>
+          </div>
+          <div class="riga-modulo con-errore">
+            <label>Quantità venduta<span class="sotto-etichetta">numero intero di quote</span></label>
+            <div class="campo con-errore">
+              <span class="unita">QTÀ</span>
+              <input type="number" value="700">
+              <span class="errore-campo visibile">Quantità superiore alle 600 quote disponibili al 10.VIII.2026.</span>
+            </div>
+          </div>
+        </form>
+        <div class="bottoni">
+          <button type="submit" class="bottone rosso">Iscrive lo scarico</button>
+          <a href="#" class="bottone secondario">Annulla</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ Caso B ════════ -->
+    <div class="sezione-titolo" style="margin-top: 40px;">
+      Caso B · vendita anteriore al carico che dovrebbe consumare
+      <span class="nota">FR-024 · un carico non può essere venduto prima di essere avvenuto</span>
+    </div>
+
+    <div class="banner-errore">
+      <span class="timbro-ko">Rifiutato</span>
+      <div>
+        <p>
+          Al <b>01.I.2024</b> risultano detenute <b>600</b> quote, non 800: il carico del
+          <b>07.II.2025</b> è <b>successivo</b> alla data di vendita e non può essere consumato
+          da questa operazione.
+        </p>
+        <p>
+          Il rifiuto è distinto da quello del caso A: qui le quote esistono, ma non a quella data.
+          Correggere la data di vendita, oppure la quantità.
+        </p>
+      </div>
+    </div>
+
+    <div class="fascia-lifo">
+      <div class="capo">
+        <h3>IE00BK5BQT80 — lotti al 01.I.2024</h3>
+        <span class="freccia-lifo">ordine di consumo</span>
+      </div>
+
+      <div class="lotti">
+        <div class="lotto">
+          <div class="targa">
+            <b>Carico n. 2</b>
+            <small>07.II.2025 · 400 quote · € 11,5000</small>
+          </div>
+          <div class="barra">
+            <div class="quota futura" style="flex: 400">non ancora avvenuto al 01.I.2024</div>
+          </div>
+          <div class="esito">
+            fuori dalla data
+            <b>non attribuibile</b>
+          </div>
+        </div>
+
+        <div class="lotto intatto">
+          <div class="targa">
+            <b>Carico n. 1</b>
+            <small>12.IV.2023 · 600 quote · € 9,8000</small>
+          </div>
+          <div class="barra">
+            <div class="quota residua" style="flex: 600">600 disponibili</div>
+          </div>
+          <div class="esito">
+            unico lotto consumabile
+            <b>600 quote su 800 richieste</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="legenda-lifo">
+        <span><i class="residua"></i> quote consumabili alla data indicata</span>
+        <span>i lotti successivi alla data di vendita non entrano nell'attribuzione</span>
+      </div>
+    </div>
+
+    <!-- ════════ Caso C ════════ -->
+    <div class="sezione-titolo" style="margin-top: 40px;">
+      Caso C · rimozione di un carico già consumato
+      <span class="nota">FR-009 e FR-024 · l'errata non è una vendita</span>
+    </div>
+
+    <div class="banner-errore">
+      <span class="timbro-ko">Impedito</span>
+      <div>
+        <p>
+          Il carico del <b>07.II.2025</b> è già stato consumato — per intero — dallo scarico del
+          <b>03.VI.2026</b>: non può essere rimosso né modificato.
+        </p>
+        <p>
+          La rimozione di un carico è la <b>correzione di un'iscrizione errata</b>: cancella il carico
+          come se non fosse mai avvenuto, e non produce alcun risultato realizzato. Per ridurre una
+          posizione a seguito di un'operazione realmente eseguita si registra invece una
+          <b>vendita</b>. Se lo scarico del 03.VI.2026 è esso stesso errato, va corretto prima
+          quello.
+        </p>
+      </div>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Iscrizione</th>
+            <th>Titolo (ISIN)</th>
+            <th>Data</th>
+            <th>Prezzo</th>
+            <th>Quantità</th>
+            <th>Controvalore</th>
+            <th>Residuo del lotto</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="marca">Carico</span></td>
+            <td><span class="voce">IE00BK5BQT80</span></td>
+            <td class="cifra">12.IV.2023</td>
+            <td class="cifra euro">9,8000</td>
+            <td class="cifra">600</td>
+            <td class="cifra euro">5.880,00</td>
+            <td class="cifra">600</td>
+            <td>
+              <button type="button" class="bottone secondario">Modifica</button>
+              <button type="button" class="bottone rosso">Rimuovi</button>
+            </td>
+          </tr>
+          <tr class="lotto-esaurito">
+            <td><span class="marca esaurito">Carico · esaurito</span></td>
+            <td><span class="voce">IE00BK5BQT80</span></td>
+            <td class="cifra">07.II.2025</td>
+            <td class="cifra euro">11,5000</td>
+            <td class="cifra">400</td>
+            <td class="cifra euro">4.600,00</td>
+            <td class="cifra">0</td>
+            <td>
+              <button type="button" class="bottone secondario impedito">Modifica</button>
+              <button type="button" class="bottone rosso impedito">Rimuovi</button>
+              <span class="perche">consumato dallo scarico del 03.VI.2026</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cartiglio">
+      <h4>Perché tre messaggi e non uno</h4>
+      <p>
+        «Operazione non consentita» sarebbe corretto in tutti e tre i casi e inutile in tutti e tre:
+        chi legge deve sapere <em>quale</em> premessa è saltata, perché la correzione è diversa —
+        la quantità nel caso A, la data nel caso B, l'iscrizione da rettificare nel caso C.
+        Un messaggio unico costringerebbe a indovinare.
+      </p>
+    </div>
+
+    <div class="nav-mockup">
+      Mockup US-042 &nbsp;·&nbsp;
+      <a href="index.html">Vendita parziale</a>
+      <a href="vendita-totale.html">Vendita totale</a>
+      <a href="rifiuti.html">Iscrizioni rifiutate</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto — A. Giardina, contabile in proprio</span>
+    <span>PortfolIA · libro mastro · c. 1</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

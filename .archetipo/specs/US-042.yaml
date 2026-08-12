@@ -6,7 +6,7 @@ epic:
   title: Vendite e posizioni chiuse
 priority: HIGH
 points: 5
-status: TODO
+status: PLANNED
 scope: MVP
 body: |-
   #### US-042: Registrare la vendita parziale o totale di una posizione con attribuzione LIFO
@@ -32,3 +32,5 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-12T14:13:45Z"
+  - status: PLANNED
+    at: "2026-08-12T15:05:40Z"
