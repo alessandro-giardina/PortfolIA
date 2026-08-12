@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Scala temporale: copertura parziale a dieci anni (US-037)</title>
+  <meta name="description" content="Mockup US-037, criterio 5: la scala «Ultimi 10 anni» su uno storico cominciato il 16.II.2026. L'asse copre davvero i dieci anni chiesti e il tratto iniziale scoperto è campito, contornato e misurato.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda anagrafica del titolo</p>
+      <h1>Amundi Prime <span class="corsivo">Global</span></h1>
+      <p class="sottotesto">ISIN LU2089238203 &middot; iscritto al Conto <em>Lungo Periodo</em></p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantit&agrave; &nbsp;&nbsp;&nbsp;&nbsp;<b>250</b> su 2 carichi</div>
+      <div>Pr. medio di carico &nbsp;<b>€&thinsp;25,3200</b></div>
+      <div>Pr. ultimo rilevato &nbsp;<b>€&thinsp;30,2000</b></div>
+      <div>Punti in archivio &nbsp;<b>4</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="#" class="disabilitata">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="copertura-parziale.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      Andamento del prezzo
+      <span class="nota">FR&#8209;016 &middot; ADR&#8209;008 &middot; scala chiesta: ultimi 10 anni &middot; l&rsquo;archivio ne copre 175 giorni</span>
+    </div>
+
+    <!-- ---------- La traversa delle cinque scale: «Ultimi 10 anni» attiva ---------- -->
+    <div class="barra-scala" role="group" aria-label="Scala temporale del grafico">
+      <span class="et-scala">Scala temporale</span>
+      <div class="scala-temporale">
+        <button type="button">Ultimo mese</button>
+        <button type="button">Ultimo anno</button>
+        <button type="button">Ultimi 5 anni</button>
+        <button type="button" class="attiva parziale" aria-pressed="true">Ultimi 10 anni</button>
+        <button type="button">
+          Tutto lo storico<span class="postilla-predefinita">predefinita</span>
+        </button>
+      </div>
+      <span class="finestra-attiva parziale">Finestra: 10.VIII.2016 &rarr; 10.VIII.2026 &middot; coperti 175 giorni su 3.652</span>
+    </div>
+
+    <!-- =====================================================================
+         Criterio 5 · ADR-008 — L'orizzonte chiesto non si accorcia di nascosto:
+         l'asse copre davvero i dieci anni. Il tratto iniziale privo di dati è
+         campito con la stessa obliqua che US-036 usa per i vuoti, contornato,
+         e dichiara da quando la copertura comincia davvero.
+         ===================================================================== -->
+
+    <div class="grafico-cornice">
+      <span class="cartellino-finestra">10.VIII.2016 &rarr; 10.VIII.2026</span>
+
+      <svg class="tracciato" viewBox="0 0 960 304" role="img"
+           aria-label="Andamento del prezzo unitario sulla scala «ultimi 10 anni», dal 10 agosto 2016 a oggi. I dati d'archivio cominciano il 16 febbraio 2026: dei 3.652 giorni chiesti ne risultano coperti 175, pari a zero anni e cinque mesi. I primi 3.477 giorni sono campiti a tratteggio obliquo perché il registro non esisteva. I quattro punti — due carichi del 16 febbraio e del 4 maggio 2026 a 24,80 e 26,10 euro, e due rilevazioni del 28 luglio e del 10 agosto 2026 a 29,45 e 30,20 euro — si addensano tutti sul bordo destro.">
+
+        <defs>
+          <pattern id="vuotoRado" width="11" height="11" patternUnits="userSpaceOnUse"
+                   patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="11" stroke="#9e2b25" stroke-width="2.4" opacity=".16"/>
+          </pattern>
+          <marker id="puntaQuota" viewBox="0 0 8 8" refX="4" refY="4"
+                  markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#6e5a36"/>
+          </marker>
+        </defs>
+
+        <!-- ---------- Rigatura di lettura ---------- -->
+        <g stroke="#8a9bb0" stroke-width="1" opacity=".55">
+          <line x1="88" y1="70.7"  x2="884" y2="70.7"/>
+          <line x1="88" y1="144.0" x2="884" y2="144.0"/>
+          <line x1="88" y1="217.3" x2="884" y2="217.3"/>
+        </g>
+
+        <!-- ---------- Il tratto scoperto: 3.477 giorni in cui il registro non esisteva ---------- -->
+        <rect x="88" y="34" width="757.9" height="220" fill="url(#vuotoRado)"/>
+        <rect x="88" y="34" width="757.9" height="220" fill="none"
+              stroke="#9e2b25" stroke-width="1.4" stroke-dasharray="6 5" opacity=".7"/>
+
+        <!-- ---------- Il tratto davvero coperto: cinque mesi sul bordo destro ---------- -->
+        <rect x="845.9" y="34" width="38.1" height="220" fill="#2f6b3a" opacity=".08"/>
+        <rect x="845.9" y="34" width="38.1" height="220" fill="none"
+              stroke="#2f6b3a" stroke-width="1.2" stroke-dasharray="4 3" opacity=".8"/>
+
+        <!-- ---------- Assi ---------- -->
+        <line x1="88" y1="34" x2="88" y2="254" stroke="#221c14" stroke-width="1.5"/>
+        <line x1="88" y1="254" x2="884" y2="254" stroke="#221c14" stroke-width="1.5"/>
+
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="end">
+          <text x="80" y="37.8">32,00</text>
+          <text x="80" y="74.5">30,00</text>
+          <text x="80" y="147.8">26,00</text>
+          <text x="80" y="221.1">22,00</text>
+          <text x="80" y="257.8">20,00</text>
+        </g>
+        <text x="88" y="22" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">EURO PER QUOTA</text>
+
+        <!-- ---------- Verticale di «oggi» ---------- -->
+        <line x1="884" y1="34" x2="884" y2="254"
+              stroke="#6e5a36" stroke-width="1.2" stroke-dasharray="2 4"/>
+        <text x="880" y="22" text-anchor="end"
+              font-family="'IM Fell English SC', serif" font-size="10.5" letter-spacing="1.2"
+              fill="#6e5a36">OGGI &middot; 10.VIII.2026</text>
+
+        <!-- ---------- Verticale del primo dato d'archivio ---------- -->
+        <line x1="845.9" y1="34" x2="845.9" y2="262" stroke="#2f6b3a" stroke-width="1.6"/>
+
+        <!-- ---------- Riga del prezzo medio ponderato di carico (€ 25,3200) ---------- -->
+        <line x1="88" y1="156.5" x2="884" y2="156.5"
+              stroke="#9c7d34" stroke-width="2.2" stroke-dasharray="10 5"/>
+        <rect x="150" y="141" width="290" height="15" fill="#f7efda" opacity=".95"/>
+        <text x="295" y="152" text-anchor="middle"
+              font-family="'Courier Prime', monospace" font-size="10.5" letter-spacing=".4"
+              fill="#9c7d34">PREZZO MEDIO PONDERATO DI CARICO &nbsp;€ 25,3200</text>
+
+        <!-- ---------- Dichiarazione della copertura, dentro la fascia scoperta ---------- -->
+        <g text-anchor="middle">
+          <rect x="210" y="62" width="500" height="72" fill="#f7efda"
+                stroke="#9e2b25" stroke-width="1.4"/>
+          <text x="460" y="83" font-family="'IM Fell English SC', serif" font-size="11.5"
+                letter-spacing="1.3" fill="#9e2b25">I DATI D&rsquo;ARCHIVIO COMINCIANO IL 16.II.2026</text>
+          <text x="460" y="103" font-family="'Courier Prime', monospace" font-size="11.5"
+                fill="#221c14">dei 10 anni richiesti ne risultano coperti 0 anni e 5 mesi &mdash; 175 giorni su 3.652</text>
+          <text x="460" y="123" font-family="'IM Fell English', serif" font-size="12.5"
+                font-style="italic" fill="#6e5a36">prima di quella data il registro non esisteva: questa fascia &egrave; assenza, non ribasso</text>
+        </g>
+
+        <!-- ---------- Segmenti tratteggiati fra i quattro punti ---------- -->
+        <g stroke="#221c14" stroke-width="2.2" stroke-dasharray="7 6" stroke-linecap="round" fill="none">
+          <line x1="845.9" y1="166.0" x2="862.6" y2="142.2"/>
+          <line x1="862.6" y1="142.2" x2="881.2" y2="80.8"/>
+          <line x1="881.2" y1="80.8"  x2="884"   y2="67.0"/>
+        </g>
+
+        <!-- ---------- Punti · prezzi di carico (rombo in carminio) ---------- -->
+        <g fill="#8d231f" stroke="#221c14" stroke-width="1.4">
+          <path d="M845.9,159.0 L852.6,166.0 L845.9,173.0 L839.2,166.0 Z"/>
+          <path d="M862.6,135.2 L869.3,142.2 L862.6,149.2 L855.9,142.2 Z"/>
+        </g>
+
+        <!-- ---------- Punti · rilevazioni registrate (cerchio in inchiostro) ---------- -->
+        <g fill="#221c14" stroke="#f7efda" stroke-width="1.3">
+          <circle cx="881.2" cy="80.8" r="4.6"/>
+          <circle cx="884"   cy="67.0" r="4.6"/>
+        </g>
+
+        <!-- Cartiglio del grappolo: cinque mesi su dieci anni valgono trentotto
+             pixel d'asse, e i quattro marcatori si toccano. Il cartellino li
+             legge uno per uno senza toccare la scala del tempo. -->
+        <g>
+          <rect x="520" y="172" width="296" height="76" fill="#f7efda"
+                stroke="#221c14" stroke-width="1.2"/>
+          <line x1="520" y1="190" x2="816" y2="190" stroke="#221c14" stroke-width=".8" opacity=".45"/>
+          <text x="530" y="186" font-family="'IM Fell English SC', serif" font-size="10"
+                letter-spacing="1.2" fill="#6e5a36">I QUATTRO PUNTI, TUTTI SUL BORDO DESTRO</text>
+          <g font-family="'Courier Prime', monospace" font-size="10.5">
+            <text x="530" y="204" fill="#8d231f">16.II.2026 &nbsp;€ 24,8000 &nbsp;carico</text>
+            <text x="530" y="217" fill="#8d231f">04.V.2026 &nbsp;&nbsp;€ 26,1000 &nbsp;carico</text>
+            <text x="530" y="230" fill="#221c14">28.VII.2026 &nbsp;€ 29,4500 &nbsp;rilevaz.</text>
+            <text x="530" y="243" fill="#221c14">10.VIII.2026 &nbsp;€ 30,2000 &nbsp;rilevaz.</text>
+          </g>
+          <line x1="816" y1="190" x2="877" y2="96" stroke="#221c14" stroke-width="1" opacity=".55"/>
+        </g>
+
+        <!-- ---------- Quota del tratto scoperto ---------- -->
+        <g stroke="#6e5a36" stroke-width="1.1" opacity=".85">
+          <line x1="88" y1="258" x2="88" y2="268"/>
+          <line x1="845.9" y1="258" x2="845.9" y2="268"/>
+        </g>
+        <line x1="88" y1="263" x2="845.9" y2="263" stroke="#6e5a36" stroke-width="1.1"
+              marker-start="url(#puntaQuota)" marker-end="url(#puntaQuota)" opacity=".85"/>
+        <rect x="368" y="256" width="188" height="13" fill="#f7efda" opacity=".96"/>
+        <text x="462" y="266" text-anchor="middle" font-family="'Courier Prime', monospace"
+              font-size="10" fill="#9e2b25">3.477 giorni senza alcun registro</text>
+
+        <!-- ---------- Scala dei tempi: i dieci anni ci sono tutti ---------- -->
+        <g stroke="#221c14" stroke-width="1">
+          <line x1="119.4" y1="254" x2="119.4" y2="259"/>
+          <line x1="199.0" y1="254" x2="199.0" y2="259"/>
+          <line x1="278.6" y1="254" x2="278.6" y2="259"/>
+          <line x1="358.3" y1="254" x2="358.3" y2="259"/>
+          <line x1="437.9" y1="254" x2="437.9" y2="259"/>
+          <line x1="517.5" y1="254" x2="517.5" y2="259"/>
+          <line x1="597.1" y1="254" x2="597.1" y2="259"/>
+          <line x1="676.7" y1="254" x2="676.7" y2="259"/>
+          <line x1="756.4" y1="254" x2="756.4" y2="259"/>
+          <line x1="836.0" y1="254" x2="836.0" y2="259"/>
+        </g>
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="middle">
+          <text x="88" y="282" text-anchor="start">10.VIII.2016</text>
+          <text x="199.0" y="282">2018</text>
+          <text x="358.3" y="282">2020</text>
+          <text x="517.5" y="282">2022</text>
+          <text x="676.7" y="282">2024</text>
+          <text x="884" y="282" text-anchor="end">oggi &middot; 10.VIII.2026</text>
+        </g>
+        <text x="842" y="296" text-anchor="end" font-family="'Courier Prime', monospace"
+              font-size="10.5" fill="#2f6b3a">16.II.2026 &middot; qui comincia l&rsquo;archivio &rarr;</text>
+        <text x="88" y="299" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">GIORNI CIVILI &middot; FINESTRA CHIESTA: ULTIMI 10 ANNI &middot; 3.652 GIORNI</text>
+      </svg>
+
+      <p class="estremi-tracciato">
+        <span>Inizio della finestra: <b>10.VIII.2016</b> (nessun dato)</span>
+        <span>Primo punto d&rsquo;archivio: <b>16.II.2026</b> (carico)</span>
+        <span>Ultimo punto: <b>10.VIII.2026</b> (rilevazione)</span>
+      </p>
+    </div>
+
+    <!-- ---------- Il regolo della copertura ---------- -->
+    <div class="misura-copertura">
+      <div class="intestazione-misura">
+        <span>Copertura della finestra chiesta</span>
+        <span class="cifra-misura">175 giorni coperti su 3.652 &mdash; 4,8&thinsp;%</span>
+      </div>
+      <div class="barra-copertura" role="img"
+           aria-label="Regolo della copertura: dei 3.652 giorni della finestra chiesta ne risultano coperti 175, il 4,8 per cento, tutti all'estremità destra.">
+        <span class="etichetta-scoperto">3.477 giorni scoperti &mdash; 95,2&thinsp;%</span>
+        <span class="coperto" style="width:4.8%"></span>
+      </div>
+      <p class="legenda-copertura">
+        <span>Scoperto: <b>10.VIII.2016 &rarr; 15.II.2026</b> &middot; 3.477 giorni</span>
+        <span>Coperto: <b>16.II.2026 &rarr; 10.VIII.2026</b> &middot; 175 giorni &middot; 0 anni e 5 mesi</span>
+      </p>
+    </div>
+
+    <!-- ---------- Legenda ---------- -->
+    <div class="legenda-tracciato">
+      <div class="intestazione-legenda">Legenda del tracciato &mdash; e della parte che non c&rsquo;&egrave;</div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <defs>
+            <pattern id="vuotoLegenda10" width="11" height="11" patternUnits="userSpaceOnUse"
+                     patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="11" stroke="#9e2b25" stroke-width="2.4" opacity=".3"/>
+            </pattern>
+          </defs>
+          <rect x="1" y="2" width="34" height="12" fill="url(#vuotoLegenda10)"
+                stroke="#9e2b25" stroke-width="1" stroke-dasharray="4 3" opacity=".9"/>
+        </svg>
+        <span>
+          <span class="et">Fascia campita &mdash; finestra chiesta ma scoperta</span>
+          <span class="spiega">
+            la stessa obliqua che US&#8209;036 usa per i vuoti, qui estesa a
+            <span class="conto">3.477 giorni</span>: dal 10.VIII.2016 al 15.II.2026 il registro
+            non esisteva. L&rsquo;asse non &egrave; stato accorciato per nasconderla.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <rect x="1" y="2" width="34" height="12" fill="#2f6b3a" opacity=".12"/>
+          <rect x="1" y="2" width="34" height="12" fill="none" stroke="#2f6b3a"
+                stroke-width="1.2" stroke-dasharray="4 3"/>
+        </svg>
+        <span>
+          <span class="et">Fascia chiara &mdash; il tratto davvero coperto</span>
+          <span class="spiega">
+            <span class="conto">175 giorni</span> sul bordo destro, il 4,8&thinsp;% della finestra:
+            &egrave; qui che stanno tutti e quattro i punti d&rsquo;archivio.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <path d="M9,3 L14,8 L9,13 L4,8 Z" fill="#8d231f" stroke="#221c14" stroke-width="1.2"/>
+          <circle cx="24" cy="7" r="4" fill="#221c14" stroke="#f7efda" stroke-width="1.2"/>
+          <circle cx="31" cy="9" r="4" fill="#221c14" stroke="#f7efda" stroke-width="1.2"/>
+        </svg>
+        <span>
+          <span class="et">I quattro punti, addensati a destra</span>
+          <span class="spiega">
+            due carichi in carminio e due rilevazioni in inchiostro, tutti fra il
+            <span class="conto">16.II</span> e il <span class="conto">10.VIII.2026</span>:
+            su questa scala si toccano, e il cartellino nel grafico li nomina uno per uno.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <line x1="18" y1="1" x2="18" y2="15" stroke="#2f6b3a" stroke-width="1.8"/>
+        </svg>
+        <span>
+          <span class="et">Verticale verde &mdash; inizio dell&rsquo;archivio</span>
+          <span class="spiega">
+            segna il <span class="conto">16.II.2026</span>, il primo carico registrato: a sinistra
+            di quella riga PortfolIA non ha, e non avr&agrave; mai, alcun prezzo di questo titolo.
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="avviso-rado senza-andamento">
+      <span>
+        La scala chiesta &egrave; di <b>10 anni</b> e dieci anni restano: l&rsquo;asse non si accorcia
+        al primo dato utile, perch&eacute; accorciarlo farebbe sembrare piena una copertura che
+        &egrave; del <b>4,8&thinsp;%</b>. Il tratto iniziale non &egrave; un prezzo a zero n&eacute; un
+        ribasso: &egrave; l&rsquo;assenza del registro, campita e misurata. Nessun valore &egrave; stato
+        stimato o portato all&rsquo;indietro per riempirla (ADR&#8209;003).
+      </span>
+    </div>
+
+    <p class="nota-sezione">
+      Lo storico dei prezzi comincia dall&rsquo;entrata in esercizio del registro, non dalla nascita del
+      titolo: per molto tempo le scale a <b>5</b> e a <b>10</b> anni resteranno quasi tutte scoperte,
+      e questo non &egrave; un difetto da correggere ma un fatto da dichiarare (ADR&#8209;008). Per una
+      lettura piena della sola parte che l&rsquo;archivio possiede, la scala
+      <b>tutto lo storico</b> apre la finestra <b>16.II.2026 &rarr; 10.VIII.2026</b> e i quattro punti
+      tornano distinti.
+    </p>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="index.html">&larr; Torna a &laquo;tutto lo storico&raquo;</a>
+      <a class="bottone secondario" href="finestra-vuota.html">Finestra priva di dati &rarr;</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">L&rsquo;orizzonte chiesto non si accorcia: la parte scoperta si campisce e si misura</span>
+    <span><span class="timbro mancante">Copertura parziale</span> PortfolIA &middot; US-037</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-037 &middot; <a href="index.html">Tutto lo storico (predefinita)</a> &middot;
+  <a href="finestra-vuota.html">Finestra priva di dati</a> &middot;
+  <a href="copertura-parziale.html">Copertura parziale (10 anni)</a>
+</p>
+
+</body>
+</html>

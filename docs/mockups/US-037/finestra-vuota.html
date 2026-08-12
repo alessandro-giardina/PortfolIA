@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Scala temporale: finestra priva di dati (US-037)</title>
+  <meta name="description" content="Mockup US-037, criterio 4: la scala «Ultimo mese» su un titolo le cui rilevazioni sono tutte anteriori. Al posto del grafico compare la dichiarazione «dato non disponibile», con l'intervallo chiesto e la data del punto più recente in archivio.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda anagrafica del titolo</p>
+      <h1>Xtrackers Msci <span class="corsivo">Emerging Markets</span></h1>
+      <p class="sottotesto">ISIN IE00BTJRMP35 &middot; iscritto al Conto <em>Lungo Periodo</em></p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantit&agrave; &nbsp;&nbsp;&nbsp;&nbsp;<b>80</b> su 1 carico</div>
+      <div>Pr. medio di carico &nbsp;<b>€&thinsp;38,9000</b></div>
+      <div>Pr. ultimo rilevato &nbsp;<b>€&thinsp;41,8600</b> il 3.V</div>
+      <div>Punti in archivio &nbsp;<b>3</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="#" class="disabilitata">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="finestra-vuota.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      Andamento del prezzo
+      <span class="nota">FR&#8209;016 &middot; ADR&#8209;003 &middot; scala chiesta: ultimo mese &middot; l&rsquo;archivio non ha punti in quella finestra</span>
+    </div>
+
+    <!-- ---------- La traversa delle cinque scale: «Ultimo mese» attiva ---------- -->
+    <div class="barra-scala" role="group" aria-label="Scala temporale del grafico">
+      <span class="et-scala">Scala temporale</span>
+      <div class="scala-temporale">
+        <button type="button" class="attiva senza-dati" aria-pressed="true">Ultimo mese</button>
+        <button type="button">Ultimo anno</button>
+        <button type="button">Ultimi 5 anni</button>
+        <button type="button">Ultimi 10 anni</button>
+        <button type="button">
+          Tutto lo storico<span class="postilla-predefinita">predefinita</span>
+        </button>
+      </div>
+      <span class="finestra-attiva assente">Finestra: 10.VII.2026 &rarr; 10.VIII.2026 &middot; 31 giorni &middot; 0 punti</span>
+    </div>
+
+    <!-- =====================================================================
+         Criterio 4 · ADR-003 — La cornice quadrettata non ospita un tracciato
+         vuoto: ospita una dichiarazione. Il posto del grafico resta quello,
+         soltanto non c'è nulla da tracciarvi, e la pagina lo dice per esteso.
+         ===================================================================== -->
+    <div class="dichiarazione-vuota">
+      <span class="cartellino-finestra">10.VII.2026 &rarr; 10.VIII.2026</span>
+
+      <p style="margin:0">
+        <span class="timbro-grande">Dato non disponibile</span>
+      </p>
+
+      <p class="riga-intervallo">
+        <span class="et-int">Intervallo richiesto &mdash; ultimo mese</span>
+        10.VII.2026 &nbsp;&rarr;&nbsp; 10.VIII.2026 &nbsp;&middot;&nbsp; 31 giorni civili
+      </p>
+
+      <p class="spiegazione">
+        In questa finestra l&rsquo;archivio non possiede <b>alcun</b> prezzo di questo titolo:
+        n&eacute; carichi, n&eacute; rilevazioni. Non &egrave; un guasto della fonte n&eacute;
+        un errore di lettura &mdash; &egrave; assenza di dati, e come tale viene dichiarata.
+      </p>
+
+      <p class="dove-esiste">
+        <span class="et">Dove il dato esiste davvero</span>
+        <span>
+          il punto pi&ugrave; recente in archivio &egrave; del <b>3.V.2026</b> (€&thinsp;41,8600,
+          rilevazione) &mdash; <b>fuori da questa finestra</b>, 68 giorni prima del suo inizio.
+        </span>
+      </p>
+
+      <!-- Il rigo del tempo: non è un grafico dei prezzi, è la prova geometrica
+           che il punto d'archivio cade fuori dalla finestra chiesta. -->
+      <svg class="rigo-tempo" viewBox="0 0 960 175" role="img"
+           aria-label="Rigo del tempo: la finestra dell'ultimo mese, dal 10 luglio al 10 agosto 2026, è campita e vuota; il punto più recente in archivio, del 3 maggio 2026, cade 68 giorni prima del suo inizio, e il suo prezzo non viene portato dentro la finestra.">
+
+        <defs>
+          <pattern id="vuotoFinestra" width="11" height="11" patternUnits="userSpaceOnUse"
+                   patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="11" stroke="#9e2b25" stroke-width="2.4" opacity=".18"/>
+          </pattern>
+          <marker id="puntaVietata" viewBox="0 0 8 8" refX="7" refY="4"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#9e2b25"/>
+          </marker>
+          <marker id="puntaQuota" viewBox="0 0 8 8" refX="4" refY="4"
+                  markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#6e5a36"/>
+          </marker>
+        </defs>
+
+        <text x="100" y="20" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">IL RIGO DEL TEMPO &middot; DOVE CADE IL DATO, DOVE CADE LA FINESTRA</text>
+
+        <!-- ---------- La finestra chiesta: campita, contornata, vuota ---------- -->
+        <rect x="644.7" y="44" width="239.3" height="56" fill="url(#vuotoFinestra)"/>
+        <rect x="644.7" y="44" width="239.3" height="56" fill="none"
+              stroke="#9e2b25" stroke-width="1.4" stroke-dasharray="6 5"/>
+        <text x="764.4" y="38" text-anchor="middle" font-family="'IM Fell English SC', serif"
+              font-size="10" letter-spacing="1.2" fill="#9e2b25">FINESTRA CHIESTA &middot; ULTIMO MESE</text>
+        <text x="764.4" y="77" text-anchor="middle" font-family="'IM Fell English', serif"
+              font-style="italic" font-size="13" fill="#9e2b25">nessun punto d&rsquo;archivio</text>
+
+        <!-- ---------- Il divieto di trascinamento ---------- -->
+        <line x1="150" y1="66" x2="628" y2="66" stroke="#9e2b25" stroke-width="1.4"
+              stroke-dasharray="6 6" marker-end="url(#puntaVietata)" opacity=".85"/>
+        <g stroke="#9e2b25" stroke-width="2.4">
+          <line x1="374" y1="58" x2="390" y2="74"/>
+          <line x1="390" y1="58" x2="374" y2="74"/>
+        </g>
+        <rect x="196" y="42" width="372" height="13" fill="#f7efda" opacity=".95"/>
+        <text x="382" y="52" text-anchor="middle" font-family="'Courier Prime', monospace"
+              font-size="10.5" fill="#9e2b25">l&rsquo;ultimo prezzo noto non viene portato dentro la finestra</text>
+
+        <!-- ---------- Asse dei giorni ---------- -->
+        <line x1="100" y1="100" x2="884" y2="100" stroke="#221c14" stroke-width="1.5"/>
+        <g stroke="#221c14" stroke-width="1">
+          <line x1="644.7" y1="100" x2="644.7" y2="108"/>
+          <line x1="884" y1="100" x2="884" y2="108"/>
+        </g>
+
+        <!-- ---------- Il punto più recente in archivio, fuori finestra ---------- -->
+        <circle cx="120" cy="100" r="5" fill="#221c14" stroke="#f7efda" stroke-width="1.3"/>
+
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36">
+          <text x="112" y="120">03.V.2026 &nbsp;€ 41,8600</text>
+          <text x="112" y="134" fill="#221c14">ultimo punto d&rsquo;archivio &mdash; fuori finestra</text>
+          <text x="644.7" y="120" text-anchor="middle">10.VII.2026</text>
+          <text x="884" y="120" text-anchor="end">10.VIII.2026 &middot; oggi</text>
+        </g>
+
+        <!-- ---------- Quota: quanto dista il punto dall'inizio della finestra ---------- -->
+        <line x1="120" y1="155" x2="644.7" y2="155" stroke="#6e5a36" stroke-width="1.2"
+              marker-start="url(#puntaQuota)" marker-end="url(#puntaQuota)"/>
+        <g stroke="#6e5a36" stroke-width="1.1" opacity=".85">
+          <line x1="120" y1="148" x2="120" y2="162"/>
+          <line x1="644.7" y1="148" x2="644.7" y2="162"/>
+        </g>
+        <rect x="284" y="147" width="196" height="15" fill="#f7efda" opacity=".96"/>
+        <text x="382" y="158" text-anchor="middle" font-family="'Courier Prime', monospace"
+              font-size="10.5" fill="#6e5a36">68 giorni prima della finestra</text>
+      </svg>
+
+      <p class="invito-scala">
+        Per vedere un tracciato, torna a una scala pi&ugrave; ampia:
+        <span class="tasto-citato">Ultimo anno</span> comprende tutti e <b>3</b> i punti in archivio,
+        e <span class="tasto-citato">Tutto lo storico</span> apre la finestra completa
+        &mdash; dal carico del <b>12.I.2026</b> a oggi.
+      </p>
+    </div>
+
+    <!-- ---------- Che cosa non è stato fatto, e perché ---------- -->
+    <div class="avviso-rado senza-trascinamento">
+      <span>
+        Il prezzo del <b>3.V.2026</b> resta dov&rsquo;&egrave;: PortfolIA non lo prolunga fino a oggi,
+        non lo ripete come ultimo valore noto e non traccia una retta piatta al suo livello.
+        Portarlo dentro una finestra che non lo contiene significherebbe affermare un prezzo mai
+        osservato: la finestra dell&rsquo;ultimo mese resta perci&ograve; senza tracciato (ADR&#8209;003).
+      </span>
+    </div>
+
+    <p class="nota-sezione">
+      Questo titolo ha <b>3</b> punti d&rsquo;archivio &mdash; il carico del <b>12.I.2026</b> a
+      €&thinsp;38,9000 e le rilevazioni del <b>21.IV</b> e del <b>3.V.2026</b> &mdash; tutti anteriori
+      di oltre due mesi alla finestra chiesta. Lo storico &egrave; rado per costruzione: si osserva
+      quando apri il registro, e per novantanove giorni questo registro &egrave; rimasto chiuso.
+      Una finestra vuota non &egrave; un difetto da nascondere, &egrave; il resoconto fedele di
+      un&rsquo;assenza.
+    </p>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="index.html">&larr; Torna a &laquo;tutto lo storico&raquo;</a>
+      <a class="bottone secondario" href="copertura-parziale.html">Copertura parziale a 10 anni &rarr;</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">Una finestra vuota si dichiara, non si riempie con l&rsquo;ultimo prezzo noto</span>
+    <span><span class="timbro">Dato non disponibile</span> PortfolIA &middot; US-037</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-037 &middot; <a href="index.html">Tutto lo storico (predefinita)</a> &middot;
+  <a href="finestra-vuota.html">Finestra priva di dati</a> &middot;
+  <a href="copertura-parziale.html">Copertura parziale (10 anni)</a>
+</p>
+
+</body>
+</html>

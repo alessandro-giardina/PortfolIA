@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Scala temporale del grafico: tutto lo storico (US-037)</title>
+  <meta name="description" content="Mockup US-037: il selettore delle cinque scale temporali sopra il grafico del titolo, con «Tutto lo storico» attivo — la scala predefinita all'apertura della scheda.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda anagrafica del titolo</p>
+      <h1>Ishares Core <span class="corsivo">Msci World</span></h1>
+      <p class="sottotesto">ISIN IE00B4L5Y983 &middot; iscritto al Conto <em>Lungo Periodo</em></p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantit&agrave; &nbsp;&nbsp;&nbsp;&nbsp;<b>200</b> su 2 carichi</div>
+      <div>Pr. medio di carico &nbsp;<b>€&thinsp;66,0800</b></div>
+      <div>Pr. ultimo rilevato &nbsp;<b>€&thinsp;128,4600</b></div>
+      <div>Punti in archivio &nbsp;<b>4</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="#" class="disabilitata">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="index.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <!-- =====================================================================
+         Le sezioni che precedono (posizione, anagrafica, carichi, storico
+         prezzi di US-009) restano quelle di US-036 e non sono toccate: qui
+         compare soltanto l'ultima sezione della scheda, «Andamento del
+         prezzo», perché US-037 aggiunge una sola cosa — la traversa dei
+         bottoni sopra la cornice.
+         ===================================================================== -->
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      Andamento del prezzo
+      <span class="nota">FR&#8209;016 &middot; ADR&#8209;008 &middot; cinque scale a scelta &middot; l&rsquo;archivio interrogato non cambia, cambia la finestra</span>
+    </div>
+
+    <!-- ---------- US-037: la traversa delle cinque scale ---------- -->
+    <div class="barra-scala" role="group" aria-label="Scala temporale del grafico">
+      <span class="et-scala">Scala temporale</span>
+      <div class="scala-temporale">
+        <button type="button">Ultimo mese</button>
+        <button type="button">Ultimo anno</button>
+        <button type="button">Ultimi 5 anni</button>
+        <button type="button">Ultimi 10 anni</button>
+        <button type="button" class="attiva" aria-pressed="true">
+          Tutto lo storico<span class="postilla-predefinita">predefinita</span>
+        </button>
+      </div>
+      <span class="finestra-attiva">Finestra: <b>19.IX.2021 &rarr; 10.VIII.2026</b> &middot; 1.785 giorni</span>
+    </div>
+
+    <div class="grafico-cornice">
+      <span class="cartellino-finestra">19.IX.2021 &rarr; 10.VIII.2026</span>
+
+      <svg class="tracciato" viewBox="0 0 960 304" role="img"
+           aria-label="Andamento del prezzo unitario sulla scala «tutto lo storico», dal primo carico del 19 settembre 2021 a oggi: due prezzi di carico (58,40 e 71,20 euro) e due rilevazioni registrate (126,90 e 128,46 euro), con la riga del prezzo medio ponderato di carico a 66,08 euro. Fra i punti non esiste alcuna rilevazione: i segmenti sono tratteggiati.">
+
+        <defs>
+          <!-- Punta di freccia per le quote di misura, come su una tavola tecnica. -->
+          <marker id="punta" viewBox="0 0 8 8" refX="4" refY="4"
+                  markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#2f6b3a"/>
+          </marker>
+        </defs>
+
+        <!-- ---------- Rigatura di lettura ---------- -->
+        <g stroke="#8a9bb0" stroke-width="1" opacity=".55">
+          <line x1="88" y1="46.8"  x2="884" y2="46.8"/>
+          <line x1="88" y1="98.6"  x2="884" y2="98.6"/>
+          <line x1="88" y1="150.4" x2="884" y2="150.4"/>
+          <line x1="88" y1="202.2" x2="884" y2="202.2"/>
+        </g>
+
+        <!-- ---------- Assi ---------- -->
+        <line x1="88" y1="34" x2="88" y2="254" stroke="#221c14" stroke-width="1.5"/>
+        <line x1="88" y1="254" x2="884" y2="254" stroke="#221c14" stroke-width="1.5"/>
+
+        <!-- Scala dei prezzi (euro per quota) -->
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="end">
+          <text x="80" y="50.8">130,00</text>
+          <text x="80" y="102.6">110,00</text>
+          <text x="80" y="154.4">&nbsp;&nbsp;90,00</text>
+          <text x="80" y="206.2">&nbsp;&nbsp;70,00</text>
+          <text x="80" y="257.8">&nbsp;&nbsp;50,00</text>
+        </g>
+        <text x="88" y="22" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">EURO PER QUOTA</text>
+
+        <!-- ---------- Verticale di «oggi» ---------- -->
+        <line x1="884" y1="34" x2="884" y2="254"
+              stroke="#6e5a36" stroke-width="1.2" stroke-dasharray="2 4"/>
+        <text x="880" y="22" text-anchor="end"
+              font-family="'IM Fell English SC', serif" font-size="10.5" letter-spacing="1.2"
+              fill="#6e5a36">OGGI &middot; 10.VIII.2026</text>
+
+        <!-- ---------- Riga del prezzo medio ponderato di carico (€ 66,0800) ---------- -->
+        <line x1="88" y1="212.4" x2="884" y2="212.4"
+              stroke="#9c7d34" stroke-width="2.2" stroke-dasharray="10 5"/>
+        <rect x="416" y="196.5" width="290" height="15" fill="#f7efda" opacity=".9"/>
+        <text x="561" y="207.5" text-anchor="middle"
+              font-family="'Courier Prime', monospace" font-size="10.5" letter-spacing=".4"
+              fill="#9c7d34">PREZZO MEDIO PONDERATO DI CARICO &nbsp;€ 66,0800</text>
+
+        <!-- ---------- Segmenti tratteggiati: fra due punti l'archivio è muto ---------- -->
+        <g stroke="#221c14" stroke-width="2.2" stroke-dasharray="7 6" stroke-linecap="round" fill="none">
+          <line x1="88"    y1="232.3" x2="324.3" y2="199.1"/>
+          <line x1="324.3" y1="199.1" x2="882.5" y2="55.0"/>
+          <line x1="882.5" y1="55.0"  x2="884"   y2="50.9"/>
+        </g>
+
+        <!-- ---------- Quota di misura: scarto fra l'ultimo punto e la riga d'ottone ---------- -->
+        <line x1="852" y1="50.9" x2="852" y2="212.4" stroke="#2f6b3a" stroke-width="1.4"
+              marker-start="url(#punta)" marker-end="url(#punta)"/>
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#2f6b3a" text-anchor="end">
+          <text x="845" y="140">scarto sul prezzo unitario</text>
+          <text x="845" y="154" font-size="12.5">€ 62,3800</text>
+        </g>
+
+        <!-- ---------- Punti · prezzi di carico (rombo in carminio) ---------- -->
+        <g fill="#8d231f" stroke="#221c14" stroke-width="1.4">
+          <path d="M88,225.3 L94.7,232.3 L88,239.3 L81.3,232.3 Z"/>
+          <path d="M324.3,192.1 L331,199.1 L324.3,206.1 L317.6,199.1 Z"/>
+        </g>
+
+        <!-- ---------- Punti · rilevazioni registrate (cerchio in inchiostro) ---------- -->
+        <g fill="#221c14" stroke="#f7efda" stroke-width="1.3">
+          <circle cx="882.5" cy="55.0" r="4.6"/>
+          <circle cx="884"   cy="50.9" r="4.6"/>
+        </g>
+
+        <!-- ---------- Etichette dei valori di carico ---------- -->
+        <g font-family="'Courier Prime', monospace" font-size="11" fill="#8d231f">
+          <rect x="96" y="239" width="78" height="13" fill="#f7efda" opacity=".92"/>
+          <text x="99" y="250">€ 58,4000</text>
+          <rect x="334" y="183" width="78" height="13" fill="#f7efda" opacity=".92"/>
+          <text x="337" y="194">€ 71,2000</text>
+        </g>
+
+        <!-- Le due rilevazioni cadono a tre giorni l'una dall'altra: su questa
+             scala i marcatori si toccano, e il richiamo li nomina uno per uno.
+             È precisamente l'attrito che le scale brevi risolvono. -->
+        <g>
+          <text x="748" y="26" text-anchor="end" font-family="'IM Fell English SC', serif"
+                font-size="10" letter-spacing="1.2" fill="#6e5a36">LE DUE RILEVAZIONI</text>
+          <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#221c14" text-anchor="end">
+            <text x="748" y="44">07.VIII.2026 &nbsp;€ 126,9000</text>
+            <text x="748" y="60">10.VIII.2026 &nbsp;€ 128,4600</text>
+          </g>
+          <line x1="754" y1="50" x2="877" y2="54" stroke="#221c14" stroke-width="1" opacity=".65"/>
+        </g>
+
+        <!-- ---------- Quote dei vuoti ---------- -->
+        <g stroke="#6e5a36" stroke-width="1.1" opacity=".85">
+          <line x1="88" y1="258" x2="88" y2="268"/>
+          <line x1="324.3" y1="258" x2="324.3" y2="268"/>
+          <line x1="882.5" y1="258" x2="882.5" y2="268"/>
+          <line x1="88" y1="263" x2="324.3" y2="263"/>
+          <line x1="324.3" y1="263" x2="882.5" y2="263"/>
+        </g>
+        <g font-family="'Courier Prime', monospace" font-size="10" fill="#6e5a36" text-anchor="middle">
+          <rect x="140" y="256" width="132" height="13" fill="#f7efda" opacity=".95"/>
+          <text x="206" y="266">530 giorni senza dati</text>
+          <rect x="530" y="256" width="146" height="13" fill="#f7efda" opacity=".95"/>
+          <text x="603" y="266">1.252 giorni senza dati</text>
+        </g>
+
+        <!-- ---------- Scala dei tempi ---------- -->
+        <g stroke="#221c14" stroke-width="1">
+          <line x1="296.7" y1="254" x2="296.7" y2="259"/>
+          <line x1="459.4" y1="254" x2="459.4" y2="259"/>
+          <line x1="622.7" y1="254" x2="622.7" y2="259"/>
+          <line x1="785.3" y1="254" x2="785.3" y2="259"/>
+        </g>
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="middle">
+          <text x="88" y="282" text-anchor="start">19.IX.2021</text>
+          <text x="296.7" y="282">2023</text>
+          <text x="459.4" y="282">2024</text>
+          <text x="622.7" y="282">2025</text>
+          <text x="785.3" y="282">2026</text>
+          <text x="884" y="282" text-anchor="end">oggi</text>
+        </g>
+        <text x="88" y="299" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">GIORNI CIVILI &middot; PRIMO CARICO REGISTRATO &rarr; OGGI</text>
+      </svg>
+
+      <p class="estremi-tracciato">
+        <span>Primo punto: <b>19.IX.2021</b> (carico)</span>
+        <span>4 punti in 1.785 giorni civili</span>
+        <span>Ultimo punto: <b>10.VIII.2026</b> (rilevazione)</span>
+      </p>
+    </div>
+
+    <!-- ---------- Che cosa fa ciascuna scala su questo titolo ---------- -->
+    <div class="legenda-tracciato">
+      <div class="intestazione-legenda">Le cinque scale &mdash; e che cosa comprendono su questo titolo</div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <line x1="1" y1="8" x2="35" y2="8" stroke="#6e5a36" stroke-width="1.2"/>
+          <line x1="29" y1="3" x2="29" y2="13" stroke="#221c14" stroke-width="2"/>
+          <line x1="35" y1="3" x2="35" y2="13" stroke="#221c14" stroke-width="2"/>
+        </svg>
+        <span>
+          <span class="et">Ultimo mese &middot; ultimo anno</span>
+          <span class="spiega">
+            finestre brevi che qui contengono le sole rilevazioni:
+            <span class="conto">2 punti, 7 e 10.VIII.2026.</span>
+            Sciolgono il grappolo del bordo destro, ma lasciano fuori i carichi.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <line x1="1" y1="8" x2="35" y2="8" stroke="#6e5a36" stroke-width="1.2"/>
+          <path d="M8,3 L13,8 L8,13 L3,8 Z" fill="#8d231f" stroke="#221c14" stroke-width="1"/>
+          <circle cx="33" cy="8" r="3.4" fill="#221c14" stroke="#f7efda" stroke-width="1"/>
+        </svg>
+        <span>
+          <span class="et">Ultimi 5 anni &middot; ultimi 10 anni</span>
+          <span class="spiega">
+            finestre lunghe: a 5 anni entrano <span class="conto">tutti e 4</span> i punti;
+            a 10 anni ne entrano gli stessi 4, e i primi cinque anni restano scoperti &mdash;
+            la tavola lo dichiara invece di fingere copertura piena.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <rect x="1" y="3" width="34" height="10" fill="none" stroke="#2c3a2c" stroke-width="1.6"/>
+          <line x1="1" y1="8" x2="35" y2="8" stroke="#221c14" stroke-width="1.6" stroke-dasharray="5 4"/>
+        </svg>
+        <span>
+          <span class="et">Tutto lo storico &mdash; predefinita</span>
+          <span class="spiega">
+            dal primo carico registrato a oggi: <span class="conto">19.IX.2021 &rarr; 10.VIII.2026</span>,
+            1.785 giorni. &Egrave; la finestra che l&rsquo;archivio possiede per intero, e per questo
+            &egrave; quella con cui la scheda si apre.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <line x1="1" y1="8" x2="35" y2="8" stroke="#221c14" stroke-width="2.4" stroke-dasharray="6 5"/>
+        </svg>
+        <span>
+          <span class="et">Ci&ograve; che nessuna scala cambia</span>
+          <span class="spiega">
+            i punti restano i quattro d&rsquo;archivio, i segmenti restano tratteggiati e i vuoti
+            restano vuoti. Cambiare scala &egrave; <em>ritagliare</em>, mai <em>infittire</em>.
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="avviso-rado">
+      <span>
+        La scelta della scala non interroga la fonte e non aggiunge punti: taglia una finestra
+        dentro i <b>4</b> punti gi&agrave; in archivio. Nessun valore viene stimato, interpolato o
+        portato avanti dall&rsquo;ultimo prezzo noto per riempire una finestra pi&ugrave; larga
+        (ADR&#8209;003).
+      </span>
+    </div>
+
+    <p class="nota-sezione">
+      All&rsquo;apertura della scheda la scala &egrave; <b>tutto lo storico</b>: dal primo carico
+      registrato &mdash; <b>19.IX.2021</b> &mdash; fino a <b>oggi</b>. &Egrave; l&rsquo;unica finestra di cui
+      PortfolIA possa dire di conoscere gli estremi, perch&eacute; li ha scritti lui. Le altre quattro
+      scale sono richieste sull&rsquo;asse dei tempi, non sull&rsquo;archivio: se la finestra chiesta
+      &egrave; priva di dati, il grafico lascia il posto a una dichiarazione; se &egrave; pi&ugrave; lunga
+      della storia disponibile, la parte scoperta viene campita e misurata.
+    </p>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="finestra-vuota.html">Finestra priva di dati &rarr;</a>
+      <a class="bottone secondario" href="copertura-parziale.html">Copertura parziale a 10 anni &rarr;</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">Cambiare scala &egrave; ritagliare la finestra, non infittire l&rsquo;archivio</span>
+    <span><span class="timbro verde">Scala predefinita</span> PortfolIA &middot; US-037</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-037 &middot; <a href="index.html">Tutto lo storico (predefinita)</a> &middot;
+  <a href="finestra-vuota.html">Finestra priva di dati</a> &middot;
+  <a href="copertura-parziale.html">Copertura parziale (10 anni)</a>
+</p>
+
+</body>
+</html>
