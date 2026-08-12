@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Casi limite della vista valore (US-039)</title>
+  <meta name="description" content="Mockup US-039: i due casi limite della vista «valore della posizione» — rilevazioni anteriori al primo carico, escluse invece che portate a zero, e titolo senza alcun carico, che dichiara «dato non disponibile» invece di tracciare una retta piatta.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; vista valore della posizione</p>
+      <h1>I due <span class="corsivo">casi limite</span></h1>
+      <p class="sottotesto">Quando la serie del valore non pu&ograve; esistere &mdash; e come lo dichiara</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Caso <b>a</b> &nbsp;rilevazioni anteriori al 1&ordm; carico</div>
+      <div>Caso <b>b</b> &nbsp;titolo senza alcun carico</div>
+      <div>Regola comune &nbsp;<b>escludere, non azzerare</b></div>
+      <div>ADR&#8209;003 &nbsp;nessun dato inventato</div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="#" class="disabilitata">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="index.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      La regola che governa i due casi
+      <span class="nota">FR&#8209;017 &middot; criterio 3 &middot; una quantit&agrave; che non esiste non &egrave; una quantit&agrave; pari a zero</span>
+    </div>
+
+    <p class="nota-sezione">
+      Nella vista del valore ogni punto nasce da una moltiplicazione: <b>prezzo &times;
+      quantit&agrave; detenuta a quella data</b>. Quando il secondo fattore non esiste &mdash;
+      perch&eacute; a quella data non possedevi ancora nulla, o perch&eacute; non possiedi nulla
+      affatto &mdash; il prodotto non vale <b>zero</b>: non &egrave; definito. Uno zero
+      affermerebbe che la posizione valeva zero euro, cio&egrave; che c&rsquo;era e non valeva
+      niente; il vero &egrave; che non c&rsquo;era. PortfolIA perci&ograve; <b>esclude</b> quei
+      punti dalla serie, e lo dichiara &mdash; invece di disegnare una retta piatta appoggiata
+      all&rsquo;asse, che sarebbe un dato inventato quanto un prezzo interpolato (ADR&#8209;003).
+    </p>
+
+    <!-- =====================================================================
+         CASO (a) — RILEVAZIONI ANTERIORI AL PRIMO CARICO
+         ===================================================================== -->
+    <div class="caso-limite">
+      <p class="et-caso">
+        <span class="lettera">a</span>
+        Rilevazioni anteriori al primo carico
+      </p>
+      <p class="premessa">
+        <b>Vanguard FTSE All&#8209;World</b> &middot; ISIN IE00BK5BQT80 &middot; un solo carico,
+        <b>12.V.2026</b>: <b>60</b> quote a €&nbsp;118,4000. L&rsquo;archivio possiede per&ograve;
+        <b>5</b> rilevazioni, e <b>3</b> sono <em>anteriori</em> al carico &mdash; il 3.II, il 9.III
+        e il 20.IV.2026. Non &egrave; un&rsquo;anomalia: PortfolIA registra il prezzo di un
+        <em>ISIN</em>, non di un tuo acquisto, e pu&ograve; quindi averlo gi&agrave; osservato nei
+        mesi in cui stavi solo guardando quel titolo. La vista del prezzo unitario le traccia tutte
+        e cinque; la vista del valore ne pu&ograve; usare soltanto <b>2</b>.
+      </p>
+
+      <div class="confronto-viste">
+
+        <!-- ---------- Riquadro 1 · vista prezzo unitario ---------- -->
+        <div class="riquadro-vista">
+          <div class="testa-riquadro">
+            <span>Vista &middot; prezzo unitario</span>
+            <span class="conta">tutto lo storico &middot; 188 giorni &middot; 5 punti su 5</span>
+          </div>
+          <div class="tela">
+            <svg viewBox="0 0 440 252" role="img"
+                 aria-label="Prezzo unitario del titolo dal 3 febbraio al 10 agosto 2026: tutte e cinque le rilevazioni sono tracciate, comprese le tre anteriori al carico del 12 maggio, perché il prezzo di una quota esiste anche prima che tu la compri.">
+
+              <!-- Rigatura -->
+              <g stroke="#8a9bb0" stroke-width="1" opacity=".5">
+                <line x1="52" y1="64"  x2="412" y2="64"/>
+                <line x1="52" y1="98"  x2="412" y2="98"/>
+                <line x1="52" y1="132" x2="412" y2="132"/>
+                <line x1="52" y1="166" x2="412" y2="166"/>
+              </g>
+
+              <!-- Banda delle tre rilevazioni anteriori: qui sono LEGITTIME -->
+              <rect x="52" y="30" width="187.7" height="170" fill="#8a9bb0" opacity=".13"/>
+              <rect x="52" y="30" width="187.7" height="170" fill="none"
+                    stroke="#1d2b40" stroke-width="1" stroke-dasharray="4 4" opacity=".5"/>
+              <rect x="76" y="34" width="140" height="14" fill="#f7efda" opacity=".92"/>
+              <text x="146" y="44" text-anchor="middle" font-family="'IM Fell English SC', serif"
+                    font-size="8" letter-spacing=".8" fill="#1d2b40">3 ANTERIORI AL CARICO</text>
+
+              <!-- Assi -->
+              <line x1="52" y1="30" x2="52" y2="200" stroke="#221c14" stroke-width="1.3"/>
+              <line x1="52" y1="200" x2="412" y2="200" stroke="#221c14" stroke-width="1.3"/>
+              <g font-family="'Courier Prime', monospace" font-size="9" fill="#6e5a36" text-anchor="end">
+                <text x="46" y="67.9">125</text>
+                <text x="46" y="101.9">120</text>
+                <text x="46" y="135.9">115</text>
+                <text x="46" y="169.9">110</text>
+                <text x="46" y="203.4">105</text>
+              </g>
+              <text x="52" y="20" font-family="'IM Fell English SC', serif" font-size="8.5"
+                    letter-spacing="1.1" fill="#6e5a36">EURO PER QUOTA</text>
+
+              <!-- Data del carico -->
+              <line x1="239.7" y1="30" x2="239.7" y2="200"
+                    stroke="#8d231f" stroke-width="1.2" stroke-dasharray="3 4" opacity=".75"/>
+              <text x="243" y="26" font-family="'IM Fell English SC', serif" font-size="8.5"
+                    letter-spacing="1" fill="#8d231f">1&ordm; CARICO &middot; 12.V.2026</text>
+
+              <!-- Tracciato: cinque rilevazioni + il prezzo di carico, tutto tratteggiato -->
+              <g stroke="#221c14" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round" fill="none">
+                <line x1="52"    y1="171.4" x2="117.1" y2="147.3"/>
+                <line x1="117.1" y1="147.3" x2="197.5" y2="130.0"/>
+                <line x1="197.5" y1="130.0" x2="239.7" y2="108.9"/>
+                <line x1="239.7" y1="108.9" x2="341.1" y2="85.1"/>
+                <line x1="341.1" y1="85.1"  x2="412"   y2="66.7"/>
+              </g>
+              <g fill="#221c14" stroke="#f7efda" stroke-width="1.2">
+                <circle cx="52"    cy="171.4" r="4"/>
+                <circle cx="117.1" cy="147.3" r="4"/>
+                <circle cx="197.5" cy="130.0" r="4"/>
+                <circle cx="341.1" cy="85.1"  r="4"/>
+                <circle cx="412"   cy="66.7"  r="4"/>
+              </g>
+              <path d="M239.7,102.9 L245.7,108.9 L239.7,114.9 L233.7,108.9 Z"
+                    fill="#8d231f" stroke="#221c14" stroke-width="1.2"/>
+
+              <!-- Scala dei tempi -->
+              <g font-family="'Courier Prime', monospace" font-size="8.5" fill="#6e5a36">
+                <text x="52" y="212">3.II.2026</text>
+                <text x="239.7" y="212" text-anchor="middle">12.V</text>
+                <text x="412" y="212" text-anchor="end">10.VIII</text>
+              </g>
+
+              <!-- Striscia delle rilevazioni d'archivio: tutte adoperate -->
+              <line x1="52" y1="226" x2="412" y2="226" stroke="#6e5a36" stroke-width="1" opacity=".5"/>
+              <g fill="#221c14" stroke="#f7efda" stroke-width="1">
+                <circle cx="52" cy="226" r="3.4"/>
+                <circle cx="117.1" cy="226" r="3.4"/>
+                <circle cx="197.5" cy="226" r="3.4"/>
+                <circle cx="341.1" cy="226" r="3.4"/>
+                <circle cx="412" cy="226" r="3.4"/>
+              </g>
+              <path d="M239.7,221 L244.7,226 L239.7,231 L234.7,226 Z" fill="#8d231f"/>
+              <text x="52" y="245" font-family="'IM Fell English SC', serif" font-size="8.5"
+                    letter-spacing="1" fill="#6e5a36">5 RILEVAZIONI IN ARCHIVIO &mdash; 5 TRACCIATE</text>
+            </svg>
+          </div>
+          <p class="chiosa-riquadro">
+            Il prezzo di una quota esiste anche prima che tu la compri: le tre rilevazioni
+            anteriori sono dati veri e restano al loro posto. Il carico del <b>12.V.2026</b> vi
+            aggiunge un punto (<b>€&nbsp;118,4000</b>) e nulla pi&ugrave;.
+          </p>
+        </div>
+
+        <!-- ---------- Riquadro 2 · vista valore della posizione ---------- -->
+        <div class="riquadro-vista vista-valore">
+          <div class="testa-riquadro">
+            <span>Vista &middot; valore della posizione</span>
+            <span class="conta">stessa scala &middot; 188 giorni &middot; 2 punti su 5</span>
+          </div>
+          <div class="tela">
+            <svg viewBox="0 0 440 252" role="img"
+                 aria-label="Valore della posizione dello stesso titolo, sulla stessa finestra. Prima del carico del 12 maggio 2026 la serie non ha punti: le tre rilevazioni anteriori sono escluse, non portate a zero, perché a quelle date non possedevi nulla. La curva comincia al carico con 7.104 euro e conta due soli punti successivi, 7.314 e 7.476 euro.">
+
+                <defs>
+                  <pattern id="senzaPosizioneMini" width="9" height="9" patternUnits="userSpaceOnUse"
+                           patternTransform="rotate(45)">
+                    <line x1="0" y1="0" x2="0" y2="9" stroke="#9e2b25" stroke-width="2.2" opacity=".18"/>
+                  </pattern>
+                </defs>
+
+              <!-- Rigatura -->
+              <g stroke="#8a9bb0" stroke-width="1" opacity=".5">
+                <line x1="52" y1="72.5"  x2="412" y2="72.5"/>
+                <line x1="52" y1="115"   x2="412" y2="115"/>
+                <line x1="52" y1="157.5" x2="412" y2="157.5"/>
+              </g>
+
+              <!-- La zona esclusa: campitura, non retta a zero -->
+              <rect x="52" y="30" width="187.7" height="170" fill="url(#senzaPosizioneMini)"/>
+              <rect x="52" y="30" width="187.7" height="170" fill="none"
+                    stroke="#9e2b25" stroke-width="1.2" stroke-dasharray="5 5" opacity=".8"/>
+              <rect x="60" y="98" width="172" height="34" fill="#f7efda" opacity=".93"/>
+              <text x="146" y="111" text-anchor="middle" font-family="'IM Fell English SC', serif"
+                    font-size="9" letter-spacing="1.1" fill="#9e2b25">NESSUNA POSIZIONE</text>
+              <text x="146" y="125" text-anchor="middle" font-family="'Courier Prime', monospace"
+                    font-size="8.5" fill="#6e5a36">3 punti esclusi, non azzerati</text>
+
+              <!-- Assi -->
+              <line x1="52" y1="30" x2="52" y2="200" stroke="#221c14" stroke-width="1.3"/>
+              <line x1="52" y1="200" x2="412" y2="200" stroke="#221c14" stroke-width="1.3"/>
+              <g font-family="'Courier Prime', monospace" font-size="9" fill="#6e5a36" text-anchor="end">
+                <text x="46" y="33.4">8.000</text>
+                <text x="46" y="75.9">6.000</text>
+                <text x="46" y="118.4">4.000</text>
+                <text x="46" y="160.9">2.000</text>
+                <text x="46" y="203.4">0</text>
+              </g>
+              <text x="52" y="20" font-family="'IM Fell English SC', serif" font-size="8.5"
+                    letter-spacing="1.1" fill="#6e5a36">CONTROVALORE &middot; EURO</text>
+
+              <!-- L'asse a zero resta VUOTO: è il punto della dimostrazione -->
+              <text x="60" y="195" font-family="'Courier Prime', monospace" font-size="8"
+                    fill="#9e2b25">nessuna curva appoggiata all&rsquo;asse</text>
+
+              <!-- Data del carico: qui la serie COMINCIA -->
+              <line x1="239.7" y1="30" x2="239.7" y2="200"
+                    stroke="#8d231f" stroke-width="1.2" stroke-dasharray="3 4" opacity=".75"/>
+              <text x="243" y="26" font-family="'IM Fell English SC', serif" font-size="8.5"
+                    letter-spacing="1" fill="#8d231f">LA SERIE COMINCIA QUI</text>
+
+              <!-- Tracciato: due soli segmenti, dal carico in poi -->
+              <g stroke="#221c14" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round" fill="none">
+                <line x1="239.7" y1="49.0" x2="341.1" y2="44.6"/>
+                <line x1="341.1" y1="44.6" x2="412"   y2="41.1"/>
+              </g>
+              <g fill="#221c14" stroke="#f7efda" stroke-width="1.2">
+                <circle cx="341.1" cy="44.6" r="4"/>
+                <circle cx="412"   cy="41.1" r="4"/>
+              </g>
+              <path d="M239.7,43.0 L245.7,49.0 L239.7,55.0 L233.7,49.0 Z"
+                    fill="#8d231f" stroke="#221c14" stroke-width="1.2"/>
+              <rect x="250" y="56" width="150" height="12" fill="#f7efda" opacity=".92"/>
+              <text x="253" y="65" font-family="'Courier Prime', monospace" font-size="8.5"
+                    fill="#221c14">€ 7.104,00 = 60 &times; 118,40</text>
+
+              <!-- Scala dei tempi -->
+              <g font-family="'Courier Prime', monospace" font-size="8.5" fill="#6e5a36">
+                <text x="52" y="212">3.II.2026</text>
+                <text x="239.7" y="212" text-anchor="middle">12.V</text>
+                <text x="412" y="212" text-anchor="end">10.VIII</text>
+              </g>
+
+              <!-- Striscia delle rilevazioni: tre barrate, due adoperate -->
+              <line x1="52" y1="226" x2="412" y2="226" stroke="#6e5a36" stroke-width="1" opacity=".5"/>
+              <g fill="#f7efda" stroke="#9e2b25" stroke-width="1.4">
+                <circle cx="52" cy="226" r="3.6"/>
+                <circle cx="117.1" cy="226" r="3.6"/>
+                <circle cx="197.5" cy="226" r="3.6"/>
+              </g>
+              <g stroke="#b8362c" stroke-width="1.4">
+                <line x1="49.4" y1="223.4" x2="54.6" y2="228.6"/>
+                <line x1="54.6" y1="223.4" x2="49.4" y2="228.6"/>
+                <line x1="114.5" y1="223.4" x2="119.7" y2="228.6"/>
+                <line x1="119.7" y1="223.4" x2="114.5" y2="228.6"/>
+                <line x1="194.9" y1="223.4" x2="200.1" y2="228.6"/>
+                <line x1="200.1" y1="223.4" x2="194.9" y2="228.6"/>
+              </g>
+              <g fill="#221c14" stroke="#f7efda" stroke-width="1">
+                <circle cx="341.1" cy="226" r="3.4"/>
+                <circle cx="412" cy="226" r="3.4"/>
+              </g>
+              <path d="M239.7,221 L244.7,226 L239.7,231 L234.7,226 Z" fill="#8d231f"/>
+              <text x="52" y="245" font-family="'IM Fell English SC', serif" font-size="8.5"
+                    letter-spacing="1" fill="#9e2b25">3 RILEVAZIONI ESCLUSE &mdash; 2 TRACCIATE</text>
+            </svg>
+          </div>
+          <p class="chiosa-riquadro">
+            La serie del valore comincia il <b>12.V.2026</b> a <b>€&nbsp;7.104,00</b> e conta
+            <b>2</b> punti successivi: <b>€&nbsp;7.314,00</b> e <b>€&nbsp;7.476,00</b>. Il tratto
+            di sinistra non &egrave; una curva a zero: &egrave; assenza di serie, campita e
+            dichiarata.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="cosi-no">
+        <span class="glifo-no" aria-hidden="true">&times;</span>
+        <p class="testo-no">
+          <span class="et-no">Perch&eacute; non uno zero, e perch&eacute; non un rifiuto</span>
+          Portare a <span class="barrato">€ 0,00</span> le tre rilevazioni anteriori sarebbe la
+          soluzione pi&ugrave; comoda e la pi&ugrave; ingannevole: la curva partirebbe dal fondo e
+          risalirebbe, e i <b>98</b> giorni fra il 3.II e il 12.V somiglierebbero a un guadagno del
+          <b>100&thinsp;%</b> ottenuto in tre mesi &mdash; mentre in quei tre mesi non hai
+          n&eacute; guadagnato n&eacute; perso nulla, per la semplice ragione che non c&rsquo;eri.
+          All&rsquo;opposto, negare l&rsquo;intera vista perch&eacute; l&rsquo;archivio contiene
+          punti inutilizzabili sarebbe eccessivo: la serie del valore <em>esiste</em>, comincia
+          dopo, e la sua finestra utile viene dichiarata sul cartellino della cornice.
+        </p>
+      </div>
+
+      <p class="nota-sezione">
+        La scala temporale non si accorcia per compiacere la serie: la finestra chiesta resta
+        quella scelta &mdash; qui <b>tutto lo storico</b>, <b>188</b> giorni dal 3.II.2026 &mdash;
+        e i <b>98</b> giorni iniziali risultano scoperti nella vista valore e coperti in quella del
+        prezzo. Due viste della stessa finestra possono avere due coperture diverse: &egrave; una
+        conseguenza dei dati, non un difetto del selettore (US&#8209;037).
+      </p>
+    </div>
+
+    <!-- =====================================================================
+         CASO (b) — TITOLO SENZA ALCUN CARICO
+         ===================================================================== -->
+    <div class="caso-limite">
+      <p class="et-caso">
+        <span class="lettera">b</span>
+        Titolo senza alcun carico
+      </p>
+      <p class="premessa">
+        <b>Amundi MSCI Emerging Markets</b> &middot; ISIN LU1681045370 &middot; titolo cercato per
+        ISIN e gi&agrave; presente in archivio con <b>4</b> rilevazioni, ma <b>nessun carico</b>
+        iscritto a questo conto. La scheda esiste, l&rsquo;andamento del prezzo esiste; la
+        <em>posizione</em> no. La vista del prezzo unitario funziona normalmente; quella del valore
+        non ha nulla da moltiplicare.
+      </p>
+
+      <!-- Il commutatore con la vista scelta e priva di serie: il bottone stesso
+           porta il carminio, come fa quello della scala in US-037 quando la
+           finestra è vuota. Lo stato non si nasconde dietro il grafico. -->
+      <div class="barra-vista" role="group" aria-label="Che cosa mostra la curva">
+        <span class="et-vista">Che cosa mostra la curva</span>
+        <div class="commutatore-vista">
+          <button type="button">
+            Prezzo unitario<span class="postilla-predefinita">predefinita</span>
+          </button>
+          <button type="button" class="attiva senza-dati" aria-pressed="true">Valore della posizione</button>
+        </div>
+        <span class="ordinata-attiva" style="color:var(--rosso-margine)">Ordinata: <b>nessuna serie da rappresentare</b></span>
+      </div>
+
+      <p class="sigillo-indipendenza">
+        <span class="graffa" aria-hidden="true">&#8214;</span>
+        <span>
+          Il comando resta <b>attivo</b> e la vista resta <b>selezionabile</b>: non viene
+          disabilitato, perch&eacute; un bottone spento non spiega perch&eacute; &egrave; spento.
+          La scala qui sotto conserva la propria scelta ed &egrave; ancora manovrabile &mdash; ma
+          nessuna finestra pu&ograve; produrre una serie che non esiste.
+        </span>
+      </p>
+
+      <div class="barra-scala" role="group" aria-label="Scala temporale del grafico">
+        <span class="et-scala">Scala temporale</span>
+        <div class="scala-temporale">
+          <button type="button">Ultimo mese</button>
+          <button type="button">Ultimo anno</button>
+          <button type="button">Ultimi 5 anni</button>
+          <button type="button">Ultimi 10 anni</button>
+          <button type="button" class="attiva" aria-pressed="true">
+            Tutto lo storico<span class="postilla-predefinita">predefinita</span>
+          </button>
+        </div>
+        <span class="finestra-attiva assente">Finestra: <b>14.IV.2026 &rarr; 10.VIII.2026</b> &middot; 118 giorni &middot; 0 punti di valore</span>
+      </div>
+
+      <div class="dichiarazione-vuota">
+        <span class="timbro-grande">Dato non disponibile</span>
+
+        <p class="riga-intervallo">
+          <span class="et-int">Quantit&agrave; detenuta in ogni giorno della finestra</span>
+          nessun carico registrato &nbsp;&middot;&nbsp; quantit&agrave; <b>inesistente</b>, non pari a zero
+        </p>
+
+        <p class="spiegazione">
+          Il valore della posizione &egrave; <b>prezzo &times; quantit&agrave;</b>. Di questo
+          titolo l&rsquo;archivio conosce <b>4</b> prezzi, ma non conosce nessuna
+          quantit&agrave;: non hai mai caricato una quota. Non c&rsquo;&egrave; dunque
+          <em>niente</em> da tracciare &mdash; e in particolare non c&rsquo;&egrave; una posizione
+          che valga zero euro.
+        </p>
+
+        <div class="dove-esiste">
+          <span class="et">Dove il dato esiste</span>
+          <span>
+            i <b>4</b> prezzi sono al loro posto, dal <b>14.IV.2026</b> al <b>10.VIII.2026</b>
+            (ultimo: € 41,7300): la <b>vista del prezzo unitario</b> li traccia tutti.
+          </span>
+        </div>
+
+        <!-- La lettura da NON fare, disegnata e barrata -->
+<svg class="rigo-tempo" viewBox="0 0 600 152" role="img"
+             aria-label="Rappresentazione barrata della soluzione sbagliata: una retta piatta appoggiata allo zero per tutti i 118 giorni della finestra, che affermerebbe falsamente che la posizione esiste e vale zero euro.">
+          <text x="20" y="16" font-family="'IM Fell English SC', serif" font-size="10"
+                letter-spacing="1.4" fill="#b8362c">COS&Igrave; NO &mdash; LA RETTA PIATTA A ZERO CHE PORTFOLIA NON DISEGNA</text>
+
+          <!-- Assi di un grafico verosimile -->
+          <line x1="70" y1="44" x2="70" y2="112" stroke="#221c14" stroke-width="1.3"/>
+          <line x1="70" y1="112" x2="560" y2="112" stroke="#221c14" stroke-width="1.3"/>
+          <g font-family="'Courier Prime', monospace" font-size="9" fill="#6e5a36" text-anchor="end">
+            <text x="64" y="48">100</text>
+            <text x="64" y="81">&nbsp;50</text>
+            <text x="64" y="115">&nbsp;&nbsp;0</text>
+          </g>
+          <text x="70" y="36" font-family="'IM Fell English SC', serif" font-size="8.5"
+                letter-spacing="1" fill="#6e5a36">CONTROVALORE &middot; EURO</text>
+
+          <!-- La retta sbagliata, appoggiata allo zero -->
+          <line x1="70" y1="112" x2="560" y2="112" stroke="#b8362c" stroke-width="3.6" opacity=".8"/>
+          <g fill="#b8362c" opacity=".8">
+            <circle cx="118" cy="112" r="4"/>
+            <circle cx="252" cy="112" r="4"/>
+            <circle cx="410" cy="112" r="4"/>
+            <circle cx="560" cy="112" r="4"/>
+          </g>
+          <rect x="172" y="118" width="290" height="13" fill="#f7efda" opacity=".93"/>
+          <text x="317" y="128" text-anchor="middle" font-family="'Courier Prime', monospace"
+                font-size="9.5" fill="#b8362c">&laquo;€ 0,00 per 118 giorni&raquo; &mdash; un&rsquo;affermazione falsa</text>
+
+          <!-- Il barramento -->
+          <g stroke="#b8362c" stroke-width="3" opacity=".55">
+            <line x1="88" y1="44" x2="548" y2="118"/>
+            <line x1="88" y1="118" x2="548" y2="44"/>
+          </g>
+
+          <text x="70" y="146" font-family="'IM Fell English', serif" font-style="italic"
+                font-size="11" fill="#6e5a36">Una posizione che non esiste non ha un valore basso: non ha un valore.</text>
+        </svg>
+
+        <p class="invito-scala">
+          Torna alla vista <span class="tasto-citato">Prezzo unitario</span> per vedere
+          l&rsquo;andamento del titolo, oppure registra un carico dalla scheda
+          <em>Carico titoli</em>: la vista del valore comparir&agrave; da quel giorno in avanti,
+          e il primo punto sar&agrave; il capitale versato.
+        </p>
+      </div>
+
+      <div class="avviso-rado senza-trascinamento">
+        <span>
+          Nessuna scala rimedia a questo caso, e il commutatore non lo nasconde: cambiare finestra
+          ritaglia i punti esistenti, non ne crea. La differenza fra questo stato e la
+          &laquo;finestra priva di dati&raquo; di US&#8209;037 &egrave; sostanziale &mdash; l&agrave;
+          i dati esistono ma cadono fuori dall&rsquo;intervallo chiesto e basta allargarlo;
+          qui la serie non esiste per <b>nessun</b> intervallo, e il rimedio non &egrave; una scala
+          ma un carico.
+        </span>
+      </div>
+    </div>
+
+    <!-- ---------- Le due regole, affiancate ---------- -->
+    <div class="legenda-tracciato" style="margin-top:22px">
+      <div class="intestazione-legenda">Le due regole che i casi limite mettono alla prova</div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <circle cx="18" cy="8" r="5.4" fill="#f7efda" stroke="#9e2b25" stroke-width="1.6"/>
+          <g stroke="#b8362c" stroke-width="1.6">
+            <line x1="14.2" y1="4.2" x2="21.8" y2="11.8"/>
+            <line x1="21.8" y1="4.2" x2="14.2" y2="11.8"/>
+          </g>
+        </svg>
+        <span>
+          <span class="et">Punto escluso &mdash; cerchio vuoto barrato</span>
+          <span class="spiega">
+            una rilevazione d&rsquo;archivio che la serie valore <em>non</em> pu&ograve; usare,
+            perch&eacute; a quella data la quantit&agrave; detenuta era inesistente. Compare nella
+            striscia sotto l&rsquo;asse, mai sul tracciato: entrare nel tracciato a
+            <span class="conto">€ 0,00</span> sarebbe un dato inventato.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <line x1="1" y1="14" x2="35" y2="14" stroke="#b8362c" stroke-width="2.6" opacity=".75"/>
+          <g stroke="#b8362c" stroke-width="1.8" opacity=".6">
+            <line x1="4" y1="2" x2="32" y2="15"/>
+            <line x1="4" y1="15" x2="32" y2="2"/>
+          </g>
+        </svg>
+        <span>
+          <span class="et">Retta piatta a zero &mdash; barrata</span>
+          <span class="spiega">
+            la scorciatoia che il disegno rifiuta in entrambi i casi. Uno zero &egrave; un valore, e
+            afferma qualcosa; l&rsquo;assenza di serie non afferma niente. Per questo il caso
+            <span class="conto">b</span> non produce un grafico vuoto ma un timbro
+            <span class="conto">dato non disponibile</span>, con la ragione scritta accanto.
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="index.html">&larr; Vista valore della posizione</a>
+      <a class="bottone secondario" href="vista-prezzo.html">Vista prezzo unitario &rarr;</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">Una quantit&agrave; che non esiste non &egrave; una quantit&agrave; pari a zero</span>
+    <span><span class="timbro mancante">Casi limite</span> PortfolIA &middot; US-039</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-039 &middot; <a href="index.html">Vista valore della posizione</a> &middot;
+  <a href="vista-prezzo.html">Vista prezzo unitario (predefinita)</a> &middot;
+  <a href="casi-limite.html">Casi limite</a>
+</p>
+
+</body>
+</html>

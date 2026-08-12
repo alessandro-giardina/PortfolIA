@@ -6,7 +6,7 @@ epic:
   title: P&L e grafico del singolo titolo
 priority: MEDIUM
 points: 3
-status: TODO
+status: REVIEW
 body: |
   #### US-039: Commutare il grafico fra prezzo unitario e valore della posizione
 
@@ -30,3 +30,9 @@ body: |
 history:
   - status: TODO
     at: "2026-08-10T20:06:17Z"
+  - status: PLANNED
+    at: "2026-08-11T12:49:33Z"
+  - status: IN PROGRESS
+    at: "2026-08-11T12:51:12Z"
+  - status: REVIEW
+    at: "2026-08-12T10:36:28Z"
