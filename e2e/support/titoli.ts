@@ -1234,6 +1234,64 @@ export const ISIN_STUB_US_008: ChiaveRiservata = {
   file: 'US-008__trasparenza-dati.spec.ts',
   lettoDa: ['fallback-morningstar.spec.ts'],
 };
+/**
+ * Riservato a `US-042__registra-vendita-lifo.spec.ts` (scenario dimostrativo).
+ *
+ * Regge il caso della spec: **due carichi a prezzi e quantità diversi**, perché
+ * l'attribuzione LIFO è dimostrabile solo così. A prezzi uguali LIFO e FIFO danno
+ * lo stesso prezzo medio del residuo, e lo scenario passerebbe su
+ * un'implementazione sbagliata; a quantità uguali la media ponderata e quella
+ * aritmetica coincidono, e il ricalcolo del residuo non si distinguerebbe.
+ *
+ * Il seme porta `fetched_at` di adesso (il default di `seminaTitolo`) ed è la
+ * guardia che impedisce un recupero reale dalla fonte: la pagina di dettaglio
+ * legge il prezzo con una LEFT JOIN, e senza il seme un recupero a freddo
+ * costerebbe 8-12 secondi non deterministici.
+ */
+export const TITOLO_US_042: TitoloSeminabile = {
+  isin: 'LU1392261811',
+  file: 'US-042__registra-vendita-lifo.spec.ts',
+  campi: {
+    name: 'Vanguard Ftse All World Ucits Etf Acc',
+    price: 124.5,
+    ticker: 'VWCE',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,22%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-042__vendita-rifiuti.spec.ts`.
+ *
+ * Non può condividere la chiave con il file dimostrativo, e la ragione è la
+ * regola stessa: i due file girano su worker distinti, e seminare-e-ripristinare
+ * è uno stack di undo — l'ultimo a ripristinare tornerebbe allo stato intermedio
+ * lasciato dall'altro. Qui inoltre le premesse sono *opposte* a quelle dello
+ * scenario dimostrativo: là la vendita riesce, qui i tre rifiuti pretendono un
+ * registro in cui nessuna vendita è ancora andata a buon fine.
+ */
+export const TITOLO_US_042_RIFIUTI: TitoloSeminabile = {
+  isin: 'IE00BMVB5M96',
+  file: 'US-042__vendita-rifiuti.spec.ts',
+  campi: {
+    name: 'Vanguard Ftse All World Ucits Etf Dist',
+    price: 108.2,
+    ticker: 'VWRL',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,22%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+    data_source: 'borsaitaliana',
+  },
+};
+
 
 /**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
@@ -1268,4 +1326,8 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   // osservazioni, ma il backfill d'avvio ne creerebbe una dalla riga di cache
   // lasciata da un run precedente, e la bonifica deve poterla togliere.
   TITOLO_US_039_SECONDO.isin,
+  // I due titoli di US-042: come sopra, nessuno scenario vi semina osservazioni,
+  // ma il seme in cache basta al backfill d'avvio per crearne una.
+  TITOLO_US_042.isin,
+  TITOLO_US_042_RIFIUTI.isin,
 ];

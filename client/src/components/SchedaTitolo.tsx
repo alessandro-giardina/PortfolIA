@@ -327,8 +327,14 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
 
         <div className="orizzonte">
           <span className="et">Valore medio di carico</span>
-          <span className="valore" data-testid="dettaglio-prezzo-medio">
-            € {prezzo(detail.avgLoadPrice)}
+          {/* A quantità residua nulla il medio non esiste: si dichiara assente e
+              non si scrive «0,0000», che affermerebbe di aver comprato a zero
+              (ADR-003, US-042). */}
+          <span
+            className={detail.avgLoadPrice !== null ? 'valore' : 'valore dato-mancante'}
+            data-testid="dettaglio-prezzo-medio"
+          >
+            {detail.avgLoadPrice !== null ? `€ ${prezzo(detail.avgLoadPrice)}` : '—'}
           </span>
           <span className="perc">carico € {importo(detail.totalLoadValue)}</span>
         </div>
@@ -546,7 +552,9 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
             <tr>
               <td>Totale &middot; prezzo medio</td>
               <td className="cifra">{detail.totalQuantity.toLocaleString('it-IT')}</td>
-              <td className="cifra euro">{prezzo(detail.avgLoadPrice)}</td>
+              <td className={detail.avgLoadPrice !== null ? 'cifra euro' : 'cifra dato-mancante'}>
+                {detail.avgLoadPrice !== null ? prezzo(detail.avgLoadPrice) : '—'}
+              </td>
               <td className="cifra euro">{importo(detail.totalLoadValue)}</td>
             </tr>
           </tfoot>

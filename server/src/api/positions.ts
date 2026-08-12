@@ -1,9 +1,9 @@
 import type { FastifyInstance } from 'fastify';
-import { eq, desc, sql, and } from 'drizzle-orm';
+import { eq, desc, and, inArray } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { portfolios, positions, priceObservations, securities } from '../db/schema.js';
-import type { Position, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, PriceObservation } from '@portfolia/shared';
-import { calcolaPnlDaCarico, isValidIsin, normalizeIsin, normalizzaDataSource } from '@portfolia/shared';
+import { portfolios, positions, priceObservations, sales, securities } from '../db/schema.js';
+import type { Position, PositionLoad, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, PriceObservation, CaricoLotto, VenditaLotto, RegistroInput } from '@portfolia/shared';
+import { isValidIsin, normalizeIsin, normalizzaDataSource, residuoPerIsin, rigiocaRegistro } from '@portfolia/shared';
 import { classifyPriceFreshness } from '../domain/marketHours.js';
 
 /**
@@ -31,6 +31,149 @@ function toPosition(row: typeof positions.$inferSelect): Position {
 
 /** RegExp formato data ISO-8601 YYYY-MM-DD */
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Il carico, nella forma ridotta che l'attribuzione LIFO legge. */
+function toCaricoLotto(row: typeof positions.$inferSelect): CaricoLotto {
+  return { id: row.id, loadDate: row.load_date, loadPrice: row.load_price, quantity: row.quantity };
+}
+
+/** La vendita, nella forma ridotta che l'attribuzione LIFO legge. */
+function toVenditaLotto(row: typeof sales.$inferSelect): VenditaLotto {
+  return { id: row.id, saleDate: row.sale_date, quantity: row.quantity };
+}
+
+/**
+ * Il registro di **ogni ISIN** di un portafoglio: carichi e vendite, raggruppati
+ * in memoria.
+ *
+ * Da US-042 le tre viste aggregate non aggregano più in SQL, e non è una scelta
+ * di stile: `SUM` e la media ponderata non sanno fare LIFO. Attribuire una
+ * vendita richiede di percorrere i lotti **in ordine**, portandosi dietro quanto
+ * resta di ciascuno — un ciclo con stato, che una query per gruppi non esprime.
+ * Tentare di esprimerlo comunque (window function, CTE ricorsiva) produrrebbe una
+ * seconda implementazione del criterio, in un linguaggio dove non è provabile,
+ * accanto a quella del dominio che invece lo è. US-038 ha già fatto questa scelta
+ * per il P&L da carico, e per la stessa ragione.
+ *
+ * Le chiavi sono gli ISIN che risultano **caricati**: un titolo del portafoglio è
+ * un titolo di cui esiste un carico, come prima di US-042. Una vendita senza
+ * carichi non è iscrivibile (la POST la rifiuta) e un carico consumato non è
+ * rimovibile (FR-024), quindi ogni ISIN con vendite ha per costruzione almeno un
+ * carico: l'insieme delle chiavi non perde nulla.
+ */
+function leggiRegistriPortafoglio(portfolioId: number): Map<string, RegistroInput> {
+  const registri = new Map<string, { carichi: CaricoLotto[]; vendite: VenditaLotto[] }>();
+
+  for (const row of db.select().from(positions).where(eq(positions.portfolio_id, portfolioId)).all()) {
+    const registro = registri.get(row.isin) ?? { carichi: [], vendite: [] };
+    registro.carichi.push(toCaricoLotto(row));
+    registri.set(row.isin, registro);
+  }
+
+  for (const row of db.select().from(sales).where(eq(sales.portfolio_id, portfolioId)).all()) {
+    // `?.` e non un ramo che crea la voce: un ISIN venduto ma non caricato non
+    // deve comparire fra i titoli del portafoglio. Se l'archivio ne contenesse
+    // uno — scritto a mano, o da una versione anteriore alla guardia — la vista
+    // lo ignora invece di elencare una posizione a residuo negativo.
+    registri.get(row.isin)?.vendite.push(toVenditaLotto(row));
+  }
+
+  return registri;
+}
+
+/**
+ * I registri per ISIN in ordine di ISIN crescente: l'ordine che le due viste
+ * aggregate avevano dall'`ORDER BY` della query, e che i test già asseriscono.
+ */
+function ordinaPerIsin(registri: Map<string, RegistroInput>): [string, RegistroInput][] {
+  return [...registri.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+}
+
+/** L'anagrafica in cache dei soli ISIN richiesti; le chiavi assenti restano fuori dalla mappa. */
+function leggiAnagrafiche(isins: readonly string[]): Map<string, typeof securities.$inferSelect> {
+  if (isins.length === 0) return new Map();
+  return new Map(
+    db
+      .select()
+      .from(securities)
+      .where(inArray(securities.isin, [...isins]))
+      .all()
+      .map((row) => [row.isin, row]),
+  );
+}
+
+/** Il registro di **un solo ISIN** di un portafoglio: carichi e vendite. */
+function leggiRegistroIsin(portfolioId: number, isin: string): {
+  carichi: CaricoLotto[];
+  vendite: VenditaLotto[];
+  righeCarico: (typeof positions.$inferSelect)[];
+} {
+  const righeCarico = db
+    .select()
+    .from(positions)
+    .where(and(eq(positions.portfolio_id, portfolioId), eq(positions.isin, isin)))
+    .orderBy(positions.load_date, positions.id)
+    .all();
+
+  const righeVendita = db
+    .select()
+    .from(sales)
+    .where(and(eq(sales.portfolio_id, portfolioId), eq(sales.isin, isin)))
+    .orderBy(sales.sale_date, sales.id)
+    .all();
+
+  return {
+    carichi: righeCarico.map(toCaricoLotto),
+    vendite: righeVendita.map(toVenditaLotto),
+    righeCarico,
+  };
+}
+
+/**
+ * La ragione per cui un carico **non** può essere modificato né rimosso, oppure
+ * `null` quando può (FR-009, FR-024, criterio 6 di US-042).
+ *
+ * Un carico consumato da una vendita, **anche solo in parte**, è immodificabile.
+ * La modifica è inclusa nel divieto quanto la rimozione, e non per simmetria:
+ * cambiare prezzo o data di un lotto già consumato riscriverebbe a posteriori il
+ * costo attribuito a una vendita già iscritta — cioè cambierebbe un risultato
+ * realizzato senza toccare l'iscrizione che lo ha prodotto. Ridurne la quantità
+ * sotto la quota consumata farebbe di più: renderebbe il registro incoerente.
+ *
+ * Il messaggio **distingue le due operazioni** invece di limitarsi a vietare,
+ * perché è la distinzione stessa la cosa che il criterio chiede di rendere
+ * esplicita: chi vuole ridurre una posizione dopo un'operazione realmente
+ * eseguita non sta correggendo un errore, e ha bisogno di sapere che lo strumento
+ * giusto esiste e qual è.
+ */
+function ragioneCaricoImmodificabile(
+  portfolioId: number,
+  carico: typeof positions.$inferSelect,
+): string | null {
+  const { carichi, vendite } = leggiRegistroIsin(portfolioId, carico.isin);
+  if (vendite.length === 0) return null;
+
+  const registro = rigiocaRegistro({ carichi, vendite });
+  const lotto = registro.lotti.find((l) => l.caricoId === carico.id);
+  if (!lotto || lotto.quantitaConsumata === 0) return null;
+
+  // Le vendite che hanno attinto a questo lotto, in ordine di registro: nominarle
+  // dice all'utente *quale* iscrizione va corretta prima, se è quella a essere
+  // sbagliata.
+  const scarichi = registro.vendite
+    .filter((v) => v.attribuzioni.some((a) => a.caricoId === carico.id))
+    .map((v) => v.saleDate);
+  const misura = lotto.quantitaResidua === 0 ? 'per intero' : `in parte (${lotto.quantitaConsumata} quote su ${lotto.quantita})`;
+  const daChi = scarichi.length === 1 ? `dalla vendita del ${scarichi[0]}` : `dalle vendite del ${scarichi.join(' e del ')}`;
+
+  return (
+    `Il carico del ${carico.load_date} è già stato consumato ${misura} ${daChi}: non può essere né ` +
+    `modificato né rimosso. La rimozione di un carico è la correzione di un'iscrizione errata — cancella ` +
+    `il carico come se non fosse mai avvenuto, e non produce alcun risultato realizzato. Per ridurre una ` +
+    `posizione a seguito di un'operazione realmente eseguita si registra invece una vendita. Se è la ` +
+    `vendita a essere errata, va corretta prima quella.`
+  );
+}
 
 /** Mappa una riga di `price_observations` nell'osservazione condivisa (US-009). */
 function toPriceObservation(row: typeof priceObservations.$inferSelect): PriceObservation {
@@ -143,13 +286,9 @@ export async function positionsRoutes(
       return reply.status(404).send({ error: 'Portafoglio non trovato.' });
     }
 
-    // I carichi individuali di questo ISIN, in ordine cronologico di carico.
-    const loadRows = db
-      .select()
-      .from(positions)
-      .where(and(eq(positions.portfolio_id, portfolioId), eq(positions.isin, isin)))
-      .orderBy(positions.load_date, positions.id)
-      .all();
+    // Il registro di questo ISIN: i carichi individuali in ordine cronologico e
+    // le vendite che ne hanno consumato quote.
+    const { carichi, vendite, righeCarico: loadRows } = leggiRegistroIsin(portfolioId, isin);
 
     // Un ISIN formalmente valido ma senza carichi non è un titolo di questo
     // portafoglio: 404, non una scheda vuota con zeri inventati.
@@ -179,13 +318,26 @@ export async function positionsRoutes(
     // formula possono divergere di un centesimo senza che alcun test se ne
     // accorga — nessuno confronta i due percorsi. La regola vive quindi in una
     // funzione pura provabile, come già `componiSerieTitolo` per il grafico.
-    const pnl = calcolaPnlDaCarico({
-      loads: loadRows.map((row) => ({ loadPrice: row.load_price, quantity: row.quantity })),
-      currentPrice,
-    });
+    //
+    // Da US-042 quella funzione è `residuoPerIsin`, che misura il **residuo**
+    // dopo le vendite: a registro senza vendite restituisce cifra per cifra ciò
+    // che `calcolaPnlDaCarico` restituiva, e con vendite iscritte il medio dei
+    // soli lotti non consumati.
+    const pnl = residuoPerIsin({ carichi, vendite, currentPrice });
+
+    // La quota che ogni lotto ha ancora, per `id` di carico: la riga del registro
+    // la mostra accanto alla quantità nominale, ed è la coppia di cifre che
+    // dimostra a schermo che il carico non è stato riscritto (ADR-009).
+    const residuoPerLotto = new Map(pnl.registro.lotti.map((l) => [l.caricoId, l.quantitaResidua]));
+    const loads: PositionLoad[] = loadRows.map((row) => ({
+      ...toPosition(row),
+      residualQuantity: residuoPerLotto.get(row.id) ?? 0,
+    }));
 
     const detail: PositionDetail = {
       isin,
+      loadedQuantity: pnl.loadedQuantity,
+      soldQuantity: pnl.soldQuantity,
       totalQuantity: pnl.totalQuantity,
       avgLoadPrice: pnl.avgLoadPrice,
       totalLoadValue: pnl.totalLoadValue,
@@ -203,7 +355,7 @@ export async function positionsRoutes(
       dividendPolicy: security?.dividend_policy ?? null,
       dataSource: normalizzaDataSource(security?.data_source),
       fetchedAt: security?.fetched_at ?? null,
-      loads: loadRows.map(toPosition),
+      loads,
       priceHistory: observationRows.map(toPriceObservation),
     };
 
@@ -233,38 +385,23 @@ export async function positionsRoutes(
       return reply.status(404).send({ error: 'Portafoglio non trovato.' });
     }
 
-    // Aggregazione per ISIN con LEFT JOIN sulla cache securities
-    const rows = db
-      .select({
-        isin: positions.isin,
-        name: securities.name,
-        totalQuantity: sql<number>`SUM(${positions.quantity})`,
-        weightedSum: sql<number>`SUM(${positions.load_price} * ${positions.quantity})`,
-        currentPrice: securities.price,
-        fetchedAt: securities.fetched_at,
-      })
-      .from(positions)
-      .leftJoin(securities, eq(positions.isin, securities.isin))
-      .where(eq(positions.portfolio_id, portfolioId))
-      // `fetched_at` sta nella GROUP BY come le altre colonne della cache: la join
-      // è 1-a-1 sull'ISIN, quindi oggi il valore sarebbe comunque univoco, ma
-      // raggruppare ciò che si seleziona tiene la query corretta per costruzione
-      // e non dipendente da come SQLite risolve una colonna non aggregata.
-      .groupBy(positions.isin, securities.name, securities.price, securities.fetched_at)
-      .orderBy(positions.isin)
-      .all();
+    // Il registro per ISIN, e l'anagrafica in cache dei soli ISIN che servono:
+    // ciò che prima era una LEFT JOIN con GROUP BY. L'aggregazione avviene nel
+    // dominio perché è LIFO (vedi `leggiRegistriPortafoglio`); la cache resta una
+    // lettura per chiave, e `null` continua a significare «non in cache».
+    const voci = ordinaPerIsin(leggiRegistriPortafoglio(portfolioId));
+    const anagrafiche = leggiAnagrafiche(voci.map(([isin]) => isin));
 
     // Un solo istante per l'intera risposta: righe della stessa tabella devono
     // essere classificate rispetto allo stesso "adesso", altrimenti due titoli
     // rilevati insieme potrebbero cadere ai due lati del confine di sessione.
     const adesso = now();
 
-    const result: EnrichedPositionSummary[] = rows.map((row) => {
-      const avgLoadPrice = row.totalQuantity > 0 ? row.weightedSum / row.totalQuantity : 0;
-      const currentPrice = row.currentPrice ?? null;
-      const currentValue = currentPrice !== null ? currentPrice * row.totalQuantity : null;
-      const difference = currentValue !== null ? currentValue - avgLoadPrice * row.totalQuantity : null;
-      const fetchedAt = row.fetchedAt ?? null;
+    const result: EnrichedPositionSummary[] = voci.map(([isin, registro]) => {
+      const security = anagrafiche.get(isin);
+      const currentPrice = security?.price ?? null;
+      const residuo = residuoPerIsin({ ...registro, currentPrice });
+      const fetchedAt = security?.fetched_at ?? null;
       // Stesso predicato della cella «Ultimo rilevamento» del riepilogo, e per
       // la stessa ragione: una riga in cache può avere `fetched_at` valorizzato
       // e `price` nullo, e chiamarla «obsoleta» accanto a un «–» direbbe che un
@@ -272,13 +409,15 @@ export async function positionsRoutes(
       // stato: «mai rilevato».
       const istante = currentPrice !== null && fetchedAt !== null ? new Date(fetchedAt * 1000) : null;
       return {
-        isin: row.isin,
-        name: row.name ?? null,
-        totalQuantity: row.totalQuantity,
-        avgLoadPrice,
+        isin,
+        name: security?.name ?? null,
+        loadedQuantity: residuo.loadedQuantity,
+        soldQuantity: residuo.soldQuantity,
+        totalQuantity: residuo.totalQuantity,
+        avgLoadPrice: residuo.avgLoadPrice,
         currentPrice,
-        currentValue,
-        difference,
+        currentValue: residuo.currentValue,
+        difference: residuo.difference,
         fetchedAt,
         freshness: classifyPriceFreshness(istante, adesso),
       };
@@ -308,28 +447,23 @@ export async function positionsRoutes(
       return reply.status(404).send({ error: 'Portafoglio non trovato.' });
     }
 
-    // Aggregazione per ISIN con media ponderata
-    const rows = db
-      .select({
-        isin: positions.isin,
-        totalQuantity: sql<number>`SUM(${positions.quantity})`,
-        weightedSum: sql<number>`SUM(${positions.load_price} * ${positions.quantity})`,
-      })
-      .from(positions)
-      .where(eq(positions.portfolio_id, portfolioId))
-      .groupBy(positions.isin)
-      .orderBy(positions.isin)
-      .all();
-
-    const summaries: PositionSummary[] = rows.map((row) => {
-      const avgLoadPrice = row.totalQuantity > 0 ? row.weightedSum / row.totalQuantity : 0;
-      return {
-        isin: row.isin,
-        totalQuantity: row.totalQuantity,
-        avgLoadPrice,
-        totalLoadValue: avgLoadPrice * row.totalQuantity,
-      };
-    });
+    // Aggregazione per ISIN sul **residuo**: i carichi restano tutti iscritti, le
+    // vendite ne consumano quote secondo LIFO, e la media ponderata si ricalcola
+    // sui soli lotti non consumati (vedi `leggiRegistriPortafoglio` per il perché
+    // non sia più una GROUP BY).
+    const summaries: PositionSummary[] = ordinaPerIsin(leggiRegistriPortafoglio(portfolioId)).map(
+      ([isin, registro]) => {
+        const residuo = residuoPerIsin(registro);
+        return {
+          isin,
+          loadedQuantity: residuo.loadedQuantity,
+          soldQuantity: residuo.soldQuantity,
+          totalQuantity: residuo.totalQuantity,
+          avgLoadPrice: residuo.avgLoadPrice,
+          totalLoadValue: residuo.totalLoadValue,
+        };
+      },
+    );
 
     return summaries;
   });
@@ -369,6 +503,16 @@ export async function positionsRoutes(
       .get();
     if (!existing) {
       return reply.status(404).send({ error: 'Posizione non trovata.' });
+    }
+
+    // La guardia sul lotto consumato precede la validazione del body, e
+    // l'ordine è deliberato: se l'iscrizione è immodificabile non c'è modifica di
+    // cui discutere la forma, e un 400 sul formato di un campo suggerirebbe che
+    // con il campo corretto la richiesta passerebbe. 409 e non 400 perché la
+    // richiesta è ben formata: è lo **stato del registro** a renderla impossibile.
+    const immodificabile = ragioneCaricoImmodificabile(portfolioId, existing);
+    if (immodificabile) {
+      return reply.status(409).send({ error: immodificabile });
     }
 
     const body = request.body ?? {};
@@ -448,6 +592,15 @@ export async function positionsRoutes(
       .get();
     if (!existing) {
       return reply.status(404).send({ error: 'Posizione non trovata.' });
+    }
+
+    // Un carico già consumato da una vendita non è rimovibile (FR-024): la
+    // rimozione è la correzione di un'iscrizione errata, e cancellare un lotto
+    // che una vendita ha già consumato lascerebbe quella vendita senza il costo
+    // che le è stato attribuito.
+    const immodificabile = ragioneCaricoImmodificabile(portfolioId, existing);
+    if (immodificabile) {
+      return reply.status(409).send({ error: immodificabile });
     }
 
     db.delete(positions).where(and(eq(positions.id, positionId), eq(positions.portfolio_id, portfolioId))).run();

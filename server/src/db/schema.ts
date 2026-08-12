@@ -64,6 +64,44 @@ export const positions = sqliteTable('positions', {
 export type PositionRow = typeof positions.$inferSelect;
 
 /**
+ * Vendite (scarichi titolo) all'interno di un portafoglio (FR-022, FR-023,
+ * ADR-009).
+ *
+ * È la **seconda specie di iscrizione** dello stesso registro, non una
+ * correzione dei carichi: una vendita si registra aggiungendo una riga qui, e
+ * nessuna riga di `positions` viene mai modificata o cancellata per effetto di
+ * una vendita. Da qui discende la forma della tabella, gemella di `positions`
+ * fin nella cascade su `portfolios.id` — di cui la teardown della fixture
+ * `archivio` degli E2E ha bisogno per non lasciare scarichi orfani.
+ *
+ * **Nessun campo calcolato è persistito.** Non il P&L realizzato, non la
+ * quantità residua dei lotti, non il costo attribuito: ADR-009 li vuole
+ * *derivati* rigiocando il registro, perché un valore memorizzato accanto ai
+ * fatti che lo generano può divergere da essi — basta un carico corretto a
+ * posteriori — e nulla nel modello segnalerebbe la divergenza. La sola verità
+ * conservata è l'operazione: quando, a che prezzo, quante quote.
+ *
+ * `sale_date` è in formato TEXT ISO-8601 (YYYY-MM-DD) come `positions.load_date`:
+ * l'attribuzione LIFO confronta le due date fra loro, e devono essere
+ * ordinabili con lo stesso confronto lessicografico.
+ */
+export const sales = sqliteTable('sales', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  portfolio_id: integer('portfolio_id')
+    .notNull()
+    .references(() => portfolios.id, { onDelete: 'cascade' }),
+  isin: text('isin').notNull(),
+  sale_date: text('sale_date').notNull(),
+  sale_price: real('sale_price').notNull(),
+  quantity: integer('quantity').notNull(),
+  created_at: integer('created_at')
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export type SaleRow = typeof sales.$inferSelect;
+
+/**
  * Storico dei prezzi *osservati* (FR-018, ADR-008).
  *
  * Non è una serie storica recuperata dalla fonte: ogni riga è una rilevazione

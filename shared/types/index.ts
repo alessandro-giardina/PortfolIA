@@ -19,6 +19,15 @@ export * from '../domain/metricheTitolo.js';
  * riscriverli.
  */
 export * from '../domain/serieValore.js';
+/**
+ * L'attribuzione LIFO dei lotti alle vendite (US-042) si affaccia da qui per la
+ * stessa ragione dei tre moduli precedenti: il server la usa per iscrivere una
+ * vendita e per calcolare il residuo delle tre viste aggregate, il client per
+ * disegnare la fascia dei lotti, e i due lati devono leggere lo **stesso**
+ * criterio invece di riscriverlo ciascuno a modo suo — un LIFO reimplementato nel
+ * client sarebbe la prima cosa a divergere.
+ */
+export * from '../domain/lottiLifo.js';
 
 export interface HealthResponse {
   status: string;
@@ -188,6 +197,21 @@ export interface Position {
   createdAt: number;
 }
 
+/**
+ * Un carico con la quota che le vendite gli hanno **lasciato** (US-042, FR-023).
+ *
+ * `quantity` resta la quantità **nominale** iscritta a registro e non viene mai
+ * modificata da una vendita; `residualQuantity` è quanto di quel lotto è ancora
+ * detenuto dopo l'attribuzione LIFO. Sono due cifre diverse e affiancate di
+ * proposito: è la coppia che rende visibile a schermo il fatto che il carico non
+ * è stato riscritto — e a `residualQuantity` a zero corrisponde il lotto
+ * «esaurito», su cui modifica e rimozione sono impedite (FR-024).
+ */
+export interface PositionLoad extends Position {
+  /** Quote di questo lotto non ancora consumate da alcuna vendita: fra 0 e `quantity`. */
+  residualQuantity: number;
+}
+
 /** Payload per creare una nuova posizione tramite POST /api/portfolios/:id/positions. */
 export interface CreatePositionRequest {
   isin: string;
@@ -204,18 +228,60 @@ export interface UpdatePositionRequest {
 }
 
 /**
+ * Vendita (scarico titolo) iscritta a un portafoglio (FR-022, ADR-009).
+ *
+ * È la **seconda specie di iscrizione** del registro, gemella di `Position` e non
+ * una sua variante: ha la stessa forma perché è lo stesso libro, e vive in un
+ * tipo distinto perché il verso dell'operazione è l'unica cosa che non deve
+ * poter essere confusa. `saleDate` è in formato ISO-8601 (YYYY-MM-DD), come
+ * `Position.loadDate`: l'attribuzione LIFO confronta le due date fra loro.
+ *
+ * Nessun campo derivato — costo attribuito, P&L realizzato, quantità residua —
+ * compare qui: si ottengono rigiocando il registro con `rigiocaRegistro`.
+ */
+export interface Sale {
+  id: number;
+  portfolioId: number;
+  isin: string;
+  saleDate: string;
+  salePrice: number;
+  quantity: number;
+  createdAt: number;
+}
+
+/** Payload per registrare una vendita tramite POST /api/portfolios/:id/sales. */
+export interface CreateSaleRequest {
+  isin: string;
+  sale_date: string;
+  sale_price: number;
+  quantity: number;
+}
+
+/**
  * Vista aggregata per ISIN di un portafoglio.
- * Aggrega tutti i carichi dello stesso ISIN calcolando la quantità totale
- * e il prezzo medio di carico ponderato (FR-008).
+ *
+ * Da US-042 l'aggregato è quello del **residuo**: i carichi restano tutti
+ * iscritti, ma le vendite già registrate ne consumano quote secondo LIFO, e le
+ * cifre di questa vista descrivono ciò che è ancora detenuto (FR-008, FR-023).
+ * Le due quantità lorde restano leggibili accanto al residuo, perché
+ * «600 residue su 1.000 caricate» è un'informazione che «600» da solo perde.
  */
 export interface PositionSummary {
   /** Codice ISIN normalizzato. */
   isin: string;
-  /** Somma delle quantità di tutti i carichi: Σ(quantity). */
+  /** Somma delle quantità di tutti i carichi: Σ(quantity). Non cambia mai per effetto di una vendita. */
+  loadedQuantity: number;
+  /** Somma delle quantità vendute: Σ(sales.quantity). */
+  soldQuantity: number;
+  /** Quantità **residua**: loadedQuantity − soldQuantity, mai negativa (FR-024). */
   totalQuantity: number;
-  /** Prezzo medio di carico ponderato: Σ(load_price × quantity) / Σ(quantity). */
-  avgLoadPrice: number;
-  /** Controvalore totale di carico: avgLoadPrice × totalQuantity. */
+  /**
+   * Prezzo medio ponderato dei **soli lotti non consumati**, ricalcolato secondo
+   * LIFO. `null` a residuo 0: non esiste un residuo su cui calcolarlo, e
+   * «0,0000» affermerebbe di aver comprato a zero (ADR-003).
+   */
+  avgLoadPrice: number | null;
+  /** Controvalore di carico del residuo: avgLoadPrice × totalQuantity, e 0 a residuo 0 — zero misurato, non inventato. */
   totalLoadValue: number;
 }
 
@@ -250,15 +316,24 @@ export interface EnrichedPositionSummary {
   isin: string;
   /** Denominazione ufficiale del titolo (dalla cache securities), null se non disponibile. */
   name: string | null;
-  /** Somma delle quantità di tutti i carichi: Σ(quantity). */
+  /** Somma delle quantità di tutti i carichi: Σ(quantity). Non cambia mai per effetto di una vendita. */
+  loadedQuantity: number;
+  /** Somma delle quantità vendute: Σ(sales.quantity). */
+  soldQuantity: number;
+  /**
+   * Quantità **residua**: loadedQuantity − soldQuantity, mai negativa (FR-024).
+   * È la quantità su cui si misura il valore attuale: un titolo interamente
+   * venduto resta elencato con 0 e contribuisce 0 al totale (togliere la riga
+   * è US-044).
+   */
   totalQuantity: number;
-  /** Prezzo medio di carico ponderato: Σ(load_price × quantity) / Σ(quantity). */
-  avgLoadPrice: number;
+  /** Prezzo medio ponderato dei soli lotti non consumati (LIFO), null a residuo 0 (ADR-003). */
+  avgLoadPrice: number | null;
   /** Prezzo corrente dalla cache securities, null se non in cache. */
   currentPrice: number | null;
   /** Valore attuale: currentPrice × totalQuantity, null se currentPrice è null. */
   currentValue: number | null;
-  /** Differenza rispetto al carico: currentValue − (avgLoadPrice × totalQuantity), null se currentPrice è null. */
+  /** Differenza rispetto al carico residuo: currentValue − (avgLoadPrice × totalQuantity), null se currentPrice è null. */
   difference: number | null;
   /** Momento dell'ultimo rilevamento del prezzo (unix, secondi), null se l'ISIN non è nella cache securities. */
   fetchedAt: number | null;
@@ -309,12 +384,16 @@ export interface PositionDetail {
   /** Codice ISIN normalizzato. */
   isin: string;
 
-  // ─── Aggregato di posizione — sempre valorizzato, deriva dai soli carichi ───
-  /** Somma delle quantità di tutti i carichi: Σ(quantity). */
+  // ─── Aggregato di posizione — il residuo dopo le vendite (FR-023) ──────────
+  /** Somma delle quantità di tutti i carichi: Σ(quantity). Non cambia mai per effetto di una vendita. */
+  loadedQuantity: number;
+  /** Somma delle quantità vendute: Σ(sales.quantity). */
+  soldQuantity: number;
+  /** Quantità **residua**: loadedQuantity − soldQuantity, mai negativa (FR-024). */
   totalQuantity: number;
-  /** Prezzo medio di carico ponderato: Σ(load_price × quantity) / Σ(quantity). */
-  avgLoadPrice: number;
-  /** Controvalore totale di carico: avgLoadPrice × totalQuantity. */
+  /** Prezzo medio ponderato dei soli lotti non consumati (LIFO), null a residuo 0 (ADR-003). */
+  avgLoadPrice: number | null;
+  /** Controvalore di carico del residuo: avgLoadPrice × totalQuantity, e 0 a residuo 0. */
   totalLoadValue: number;
 
   // ─── Valori correnti — null quando il prezzo non è in archivio ─────────────
@@ -356,8 +435,13 @@ export interface PositionDetail {
   fetchedAt: number | null;
 
   // ─── Carichi individuali ──────────────────────────────────────────────────
-  /** I carichi che compongono la posizione, ordinati per data di carico crescente. */
-  loads: Position[];
+  /**
+   * I carichi che compongono la posizione, ordinati per data di carico crescente
+   * e ciascuno con la quota che le vendite gli hanno **lasciato**. La quantità
+   * nominale (`quantity`) resta quella iscritta: un carico non viene mai riscritto
+   * da una vendita, e le due cifre affiancate sono ciò che lo dimostra a schermo.
+   */
+  loads: PositionLoad[];
 
   // ─── Storico dei prezzi osservati (FR-018, ADR-008) ───────────────────────
   /**

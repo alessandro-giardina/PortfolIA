@@ -128,3 +128,98 @@ export async function modificaPosizione(
     }
   });
 }
+
+/** Vendita (scarico) così come la restituisce l'API (US-042). */
+export interface Vendita {
+  id: number;
+  portfolioId: number;
+  isin: string;
+  saleDate: string;
+  salePrice: number;
+  quantity: number;
+}
+
+/**
+ * Esito di una richiesta che il test si aspetta possa **fallire**: stato e
+ * messaggio, senza sollevare.
+ *
+ * Gli altri helper sollevano su risposta non ok, ed è giusto: un carico che non
+ * si aggiunge è una premessa mancata, non un esito da esaminare. I rifiuti di
+ * US-042 sono l'opposto — sono *il* fatto sotto esame — e vanno restituiti al
+ * chiamante insieme al messaggio, che i criteri 4, 5 e 6 chiedono di distinguere.
+ */
+export interface EsitoRichiesta {
+  stato: number;
+  errore: string | null;
+}
+
+/** Legge il campo `error` di una risposta di rifiuto, `null` se non c'è. */
+async function leggiErrore(res: { json: () => Promise<unknown> }): Promise<string | null> {
+  try {
+    const dati = (await res.json()) as { error?: string };
+    return dati.error ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Registra una vendita e restituisce l'iscrizione creata. Solleva su rifiuto. */
+export async function registraVendita(
+  portafoglioId: number,
+  isin: string,
+  dataVendita: string,
+  prezzoVendita: number,
+  quantita: number,
+): Promise<Vendita> {
+  return conContesto(async (ctx) => {
+    const res = await ctx.post(`${BASE_API}/api/portfolios/${portafoglioId}/sales`, {
+      data: { isin, sale_date: dataVendita, sale_price: prezzoVendita, quantity: quantita },
+    });
+    if (!res.ok()) {
+      throw new Error(
+        `registraVendita(${portafoglioId}, ${isin}) ha risposto ${res.status()}: ${await res.text()}`,
+      );
+    }
+    return (await res.json()) as Vendita;
+  });
+}
+
+/** Tenta una vendita restituendo stato e messaggio, senza sollevare. */
+export async function tentaVendita(
+  portafoglioId: number,
+  isin: string,
+  dataVendita: string,
+  prezzoVendita: number,
+  quantita: number,
+): Promise<EsitoRichiesta> {
+  return conContesto(async (ctx) => {
+    const res = await ctx.post(`${BASE_API}/api/portfolios/${portafoglioId}/sales`, {
+      data: { isin, sale_date: dataVendita, sale_price: prezzoVendita, quantity: quantita },
+    });
+    return { stato: res.status(), errore: await leggiErrore(res) };
+  });
+}
+
+/** Elenca le vendite di un portafoglio, in ordine di registro. */
+export async function elencaVendite(portafoglioId: number): Promise<Vendita[]> {
+  return conContesto(async (ctx) => {
+    const res = await ctx.get(`${BASE_API}/api/portfolios/${portafoglioId}/sales`);
+    if (!res.ok()) {
+      throw new Error(`elencaVendite(${portafoglioId}) ha risposto ${res.status()}`);
+    }
+    return (await res.json()) as Vendita[];
+  });
+}
+
+/** Tenta la rimozione di un carico restituendo stato e messaggio, senza sollevare. */
+export async function tentaRimozionePosizione(
+  portafoglioId: number,
+  posizioneId: number,
+): Promise<EsitoRichiesta> {
+  return conContesto(async (ctx) => {
+    const res = await ctx.delete(
+      `${BASE_API}/api/portfolios/${portafoglioId}/positions/${posizioneId}`,
+    );
+    return { stato: res.status(), errore: await leggiErrore(res) };
+  });
+}

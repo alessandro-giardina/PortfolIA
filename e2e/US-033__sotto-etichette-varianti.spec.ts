@@ -135,7 +135,11 @@ test('alle soglie 840, 760 e 640px il modulo non scorre in orizzontale e la nota
     await page.waitForTimeout(150);
 
     const scorrimenti = await page.evaluate(() => {
-      const modulo = document.querySelector('.riquadro-modulo')!;
+      // `:not(.scarico)` da US-042: la linguetta porta ora due moduli, e questa
+      // misura riguarda quello di carico. `querySelector` avrebbe restituito il
+      // primo — che è ancora quello giusto — ma per coincidenza dell'ordine di
+      // resa, non per averlo chiesto.
+      const modulo = document.querySelector('.riquadro-modulo:not(.scarico)')!;
       return {
         documento:
           document.documentElement.scrollWidth - document.documentElement.clientWidth,

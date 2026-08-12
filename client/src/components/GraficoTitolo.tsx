@@ -80,8 +80,14 @@ export interface GraficoTitoloProps {
    * Prezzo medio ponderato di carico **così come il server lo calcola**
    * (`detail.avgLoadPrice`). Non viene mai ricalcolato qui: due letture dello
    * stesso fatto potrebbero divergere, e una delle due sarebbe falsa.
+   *
+   * `null` da US-042: a quantità residua nulla — titolo interamente venduto — non
+   * esiste un residuo su cui calcolare una media, e la riga d'ottone non ha un
+   * livello dove stare. Il ramo «prezzo medio non disponibile» qui sotto esisteva
+   * già per la stessa ragione ed è quello che accoglie il caso: `null` non aggiunge
+   * un comportamento, dà un nome al comportamento che c'era.
    */
-  avgLoadPrice: number;
+  avgLoadPrice: number | null;
   /** Simbolo della valuta di denominazione; l'euro è la valuta del registro. */
   simboloValuta?: string;
   /**
@@ -915,8 +921,15 @@ export default function GraficoTitolo({
   // dove stare — un prezzo *per quota* non individua alcun livello su
   // un'ordinata di controvalori. Il dominio già la esclude (`prezzoMedio: null`),
   // e qui il disegno la segue invece di collocarla dove il dominio non l'attende.
-  const medioTracciabile = !vistaValore && Number.isFinite(avgLoadPrice);
-  const yMedio = a1(proiettaY(avgLoadPrice));
+  // Il medio *disegnabile* e non un booleano: il valore stesso, oppure `null`.
+  // Un booleano direbbe la stessa cosa al lettore e nulla al compilatore, che poi
+  // non saprebbe che dentro il ramo il prezzo esiste.
+  const medioDisegnabile =
+    !vistaValore && avgLoadPrice !== null && Number.isFinite(avgLoadPrice) ? avgLoadPrice : null;
+  // `0` come ordinata di ripiego non è un dato: è la coordinata di una riga che in
+  // questo ramo non viene disegnata, e il controllo `medioDisegnabile !== null` è
+  // la guardia che lo garantisce in ogni punto di resa.
+  const yMedio = medioDisegnabile !== null ? a1(proiettaY(medioDisegnabile)) : 0;
   // L'etichetta sta sopra la riga, salvo quando la riga è troppo in alto e la
   // scritta uscirebbe dal riquadro.
   const yEtichettaMedia = yMedio - 6 < RIQUADRO.alto + 12 ? yMedio + 15 : yMedio - 6;
@@ -1113,8 +1126,8 @@ export default function GraficoTitolo({
     (punti.length === 1
       ? `Un solo punto d'archivio: ${nomeOrigine[primoPunto.origin]} del ${dataPunto(primoPunto)} a ${simboloValuta} ${cifra(primoPunto.price)}. ` +
         `Da quel punto a oggi, ${dataIstante(istanteOra)}, passano ${conteggio(giorniScoperti)} giorni civili senza alcuna rilevazione: non esiste ancora un andamento da tracciare. ` +
-        (medioTracciabile
-          ? `Prezzo medio ponderato di carico di riferimento: ${simboloValuta} ${prezzo(avgLoadPrice)}.`
+        (medioDisegnabile !== null
+          ? `Prezzo medio ponderato di carico di riferimento: ${simboloValuta} ${prezzo(medioDisegnabile)}.`
           : vistaValore
             ? 'La riga del prezzo medio di carico non compare: è un prezzo per quota, e su un’ordinata di controvalori non individua alcun livello.'
             : 'Il prezzo medio di carico non è disponibile.')
@@ -1122,8 +1135,8 @@ export default function GraficoTitolo({
         `${conteggio(punti.length)} punti in ${conteggio(giorniFinestra)} giorni civili — ` +
         `${conteggio(numeroCarichi)} ${numeroCarichi === 1 ? 'prezzo di carico' : 'prezzi di carico'} e ` +
         `${conteggio(numeroRilevazioni)} ${numeroRilevazioni === 1 ? 'rilevazione registrata' : 'rilevazioni registrate'}. ` +
-        (medioTracciabile
-          ? `Prezzo medio ponderato di carico di riferimento: ${simboloValuta} ${prezzo(avgLoadPrice)}. `
+        (medioDisegnabile !== null
+          ? `Prezzo medio ponderato di carico di riferimento: ${simboloValuta} ${prezzo(medioDisegnabile)}. `
           : vistaValore
             ? 'La riga del prezzo medio di carico non compare: è un prezzo per quota, e su un’ordinata di controvalori non individua alcun livello. '
             : 'Il prezzo medio di carico non è disponibile. ') +
@@ -1282,22 +1295,22 @@ export default function GraficoTitolo({
           </text>
 
           {/* ---------- Riga del prezzo medio ponderato di carico ---------- */}
-          {medioTracciabile && (
+          {medioDisegnabile !== null && (
             <>
               <line
                 className="riga-media"
                 data-testid="linea-prezzo-medio"
-                data-prezzo={avgLoadPrice}
+                data-prezzo={medioDisegnabile}
                 x1={RIQUADRO.sinistra}
                 y1={yMedio}
                 x2={RIQUADRO.destra}
                 y2={yMedio}
               >
-                <title>{`Prezzo medio ponderato di carico: ${simboloValuta} ${prezzo(avgLoadPrice)}`}</title>
+                <title>{`Prezzo medio ponderato di carico: ${simboloValuta} ${prezzo(medioDisegnabile)}`}</title>
               </line>
               <rect className="fondo-etichetta" x={centroX - 155} y={yEtichettaMedia - 11} width={310} height={15} />
               <text className="etichetta-media" x={centroX} y={yEtichettaMedia} textAnchor="middle">
-                PREZZO MEDIO PONDERATO DI CARICO &nbsp;{simboloValuta} {prezzo(avgLoadPrice)}
+                PREZZO MEDIO PONDERATO DI CARICO &nbsp;{simboloValuta} {prezzo(medioDisegnabile)}
               </text>
             </>
           )}
@@ -1838,7 +1851,7 @@ export default function GraficoTitolo({
             <span className="spiega">
               {vistaValore ? (
                 <>
-                  {Number.isFinite(avgLoadPrice) ? (
+                  {avgLoadPrice !== null && Number.isFinite(avgLoadPrice) ? (
                     <>
                       <span className="conto">
                         {simboloValuta} {prezzo(avgLoadPrice)}
@@ -1854,11 +1867,11 @@ export default function GraficoTitolo({
                   nella vista{' '}
                   <span className="tasto-citato">{VISTE_GRAFICO[0].etichetta}</span>.
                 </>
-              ) : medioTracciabile ? (
+              ) : medioDisegnabile !== null ? (
                 <>
                   riga orizzontale d&rsquo;ottone a{' '}
                   <span className="conto">
-                    {simboloValuta} {prezzo(avgLoadPrice)}
+                    {simboloValuta} {prezzo(medioDisegnabile)}
                   </span>
                   : il guadagno latente si legge come distanza fra il tracciato e questa riga.
                 </>

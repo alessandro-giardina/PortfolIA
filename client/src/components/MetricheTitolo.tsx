@@ -38,8 +38,11 @@ export interface MetricheTitoloProps extends Pick<ContestoSottoIlGrafico, 'punti
   differencePercent: number | null;
   /** `detail.totalQuantity`. */
   totalQuantity: number;
-  /** `detail.avgLoadPrice`: la media **ponderata** che il server calcola. */
-  avgLoadPrice: number;
+  /**
+   * `detail.avgLoadPrice`: la media **ponderata** che il server calcola. `null` da
+   * US-042 a quantità residua nulla, dove non esiste un residuo su cui calcolarla.
+   */
+  avgLoadPrice: number | null;
   /** `detail.totalLoadValue`. */
   totalLoadValue: number;
   /** `detail.currentPrice`, `null` quando il prezzo non è in archivio. */
@@ -163,7 +166,13 @@ export default function MetricheTitolo({
                 <span className="passo">
                   prezzo medio di carico{' '}
                   <b>
-                    {simboloValuta}&thinsp;{prezzo(avgLoadPrice)}
+                    {avgLoadPrice !== null ? (
+                      <>
+                        {simboloValuta}&thinsp;{prezzo(avgLoadPrice)}
+                      </>
+                    ) : (
+                      <span className="dato-mancante">non disponibile</span>
+                    )}
                   </b>{' '}
                   su{' '}
                   <b>{conteggio(totalQuantity)}</b> {totalQuantity === 1 ? 'quota' : 'quote'}
@@ -201,8 +210,15 @@ export default function MetricheTitolo({
                 Il prezzo attuale di questo titolo non risulta in archivio, e senza di esso non
                 c&rsquo;&egrave; nulla da confrontare con il prezzo di carico. La posizione resta
                 nota &mdash; <b>{conteggio(totalQuantity)}</b>{' '}
-                {totalQuantity === 1 ? 'quota' : 'quote'} a {simboloValuta}&thinsp;
-                {prezzo(avgLoadPrice)} di media ponderata, carico {simboloValuta}&thinsp;
+                {totalQuantity === 1 ? 'quota' : 'quote'}{' '}
+                {avgLoadPrice !== null ? (
+                  <>
+                    a {simboloValuta}&thinsp;{prezzo(avgLoadPrice)} di media ponderata,
+                  </>
+                ) : (
+                  <>senza un prezzo medio di carico &mdash; la posizione &egrave; azzerata &mdash;</>
+                )}{' '}
+                carico {simboloValuta}&thinsp;
                 {importo(totalLoadValue)} &mdash; ma il
                 guadagno no: uno zero al suo posto affermerebbe di non aver guadagnato n&eacute;
                 perso, che &egrave; cosa diversa dal non saperlo (ADR&#8209;003).

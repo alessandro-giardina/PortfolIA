@@ -3003,3 +3003,293 @@ body {
   .commutatore-vista button { width: 100%; }
   .dichiarazione-gradino .cifra-salto { font-size: 24px; }
 }
+
+/* ============================================================
+   US-042 — Vendita (scarico) con attribuzione LIFO
+   Estensione in coda da docs/mockups/US-042/shared.css: nessuna
+   regola preesistente è riscritta. `.banner-errore`, `.timbro-ko`,
+   `.avviso-successo`, `.riquadro-modulo` e `.dato-mancante` sono
+   già definiti sopra e restano quelli — il mockup li reimportava
+   solo perché era una pagina a sé.
+   ============================================================ */
+
+/* ---------- Modulo di scarico ----------
+   Stessa carta e stessa meccanica del modulo di carico: è un
+   modulo dello stesso registro. Cambia la sola testata, in
+   carminio, perché il verso dell'operazione è l'unica cosa che
+   deve essere impossibile confondere. */
+.riquadro-modulo.scarico { border-color: var(--carminio); }
+.riquadro-modulo.scarico .intestazione-modulo {
+  background: var(--carminio);
+  background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.10) 0 6px, transparent 6px 12px);
+}
+.riquadro-modulo.scarico .riga-modulo label { background: rgba(158,43,37,.10); }
+
+/* select del titolo, con la sua giacenza a fianco */
+.campo select {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: 'Courier Prime', monospace;
+  font-size: 16px;
+  color: var(--inchiostro);
+  padding: 6px 2px;
+  border-bottom: 1.5px dotted rgba(34,28,20,.45);
+  min-width: 0;
+}
+.campo select:focus { outline: none; border-bottom-color: var(--rosso-margine); }
+.giacenza {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--seppia);
+  white-space: nowrap;
+}
+.giacenza b { font-family: 'Courier Prime', monospace; font-style: normal; color: var(--inchiostro); }
+
+/* ---------- La fascia dei lotti ----------
+   L'elemento memorabile della spec: i lotti disposti dal più
+   recente al più antico — l'ordine in cui LIFO li consuma — con
+   la parte consumata tratteggiata in carminio e quella residua
+   piena in ottone. La freccia dichiara il verso della lettura. */
+.fascia-lifo {
+  border: 2px solid var(--inchiostro);
+  background: rgba(247,239,218,.55);
+  padding: 16px 18px 18px;
+  margin-top: 18px;
+}
+.fascia-lifo .capo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.fascia-lifo .capo h3 {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: 12.5px;
+  margin: 0;
+}
+.freccia-lifo {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--carminio);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.freccia-lifo::before {
+  content: "";
+  width: 54px;
+  height: 0;
+  border-top: 1.5px solid var(--carminio);
+  position: relative;
+}
+.freccia-lifo::after { content: "▸"; color: var(--carminio); }
+
+.lotti { display: flex; flex-direction: column; gap: 10px; }
+.lotto {
+  display: grid;
+  grid-template-columns: 210px 1fr 190px;
+  align-items: center;
+  gap: 14px;
+}
+.lotto .targa {
+  font-family: 'Courier Prime', monospace;
+  font-size: 12.5px;
+  color: var(--inchiostro-2);
+  line-height: 1.45;
+}
+.lotto .targa b { display: block; font-size: 13.5px; letter-spacing: .04em; }
+.lotto .targa small { color: var(--seppia); }
+
+.barra {
+  position: relative;
+  height: 34px;
+  border: 1.5px solid var(--inchiostro);
+  background: rgba(215,221,196,.5);
+  display: flex;
+  overflow: hidden;
+}
+.barra .quota {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+}
+.barra .quota.consumata {
+  background:
+    repeating-linear-gradient(135deg, rgba(158,43,37,.42) 0 4px, rgba(158,43,37,.14) 4px 9px);
+  color: var(--carminio);
+  border-right: 1.5px solid var(--carminio);
+  font-weight: 700;
+}
+.barra .quota.residua {
+  background: rgba(156,125,52,.20);
+  color: var(--inchiostro);
+}
+.barra .quota.futura {
+  background: repeating-linear-gradient(45deg, transparent 0 7px, rgba(34,28,20,.06) 7px 14px);
+  color: var(--seppia);
+  font-style: italic;
+}
+.lotto .esito {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--seppia);
+  text-align: right;
+}
+.lotto .esito b {
+  font-family: 'Courier Prime', monospace;
+  font-style: normal;
+  display: block;
+  font-size: 13px;
+  color: var(--inchiostro);
+}
+.lotto.intatto .esito { color: var(--ottone); }
+
+.legenda-lifo {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dotted rgba(110,90,54,.4);
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--seppia);
+}
+.legenda-lifo span { display: inline-flex; align-items: center; gap: 7px; }
+.legenda-lifo i {
+  width: 22px; height: 12px;
+  border: 1px solid var(--inchiostro);
+  display: inline-block;
+}
+.legenda-lifo i.consumata { background: repeating-linear-gradient(135deg, rgba(158,43,37,.42) 0 4px, rgba(158,43,37,.14) 4px 9px); }
+.legenda-lifo i.residua   { background: rgba(156,125,52,.20); }
+
+/* ---------- Riquadro del residuo ----------
+   Le due cifre che la spec chiede di leggere dopo l'operazione:
+   quantità residua e prezzo medio del residuo, quest'ultimo
+   accanto al valore che aveva prima, perché il ricalcolo è il
+   fatto — non l'assestamento di una cifra qualunque. */
+.riquadro-residuo {
+  display: flex;
+  border: 2px solid var(--inchiostro);
+  background: rgba(247,239,218,.6);
+  margin: 22px 0 8px;
+}
+.riquadro-residuo .fascia-colore { width: 10px; background: var(--ottone); flex-shrink: 0; }
+.riquadro-residuo.chiuso .fascia-colore { background: var(--carminio); }
+.riquadro-residuo .contenuto {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  flex: 1;
+}
+.casella-residuo {
+  padding: 16px 20px;
+  border-left: 1px dotted rgba(110,90,54,.5);
+}
+.casella-residuo:first-child { border-left: none; }
+.casella-residuo .et {
+  display: block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: 11px;
+  color: var(--seppia);
+  margin-bottom: 6px;
+}
+.casella-residuo .cifra-grande {
+  font-family: 'Courier Prime', monospace;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  display: block;
+}
+.casella-residuo .cifra-grande .valuta {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  letter-spacing: .18em;
+  color: var(--seppia);
+  margin-right: 8px;
+}
+.casella-residuo .cifra-grande.assente { color: var(--seppia); font-weight: 400; }
+.prima-dopo {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--seppia);
+  margin-top: 5px;
+  display: block;
+}
+.prima-dopo s { color: rgba(110,90,54,.85); }
+
+/* ---------- Registro unificato: carichi e scarichi ----------
+   Una sola tabella, non due. Due tabelle affiancate sarebbero
+   più facili da costruire e direbbero una cosa falsa: che i due
+   fatti vivono in libri separati. Sono invece iscrizioni dello
+   stesso libro, ed è la tesi di ADR-009. */
+.mastro tbody tr.iscrizione-scarico { background: rgba(158,43,37,.07); }
+.mastro tbody tr.iscrizione-scarico td:first-child { border-left: 3px solid var(--carminio); }
+.mastro tbody tr.lotto-esaurito td { color: rgba(34,28,20,.55); }
+
+.marca {
+  display: inline-block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 10.5px;
+  padding: 3px 8px;
+  border: 1.5px solid var(--verde-attivo);
+  color: var(--verde-attivo);
+  border-radius: 2px;
+  background: rgba(47,107,58,.06);
+  white-space: nowrap;
+}
+.marca.scarico { border-color: var(--carminio); color: var(--carminio); background: rgba(141,35,31,.06); }
+.marca.esaurito { border-color: var(--seppia); color: var(--seppia); background: transparent; }
+
+/* Bottone reso inerte perché il carico è consumato: resta
+   visibile e spiega perché, invece di sparire senza dire nulla.
+   Un bottone scomparso non spiega la propria scomparsa, e la
+   distinzione fra errata e vendita è proprio ciò che il criterio 6
+   chiede di rendere esplicito. */
+.bottone.impedito {
+  opacity: .45;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  border-style: dashed;
+}
+.perche {
+  display: block;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 11.5px;
+  color: var(--carminio);
+  margin-top: 5px;
+  max-width: 260px;
+  white-space: normal;
+  text-align: right;
+}
+
+@media (max-width: 980px) {
+  .riquadro-residuo .contenuto { grid-template-columns: 1fr; }
+  .casella-residuo { border-left: none; border-top: 1px dotted rgba(110,90,54,.5); }
+  .casella-residuo:first-child { border-top: none; }
+  .lotto { grid-template-columns: 1fr; }
+  .lotto .esito { text-align: left; }
+}

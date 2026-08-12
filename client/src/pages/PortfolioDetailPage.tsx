@@ -1,10 +1,11 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import type { Portfolio, Position, PositionSummary, EnrichedPositionSummary, CreatePositionRequest, UpdatePositionRequest } from '@portfolia/shared';
-import { isValidIsin } from '@portfolia/shared';
-import Foglio, { dataRegistro } from '../components/Foglio.js';
+import type { Portfolio, Position, PositionSummary, EnrichedPositionSummary, CreatePositionRequest, UpdatePositionRequest, Sale, CaricoLotto, VenditaLotto } from '@portfolia/shared';
+import { isValidIsin, residuoPerIsin, rigiocaRegistro } from '@portfolia/shared';
+import Foglio, { dataRegistro, importo, prezzo } from '../components/Foglio.js';
 import SchedaTitolo from '../components/SchedaTitolo.js';
 import AggiornaObsoleti from '../components/AggiornaObsoleti.js';
+import ModuloScarico, { type TitoloScaricabile } from '../components/ModuloScarico.js';
 
 /** Formatta una data ISO-8601 (YYYY-MM-DD) in stile registro (es. "15.III.2026"). */
 const MESI_ROMANI = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -65,6 +66,14 @@ export default function PortfolioDetailPage() {
 
   // Positions state
   const [positions, setPositions] = useState<Position[]>([]);
+  // Le vendite iscritte (US-042): la seconda specie di iscrizione del registro.
+  // Vive accanto ai carichi e non dentro di essi perché è ciò che sono — due
+  // elenchi di fatti distinti, che la tabella riunisce in un solo libro (ADR-009).
+  const [sales, setSales] = useState<Sale[]>([]);
+  // L'ultima vendita iscritta in questa sessione, per il riquadro del residuo:
+  // mostra il prezzo medio ricalcolato accanto a quello che aveva **prima**, e
+  // quel «prima» si ottiene rigiocando il registro senza questa vendita.
+  const [ultimaVendita, setUltimaVendita] = useState<Sale | null>(null);
   const [summaries, setSummaries] = useState<PositionSummary[]>([]);
   const [enrichedPositions, setEnrichedPositions] = useState<EnrichedPositionSummary[]>([]);
   const [enrichedLoading, setEnrichedLoading] = useState(false);
@@ -115,6 +124,17 @@ export default function PortfolioDetailPage() {
       .then((data) => setPositions(data))
       .catch(() => setPositions([]))
       .finally(() => setPositionsLoading(false));
+  }, [id]);
+
+  const fetchSales = useCallback(() => {
+    if (!id) return;
+    fetch(`/api/portfolios/${id}/sales`)
+      .then((res) => {
+        if (!res.ok) return [];
+        return res.json() as Promise<Sale[]>;
+      })
+      .then((data) => setSales(data))
+      .catch(() => setSales([]));
   }, [id]);
 
   const fetchSummary = useCallback(() => {
@@ -181,10 +201,150 @@ export default function PortfolioDetailPage() {
   useEffect(() => {
     if (!loading && !notFound && !error) {
       fetchPositions();
+      fetchSales();
       fetchSummary();
       fetchEnriched();
     }
-  }, [loading, notFound, error, fetchPositions, fetchSummary, fetchEnriched]);
+  }, [loading, notFound, error, fetchPositions, fetchSales, fetchSummary, fetchEnriched]);
+
+  /**
+   * Il registro per ISIN — carichi e vendite — e il residuo di ogni singolo lotto.
+   *
+   * Il criterio LIFO **non è riscritto qui**: `rigiocaRegistro` è la stessa
+   * funzione pura che il server usa per iscrivere una vendita e per calcolare il
+   * residuo delle viste aggregate. Ricalcolarlo nel client non è una seconda
+   * verità ma la stessa, letta due volte: se divergesse, la fascia dei lotti
+   * mostrerebbe un'attribuzione diversa da quella su cui il prezzo medio del
+   * residuo a schermo è stato calcolato — e nulla lo segnalerebbe.
+   */
+  const registri = useMemo(() => {
+    const perIsin = new Map<string, { carichi: CaricoLotto[]; vendite: VenditaLotto[] }>();
+    for (const pos of positions) {
+      const registro = perIsin.get(pos.isin) ?? { carichi: [], vendite: [] };
+      registro.carichi.push({
+        id: pos.id,
+        loadDate: pos.loadDate,
+        loadPrice: pos.loadPrice,
+        quantity: pos.quantity,
+      });
+      perIsin.set(pos.isin, registro);
+    }
+    for (const vendita of sales) {
+      // Come sul server: un ISIN venduto ma non caricato non è un titolo del
+      // portafoglio, e non se ne crea una voce.
+      perIsin.get(vendita.isin)?.vendite.push({
+        id: vendita.id,
+        saleDate: vendita.saleDate,
+        quantity: vendita.quantity,
+      });
+    }
+    return perIsin;
+  }, [positions, sales]);
+
+  /** Quote che ogni carico ha ancora, per `id` di posizione. */
+  const residuoPerLotto = useMemo(() => {
+    const residui = new Map<number, number>();
+    for (const registro of registri.values()) {
+      for (const lotto of rigiocaRegistro(registro).lotti) {
+        residui.set(lotto.caricoId, lotto.quantitaResidua);
+      }
+    }
+    return residui;
+  }, [registri]);
+
+  /**
+   * I titoli con quantità residua: i soli vendibili.
+   *
+   * Un titolo interamente venduto resta a registro con residuo 0 — toglierlo dal
+   * riepilogo è US-044 — ma sparisce da qui, perché offrire di vendere zero quote
+   * sarebbe un rifiuto annunciato.
+   */
+  const titoliScaricabili = useMemo<TitoloScaricabile[]>(
+    () =>
+      [...registri.entries()]
+        .map(([isin, registro]) => ({
+          isin,
+          name: enrichedPositions.find((ep) => ep.isin === isin)?.name ?? null,
+          residuo: residuoPerIsin(registro).totalQuantity,
+          carichi: registro.carichi,
+          vendite: registro.vendite,
+        }))
+        .filter((t) => t.residuo > 0)
+        .sort((a, b) => (a.isin < b.isin ? -1 : 1)),
+    [registri, enrichedPositions],
+  );
+
+  /**
+   * Il registro **unificato**: carichi e scarichi nella stessa tabella, in ordine
+   * di data.
+   *
+   * Due tabelle affiancate sarebbero più facili da costruire e direbbero una cosa
+   * falsa — che i due fatti vivono in libri separati. Sono invece iscrizioni dello
+   * stesso libro, ed è esattamente la tesi di ADR-009. L'`id` scioglie il pari
+   * merito fra due iscrizioni dello stesso giorno, e a pari data un carico precede
+   * lo scarico: non si può scaricare ciò che non è ancora stato caricato, e
+   * mostrarlo al rovescio suggerirebbe il contrario.
+   */
+  const iscrizioni = useMemo(() => {
+    const righe: Array<
+      | { specie: 'carico'; data: string; ordine: number; posizione: Position }
+      | { specie: 'scarico'; data: string; ordine: number; vendita: Sale }
+    > = [
+      ...positions.map((posizione) => ({
+        specie: 'carico' as const,
+        data: posizione.loadDate,
+        ordine: 0,
+        posizione,
+      })),
+      ...sales.map((vendita) => ({
+        specie: 'scarico' as const,
+        data: vendita.saleDate,
+        ordine: 1,
+        vendita,
+      })),
+    ];
+    return righe.sort((a, b) => {
+      if (a.data !== b.data) return a.data < b.data ? -1 : 1;
+      if (a.ordine !== b.ordine) return a.ordine - b.ordine;
+      const idA = a.specie === 'carico' ? a.posizione.id : a.vendita.id;
+      const idB = b.specie === 'carico' ? b.posizione.id : b.vendita.id;
+      return idA - idB;
+    });
+  }, [positions, sales]);
+
+  /**
+   * Il residuo del titolo appena venduto, con il prezzo medio **prima** e **dopo**.
+   *
+   * Il «prima» non è memorizzato: si ottiene rigiocando lo stesso registro senza
+   * l'ultima vendita. Conservarlo in uno stato al momento dell'invio sarebbe la
+   * solita seconda copia — vera all'istante in cui è stata scritta e non
+   * necessariamente dopo, per esempio se un'altra scheda intanto ha corretto un
+   * carico.
+   */
+  const residuoDopoVendita = useMemo(() => {
+    if (!ultimaVendita) return null;
+    const registro = registri.get(ultimaVendita.isin);
+    if (!registro) return null;
+    const dopo = residuoPerIsin(registro);
+    const prima = residuoPerIsin({
+      carichi: registro.carichi,
+      vendite: registro.vendite.filter((v) => v.id !== ultimaVendita.id),
+    });
+    return { isin: ultimaVendita.isin, vendita: ultimaVendita, dopo, prima };
+  }, [ultimaVendita, registri]);
+
+  /** Rilegge l'intero registro dopo un'iscrizione di scarico. */
+  const dopoScarico = useCallback(
+    (vendita: Sale) => {
+      setUltimaVendita(vendita);
+      setPositionDeleteError(null);
+      fetchPositions();
+      fetchSales();
+      fetchSummary();
+      void fetchEnriched();
+    },
+    [fetchPositions, fetchSales, fetchSummary, fetchEnriched],
+  );
 
   /**
    * Il ricalcolo che l'aggiornamento in blocco chiama dopo ogni titolo.
@@ -647,7 +807,11 @@ export default function PortfolioDetailPage() {
                               </span>
                             </td>
                             <td className="cifra">{ep.totalQuantity.toLocaleString('it-IT')}</td>
-                            <td className="cifra euro">{ep.avgLoadPrice.toFixed(4)}</td>
+                            {/* Il medio del residuo, assente a residuo 0: il trattino
+                                dice «non esiste», uno zero direbbe «comprato a zero». */}
+                            <td className={ep.avgLoadPrice !== null ? 'cifra euro' : 'cifra dato-mancante'}>
+                              {ep.avgLoadPrice !== null ? ep.avgLoadPrice.toFixed(4) : '–'}
+                            </td>
                             <td
                               className={ep.currentPrice !== null ? 'cifra euro' : 'cifra dato-mancante'}
                               data-testid={`prezzo-attuale-${ep.isin}`}
@@ -1040,6 +1204,110 @@ export default function PortfolioDetailPage() {
               {/* Divisore */}
               <hr className="divisore-sezione" />
 
+              {/*
+                Lo scarico sta **sotto** il carico e nella stessa linguetta
+                (criterio 1): è il secondo verso della stessa operazione, e
+                confinarlo in una scheda propria suggerirebbe che sia un'altra
+                materia. La testata in carminio è ciò che rende impossibile
+                confondere i due moduli.
+              */}
+              <div className="sezione-titolo" style={{ marginTop: '32px' }}>
+                Scarico titoli &middot; registrazione di una vendita
+                <span className="nota">
+                  FR-022 &middot; la vendita è una nuova iscrizione, non la rettifica di un carico
+                </span>
+              </div>
+
+              {ultimaVendita && (
+                <div className="avviso-successo" role="status" data-testid="scarico-successo">
+                  <span className="timbro-ok">Iscritto</span>
+                  <p>
+                    Scarico di <b>{ultimaVendita.quantity}</b> quote <b>{ultimaVendita.isin}</b> del{' '}
+                    <b>{dataCarico(ultimaVendita.saleDate)}</b> a{' '}
+                    <b>€ {prezzo(ultimaVendita.salePrice)}</b> iscritto nel registro. Nessun carico è
+                    stato modificato o cancellato.
+                  </p>
+                </div>
+              )}
+
+              <ModuloScarico
+                portfolioId={id ?? ''}
+                titoli={titoliScaricabili}
+                onIscritta={dopoScarico}
+              />
+
+              {/*
+                Le due cifre che il criterio 3 chiede di leggere dopo l'operazione:
+                la quantità residua e il prezzo medio **ricalcolato**, quest'ultimo
+                accanto al valore che aveva prima. Il ricalcolo è il fatto — non
+                l'assestamento di una cifra qualunque — e mostrarlo senza il termine
+                di confronto lo renderebbe invisibile.
+              */}
+              {residuoDopoVendita && (
+                <div
+                  className={`riquadro-residuo${residuoDopoVendita.dopo.totalQuantity === 0 ? ' chiuso' : ''}`}
+                  data-testid="riquadro-residuo"
+                >
+                  <div className="fascia-colore" />
+                  <div className="contenuto">
+                    <div className="casella-residuo">
+                      <span className="et">Quantità residua</span>
+                      <span className="cifra-grande" data-testid="residuo-quantita">
+                        {residuoDopoVendita.dopo.totalQuantity.toLocaleString('it-IT')}
+                      </span>
+                      <span className="prima-dopo">
+                        Σ carichi {residuoDopoVendita.dopo.loadedQuantity.toLocaleString('it-IT')} − Σ
+                        vendite {residuoDopoVendita.dopo.soldQuantity.toLocaleString('it-IT')}
+                      </span>
+                    </div>
+                    <div className="casella-residuo">
+                      <span className="et">Prezzo medio del residuo</span>
+                      {residuoDopoVendita.dopo.avgLoadPrice !== null ? (
+                        <span className="cifra-grande" data-testid="residuo-prezzo-medio">
+                          <span className="valuta">EUR</span>
+                          {prezzo(residuoDopoVendita.dopo.avgLoadPrice)}
+                        </span>
+                      ) : (
+                        /* A residuo 0 non esiste un residuo su cui calcolare la
+                           media: si dichiara assente, mai «0,0000» (ADR-003). */
+                        <span
+                          className="cifra-grande assente dato-mancante"
+                          data-testid="residuo-prezzo-medio"
+                        >
+                          —
+                        </span>
+                      )}
+                      <span className="prima-dopo">
+                        {residuoDopoVendita.prima.avgLoadPrice !== null ? (
+                          <>
+                            prima dell&apos;operazione{' '}
+                            <s>€ {prezzo(residuoDopoVendita.prima.avgLoadPrice)}</s> — ricalcolato sui
+                            soli lotti non consumati
+                          </>
+                        ) : (
+                          <>ricalcolato sui soli lotti non consumati</>
+                        )}
+                      </span>
+                    </div>
+                    <div className="casella-residuo">
+                      <span className="et">Controvalore di carico residuo</span>
+                      <span className="cifra-grande" data-testid="residuo-controvalore">
+                        <span className="valuta">EUR</span>
+                        {importo(residuoDopoVendita.dopo.totalLoadValue)}
+                      </span>
+                      <span className="prima-dopo">
+                        {residuoDopoVendita.dopo.totalQuantity === 0
+                          ? 'il titolo contribuisce 0 al valore attuale del portafoglio'
+                          : 'nessun carico modificato: il registro conserva tutte le iscrizioni'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Divisore */}
+              <hr className="divisore-sezione" />
+
               {/* Sezione tabella posizioni aggregate per ISIN */}
               <div className="sezione-titolo" style={{ marginTop: '32px' }}>
                 Titoli iscritti a conto
@@ -1053,7 +1321,9 @@ export default function PortfolioDetailPage() {
                   <thead>
                     <tr>
                       <th>Titolo (ISIN)</th>
-                      <th>Quantità totale</th>
+                      {/* «Residua» e non «totale» da US-042: le vendite iscritte ne
+                          hanno consumato quote, e i carichi restano tutti a registro. */}
+                      <th>Quantità residua</th>
                       <th>Prezzo medio carico</th>
                       <th>Controvalore carico</th>
                     </tr>
@@ -1079,7 +1349,9 @@ export default function PortfolioDetailPage() {
                             <span className="voce">{summary.isin}</span>
                           </td>
                           <td className="cifra">{summary.totalQuantity}</td>
-                          <td className="cifra euro">{summary.avgLoadPrice.toFixed(4)}</td>
+                          <td className={summary.avgLoadPrice !== null ? 'cifra euro' : 'cifra dato-mancante'}>
+                            {summary.avgLoadPrice !== null ? summary.avgLoadPrice.toFixed(4) : '—'}
+                          </td>
                           <td className="cifra euro">{summary.totalLoadValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         </tr>
                       ))
@@ -1101,10 +1373,12 @@ export default function PortfolioDetailPage() {
               {/* Divisore registro carichi */}
               <hr className="divisore-sezione" />
 
-              {/* Sezione registro carichi (ledger completo) */}
+              {/* Sezione registro delle iscrizioni: carichi e scarichi (ledger completo) */}
               <div className="sezione-titolo" style={{ marginTop: '32px' }}>
-                Registro carichi
-                <span className="nota">tutte le iscrizioni individuali</span>
+                Registro delle iscrizioni
+                <span className="nota">
+                  carichi e scarichi in ordine di data &middot; nessuna riga è mai riscritta
+                </span>
               </div>
 
               {positionDeleteError && (
@@ -1117,30 +1391,81 @@ export default function PortfolioDetailPage() {
                 <table className="mastro" data-testid="tabella-registro-carichi">
                   <thead>
                     <tr>
+                      <th>Iscrizione</th>
                       <th>Titolo (ISIN)</th>
-                      <th>Data carico</th>
-                      <th>Prezzo carico</th>
+                      <th>Data</th>
+                      <th>Prezzo</th>
                       <th>Quantità</th>
-                      <th>Controvalore carico</th>
+                      <th>Controvalore</th>
+                      <th>Residuo del lotto</th>
                       <th>Azioni</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {positions.length === 0 ? (
+                    {iscrizioni.length === 0 ? (
                       <tr className="riga-vuota">
-                        <td colSpan={6}>
+                        <td colSpan={8}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                             <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '20px', fontWeight: 700, opacity: .45 }}>
-                              Nessun carico registrato
+                              Nessuna iscrizione registrata
                             </span>
                           </div>
                         </td>
                       </tr>
                     ) : (
-                      positions.map((pos) => (
-                        editingPositionId === pos.id ? (
+                      iscrizioni.map((iscrizione) => {
+                        if (iscrizione.specie === 'scarico') {
+                          const { vendita } = iscrizione;
+                          return (
+                            /* Lo scarico è una riga della **stessa** tabella, distinta
+                               dalla marca in prima colonna. Il «Residuo del lotto» non
+                               si applica: una vendita non è un lotto, e scriverci 0
+                               affermerebbe che un lotto è esaurito. */
+                            <tr
+                              key={`scarico-${vendita.id}`}
+                              className={`iscrizione-scarico${ultimaVendita?.id === vendita.id ? ' riga-nuova' : ''}`}
+                              data-testid={`scarico-${vendita.id}`}
+                            >
+                              <td>
+                                <span className="marca scarico">Scarico</span>
+                              </td>
+                              <td>
+                                <span className="voce">{vendita.isin}</span>
+                              </td>
+                              <td className="cifra">{dataCarico(vendita.saleDate)}</td>
+                              <td className="cifra euro">{prezzo(vendita.salePrice)}</td>
+                              <td className="cifra">{vendita.quantity}</td>
+                              <td className="cifra euro">{importo(vendita.salePrice * vendita.quantity)}</td>
+                              <td className="cifra dato-mancante">—</td>
+                              <td />
+                            </tr>
+                          );
+                        }
+                        const pos = iscrizione.posizione;
+                        // Il residuo del lotto: `undefined` solo nell'istante fra la
+                        // POST di un carico e la rilettura del registro, e in quel
+                        // caso la quantità nominale è la risposta giusta — nessuna
+                        // vendita può ancora averlo toccato.
+                        const residuo = residuoPerLotto.get(pos.id) ?? pos.quantity;
+                        const consumato = residuo < pos.quantity;
+                        // La ragione, scritta sotto i comandi resi inerti: la versione
+                        // breve che sta in una colonna, mentre il testo completo arriva
+                        // dal server con il 409. Entrambe le varianti nominano **la
+                        // vendita e l'errata** e non solo la misura del consumo — è la
+                        // distinzione che il criterio 6 chiede di rendere esplicita, e
+                        // ometterla nel caso parziale la renderebbe leggibile solo su
+                        // metà dei lotti impediti.
+                        const perche = consumato
+                          ? residuo === 0
+                            ? 'consumato da una vendita: si rettifica solo un\'iscrizione errata'
+                            : `consumato in parte (${pos.quantity - residuo} quote su ${pos.quantity}) da una vendita: si rettifica solo un'iscrizione errata`
+                          : null;
+                        return editingPositionId === pos.id ? (
                           /* ── Form inline modifica ── */
                           <tr key={pos.id} data-testid={`edit-riga-${pos.id}`}>
+                            <td>
+                              <span className="marca">Carico</span>
+                            </td>
                             <td>
                               <span className="voce">{pos.isin}</span>
                             </td>
@@ -1179,6 +1504,7 @@ export default function PortfolioDetailPage() {
                               />
                             </td>
                             <td className="cifra euro">—</td>
+                            <td className="cifra">{residuo}</td>
                             <td>
                               {editError && (
                                 <span
@@ -1215,9 +1541,14 @@ export default function PortfolioDetailPage() {
                           /* ── Riga normale ── */
                           <tr
                             key={pos.id}
-                            className={pos.id === newPositionId ? 'riga-nuova' : ''}
+                            className={`${pos.id === newPositionId ? 'riga-nuova' : ''}${residuo === 0 ? ' lotto-esaurito' : ''}`.trim()}
                             data-testid={`posizione-${pos.id}`}
                           >
+                            <td>
+                              <span className={residuo === 0 ? 'marca esaurito' : 'marca'}>
+                                {residuo === 0 ? 'Carico · esaurito' : 'Carico'}
+                              </span>
+                            </td>
                             <td>
                               <span className="voce">{pos.isin}</span>
                             </td>
@@ -1225,11 +1556,24 @@ export default function PortfolioDetailPage() {
                             <td className="cifra euro">{pos.loadPrice.toFixed(4)}</td>
                             <td className="cifra">{pos.quantity}</td>
                             <td className="cifra euro">{(pos.loadPrice * pos.quantity).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td className="cifra" data-testid={`residuo-lotto-${pos.id}`}>{residuo}</td>
                             <td>
+                              {/*
+                                Sul carico consumato i due comandi **non spariscono**:
+                                restano al loro posto, tratteggiati e inerti, con la
+                                ragione scritta sotto. Un bottone scomparso non spiega
+                                la propria scomparsa, e la distinzione fra la
+                                correzione di un'iscrizione errata e la vendita è
+                                proprio ciò che il criterio 6 chiede di rendere
+                                esplicito. `disabled` e non un `onClick` che avvisa: il
+                                comando è impossibile, non solo sconsigliato — e il
+                                server risponde comunque 409 se qualcuno lo forza.
+                              */}
                               <button
                                 type="button"
-                                className="bottone secondario"
+                                className={`bottone secondario${consumato ? ' impedito' : ''}`}
                                 data-testid={`btn-modifica-${pos.id}`}
+                                disabled={consumato}
                                 onClick={() => startEdit(pos)}
                                 style={{ marginRight: '4px' }}
                               >
@@ -1237,26 +1581,47 @@ export default function PortfolioDetailPage() {
                               </button>
                               <button
                                 type="button"
-                                className="bottone rosso"
+                                className={`bottone rosso${consumato ? ' impedito' : ''}`}
                                 data-testid={`btn-rimuovi-${pos.id}`}
-                                disabled={deletingPositionId === pos.id}
+                                disabled={consumato || deletingPositionId === pos.id}
                                 onClick={() => { void handleDeletePosition(pos.id); }}
                               >
                                 {deletingPositionId === pos.id ? 'Rimozione…' : 'Rimuovi'}
                               </button>
+                              {perche && (
+                                <span className="perche" data-testid={`perche-impedito-${pos.id}`}>
+                                  {perche}
+                                </span>
+                              )}
                             </td>
                           </tr>
-                        )
-                      ))
+                        );
+                      })
                     )}
                   </tbody>
-                  {positions.length > 0 && (
+                  {iscrizioni.length > 0 && (
                     <tfoot>
+                      {/*
+                        Solo il controvalore, e **non** un totale di quantità. Il
+                        registro elenca tutti gli ISIN del portafoglio, e sommare le
+                        quote di titoli diversi produrrebbe un numero che non misura
+                        nulla: «600 + 100 quote» di due strumenti distinti non è una
+                        quantità. Gli euro invece si sommano, ed è la stessa riga di
+                        totale che questa tabella aveva prima di US-042 — misurata
+                        ora sul residuo invece che sul nominale.
+                      */}
                       <tr>
-                        <td colSpan={5}>Totale controvalore carico</td>
-                        <td className="cifra euro">
-                          {positions.reduce((sum, p) => sum + p.loadPrice * p.quantity, 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        <td colSpan={5}>Controvalore di carico del residuo</td>
+                        <td className="cifra euro" data-testid="registro-controvalore-residuo">
+                          {importo(
+                            positions.reduce(
+                              (somma, p) => somma + p.loadPrice * (residuoPerLotto.get(p.id) ?? p.quantity),
+                              0,
+                            ),
+                          )}
                         </td>
+                        <td />
+                        <td />
                       </tr>
                     </tfoot>
                   )}

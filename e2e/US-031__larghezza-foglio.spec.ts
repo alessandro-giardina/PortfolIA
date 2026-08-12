@@ -104,7 +104,11 @@ test('demo: su un monitor largo il foglio misura 1440px e resta centrato', async
   // ─── 3. Carico titoli: il modulo resta nella colonna di lettura ───────────
   await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
 
-  const modulo = page.locator('.riquadro-modulo');
+  // `:not(.scarico)` da US-042: la linguetta porta ora **due** moduli — carico e
+  // scarico — e `.riquadro-modulo` da solo violerebbe lo strict mode. La misura
+  // riguarda il modulo di carico, che è quello che questo scenario ha sempre
+  // misurato: la modifica è al selettore, non all'asserzione.
+  const modulo = page.locator('.riquadro-modulo:not(.scarico)');
   await expect(modulo).toBeVisible({ timeout: 8000 });
   await expect(page.getByTestId('input-isin')).toBeVisible();
 

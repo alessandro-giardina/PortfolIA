@@ -6,116 +6,129 @@ tasks:
     title: Creare la tabella sales e la sua migrazione
     description: 'Nuova tabella `sales` in server/src/db/schema.ts (id, portfolio_id con FK ON DELETE CASCADE, isin, sale_date TEXT ISO, sale_price REAL, quantity INTEGER, created_at) e migrazione Drizzle generata con drizzle-kit. Nessun campo calcolato persistito: né P&L realizzato né quantità residua del lotto, che ADR-009 vuole derivati dal registro. La cascade è necessaria alla teardown della fixture archivio degli E2E.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'Nuova tabella `sales` in server/src/db/schema.ts (id, portfolio_id con FK ON DELETE CASCADE, isin, sale_date TEXT ISO, sale_price REAL, quantity INTEGER, created_at) e migrazione Drizzle generata con drizzle-kit. Nessun campo calcolato persistito: né P&L realizzato né quantità residua del lotto, che ADR-009 vuole derivati dal registro. La cascade è necessaria alla teardown della fixture archivio degli E2E.'
+    ref: TASK-01
   - id: TASK-02
     title: Scrivere il dominio puro dell'attribuzione LIFO
     description: 'Nuovo shared/domain/lottiLifo.ts, puro come i tre moduli fratelli, affacciato da shared/types/index.ts. rigiocaRegistro({carichi, vendite}) ordina le vendite per (saleDate, id) e consuma i lotti con loadDate <= saleDate in ordine (loadDate, id) decrescente attingendo alla quantità residua del lotto; restituisce residuo per lotto, attribuzioni e costo attribuito per vendita, ed eventuale scoperto. Attorno: quantitaDisponibileA, verificaVendita con i due esiti distinti quantita-eccedente e anteriore-al-carico, residuoPerIsin con prezzoMedioResiduo null a residuo 0.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'Nuovo shared/domain/lottiLifo.ts, puro come i tre moduli fratelli, affacciato da shared/types/index.ts. rigiocaRegistro({carichi, vendite}) ordina le vendite per (saleDate, id) e consuma i lotti con loadDate <= saleDate in ordine (loadDate, id) decrescente attingendo alla quantità residua del lotto; restituisce residuo per lotto, attribuzioni e costo attribuito per vendita, ed eventuale scoperto. Attorno: quantitaDisponibileA, verificaVendita con i due esiti distinti quantita-eccedente e anteriore-al-carico, residuoPerIsin con prezzoMedioResiduo null a residuo 0.'
+    ref: TASK-02
   - id: TASK-03
     title: Coprire con test unitari l'ordine LIFO e le sue invarianti
     description: 'Nuovo server/tests/lottiLifo.test.ts: lotto più recente consumato per primo, consumo che attraversa più lotti, consumo parziale, due vendite in sequenza senza doppio consumo, pari merito fra carichi dello stesso giorno sciolto dall''id, lotti successivi alla data di vendita esclusi, quantitaDisponibileA con estremo incluso, prezzoMedioResiduo ricalcolato sui soli lotti non consumati e null a residuo 0, i due esiti di verificaVendita distinti, le invarianti quantitaResidua >= 0 e costoAttribuito + costoResiduo = costo dei carichi, e il registro senza vendite che restituisce la media ponderata di prima.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
     body: 'Nuovo server/tests/lottiLifo.test.ts: lotto più recente consumato per primo, consumo che attraversa più lotti, consumo parziale, due vendite in sequenza senza doppio consumo, pari merito fra carichi dello stesso giorno sciolto dall''id, lotti successivi alla data di vendita esclusi, quantitaDisponibileA con estremo incluso, prezzoMedioResiduo ricalcolato sui soli lotti non consumati e null a residuo 0, i due esiti di verificaVendita distinti, le invarianti quantitaResidua >= 0 e costoAttribuito + costoResiduo = costo dei carichi, e il registro senza vendite che restituisce la media ponderata di prima.'
+    ref: TASK-03
   - id: TASK-04
     title: Estendere i tipi condivisi con la vendita e il residuo
     description: 'In shared/types/index.ts: Sale, CreateSaleRequest; campi loadedQuantity e soldQuantity su PositionSummary, EnrichedPositionSummary e PositionDetail, con totalQuantity ridefinita come quantità residua; avgLoadPrice e i valori che ne discendono (totalLoadValue, difference, differencePercent) diventano number | null perché a residuo 0 il prezzo medio non esiste e uno zero sarebbe inventato (ADR-003); residualQuantity su ogni carico esposto in PositionDetail.loads.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
     body: 'In shared/types/index.ts: Sale, CreateSaleRequest; campi loadedQuantity e soldQuantity su PositionSummary, EnrichedPositionSummary e PositionDetail, con totalQuantity ridefinita come quantità residua; avgLoadPrice e i valori che ne discendono (totalLoadValue, difference, differencePercent) diventano number | null perché a residuo 0 il prezzo medio non esiste e uno zero sarebbe inventato (ADR-003); residualQuantity su ogni carico esposto in PositionDetail.loads.'
+    ref: TASK-04
   - id: TASK-05
     title: Esporre POST e GET delle vendite
     description: Nuove rotte POST e GET /api/portfolios/:id/sales in server/src/api (fuori dal prefisso /positions, che ha già vincoli d'ordine di registrazione delicati). Validazione nell'ordine portafoglio, ISIN, data ISO, prezzo positivo, quantità intera positiva e infine verificaVendita, che sola produce i due messaggi distinti dei criteri 4 e 5. Risposte 201, 400 con messaggio esplicito, 404. La GET elenca per (sale_date, id).
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
       - TASK-02
       - TASK-04
     body: Nuove rotte POST e GET /api/portfolios/:id/sales in server/src/api (fuori dal prefisso /positions, che ha già vincoli d'ordine di registrazione delicati). Validazione nell'ordine portafoglio, ISIN, data ISO, prezzo positivo, quantità intera positiva e infine verificaVendita, che sola produce i due messaggi distinti dei criteri 4 e 5. Risposte 201, 400 con messaggio esplicito, 404. La GET elenca per (sale_date, id).
+    ref: TASK-05
   - id: TASK-06
     title: Portare le tre viste aggregate sul residuo LIFO
     description: 'GET /positions/summary, /positions/enriched e /positions/:isin/detail smettono di aggregare in SQL (SUM e media ponderata non sanno fare LIFO né sottrarre le vendite) e delegano al dominio leggendo positions e sales, come US-038 ha già fatto per il P&L da carico. totalQuantity diventa la quantità residua, avgLoadPrice il medio dei soli lotti non consumati, e PositionDetail.loads porta la residualQuantity di ogni lotto. Un ISIN interamente venduto resta elencato con quantità 0 e contribuisce 0 al valore attuale: toglierlo è US-044.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
       - TASK-04
     body: 'GET /positions/summary, /positions/enriched e /positions/:isin/detail smettono di aggregare in SQL (SUM e media ponderata non sanno fare LIFO né sottrarre le vendite) e delegano al dominio leggendo positions e sales, come US-038 ha già fatto per il P&L da carico. totalQuantity diventa la quantità residua, avgLoadPrice il medio dei soli lotti non consumati, e PositionDetail.loads porta la residualQuantity di ogni lotto. Un ISIN interamente venduto resta elencato con quantità 0 e contribuisce 0 al valore attuale: toglierlo è US-044.'
+    ref: TASK-06
   - id: TASK-07
     title: Impedire modifica e rimozione di un carico consumato
     description: 'DELETE e PATCH di /api/portfolios/:portfolioId/positions/:positionId rigiocano il registro e rispondono 409 Conflict quando il lotto ha residuo inferiore alla quantità nominale, con il messaggio che distingue la correzione di un''iscrizione errata dalla vendita. 409 e non 400 perché la richiesta è ben formata ed è lo stato del registro a renderla impossibile. La PATCH è inclusa per FR-024: cambiare prezzo o data di un lotto consumato riscriverebbe a posteriori il costo attribuito a una vendita già iscritta.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
       - TASK-06
     body: 'DELETE e PATCH di /api/portfolios/:portfolioId/positions/:positionId rigiocano il registro e rispondono 409 Conflict quando il lotto ha residuo inferiore alla quantità nominale, con il messaggio che distingue la correzione di un''iscrizione errata dalla vendita. 409 e non 400 perché la richiesta è ben formata ed è lo stato del registro a renderla impossibile. La PATCH è inclusa per FR-024: cambiare prezzo o data di un lotto consumato riscriverebbe a posteriori il costo attribuito a una vendita già iscritta.'
+    ref: TASK-07
   - id: TASK-08
     title: Verificare le rotte delle vendite e la regressione delle viste
     description: 'Nuovo server/tests/api.sales.test.ts: 201 con i carichi riletti e confrontati campo per campo (il criterio 2 va asserito, non dedotto), i due 400 con i rispettivi messaggi distinti, 404, le validazioni di formato, la GET ordinata, e summary/enriched/detail che dopo la vendita riportano residuo, medio ricalcolato e i nuovi campi. Regressione: api.positions.summary/enriched/detail devono passare invariati in assenza di vendite, perché il passaggio dal SQL al dominio non deve muovere un centesimo.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-05
       - TASK-06
     body: 'Nuovo server/tests/api.sales.test.ts: 201 con i carichi riletti e confrontati campo per campo (il criterio 2 va asserito, non dedotto), i due 400 con i rispettivi messaggi distinti, 404, le validazioni di formato, la GET ordinata, e summary/enriched/detail che dopo la vendita riportano residuo, medio ricalcolato e i nuovi campi. Regressione: api.positions.summary/enriched/detail devono passare invariati in assenza di vendite, perché il passaggio dal SQL al dominio non deve muovere un centesimo.'
+    ref: TASK-08
   - id: TASK-09
     title: Verificare la guardia sul carico consumato
     description: 'Nuovo server/tests/api.positions.consumati.test.ts: DELETE e PATCH di un lotto consumato rispondono 409 con il messaggio che distingue errata e vendita; un consumo anche solo parziale basta a impedire; la DELETE di un lotto non consumato risponde ancora 204.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-07
     body: 'Nuovo server/tests/api.positions.consumati.test.ts: DELETE e PATCH di un lotto consumato rispondono 409 con il messaggio che distingue errata e vendita; un consumo anche solo parziale basta a impedire; la DELETE di un lotto non consumato risponde ancora 204.'
+    ref: TASK-09
   - id: TASK-10
     title: Costruire il modulo di scarico e la fascia dei lotti
     description: 'Nuovi client/src/components/ModuloScarico.tsx (titolo con la sua giacenza, data, prezzo, quantità, i due banner di rifiuto, invio) e FasciaLifo.tsx, seguendo docs/mockups/US-042/index.html e rifiuti.html: barre proporzionali disposte dal più recente al più antico, quota consumata tratteggiata e quota residua piena, lotto successivo alla data di vendita mostrato tratteggiato e dichiarato fuori data invece che nascosto. Componenti propri e non righe in più su PortfolioDetailPage.tsx, già a 1271 righe.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-04
       - TASK-05
     body: 'Nuovi client/src/components/ModuloScarico.tsx (titolo con la sua giacenza, data, prezzo, quantità, i due banner di rifiuto, invio) e FasciaLifo.tsx, seguendo docs/mockups/US-042/index.html e rifiuti.html: barre proporzionali disposte dal più recente al più antico, quota consumata tratteggiata e quota residua piena, lotto successivo alla data di vendita mostrato tratteggiato e dichiarato fuori data invece che nascosto. Componenti propri e non righe in più su PortfolioDetailPage.tsx, già a 1271 righe.'
+    ref: TASK-10
   - id: TASK-11
     title: Innestare registro unificato, residuo e comandi impediti nella pagina
     description: 'In PortfolioDetailPage.tsx, linguetta Carico titoli: il modulo di scarico sotto quello di carico (criterio 1), il registro unificato con carichi e scarichi nella stessa tabella distinti da una marca, il riquadro del residuo con il prezzo medio ricalcolato accanto al valore precedente, e sui lotti consumati i comandi Modifica e Rimuovi resi inerti con la ragione scritta sotto. I tre punti di resa di avgLoadPrice mostrano il trattino con la classe dato-mancante quando è null. Stili nuovi in coda a client/src/ledger.css da docs/mockups/US-042/shared.css, senza riscrivere regole esistenti.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-06
       - TASK-07
       - TASK-10
     body: 'In PortfolioDetailPage.tsx, linguetta Carico titoli: il modulo di scarico sotto quello di carico (criterio 1), il registro unificato con carichi e scarichi nella stessa tabella distinti da una marca, il riquadro del residuo con il prezzo medio ricalcolato accanto al valore precedente, e sui lotti consumati i comandi Modifica e Rimuovi resi inerti con la ragione scritta sotto. I tre punti di resa di avgLoadPrice mostrano il trattino con la classe dato-mancante quando è null. Stili nuovi in coda a client/src/ledger.css da docs/mockups/US-042/shared.css, senza riscrivere regole esistenti.'
+    ref: TASK-11
   - id: TASK-12
     title: Girare lo scenario dimostrativo E2E della vendita LIFO
     description: 'Nuovo e2e/US-042__registra-vendita-lifo.spec.ts con video in docs/test-results/US-042/ e nuova costante TITOLO_US_042 in e2e/support/titoli.ts (ISIN mai usato altrove, dichiarato con il suo file proprietario). Due carichi da 600 e 400 quote in giorni indietro da adesso, mai date fisse: vendita di 400 quote, il registro mostra la nuova iscrizione di scarico, i carichi restano, il residuo passa a 600 con il medio ricalcolato; vendita delle restanti 600, residuo 0 con prezzo medio dichiarato assente e nessun carico cancellato. Fixture archivio, nessun try/finally.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-11
     body: 'Nuovo e2e/US-042__registra-vendita-lifo.spec.ts con video in docs/test-results/US-042/ e nuova costante TITOLO_US_042 in e2e/support/titoli.ts (ISIN mai usato altrove, dichiarato con il suo file proprietario). Due carichi da 600 e 400 quote in giorni indietro da adesso, mai date fisse: vendita di 400 quote, il registro mostra la nuova iscrizione di scarico, i carichi restano, il residuo passa a 600 con il medio ricalcolato; vendita delle restanti 600, residuo 0 con prezzo medio dichiarato assente e nessun carico cancellato. Fixture archivio, nessun try/finally.'
+    ref: TASK-12
   - id: TASK-13
     title: Coprire con E2E i rifiuti e il residuo nel riepilogo
     description: 'Nuovo e2e/US-042__vendita-rifiuti.spec.ts, senza video: il rifiuto per quantità eccedente che nomina la disponibile e non lascia alcuna iscrizione; il rifiuto per data anteriore al carico, con verifica che i due testi non coincidano; il lotto consumato con i comandi inerti e il 409 via API mentre il lotto intatto resta rimovibile; il valore attuale del titolo nel riepilogo calcolato sulle quote residue e non su quelle caricate, con l''incasso assente da ogni totale.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-11
       - TASK-12
     body: 'Nuovo e2e/US-042__vendita-rifiuti.spec.ts, senza video: il rifiuto per quantità eccedente che nomina la disponibile e non lascia alcuna iscrizione; il rifiuto per data anteriore al carico, con verifica che i due testi non coincidano; il lotto consumato con i comandi inerti e il 409 via API mentre il lotto intatto resta rimovibile; il valore attuale del titolo nel riepilogo calcolato sulle quote residue e non su quelle caricate, con l''incasso assente da ogni totale.'
+    ref: TASK-13
   - id: TASK-14
     title: Chiudere con la verifica completa
     description: 'npm run check (lint, typecheck, typecheck:e2e, check:chiavi, test:e2e-support, unit) e npx playwright test: tutti verdi, nessun residuo lasciato in archivio dalla suite, video dimostrativo presente in docs/test-results/US-042/.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
       - TASK-08
@@ -123,3 +136,4 @@ tasks:
       - TASK-12
       - TASK-13
     body: 'npm run check (lint, typecheck, typecheck:e2e, check:chiavi, test:e2e-support, unit) e npx playwright test: tutti verdi, nessun residuo lasciato in archivio dalla suite, video dimostrativo presente in docs/test-results/US-042/.'
+    ref: TASK-14
