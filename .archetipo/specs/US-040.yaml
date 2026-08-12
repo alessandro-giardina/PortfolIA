@@ -6,7 +6,7 @@ epic:
   title: Fondazione del progetto
 priority: HIGH
 points: 3
-status: TODO
+status: PLANNED
 body: |-
   #### US-040: Rendere esclusiva di ogni file la chiave seminata nella cache prezzi
 
@@ -35,3 +35,5 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-12T11:50:22Z"
+  - status: PLANNED
+    at: "2026-08-12T12:04:31Z"

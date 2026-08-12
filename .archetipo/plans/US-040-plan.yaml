@@ -1,0 +1,190 @@
+schema: archetipo/plan/v2
+spec_code: US-040
+body: |
+  # US-040: Rendere esclusiva di ogni file la chiave seminata nella cache prezzi — Piano di implementazione
+
+  **Generato da:** Team di planning ARchetipo
+  **Data:** 2026-08-12
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-000 — Fondazione del progetto
+  **Priorità:** HIGH | **Punti:** 3
+
+  **User Story**
+  Come sviluppatore che estende la suite E2E,
+  voglio che ogni file di spec possieda in esclusiva gli ISIN che semina, e che un controllo automatico lo verifichi,
+  in modo da non dover ricordare a memoria una regola la cui violazione lascia residuo irrecuperabile nell'archivio.
+
+  **Criteri di accettazione**
+  - [ ] Nessun ISIN seminato con `seminaTitolo` appartiene a due file di spec diversi
+  - [ ] Nessun file usa come letterale un ISIN seminato da un altro file senza costruirsi la propria premessa
+  - [ ] Un controllo automatico incluso in `npm run check` fallisce quando due file dichiarano la stessa chiave
+  - [ ] La suite completa passa dopo la bonifica, e nessuna spec cambia ciò che asserisce
+
+  ---
+
+  ## Soluzione tecnica
+
+  Oggi la regola un-ISIN-per-file vive in prosa — la testata di `e2e/support/titoli.ts` e il `CLAUDE.md` — e l'appartenenza di ogni chiave è affermata in un commento («Riservato a `US-0NN__….spec.ts`») che nessuno verifica. Il rimedio non è scrivere la regola meglio: è renderla **un dato del codice**, e sottoporre quel dato a un controllo eseguibile. Da qui tre mosse, in quest'ordine.
+
+  **1. L'appartenenza entra nel tipo.** `titoli.ts` guadagna `ChiaveRiservata { isin: string; file: string; lettoDa?: string[] }`, e `TitoloSeminabile` la estende aggiungendo `campi`. Ogni costante dichiara quindi il file che la possiede, e le quattro costanti oggi di tipo `string` (`ISIN_SENZA_ANAGRAFICA_US_018`, `ISIN_SENZA_PREZZO_US_032`, `ISIN_MAI_RILEVATO_US_034`, `ISIN_GUARDIA_US_035`) diventano oggetti come le altre: sono chiavi *rimosse* invece che seminate, ma rimuovere e ripristinare è la stessa pila di undo, quindi vale la stessa riserva e non può esistere una scorciatoia che le sottragga al controllo. Il campo `lettoDa` esiste per il caso legittimo e oggi già presente — `US-027__dialog-elenco-portafogli.spec.ts` importa `TITOLO_US_027` per servirne i campi con `route.fulfill()` senza mai toccare l'archivio: la lettura resta permessa, ma smette di essere tacita e diventa una riga che si rivede in code review.
+
+  **2. Il registro si deriva, non si scrive.** Il controllo importa `titoli.ts` e raccoglie le voci scorrendo gli export del modulo (`Object.entries`), appiattendo gli array (`TITOLI_US_035_OBSOLETI`, `TITOLI_US_035_VARIANTI`). Nessuna seconda lista da tenere allineata: aggiungere una costante la registra, e dimenticarsi di registrarla è impossibile per costruzione. Lo stesso passaggio dà anche la mappa `nome della costante → ISIN`, che serve al punto 3 per risolvere le costanti importate.
+
+  **3. Le regole, eseguibili.** Lo script legge ogni `e2e/*.spec.ts` e ne ricava l'insieme degli ISIN *riferiti*: i letterali che corrispondono al formato ISIN, più gli ISIN delle costanti importate da `./support/titoli.js`. Poi applica quattro regole, ciascuna scritta contro un modo concreto di rompere l'archivio:
+
+  | Regola | Cosa vieta | Perché
+  |---|---|---|
+  | R1 | Due voci di registro con lo stesso ISIN e file proprietario diverso | È la collisione che rende il ripristino uno stack di undo intrecciato: l'ultimo a ripristinare torna allo stato lasciato dall'altro, e l'informazione sull'originale è già persa |
+  | R2 | Un file che riferisce un ISIN di cui non è proprietario e in cui non compare fra i `lettoDa` | È il difetto del criterio 2: la premessa è ereditata da un altro file invece che costruita |
+  | R3 | Un ISIN presente in due o più file di spec e assente dal registro | Senza questa, due file potrebbero inventarsi lo stesso letterale e sfuggire a R1 e R2 |
+  | R4 | Una voce di registro il cui file proprietario non esiste, o non la riferisce mai | Tiene onesto `titoli.ts`: una riserva morta è una chiave che nessuno controlla più |
+  | R5 | Un letterale ISIN passato direttamente a `seminaTitolo`/`rimuoviTitolo`/`seminaOsservazioni`/`rimuoviOsservazioni` | Seminare fuori dal registro è la scorciatoia che aggirerebbe tutto quanto sopra |
+
+  Il controllo vive in `e2e/support/verifica-chiavi.ts`, separato in una funzione pura (`trovaViolazioni(voci, riferimentiPerFile)`) e un guscio CLI che legge il filesystem, stampa le violazioni in modo leggibile ed esce con codice 1. Gira in due punti: come passo di `npm run check` (`npm run check:chiavi`, subito dopo `typecheck:e2e`, dove costa niente e fallisce presto) e dentro `globalSetup`, così chi lancia `npx playwright test` in locale vede l'errore prima dei test e non dentro.
+
+  **4. La bonifica delle chiavi odierne.** Il censimento trova più di quanto la spec dichiara:
+
+  | Chiave | Situazione attuale | Rimedio |
+  |---|---|---|
+  | `IE00BFY0GT14` | Seminata da `TITOLO_US_009` **e** da `TITOLO_US_032` | Nuovo ISIN riservato a `US-009__storico-prezzi.spec.ts` |
+  | `IE00B3XXRP09` | Seminata da `TITOLO_US_009_VARIANTI` **e** dal terzo titolo di `TITOLI_US_035_OBSOLETI` — collisione non dichiarata dalla spec, ma identica alla prima | Nuovo ISIN riservato a `US-009__storico-prezzi-varianti.spec.ts` |
+  | `IE00B3RBWM25` | Seminata da `TITOLO_US_034_OBSOLETO`, usata come letterale da US-011, US-012, US-013 | Ogni file riceve la propria seconda chiave e semina la propria premessa |
+  | `IE00B4L5Y983` | Seminata da `TITOLO_US_025`, usata come letterale da US-011, US-012, US-013, US-017, US-026 (due file), US-031 (due file) | Otto chiavi nuove, una per file, ciascuna seminata dal proprio file |
+  | `IE00BJRHVJ28` | Seminata da US-014 con un letterale locale; usata come dato di stub da US-008 e da `fallback-morningstar` — **ed è anche il placeholder** mostrato in `client/src/pages/PortfolioDetailPage.tsx:925`, quindi un `toContainText` su quell'ISIN può essere soddisfatto dal segnaposto invece che dal dato | US-014 riceve chiavi proprie nel registro, distinte da entrambi i placeholder del client; la coppia solo-stub resta condivisa ma **dichiarata** (proprietario US-008, `lettoDa` il file del fallback) |
+  | `IE00BMVB5S82` | Usata come dato di stub da US-007 e da `demo__recupera-anagrafica-isin` | Voce di registro con proprietario US-007 e `lettoDa` il file demo: nessuno dei due tocca l'archivio, ma la condivisione smette di essere implicita |
+  | `IT0003128367` | Rimossa da US-014 con un letterale locale; è anche il placeholder di `client/src/pages/SecuritySearchPage.tsx:175` | Sostituita da una chiave riservata a US-014, distinta dal placeholder |
+
+  Due vincoli valgono per ogni chiave nuova, e ignorarli produce test che passano per il motivo sbagliato:
+
+  - I tre file che **digitano** l'ISIN nel campo di ricerca (US-011, US-012, US-013) oggi non seminano nulla e funzionano solo perché la riga sta già nell'archivio di sviluppo. Con una chiave propria devono seminarla con `fetched_at` di adesso — il default di `seminaTitolo` — altrimenti la guardia lascia passare e la ricerca contatta Borsa Italiana e MorningStar: 8-12 secondi, oltre il budget del test e dipendenti dall'ora del run.
+  - Dove il file semina anche osservazioni (US-009, entrambi i file), il `price` dell'anagrafica deve continuare a coincidere con la rilevazione più recente seminata dalla spec, e la nuova chiave va aggiunta a `ISIN_CON_OSSERVAZIONI_E2E`, che è ciò su cui poggia la bonifica del `globalSetup`.
+
+  Gli ISIN nuovi sono ISIN reali di ETF, con anagrafica coerente (nome, ticker, emittente): la suite non asserisce l'esistenza del titolo presso la fonte — nessuno di questi percorsi contatta più la rete — ma un identificativo inventato renderebbe illeggibile il video dimostrativo.
+
+  ---
+
+  ## Strategia di test
+
+  La spec non ha superficie utente: non ci sono nuovi scenari E2E da scrivere, e il campo *Dimostra* descrive un controllo eseguibile, non un incremento filmabile — nessun video da registrare. La verifica poggia quindi su tre gambe.
+
+  - **Test unitari della logica pura.** `trovaViolazioni` riceve voci di registro e riferimenti sintetici, senza filesystem. Un caso per regola: due proprietari sulla stessa chiave (R1), riferimento fuori da proprietario e `lettoDa` (R2), chiave condivisa e non registrata (R3), riserva morta (R4), letterale passato a un helper che muta (R5), più il caso pulito che non deve produrre violazioni. Il caso R1 è precisamente la prova negativa che il campo *Dimostra* richiede: introdurre di proposito una chiave condivisa fa fallire il controllo.
+  - **Dove girano.** `e2e/support/` oggi non ha un runner: `npm run test` delega al workspace `server`, e far importare codice di `e2e/` ai test del server romperebbe il confine che `e2e/tsconfig.json` tiene apposta separato. Si aggiunge quindi `e2e/vitest.config.ts` con `include: ['support/**/*.test.ts']` — l'`include` esplicito è obbligatorio, perché il default di Vitest raccoglierebbe anche i `*.spec.ts` di Playwright — e uno script di root `test:e2e-support` incluso in `check`.
+  - **Regressione sulla suite.** `npm run check` verde e `npx playwright test` completa dopo la bonifica. Il criterio 4 chiede qualcosa di più di «passa»: nessuna spec deve cambiare ciò che asserisce, quindi la revisione del diff verifica che le modifiche ai file di spec siano sostituzioni di identificativo e aggiunte di premessa (`seminaTitolo`), mai variazioni di asserzione. Come controprova che la bonifica ha effetto sull'archivio, dopo il run l'archivio di sviluppo non deve contenere righe residue sulle chiavi riservate.
+
+  ---
+
+  _Piano generato con ARchetipo Planning — 2026-08-12_
+tasks:
+  - id: TASK-01
+    title: Dichiara l'appartenenza nel modello di titoli.ts
+    description: 'Introduce il tipo `ChiaveRiservata { isin, file, lettoDa? }` e fa estendere `TitoloSeminabile`; aggiunge il campo `file` a ogni costante esistente, riprendendo il file già indicato in prosa nel commento («Riservato a …»), e `lettoDa: [''US-027__dialog-elenco-portafogli.spec.ts'']` su `TITOLO_US_027`.'
+    type: Impl
+    status: TODO
+    body: 'Introduce il tipo `ChiaveRiservata { isin, file, lettoDa? }` e fa estendere `TitoloSeminabile`; aggiunge il campo `file` a ogni costante esistente, riprendendo il file già indicato in prosa nel commento («Riservato a …»), e `lettoDa: [''US-027__dialog-elenco-portafogli.spec.ts'']` su `TITOLO_US_027`.'
+  - id: TASK-02
+    title: Converte le quattro costanti-stringa in chiavi riservate
+    description: '`ISIN_SENZA_ANAGRAFICA_US_018`, `ISIN_SENZA_PREZZO_US_032`, `ISIN_MAI_RILEVATO_US_034` e `ISIN_GUARDIA_US_035` diventano oggetti `ChiaveRiservata`, così anche le chiavi solo rimosse portano il proprietario. Aggiorna i call site nei rispettivi file di spec (`.isin`) senza toccare le asserzioni.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: '`ISIN_SENZA_ANAGRAFICA_US_018`, `ISIN_SENZA_PREZZO_US_032`, `ISIN_MAI_RILEVATO_US_034` e `ISIN_GUARDIA_US_035` diventano oggetti `ChiaveRiservata`, così anche le chiavi solo rimosse portano il proprietario. Aggiorna i call site nei rispettivi file di spec (`.isin`) senza toccare le asserzioni.'
+  - id: TASK-03
+    title: Scrive la logica del controllo delle chiavi
+    description: Crea `e2e/support/verifica-chiavi.ts` con la funzione pura `trovaViolazioni(voci, riferimentiPerFile)` che applica R1-R5, e il guscio CLI che deriva il registro dagli export di `titoli.ts`, ricava i riferimenti di ogni `e2e/*.spec.ts` (letterali ISIN + costanti importate da `./support/titoli.js`), stampa le violazioni ed esce con codice 1.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: Crea `e2e/support/verifica-chiavi.ts` con la funzione pura `trovaViolazioni(voci, riferimentiPerFile)` che applica R1-R5, e il guscio CLI che deriva il registro dagli export di `titoli.ts`, ricava i riferimenti di ogni `e2e/*.spec.ts` (letterali ISIN + costanti importate da `./support/titoli.js`), stampa le violazioni ed esce con codice 1.
+  - id: TASK-04
+    title: Test unitari della logica del controllo
+    description: 'Aggiunge `e2e/vitest.config.ts` (con `include: [''support/**/*.test.ts'']`, per non raccogliere i `*.spec.ts` di Playwright) e lo script di root `test:e2e-support`. Copre un caso per regola, compresa la prova negativa del campo Dimostra: due file che dichiarano la stessa chiave devono produrre una violazione.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-03
+    body: 'Aggiunge `e2e/vitest.config.ts` (con `include: [''support/**/*.test.ts'']`, per non raccogliere i `*.spec.ts` di Playwright) e lo script di root `test:e2e-support`. Copre un caso per regola, compresa la prova negativa del campo Dimostra: due file che dichiarano la stessa chiave devono produrre una violazione.'
+  - id: TASK-05
+    title: Aggancia il controllo a npm run check e al globalSetup
+    description: Aggiunge lo script `check:chiavi` e lo inserisce nella catena di `check` subito dopo `typecheck:e2e`, insieme a `test:e2e-support`. Invoca la stessa verifica da `e2e/support/bonifica.ts`, così un run locale di Playwright fallisce prima dei test invece che dentro.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-03
+    body: Aggiunge lo script `check:chiavi` e lo inserisce nella catena di `check` subito dopo `typecheck:e2e`, insieme a `test:e2e-support`. Invoca la stessa verifica da `e2e/support/bonifica.ts`, così un run locale di Playwright fallisce prima dei test invece che dentro.
+  - id: TASK-06
+    title: Scioglie la collisione su IE00BFY0GT14 (US-009 demo contro US-032)
+    description: Assegna un ISIN nuovo e non usato a `TITOLO_US_009`, lasciando `IE00BFY0GT14` a `TITOLO_US_032`. Mantiene il `price` allineato all'osservazione più recente seminata dalla spec e aggiorna la voce in `ISIN_CON_OSSERVAZIONI_E2E`.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: Assegna un ISIN nuovo e non usato a `TITOLO_US_009`, lasciando `IE00BFY0GT14` a `TITOLO_US_032`. Mantiene il `price` allineato all'osservazione più recente seminata dalla spec e aggiorna la voce in `ISIN_CON_OSSERVAZIONI_E2E`.
+  - id: TASK-07
+    title: Scioglie la collisione su IE00B3XXRP09 (US-009 varianti contro US-035)
+    description: 'Collisione non dichiarata dalla spec ma identica alla precedente: `TITOLO_US_009_VARIANTI` e il terzo titolo di `TITOLI_US_035_OBSOLETI` seminano la stessa chiave. Assegna un ISIN nuovo a `TITOLO_US_009_VARIANTI`, lasciando intatto il quartetto narrativo di US-035, e aggiorna `ISIN_CON_OSSERVAZIONI_E2E`.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: 'Collisione non dichiarata dalla spec ma identica alla precedente: `TITOLO_US_009_VARIANTI` e il terzo titolo di `TITOLI_US_035_OBSOLETI` seminano la stessa chiave. Assegna un ISIN nuovo a `TITOLO_US_009_VARIANTI`, lasciando intatto il quartetto narrativo di US-035, e aggiorna `ISIN_CON_OSSERVAZIONI_E2E`.'
+  - id: TASK-08
+    title: Assegna a US-011 le sue chiavi e le fa seminare dal file
+    description: Sostituisce i letterali `IE00B4L5Y983` e `IE00B3RBWM25` in `US-011__aggiungi-posizione.spec.ts` con due costanti riservate al file, e semina entrambe con `fetched_at` di adesso prima dei flussi che le digitano nel campo di ricerca — altrimenti la guardia lascia passare e la ricerca contatta la fonte reale.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: Sostituisce i letterali `IE00B4L5Y983` e `IE00B3RBWM25` in `US-011__aggiungi-posizione.spec.ts` con due costanti riservate al file, e semina entrambe con `fetched_at` di adesso prima dei flussi che le digitano nel campo di ricerca — altrimenti la guardia lascia passare e la ricerca contatta la fonte reale.
+  - id: TASK-09
+    title: Assegna a US-012 e US-013 le loro chiavi e le premesse
+    description: 'Stessa operazione di TASK-08 su `US-012__carichi-multipli.spec.ts` e `US-013__modifica-rimuovi-posizione.spec.ts`: due costanti riservate per file, seminate dal file, e aggiornamento dei `data-testid` derivati dall''ISIN (`summary-<ISIN>`, `riepilogo-<ISIN>`) senza toccare ciò che le asserzioni verificano.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: 'Stessa operazione di TASK-08 su `US-012__carichi-multipli.spec.ts` e `US-013__modifica-rimuovi-posizione.spec.ts`: due costanti riservate per file, seminate dal file, e aggiornamento dei `data-testid` derivati dall''ISIN (`summary-<ISIN>`, `riepilogo-<ISIN>`) senza toccare ciò che le asserzioni verificano.'
+  - id: TASK-10
+    title: Assegna le loro chiavi a US-017, US-026 e US-031
+    description: 'Sostituisce il letterale `IE00B4L5Y983` in `US-017__visualizza-tabella-titoli.spec.ts`, `US-026__apre-scheda-riepilogo.spec.ts`, `US-026__schede-portafoglio.spec.ts`, `US-031__larghezza-foglio.spec.ts` e `US-031__soglie-responsive.spec.ts` con una chiave riservata a ciascun file, seminata dal file stesso: qui l''ISIN entra solo dalle posizioni via API, ma la riga di riepilogo ne legge il prezzo con una LEFT JOIN e la premessa va comunque costruita.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: 'Sostituisce il letterale `IE00B4L5Y983` in `US-017__visualizza-tabella-titoli.spec.ts`, `US-026__apre-scheda-riepilogo.spec.ts`, `US-026__schede-portafoglio.spec.ts`, `US-031__larghezza-foglio.spec.ts` e `US-031__soglie-responsive.spec.ts` con una chiave riservata a ciascun file, seminata dal file stesso: qui l''ISIN entra solo dalle posizioni via API, ma la riga di riepilogo ne legge il prezzo con una LEFT JOIN e la premessa va comunque costruita.'
+  - id: TASK-11
+    title: Porta nel registro le chiavi di US-014 e dichiara quelle solo-stub
+    description: 'Sposta i letterali locali di `US-014__valore-totale-portafoglio.spec.ts` in `titoli.ts` come chiavi riservate, scegliendole diverse dai due ISIN usati come placeholder in `client/src` — oggi `IE00BJRHVJ28` è insieme chiave seminata e segnaposto visibile, e un `toContainText` può essere soddisfatto dal secondo. Registra poi le due chiavi solo-stub con proprietario e `lettoDa`: `IE00BMVB5S82` (US-007 + demo) e `IE00BJRHVJ28` (US-008 + fallback-morningstar).'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: 'Sposta i letterali locali di `US-014__valore-totale-portafoglio.spec.ts` in `titoli.ts` come chiavi riservate, scegliendole diverse dai due ISIN usati come placeholder in `client/src` — oggi `IE00BJRHVJ28` è insieme chiave seminata e segnaposto visibile, e un `toContainText` può essere soddisfatto dal secondo. Registra poi le due chiavi solo-stub con proprietario e `lettoDa`: `IE00BMVB5S82` (US-007 + demo) e `IE00BJRHVJ28` (US-008 + fallback-morningstar).'
+  - id: TASK-12
+    title: 'Verifica la bonifica: check verde, suite completa, prova negativa'
+    description: Esegue `npm run check` e `npx playwright test` a bonifica conclusa; rivede il diff dei file di spec per confermare che siano sostituzioni di identificativo e aggiunte di premessa, mai variazioni di asserzione (criterio 4); introduce di proposito una chiave condivisa e verifica che il controllo fallisca, poi la rimuove.
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-04
+      - TASK-05
+      - TASK-06
+      - TASK-07
+      - TASK-08
+      - TASK-09
+      - TASK-10
+      - TASK-11
+    body: Esegue `npm run check` e `npx playwright test` a bonifica conclusa; rivede il diff dei file di spec per confermare che siano sostituzioni di identificativo e aggiunte di premessa, mai variazioni di asserzione (criterio 4); introduce di proposito una chiave condivisa e verifica che il controllo fallisca, poi la rimuove.
+  - id: TASK-13
+    title: Aggiorna la documentazione della regola
+    description: 'Riscrive la testata di `e2e/support/titoli.ts` e la sezione corrispondente del `CLAUDE.md`: la regola un-ISIN-per-file non è più un''esortazione ma un controllo, e la documentazione deve dire come si dichiara una chiave, quando è lecito usare `lettoDa` e cosa fare quando il controllo fallisce.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-12
+    body: 'Riscrive la testata di `e2e/support/titoli.ts` e la sezione corrispondente del `CLAUDE.md`: la regola un-ISIN-per-file non è più un''esortazione ma un controllo, e la documentazione deve dire come si dichiara una chiave, quando è lecito usare `lettoDa` e cosa fare quando il controllo fallisce.'
