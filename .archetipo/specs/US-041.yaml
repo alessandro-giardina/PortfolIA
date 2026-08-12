@@ -1,0 +1,36 @@
+schema: archetipo/spec/v2
+code: US-041
+title: Stabilizzare la suite E2E in esecuzione parallela
+epic:
+  code: EP-000
+  title: Fondazione del progetto
+priority: MEDIUM
+points: 5
+status: TODO
+blocked_by:
+  - US-040
+body: |-
+  #### US-041: Stabilizzare la suite E2E in esecuzione parallela
+
+  **Epic:** EP-000 | **Priorità:** MEDIUM | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** US-040
+
+  **User Story**
+  Come sviluppatore che apre una pull request,
+  voglio che un fallimento della suite significhi un difetto del prodotto e non un'interferenza fra file,
+  in modo da poter credere al verdetto rosso invece di rieseguire finché diventa verde.
+
+  **Contesto**
+  Su tre esecuzioni consecutive della suite completa, la prima è fallita su `US-037__scala-temporale-varianti`, la seconda su `US-030__aggiorna-dati-titolo` e `US-032__prezzo-e-rilevamento-varianti`, la terza è passata (93/93). Ogni spec fallita passa isolata. Almeno una causa non riguarda le chiavi condivise: `US-032` falliva su un confronto di larghezza fra 940 e 939 pixel, cioè un arrotondamento di layout. L'indagine è quindi a esito aperto e va tenuta separata dalla bonifica deterministica di US-040.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, cinque esecuzioni consecutive della suite completa terminano senza alcun fallimento, e ogni intermittenza osservata durante il lavoro ha una causa dichiarata.
+
+  **Criteri di Accettazione**
+  - [ ] Cinque esecuzioni consecutive di `npx playwright test` terminano senza fallimenti
+  - [ ] Ogni fallimento intermittente incontrato è diagnosticato e la causa è scritta: nessuno è nascosto alzando i timeout o attivando i retry
+  - [ ] Il confronto di larghezza in `US-032__prezzo-e-rilevamento-varianti.spec.ts`, oggi instabile fra 940 e 939 pixel, non dipende più da un arrotondamento sotto il pixel
+  - [ ] Fuori scopo dichiarato: riscrivere la strategia di isolamento dell'archivio o passare a un database per worker, che sarebbero un cambio di architettura della suite
+history:
+  - status: TODO
+    at: "2026-08-12T11:50:22Z"

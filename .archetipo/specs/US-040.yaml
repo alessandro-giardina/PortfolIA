@@ -1,0 +1,37 @@
+schema: archetipo/spec/v2
+code: US-040
+title: Rendere esclusiva di ogni file la chiave seminata nella cache prezzi
+epic:
+  code: EP-000
+  title: Fondazione del progetto
+priority: HIGH
+points: 3
+status: TODO
+body: |-
+  #### US-040: Rendere esclusiva di ogni file la chiave seminata nella cache prezzi
+
+  **Epic:** EP-000 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come sviluppatore che estende la suite E2E,
+  voglio che ogni file di spec possieda in esclusiva gli ISIN che semina, e che un controllo automatico lo verifichi,
+  in modo da non dover ricordare a memoria una regola la cui violazione lascia residuo irrecuperabile nell'archivio.
+
+  **Contesto**
+  Playwright esegue i *file* in parallelo (`fullyParallel: false` serializza solo dentro un file), mentre `seminaTitolo`/`ripristinaTitoli` sono uno stack di undo: salvano lo stato precedente della riga e lo rimettono al teardown. Se due file seminano la stessa chiave e si intrecciano, il secondo salva come «originale» il seme del primo, e l'ultimo a ripristinare lascia in archivio un residuo che nessun controllo condizionale può disfare. Nel frattempo un file può leggere i prezzi dell'altro, e un'asserzione fallisce — o passa per il motivo sbagliato.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, un controllo eseguibile elenca le chiavi seminate file per file e non trova alcuna chiave dichiarata da due file diversi; introdurre di proposito una chiave condivisa lo fa fallire.
+
+  **Criteri di Accettazione**
+  - [ ] Nessun ISIN seminato con `seminaTitolo` appartiene a due file di spec diversi — oggi `IE00BFY0GT14` è seminato sia da `US-009__storico-prezzi.spec.ts` sia da `US-032__prezzo-e-rilevamento.spec.ts`
+  - [ ] Nessun file usa come letterale un ISIN seminato da un altro file senza costruirsi la propria premessa — oggi `IE00B3RBWM25`, seminato da `TITOLO_US_034_OBSOLETO`, compare in `US-011__aggiungi-posizione.spec.ts`, `US-012__carichi-multipli.spec.ts` e `US-013__modifica-rimuovi-posizione.spec.ts`
+  - [ ] Un controllo automatico incluso in `npm run check` fallisce quando due file dichiarano la stessa chiave, così la regola smette di essere un'esortazione scritta nel `CLAUDE.md`
+  - [ ] La suite completa passa dopo la bonifica, e nessuna spec cambia ciò che asserisce
+
+  **Note**
+  Gli ISIN condivisi introdotti da US-037 sono già stati corretti (commit `2afeebd`); qui resta il difetto preesistente. Nessun ISIN è cablato nel codice di produzione: `server/src` e `shared` non ne contengono, e i due presenti in `client/src` sono testi di esempio nei campi di inserimento.
+history:
+  - status: TODO
+    at: "2026-08-12T11:50:22Z"
