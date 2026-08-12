@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — P&amp;L da carico e variazione di periodo (US-038)</title>
+  <meta name="description" content="Mockup US-038: sotto il grafico del titolo, la bilancia a due piatti — P&L da carico (positivo, invariante alla scala) e variazione di periodo (negativa sull'ultimo anno). Due misure distinte che non vanno scambiate l'una per l'altra.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda anagrafica del titolo</p>
+      <h1>Ishares Core <span class="corsivo">Msci World</span></h1>
+      <p class="sottotesto">ISIN IE00B4L5Y983 &middot; iscritto al Conto <em>Lungo Periodo</em></p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantit&agrave; &nbsp;&nbsp;&nbsp;&nbsp;<b>220</b> su 3 carichi</div>
+      <div>Pr. medio di carico &nbsp;<b>€&thinsp;68,3000</b></div>
+      <div>Pr. attuale &nbsp;<b>€&thinsp;128,4600</b></div>
+      <div>Rilevazioni in archivio &nbsp;<b>7</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="#" class="disabilitata">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="index.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <!-- =====================================================================
+         Il cartellino in cima alla scheda (US-018) compare qui perché US-038
+         gli si aggancia: la «Differenza» di questa riga e il «P&L da carico»
+         del piatto di sinistra sono due letture dello stesso fatto, e devono
+         portare la stessa cifra. Il richiamo d'ottone le lega.
+         ===================================================================== -->
+    <div class="sezione-titolo" style="margin-top:6px">
+      Posizione a conto
+      <span class="nota">FR&#8209;014 &middot; sezione gi&agrave; consegnata da US&#8209;018, invariata</span>
+    </div>
+
+    <div class="orizzonti">
+      <div class="orizzonte">
+        <span class="et">Quantit&agrave;</span>
+        <span class="valore">220</span>
+        <span class="perc">su 3 carichi</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore medio di carico</span>
+        <span class="valore">€&thinsp;68,3000</span>
+        <span class="perc">carico € 15.026,00</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore attuale</span>
+        <span class="valore">€&thinsp;28.261,20</span>
+        <span class="perc">€ 128,4600/quota</span>
+      </div>
+      <div class="orizzonte rimandata">
+        <span class="et">Differenza</span>
+        <span class="valore guadagno">+€&thinsp;13.235,20</span>
+        <span class="perc guadagno">+88,08&thinsp;%</span>
+        <span class="segna-rimando">&#8225; ripresa sotto il grafico</span>
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         ANDAMENTO DEL PREZZO — barra delle scale (US-037), cornice del
+         tracciato (US-036) e, la novit&agrave; di US-038, la bilancia.
+         ===================================================================== -->
+    <div class="sezione-titolo">
+      Andamento del prezzo
+      <span class="nota">FR&#8209;011 &middot; FR&#8209;012 &middot; due misure distinte: quanto hai guadagnato, quanto si &egrave; mosso il titolo</span>
+    </div>
+
+    <!-- ---------- La traversa delle cinque scale: «Ultimo anno» attiva ---------- -->
+    <div class="barra-scala" role="group" aria-label="Scala temporale del grafico">
+      <span class="et-scala">Scala temporale</span>
+      <div class="scala-temporale">
+        <button type="button">Ultimo mese</button>
+        <button type="button" class="attiva" aria-pressed="true">Ultimo anno</button>
+        <button type="button">Ultimi 5 anni</button>
+        <button type="button">Ultimi 10 anni</button>
+        <button type="button">
+          Tutto lo storico<span class="postilla-predefinita">predefinita</span>
+        </button>
+      </div>
+      <span class="finestra-attiva">Finestra: <b>10.VIII.2025 &rarr; 10.VIII.2026</b> &middot; 365 giorni &middot; 6 rilevazioni</span>
+    </div>
+
+    <div class="grafico-cornice">
+      <span class="cartellino-finestra">10.VIII.2025 &rarr; 10.VIII.2026</span>
+
+      <svg class="tracciato" viewBox="0 0 960 304" role="img"
+           aria-label="Andamento del prezzo unitario sulla scala «ultimo anno», dal 10 agosto 2025 al 10 agosto 2026. Sei rilevazioni: 141,20 euro il 12 settembre 2025, 136,45 il 3 dicembre, 129,80 il 19 febbraio 2026, 118,70 il 28 aprile, 122,40 il 27 giugno e 128,46 il 10 agosto. La riga d'ottone del prezzo medio ponderato di carico sta a 68,30 euro, molto più in basso di tutte le rilevazioni: la distanza fra le due è il P&L da carico, 60,16 euro per quota. La riga blu della prima rilevazione compresa nella finestra sta a 141,20 euro, sopra l'ultima rilevazione: la variazione di periodo è negativa, meno 12,74 euro per quota.">
+
+        <defs>
+          <marker id="puntaVerde" viewBox="0 0 8 8" refX="4" refY="4"
+                  markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#2f6b3a"/>
+          </marker>
+          <marker id="puntaRossa" viewBox="0 0 8 8" refX="4" refY="4"
+                  markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#9e2b25"/>
+          </marker>
+          <pattern id="vuotoIniziale" width="11" height="11" patternUnits="userSpaceOnUse"
+                   patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="11" stroke="#9e2b25" stroke-width="2.4" opacity=".16"/>
+          </pattern>
+        </defs>
+
+        <!-- ---------- Rigatura di lettura ---------- -->
+        <g stroke="#8a9bb0" stroke-width="1" opacity=".55">
+          <line x1="88" y1="63.9"  x2="860" y2="63.9"/>
+          <line x1="88" y1="111.3" x2="860" y2="111.3"/>
+          <line x1="88" y1="158.9" x2="860" y2="158.9"/>
+          <line x1="88" y1="206.4" x2="860" y2="206.4"/>
+        </g>
+
+        <!-- ---------- Assi ---------- -->
+        <line x1="88" y1="34" x2="88" y2="254" stroke="#221c14" stroke-width="1.5"/>
+        <line x1="88" y1="254" x2="860" y2="254" stroke="#221c14" stroke-width="1.5"/>
+
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="end">
+          <text x="80" y="67.7">140,00</text>
+          <text x="80" y="115.1">120,00</text>
+          <text x="80" y="162.7">100,00</text>
+          <text x="80" y="210.2">&nbsp;&nbsp;80,00</text>
+          <text x="80" y="257.8">&nbsp;&nbsp;60,00</text>
+        </g>
+        <text x="88" y="22" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">EURO PER QUOTA</text>
+
+        <!-- ---------- I 33 giorni d'apertura senza rilevazioni ----------
+             La finestra comincia il 10.VIII.2025, la prima rilevazione compresa
+             è del 12.IX: la variazione parte da lì, non dal bordo della finestra. -->
+        <rect x="88" y="34" width="69.8" height="220" fill="url(#vuotoIniziale)"/>
+        <rect x="88" y="34" width="69.8" height="220" fill="none"
+              stroke="#9e2b25" stroke-width="1.2" stroke-dasharray="5 5" opacity=".7"/>
+
+        <!-- ---------- Verticale di «oggi» ---------- -->
+        <line x1="860" y1="34" x2="860" y2="254"
+              stroke="#6e5a36" stroke-width="1.2" stroke-dasharray="2 4"/>
+        <text x="856" y="22" text-anchor="end"
+              font-family="'IM Fell English SC', serif" font-size="10.5" letter-spacing="1.2"
+              fill="#6e5a36">OGGI &middot; 10.VIII.2026</text>
+
+        <!-- ---------- Capo BASSO del P&L: prezzo medio ponderato di carico ---------- -->
+        <line x1="88" y1="234.3" x2="890" y2="234.3"
+              stroke="#9c7d34" stroke-width="2.2" stroke-dasharray="10 5"/>
+        <rect x="300" y="218.4" width="330" height="15" fill="#f7efda" opacity=".92"/>
+        <text x="465" y="229.4" text-anchor="middle"
+              font-family="'Courier Prime', monospace" font-size="10.5" letter-spacing=".4"
+              fill="#9c7d34">PREZZO MEDIO PONDERATO DI CARICO &nbsp;€ 68,3000</text>
+
+        <!-- ---------- Capo ALTO della variazione: prima rilevazione in finestra ---------- -->
+        <line x1="157.8" y1="60.9" x2="914" y2="60.9"
+              stroke="#1d2b40" stroke-width="1.6" stroke-dasharray="2 4"/>
+        <rect x="330" y="45" width="320" height="14" fill="#f7efda" opacity=".92"/>
+        <text x="490" y="55.5" text-anchor="middle"
+              font-family="'Courier Prime', monospace" font-size="10.5" letter-spacing=".4"
+              fill="#1d2b40">PRIMA RILEVAZIONE IN FINESTRA &nbsp;€ 141,2000</text>
+
+        <!-- ---------- Segmenti tratteggiati: fra due rilevazioni l'archivio è muto ---------- -->
+        <g stroke="#221c14" stroke-width="2.2" stroke-dasharray="7 6" stroke-linecap="round" fill="none">
+          <line x1="157.8" y1="60.9"  x2="331.2" y2="72.2"/>
+          <line x1="331.2" y1="72.2"  x2="496.2" y2="88.0"/>
+          <line x1="496.2" y1="88.0"  x2="640.0" y2="114.4"/>
+          <line x1="640.0" y1="114.4" x2="766.9" y2="105.6"/>
+          <line x1="766.9" y1="105.6" x2="860.0" y2="91.2"/>
+        </g>
+
+        <!-- ---------- Rilevazioni registrate (cerchio in inchiostro) ---------- -->
+        <g fill="#221c14" stroke="#f7efda" stroke-width="1.3">
+          <circle cx="157.8" cy="60.9"  r="4.8"/>
+          <circle cx="331.2" cy="72.2"  r="4.8"/>
+          <circle cx="496.2" cy="88.0"  r="4.8"/>
+          <circle cx="640.0" cy="114.4" r="4.8"/>
+          <circle cx="766.9" cy="105.6" r="4.8"/>
+          <circle cx="860.0" cy="91.2"  r="4.8"/>
+        </g>
+
+        <!-- I due capi della variazione portano il cerchio doppio: sono le sole
+             due rilevazioni che il calcolo del periodo adopera. -->
+        <g fill="none" stroke="#1d2b40" stroke-width="1.6">
+          <circle cx="157.8" cy="60.9" r="9"/>
+          <circle cx="860.0" cy="91.2" r="9"/>
+        </g>
+
+        <!-- ---------- Etichette delle rilevazioni ---------- -->
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#221c14">
+          <rect x="150" y="76" width="112" height="26" fill="#f7efda" opacity=".92"/>
+          <text x="154" y="86">12.IX.2025</text>
+          <text x="154" y="98">€ 141,2000</text>
+
+          <rect x="324" y="86" width="112" height="26" fill="#f7efda" opacity=".9"/>
+          <text x="328" y="96" fill="#6e5a36">03.XII.2025</text>
+          <text x="328" y="108" fill="#6e5a36">€ 136,4500</text>
+
+          <rect x="489" y="102" width="112" height="26" fill="#f7efda" opacity=".9"/>
+          <text x="493" y="112" fill="#6e5a36">19.II.2026</text>
+          <text x="493" y="124" fill="#6e5a36">€ 129,8000</text>
+
+          <rect x="633" y="128" width="112" height="26" fill="#f7efda" opacity=".9"/>
+          <text x="637" y="138" fill="#6e5a36">28.IV.2026</text>
+          <text x="637" y="150" fill="#6e5a36">€ 118,7000</text>
+
+          <rect x="700" y="160" width="112" height="26" fill="#f7efda" opacity=".9"/>
+          <text x="704" y="170" fill="#6e5a36">27.VI.2026</text>
+          <text x="704" y="182" fill="#6e5a36">€ 122,4000</text>
+          <line x1="756" y1="158" x2="766" y2="112" stroke="#6e5a36" stroke-width="1" opacity=".6"/>
+
+          <rect x="792" y="118" width="112" height="26" fill="#f7efda" opacity=".92"/>
+          <text x="796" y="128">10.VIII.2026</text>
+          <text x="796" y="140">€ 128,4600</text>
+          <line x1="848" y1="116" x2="857" y2="98" stroke="#221c14" stroke-width="1" opacity=".6"/>
+        </g>
+
+        <!-- ---------- Filo di riporto dell'ultima rilevazione fino alle quote ---------- -->
+        <line x1="860" y1="91.2" x2="914" y2="91.2"
+              stroke="#6e5a36" stroke-width="1" stroke-dasharray="3 3" opacity=".8"/>
+
+        <!-- ---------- Quota VERDE: il P&L da carico, sul prezzo unitario ---------- -->
+        <line x1="888" y1="91.2" x2="888" y2="234.3" stroke="#2f6b3a" stroke-width="1.6"
+              marker-start="url(#puntaVerde)" marker-end="url(#puntaVerde)"/>
+        <g font-family="'Courier Prime', monospace" fill="#2f6b3a" text-anchor="end">
+          <rect x="742" y="168" width="140" height="30" fill="#f7efda" opacity=".92"/>
+          <text x="880" y="178" font-size="10">P&amp;L DA CARICO</text>
+          <text x="880" y="193" font-size="13">+€ 60,1600 /quota</text>
+        </g>
+
+        <!-- ---------- Quota ROSSA: la variazione di periodo, sul prezzo unitario ---------- -->
+        <line x1="914" y1="60.9" x2="914" y2="91.2" stroke="#9e2b25" stroke-width="1.6"
+              marker-start="url(#puntaRossa)" marker-end="url(#puntaRossa)"/>
+        <g font-family="'Courier Prime', monospace" fill="#9e2b25" text-anchor="end">
+          <rect x="770" y="18" width="140" height="30" fill="#f7efda" opacity=".94"/>
+          <text x="908" y="28" font-size="10">VARIAZIONE DI PERIODO</text>
+          <text x="908" y="43" font-size="13">&minus;€ 12,7400 /quota</text>
+        </g>
+
+        <!-- ---------- Quota del vuoto iniziale ---------- -->
+        <g stroke="#6e5a36" stroke-width="1.1" opacity=".85">
+          <line x1="88" y1="258" x2="88" y2="268"/>
+          <line x1="157.8" y1="258" x2="157.8" y2="268"/>
+          <line x1="88" y1="263" x2="157.8" y2="263"/>
+        </g>
+        <g font-family="'Courier Prime', monospace" font-size="10" fill="#9e2b25" text-anchor="middle">
+          <rect x="90" y="256" width="146" height="13" fill="#f7efda" opacity=".95"/>
+          <text x="163" y="266">33 giorni senza rilevazioni</text>
+        </g>
+
+        <!-- ---------- Scala dei tempi ---------- -->
+        <g stroke="#221c14" stroke-width="1">
+          <line x1="198.0" y1="254" x2="198.0" y2="259"/>
+          <line x1="392.6" y1="254" x2="392.6" y2="259"/>
+          <line x1="582.9" y1="254" x2="582.9" y2="259"/>
+          <line x1="775.4" y1="254" x2="775.4" y2="259"/>
+        </g>
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="middle">
+          <text x="88" y="282" text-anchor="start">10.VIII.2025</text>
+          <text x="392.6" y="282">I.2026</text>
+          <text x="582.9" y="282">IV.2026</text>
+          <text x="775.4" y="282">VII.2026</text>
+          <text x="860" y="282" text-anchor="end">oggi</text>
+        </g>
+        <text x="88" y="299" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">GIORNI CIVILI &middot; FINESTRA CHIESTA: ULTIMO ANNO</text>
+      </svg>
+
+      <p class="estremi-tracciato">
+        <span>Prima rilevazione compresa: <b>12.IX.2025</b></span>
+        <span>6 rilevazioni in 365 giorni &middot; nessun carico cade in questa finestra</span>
+        <span>Ultima rilevazione: <b>10.VIII.2026</b></span>
+      </p>
+    </div>
+
+    <!-- =====================================================================
+         US-038 · LA BILANCIA A DUE PIATTI
+         Due riquadri affiancati e un perno che non li equilibra: li separa.
+         Il piatto di sinistra misura il tuo denaro contro quello che hai
+         speso; quello di destra misura il mercato dentro la finestra scelta.
+         ===================================================================== -->
+    <div class="bilancia">
+      <div class="intestazione-bilancia">
+        <span>Le due misure &mdash; e su che cosa sono calcolate</span>
+        <span class="chiosa">stessa scheda, stesso titolo, due domande diverse</span>
+      </div>
+
+      <!-- ---------- Piatto 1 · P&L da carico ---------- -->
+      <div class="piatto pnl">
+        <div class="testa-piatto">
+          <span class="et-piatto">P&amp;L da carico</span>
+          <span class="unita">sull&rsquo;intera posizione &middot; <b>220</b> quote &middot; tutti e <b>3</b> i carichi</span>
+        </div>
+
+        <div class="cifre">
+          <span class="importo guadagno">+€&thinsp;13.235,20</span>
+          <span class="percento guadagno">+88,08&thinsp;%</span>
+        </div>
+
+        <p class="provenienza">
+          <span class="et-prov">Da dove viene questo numero</span>
+          <span class="passo">prezzo medio di carico <b>€&thinsp;68,3000</b> su <b>220</b> quote</span>
+          <span class="freccia">&rarr;</span>
+          <span class="passo">prezzo attuale <b>€&thinsp;128,4600</b></span>
+          <span class="coda">
+            (128,4600 &minus; 68,3000) &times; 220 = 13.235,20 &nbsp;&middot;&nbsp;
+            13.235,20 / 15.026,00 = 88,08&thinsp;%
+          </span>
+        </p>
+
+        <p class="rimando-differenza">
+          <span class="croce">&#8225;</span>
+          <span>Stessa cifra della &laquo;Differenza&raquo; in <em>Posizione a conto</em>, in cima alla scheda.</span>
+        </p>
+
+        <p class="orizzonte-piatto">
+          <span class="segna-orizzonte fisso">non dipende dalla scala</span>
+          <span>Cambiando i cinque bottoni qui sopra questo riquadro non si muove di un centesimo:
+            cambia solo se registri un nuovo carico o se il prezzo attuale viene aggiornato.</span>
+        </p>
+      </div>
+
+      <!-- ---------- Il perno ---------- -->
+      <div class="fulcro" aria-hidden="true">
+        <span class="segno">&ne;</span>
+      </div>
+
+      <!-- ---------- Piatto 2 · Variazione di periodo ---------- -->
+      <div class="piatto periodo">
+        <div class="testa-piatto">
+          <span class="et-piatto">Variazione di periodo</span>
+          <span class="unita">sul prezzo unitario &middot; <b>1</b> quota &middot; finestra <b>ultimo anno</b></span>
+        </div>
+
+        <div class="cifre">
+          <span class="importo perdita">&minus;€&thinsp;12,7400</span>
+          <span class="percento perdita">&minus;9,02&thinsp;%</span>
+        </div>
+
+        <p class="provenienza">
+          <span class="et-prov">Da dove viene questo numero</span>
+          <span class="passo">prima rilevazione del <b>12.IX.2025</b> &nbsp;<b>€&thinsp;141,2000</b></span>
+          <span class="freccia">&rarr;</span>
+          <span class="passo">ultima del <b>10.VIII.2026</b> &nbsp;<b>€&thinsp;128,4600</b></span>
+          <span class="coda">
+            332 giorni fra i due capi &nbsp;&middot;&nbsp; 6 rilevazioni comprese nella finestra,
+            nessun prezzo di carico &nbsp;&middot;&nbsp; 128,4600 &minus; 141,2000 = &minus;12,7400
+          </span>
+        </p>
+
+        <p class="orizzonte-piatto">
+          <span class="segna-orizzonte mobile">cambia con la scala</span>
+          <span>&Egrave; la finestra a decidere quali rilevazioni entrano nel conto: scegli
+            un&rsquo;altra scala e i due capi cambiano, perch&eacute; cambia il periodo &mdash;
+            non il tuo guadagno.</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- ---------- La postilla: non sono la stessa cosa ---------- -->
+    <p class="postilla-bilancia">
+      <span class="glifo-postilla">&ne;</span>
+      <span>
+        Le due cifre <span class="mai">non si sommano e non si confrontano</span>.
+        Il <b>P&amp;L da carico</b> dice quanto vale oggi il denaro che hai speso: guarda al
+        <em>prezzo che hai pagato</em>, e non sa nulla della finestra scelta. La
+        <b>variazione di periodo</b> dice quanto si &egrave; mosso il prezzo del titolo dentro
+        la finestra che stai guardando: guarda alle <em>rilevazioni</em>, e non sa nulla di quanto
+        hai speso n&eacute; di quante quote possiedi. Questo titolo &egrave; contemporaneamente
+        <span class="guadagno">in guadagno da carico</span> e
+        <span class="perdita">in calo nell&rsquo;ultimo anno</span>: sono due fatti veri insieme,
+        e sarebbe un errore leggere il secondo come una perdita sul portafoglio.
+      </span>
+    </p>
+
+    <!-- ---------- Legenda dei segni usati dalle due misure ---------- -->
+    <div class="legenda-tracciato">
+      <div class="intestazione-legenda">I quattro segni che le due misure adoperano sul tracciato</div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <line x1="1" y1="8" x2="35" y2="8" stroke="#9c7d34" stroke-width="2.4" stroke-dasharray="8 4"/>
+        </svg>
+        <span>
+          <span class="et">Riga d&rsquo;ottone &mdash; prezzo medio ponderato di carico</span>
+          <span class="spiega">
+            <span class="conto">€ 68,3000</span>: il capo basso del <em>P&amp;L da carico</em>.
+            Resta dov&rsquo;&egrave; qualunque scala tu scelga, perch&eacute; discende dai carichi,
+            non dal tempo.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <line x1="1" y1="8" x2="35" y2="8" stroke="#1d2b40" stroke-width="1.8" stroke-dasharray="2 4"/>
+        </svg>
+        <span>
+          <span class="et">Riga blu &mdash; prima rilevazione compresa nella finestra</span>
+          <span class="spiega">
+            <span class="conto">€ 141,2000 del 12.IX.2025</span>: il capo alto della
+            <em>variazione di periodo</em>. Si sposta ogni volta che cambi scala, perch&eacute;
+            &egrave; la finestra a stabilire quale sia la prima.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <circle cx="10" cy="8" r="4.4" fill="#221c14" stroke="#f7efda" stroke-width="1.2"/>
+          <circle cx="10" cy="8" r="8" fill="none" stroke="#1d2b40" stroke-width="1.4"/>
+          <circle cx="30" cy="8" r="4.4" fill="#221c14" stroke="#f7efda" stroke-width="1.2"/>
+        </svg>
+        <span>
+          <span class="et">Cerchio in inchiostro &mdash; rilevazione registrata</span>
+          <span class="spiega">
+            le sole origini della variazione di periodo. Il cerchio doppio marca i due capi
+            adoperati &mdash; <span class="conto">prima e ultima</span> &mdash; fra le
+            <span class="conto">6</span> comprese nella finestra: le quattro in mezzo si vedono,
+            ma non entrano nel conto.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <rect x="1" y="2" width="34" height="12" fill="none" stroke="#9e2b25"
+                stroke-width="1.2" stroke-dasharray="4 4"/>
+          <g stroke="#9e2b25" stroke-width="2" opacity=".35">
+            <line x1="4" y1="14" x2="14" y2="2"/>
+            <line x1="14" y1="14" x2="24" y2="2"/>
+            <line x1="24" y1="14" x2="34" y2="2"/>
+          </g>
+        </svg>
+        <span>
+          <span class="et">Campitura obliqua &mdash; giorni senza rilevazioni</span>
+          <span class="spiega">
+            la finestra chiesta comincia il <span class="conto">10.VIII.2025</span>, ma la prima
+            rilevazione compresa &egrave; del <span class="conto">12.IX</span>: i
+            <span class="conto">33 giorni</span> d&rsquo;apertura restano scoperti, e la variazione
+            parte dal primo dato reale, non dal bordo della finestra.
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="avviso-rado">
+      <span>
+        Nessuna delle due misure interroga la fonte e nessuna stima un prezzo: il P&amp;L da
+        carico adopera i <b>3</b> carichi registrati e l&rsquo;ultimo prezzo valido in archivio,
+        la variazione di periodo adopera due delle <b>6</b> rilevazioni gi&agrave; scritte.
+        I giorni non osservati restano vuoti, e il tratteggio fra i punti dichiara che
+        fra due rilevazioni l&rsquo;archivio non possiede nulla (ADR&#8209;003).
+      </span>
+    </div>
+
+    <p class="nota-sezione">
+      Il prezzo medio di carico &egrave; <b>ponderato sulle quantit&agrave;</b>, non una media
+      semplice dei tre prezzi d&rsquo;acquisto: 80 quote a €&thinsp;61,4000, 90 a €&thinsp;70,1000
+      e 50 a €&thinsp;76,1000 fanno €&thinsp;15.026,00 su 220 quote, cio&egrave;
+      €&thinsp;68,3000 &mdash; mentre la media semplice dei tre prezzi darebbe €&thinsp;69,2000
+      e un P&amp;L pi&ugrave; basso di €&thinsp;198,00. &Egrave; la stessa ponderazione con cui
+      la scheda calcola la &laquo;Differenza&raquo; in cima: due letture dello stesso fatto non
+      possono divergere.
+    </p>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="variazione-non-disponibile.html">Variazione non disponibile &rarr;</a>
+      <a class="bottone secondario" href="pnl-non-disponibile.html">P&amp;L non disponibile &rarr;</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">Il guadagno non &egrave; la performance del periodo, e il periodo non &egrave; il guadagno</span>
+    <span><span class="timbro verde">Due misure distinte</span> PortfolIA &middot; US-038</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-038 &middot; <a href="index.html">Entrambe disponibili</a> &middot;
+  <a href="variazione-non-disponibile.html">Variazione non disponibile</a> &middot;
+  <a href="pnl-non-disponibile.html">P&amp;L non disponibile</a>
+</p>
+
+</body>
+</html>

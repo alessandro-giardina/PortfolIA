@@ -3,7 +3,7 @@ import { eq, desc, sql, and } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { portfolios, positions, priceObservations, securities } from '../db/schema.js';
 import type { Position, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, PriceObservation } from '@portfolia/shared';
-import { isValidIsin, normalizeIsin, normalizzaDataSource } from '@portfolia/shared';
+import { calcolaPnlDaCarico, isValidIsin, normalizeIsin, normalizzaDataSource } from '@portfolia/shared';
 import { classifyPriceFreshness } from '../domain/marketHours.js';
 
 /**
@@ -172,28 +172,27 @@ export async function positionsRoutes(
       .orderBy(desc(priceObservations.observed_at), desc(priceObservations.id))
       .all();
 
-    const totalQuantity = loadRows.reduce((sum, row) => sum + row.quantity, 0);
-    const weightedSum = loadRows.reduce((sum, row) => sum + row.load_price * row.quantity, 0);
-    const avgLoadPrice = totalQuantity > 0 ? weightedSum / totalQuantity : 0;
-    const totalLoadValue = avgLoadPrice * totalQuantity;
-
     const currentPrice = security?.price ?? null;
-    const currentValue = currentPrice !== null ? currentPrice * totalQuantity : null;
-    const difference = currentValue !== null ? currentValue - totalLoadValue : null;
-    // La percentuale è definita solo su un controvalore di carico non nullo:
-    // dividere per zero produrrebbe Infinity, cioè un numero inventato.
-    const differencePercent =
-      difference !== null && totalLoadValue !== 0 ? (difference / totalLoadValue) * 100 : null;
+
+    // Il P&L da carico non si calcola più qui (US-038): la stessa aritmetica
+    // alimenta ora anche il riquadro sotto il grafico, e due copie della stessa
+    // formula possono divergere di un centesimo senza che alcun test se ne
+    // accorga — nessuno confronta i due percorsi. La regola vive quindi in una
+    // funzione pura provabile, come già `componiSerieTitolo` per il grafico.
+    const pnl = calcolaPnlDaCarico({
+      loads: loadRows.map((row) => ({ loadPrice: row.load_price, quantity: row.quantity })),
+      currentPrice,
+    });
 
     const detail: PositionDetail = {
       isin,
-      totalQuantity,
-      avgLoadPrice,
-      totalLoadValue,
+      totalQuantity: pnl.totalQuantity,
+      avgLoadPrice: pnl.avgLoadPrice,
+      totalLoadValue: pnl.totalLoadValue,
       currentPrice,
-      currentValue,
-      difference,
-      differencePercent,
+      currentValue: pnl.currentValue,
+      difference: pnl.difference,
+      differencePercent: pnl.differencePercent,
       name: security?.name ?? null,
       ticker: security?.ticker ?? null,
       instrumentType: security?.instrument_type ?? null,

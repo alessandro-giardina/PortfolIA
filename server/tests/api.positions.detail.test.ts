@@ -229,6 +229,46 @@ describe('GET /api/portfolios/:id/positions/:isin/detail', () => {
     expect(detail.loads.every((l) => l.isin === ISIN)).toBe(true);
   });
 
+  it('carichi multipli → differenza e percentuale pinnate al bit, non solo «vicine»', async () => {
+    // US-038 ha estratto questa aritmetica dal gestore a una funzione pura
+    // (`calcolaPnlDaCarico`), e la stessa formula alimenta ora anche il riquadro
+    // del P&L sotto il grafico. Il rischio dell'estrazione non è che la rotta
+    // smetta di rispondere: è che un decimale si sposti — una media riassociata,
+    // un prodotto raccolto — e che nessuno se ne accorga, perché ogni altra
+    // asserzione di questo file usa `toBeCloseTo`, che a un centesimo di
+    // scostamento è cieca per costruzione. Qui i valori sono fissati con `toBe`
+    // sui bit esatti che il percorso produce oggi, su tre carichi a prezzi **e
+    // quantità** diversi (l'unico caso in cui una media ponderata si distingue
+    // da una aritmetica).
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Conto Pnl Pinnato');
+    // Le date fissano l'ordine di somma: l'endpoint aggrega per `load_date`, e
+    // in virgola mobile l'ordine degli addendi fa parte del risultato.
+    await addPosition(app, portfolioId, ISIN, '2021-09-19', 85.31, 53);
+    await addPosition(app, portfolioId, ISIN, '2023-03-07', 282.61, 103);
+    await addPosition(app, portfolioId, ISIN, '2025-02-14', 167.86, 37);
+    insertSecurityCompleta(ISIN); // prezzo corrente 128,46
+
+    const res = await fetchDetail(app, portfolioId, ISIN);
+
+    expect(res.statusCode).toBe(200);
+    const detail = res.json<PositionDetail>();
+
+    // 85,31×53 + 282,61×103 + 167,86×37 = 4.521,43 + 29.108,83 + 6.210,82 =
+    // 39.841,08 su 193 quote → media ponderata 206,4304663…
+    expect(detail.totalQuantity).toBe(193);
+    expect(detail.avgLoadPrice).toBe(206.43046632124353);
+    expect(detail.totalLoadValue).toBe(39841.08);
+    // 128,46 × 193 = 24.792,78 → differenza −15.048,30, cioè −37,77 %
+    expect(detail.currentValue).toBe(24792.780000000002);
+    expect(detail.difference).toBe(-15048.3);
+    expect(detail.differencePercent).toBe(-37.770813441804286);
+
+    // La media aritmetica dei tre prezzi varrebbe 178,59: la riga sopra è
+    // l'unica che distingua le due formule su questi carichi.
+    expect(detail.avgLoadPrice).not.toBeCloseTo((85.31 + 282.61 + 167.86) / 3, 2);
+  });
+
   it('prezzo corrente sotto il carico → differenza negativa con percentuale coerente', async () => {
     const app = await buildApp();
     const portfolioId = await createPortfolio(app, 'Conto In Perdita');

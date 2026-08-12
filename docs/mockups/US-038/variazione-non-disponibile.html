@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Variazione di periodo non disponibile (US-038)</title>
+  <meta name="description" content="Mockup US-038, criterio 4: la scala «Ultimo mese» contiene una sola rilevazione. Il riquadro della variazione di periodo porta il timbro «Dato non disponibile» — mai zero — mentre il P&L da carico resta valorizzato e identico.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda anagrafica del titolo</p>
+      <h1>Ishares Core <span class="corsivo">Msci World</span></h1>
+      <p class="sottotesto">ISIN IE00B4L5Y983 &middot; iscritto al Conto <em>Lungo Periodo</em></p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantit&agrave; &nbsp;&nbsp;&nbsp;&nbsp;<b>220</b> su 3 carichi</div>
+      <div>Pr. medio di carico &nbsp;<b>€&thinsp;68,3000</b></div>
+      <div>Pr. attuale &nbsp;<b>€&thinsp;128,4600</b></div>
+      <div>Rilevazioni in archivio &nbsp;<b>7</b> &middot; in finestra <b>1</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="#" class="disabilitata">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="variazione-non-disponibile.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      Posizione a conto
+      <span class="nota">FR&#8209;014 &middot; identica all&rsquo;altro mockup: nulla qui dipende dalla scala</span>
+    </div>
+
+    <div class="orizzonti">
+      <div class="orizzonte">
+        <span class="et">Quantit&agrave;</span>
+        <span class="valore">220</span>
+        <span class="perc">su 3 carichi</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore medio di carico</span>
+        <span class="valore">€&thinsp;68,3000</span>
+        <span class="perc">carico € 15.026,00</span>
+      </div>
+      <div class="orizzonte">
+        <span class="et">Valore attuale</span>
+        <span class="valore">€&thinsp;28.261,20</span>
+        <span class="perc">€ 128,4600/quota</span>
+      </div>
+      <div class="orizzonte rimandata">
+        <span class="et">Differenza</span>
+        <span class="valore guadagno">+€&thinsp;13.235,20</span>
+        <span class="perc guadagno">+88,08&thinsp;%</span>
+        <span class="segna-rimando">&#8225; ripresa sotto il grafico</span>
+      </div>
+    </div>
+
+    <div class="sezione-titolo">
+      Andamento del prezzo
+      <span class="nota">FR&#8209;012 &middot; ADR&#8209;003 &middot; scala chiesta: ultimo mese &middot; una sola rilevazione compresa</span>
+    </div>
+
+    <!-- ---------- La traversa delle cinque scale: «Ultimo mese» attiva ---------- -->
+    <div class="barra-scala" role="group" aria-label="Scala temporale del grafico">
+      <span class="et-scala">Scala temporale</span>
+      <div class="scala-temporale">
+        <button type="button" class="attiva" aria-pressed="true">Ultimo mese</button>
+        <button type="button">Ultimo anno</button>
+        <button type="button">Ultimi 5 anni</button>
+        <button type="button">Ultimi 10 anni</button>
+        <button type="button">
+          Tutto lo storico<span class="postilla-predefinita">predefinita</span>
+        </button>
+      </div>
+      <span class="finestra-attiva">Finestra: <b>10.VII.2026 &rarr; 10.VIII.2026</b> &middot; 31 giorni &middot; <b>1</b> rilevazione</span>
+    </div>
+
+    <!-- =====================================================================
+         La cornice resta, perché un punto in finestra c'è: il grafico non
+         sparisce (quello è il caso di US-037). Ciò che manca è il SECONDO
+         capo, e il difetto riguarda una sola delle due metriche.
+         ===================================================================== -->
+    <div class="grafico-cornice">
+      <span class="cartellino-finestra">10.VII.2026 &rarr; 10.VIII.2026</span>
+
+      <svg class="tracciato" viewBox="0 0 960 304" role="img"
+           aria-label="Andamento del prezzo unitario sulla scala «ultimo mese», dal 10 luglio al 10 agosto 2026. L'archivio possiede una sola rilevazione in questa finestra: 128,46 euro il 10 agosto 2026. Non essendoci un secondo capo, la variazione di periodo non è misurabile e viene dichiarata non disponibile. La riga d'ottone del prezzo medio ponderato di carico, a 68,30 euro, resta al suo posto e il P&L da carico resta misurabile: 60,16 euro per quota. La rilevazione precedente, del 27 giugno 2026 a 122,40 euro, cade 13 giorni prima dell'inizio della finestra e non viene portata dentro.">
+
+        <defs>
+          <marker id="puntaVerde" viewBox="0 0 8 8" refX="4" refY="4"
+                  markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#2f6b3a"/>
+          </marker>
+          <marker id="puntaVietata" viewBox="0 0 8 8" refX="7" refY="4"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#9e2b25"/>
+          </marker>
+          <pattern id="senzaSecondoCapo" width="11" height="11" patternUnits="userSpaceOnUse"
+                   patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="11" stroke="#9e2b25" stroke-width="2.4" opacity=".13"/>
+          </pattern>
+        </defs>
+
+        <!-- ---------- Campitura: nella finestra manca il secondo capo ---------- -->
+        <rect x="88" y="34" width="772" height="220" fill="url(#senzaSecondoCapo)"/>
+
+        <!-- ---------- Rigatura di lettura ---------- -->
+        <g stroke="#8a9bb0" stroke-width="1" opacity=".5">
+          <line x1="88" y1="54.3"  x2="860" y2="54.3"/>
+          <line x1="88" y1="111.3" x2="860" y2="111.3"/>
+          <line x1="88" y1="168.4" x2="860" y2="168.4"/>
+          <line x1="88" y1="225.5" x2="860" y2="225.5"/>
+        </g>
+
+        <!-- ---------- Assi ---------- -->
+        <line x1="88" y1="34" x2="88" y2="254" stroke="#221c14" stroke-width="1.5"/>
+        <line x1="88" y1="254" x2="860" y2="254" stroke="#221c14" stroke-width="1.5"/>
+
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="end">
+          <text x="80" y="58.1">130,00</text>
+          <text x="80" y="115.1">110,00</text>
+          <text x="80" y="172.2">&nbsp;&nbsp;90,00</text>
+          <text x="80" y="229.3">&nbsp;&nbsp;70,00</text>
+          <text x="80" y="257.8">&nbsp;&nbsp;60,00</text>
+        </g>
+        <text x="88" y="22" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">EURO PER QUOTA</text>
+
+        <!-- ---------- Verticale di «oggi» ---------- -->
+        <line x1="860" y1="34" x2="860" y2="254"
+              stroke="#6e5a36" stroke-width="1.2" stroke-dasharray="2 4"/>
+        <text x="856" y="22" text-anchor="end"
+              font-family="'IM Fell English SC', serif" font-size="10.5" letter-spacing="1.2"
+              fill="#6e5a36">OGGI &middot; 10.VIII.2026</text>
+
+        <!-- ---------- Capo BASSO del P&L: la riga d'ottone resta ---------- -->
+        <line x1="88" y1="230.3" x2="890" y2="230.3"
+              stroke="#9c7d34" stroke-width="2.2" stroke-dasharray="10 5"/>
+        <rect x="300" y="214.4" width="330" height="15" fill="#f7efda" opacity=".92"/>
+        <text x="465" y="225.4" text-anchor="middle"
+              font-family="'Courier Prime', monospace" font-size="10.5" letter-spacing=".4"
+              fill="#9c7d34">PREZZO MEDIO PONDERATO DI CARICO &nbsp;€ 68,3000</text>
+
+        <!-- ---------- La dichiarazione, al posto del secondo capo ---------- -->
+        <text x="440" y="92" text-anchor="middle" font-family="'IM Fell English SC', serif"
+              font-size="14" letter-spacing="2.6" fill="#9e2b25">VARIAZIONE DI PERIODO &middot; NON MISURABILE</text>
+        <text x="440" y="112" text-anchor="middle" font-family="'IM Fell English', serif"
+              font-style="italic" font-size="13.5" fill="#9e2b25">servono due rilevazioni comprese nella finestra &mdash; qui ce n&rsquo;&egrave; una sola</text>
+
+        <!-- ---------- Il divieto di trascinamento della rilevazione precedente ---------- -->
+        <line x1="96" y1="160" x2="560" y2="160" stroke="#9e2b25" stroke-width="1.4"
+              stroke-dasharray="6 6" marker-end="url(#puntaVietata)" opacity=".85"/>
+        <g stroke="#9e2b25" stroke-width="2.4">
+          <line x1="316" y1="152" x2="332" y2="168"/>
+          <line x1="332" y1="152" x2="316" y2="168"/>
+        </g>
+        <rect x="96" y="132" width="424" height="26" fill="#f7efda" opacity=".95"/>
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#9e2b25">
+          <text x="100" y="142">rilevazione precedente: 27.VI.2026 &nbsp;€ 122,4000</text>
+          <text x="100" y="154">13 giorni prima della finestra &mdash; non viene portata dentro</text>
+        </g>
+
+        <!-- ---------- L'unica rilevazione compresa ---------- -->
+        <circle cx="860" cy="58.7" r="4.8" fill="#221c14" stroke="#f7efda" stroke-width="1.3"/>
+        <circle cx="860" cy="58.7" r="9" fill="none" stroke="#9e2b25" stroke-width="1.6"
+                stroke-dasharray="3 3"/>
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#221c14" text-anchor="end">
+          <rect x="700" y="66" width="150" height="40" fill="#f7efda" opacity=".93"/>
+          <text x="846" y="76">10.VIII.2026</text>
+          <text x="846" y="88">€ 128,4600</text>
+          <text x="846" y="100" fill="#9e2b25">unico punto in finestra</text>
+        </g>
+
+        <!-- ---------- Quota VERDE: il P&L da carico resta misurabile ---------- -->
+        <line x1="860" y1="58.7" x2="888" y2="58.7"
+              stroke="#6e5a36" stroke-width="1" stroke-dasharray="3 3" opacity=".8"/>
+        <line x1="888" y1="58.7" x2="888" y2="230.3" stroke="#2f6b3a" stroke-width="1.6"
+              marker-start="url(#puntaVerde)" marker-end="url(#puntaVerde)"/>
+        <g font-family="'Courier Prime', monospace" fill="#2f6b3a" text-anchor="end">
+          <rect x="742" y="176" width="140" height="30" fill="#f7efda" opacity=".93"/>
+          <text x="880" y="186" font-size="10">P&amp;L DA CARICO</text>
+          <text x="880" y="201" font-size="13">+€ 60,1600 /quota</text>
+        </g>
+
+        <!-- ---------- Scala dei tempi ---------- -->
+        <g stroke="#221c14" stroke-width="1">
+          <line x1="262.3" y1="254" x2="262.3" y2="259"/>
+          <line x1="436.6" y1="254" x2="436.6" y2="259"/>
+          <line x1="610.9" y1="254" x2="610.9" y2="259"/>
+          <line x1="785.3" y1="254" x2="785.3" y2="259"/>
+        </g>
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="middle">
+          <text x="88" y="282" text-anchor="start">10.VII.2026</text>
+          <text x="262.3" y="282">17.VII</text>
+          <text x="436.6" y="282">24.VII</text>
+          <text x="610.9" y="282">31.VII</text>
+          <text x="785.3" y="282">07.VIII</text>
+          <text x="860" y="282" text-anchor="end">oggi</text>
+        </g>
+        <text x="88" y="299" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">GIORNI CIVILI &middot; FINESTRA CHIESTA: ULTIMO MESE &middot; 31 GIORNI</text>
+      </svg>
+
+      <p class="estremi-tracciato">
+        <span>Rilevazioni comprese: <b>1</b></span>
+        <span>0 carichi in finestra &middot; nessun segmento da tracciare</span>
+        <span>Unico punto: <b>10.VIII.2026</b></span>
+      </p>
+    </div>
+
+    <!-- =====================================================================
+         US-038 · LA BILANCIA — un piatto pieno, uno dichiarato vuoto.
+         Le due metriche sono indipendenti: la mancanza dell'una non tocca l'altra.
+         ===================================================================== -->
+    <div class="bilancia">
+      <div class="intestazione-bilancia">
+        <span>Le due misure &mdash; e su che cosa sono calcolate</span>
+        <span class="chiosa">un piatto misura, l&rsquo;altro dichiara di non poter misurare</span>
+      </div>
+
+      <!-- ---------- Piatto 1 · P&L da carico: identico all'altro mockup ---------- -->
+      <div class="piatto pnl">
+        <div class="testa-piatto">
+          <span class="et-piatto">P&amp;L da carico</span>
+          <span class="unita">sull&rsquo;intera posizione &middot; <b>220</b> quote &middot; tutti e <b>3</b> i carichi</span>
+        </div>
+
+        <div class="cifre">
+          <span class="importo guadagno">+€&thinsp;13.235,20</span>
+          <span class="percento guadagno">+88,08&thinsp;%</span>
+        </div>
+
+        <p class="provenienza">
+          <span class="et-prov">Da dove viene questo numero</span>
+          <span class="passo">prezzo medio di carico <b>€&thinsp;68,3000</b> su <b>220</b> quote</span>
+          <span class="freccia">&rarr;</span>
+          <span class="passo">prezzo attuale <b>€&thinsp;128,4600</b></span>
+          <span class="coda">
+            (128,4600 &minus; 68,3000) &times; 220 = 13.235,20 &nbsp;&middot;&nbsp;
+            13.235,20 / 15.026,00 = 88,08&thinsp;%
+          </span>
+        </p>
+
+        <p class="rimando-differenza">
+          <span class="croce">&#8225;</span>
+          <span>Stessa cifra della &laquo;Differenza&raquo; in <em>Posizione a conto</em>, e stessa
+            cifra dell&rsquo;altro mockup: la scala non la tocca.</span>
+        </p>
+
+        <p class="orizzonte-piatto">
+          <span class="segna-orizzonte fisso">non dipende dalla scala</span>
+          <span>Il bottone attivo qui sopra &egrave; passato da <em>ultimo anno</em> a
+            <em>ultimo mese</em>, e questo riquadro non &egrave; cambiato: non ha nulla da
+            leggere nella finestra.</span>
+        </p>
+      </div>
+
+      <!-- ---------- Il perno ---------- -->
+      <div class="fulcro" aria-hidden="true">
+        <span class="segno">&ne;</span>
+      </div>
+
+      <!-- ---------- Piatto 2 · Variazione di periodo: dichiarata assente ---------- -->
+      <div class="piatto periodo assente">
+        <div class="testa-piatto">
+          <span class="et-piatto">Variazione di periodo</span>
+          <span class="unita">sul prezzo unitario &middot; <b>1</b> quota &middot; finestra <b>ultimo mese</b></span>
+        </div>
+
+        <span class="timbro-piatto">Dato non disponibile</span>
+
+        <div class="cifre">
+          <span class="cifra-mancante">&minus;€&thinsp;0,00</span>
+          <span class="percento" style="color:var(--rosso-margine)">mai zero</span>
+        </div>
+
+        <p class="perche-assente">
+          <span class="et-perche">Perch&eacute; il dato non c&rsquo;&egrave;</span>
+          Nella finestra chiesta &mdash; <b>10.VII.2026 &rarr; 10.VIII.2026</b>, 31 giorni civili &mdash;
+          l&rsquo;archivio possiede <b>1</b> sola rilevazione. Per misurare un movimento servono
+          due capi: uno da cui partire e uno a cui arrivare.
+          <ul class="elenco-perche">
+            <li>
+              Rilevazioni comprese: <b>1</b> &mdash; quella del <b>10.VIII.2026</b>,
+              <b>€&thinsp;128,4600</b>. Ne servono almeno <b>2</b>.
+            </li>
+            <li>
+              La rilevazione precedente &egrave; del <b>27.VI.2026</b> (<b>€&thinsp;122,4000</b>):
+              cade <b>13 giorni</b> prima dell&rsquo;inizio della finestra, quindi fuori. Non viene
+              portata dentro: sarebbe affermare dentro il periodo un prezzo osservato prima
+              (ADR&#8209;003).
+            </li>
+            <li>
+              I <b>3</b> prezzi di carico non entrano nel conto &mdash; n&eacute; qui n&eacute;
+              altrove. Un prezzo di carico dice quanto hai pagato <em>tu</em>, non a quanto il
+              mercato scambiava il titolo: metterlo in questa formula misurerebbe le tue decisioni,
+              non il movimento del titolo.
+            </li>
+            <li>
+              Il riquadro resta perci&ograve; senza cifra. Uno <b>0,00&thinsp;%</b> direbbe
+              &laquo;il prezzo non si &egrave; mosso&raquo;, e non &egrave; ci&ograve; che
+              l&rsquo;archivio sa: sa di <em>non sapere</em>.
+            </li>
+          </ul>
+        </p>
+
+        <p class="invito-scala" style="max-width:none">
+          Per vedere una variazione, allarga la finestra:
+          <span class="tasto-citato">Ultimo anno</span> comprende <b>6</b> rilevazioni
+          &mdash; dal <b>12.IX.2025</b> al <b>10.VIII.2026</b> &mdash; e la misura torna
+          disponibile, a <b>&minus;9,02&thinsp;%</b>.
+        </p>
+      </div>
+    </div>
+
+    <!-- ---------- La postilla ---------- -->
+    <p class="postilla-bilancia">
+      <span class="glifo-postilla">&ne;</span>
+      <span>
+        I due piatti <span class="mai">stanno in piedi da soli</span>: che manchi la variazione di
+        periodo non rende incerto il <b>P&amp;L da carico</b>, e viceversa. Il primo ha bisogno dei
+        carichi e del prezzo attuale &mdash; li ha entrambi. Il secondo ha bisogno di due
+        rilevazioni comprese nella finestra &mdash; ne trova una. Sono due domande diverse rivolte
+        allo stesso archivio, e ricevono risposte indipendenti: <em>quanto ho guadagnato</em> resta
+        <span class="guadagno">+€&thinsp;13.235,20</span>, <em>quanto si &egrave; mosso il titolo
+        nell&rsquo;ultimo mese</em> resta senza risposta.
+      </span>
+    </p>
+
+    <div class="legenda-tracciato">
+      <div class="intestazione-legenda">Che cosa la finestra contiene, e che cosa lascia fuori</div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <circle cx="18" cy="8" r="4.4" fill="#221c14" stroke="#f7efda" stroke-width="1.2"/>
+          <circle cx="18" cy="8" r="8" fill="none" stroke="#9e2b25" stroke-width="1.4" stroke-dasharray="3 3"/>
+        </svg>
+        <span>
+          <span class="et">Il cerchio doppio tratteggiato &mdash; capo spaiato</span>
+          <span class="spiega">
+            <span class="conto">10.VIII.2026 &middot; € 128,4600</span>: l&rsquo;unica rilevazione
+            compresa. Nell&rsquo;altro mockup il cerchio doppio &egrave; continuo perch&eacute; i
+            capi sono due; qui &egrave; interrotto, perch&eacute; il secondo manca.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <line x1="1" y1="8" x2="27" y2="8" stroke="#9e2b25" stroke-width="1.4" stroke-dasharray="5 4"/>
+          <path d="M27,4 L35,8 L27,12 Z" fill="#9e2b25"/>
+          <g stroke="#9e2b25" stroke-width="2">
+            <line x1="11" y1="3" x2="19" y2="13"/>
+            <line x1="19" y1="3" x2="11" y2="13"/>
+          </g>
+        </svg>
+        <span>
+          <span class="et">Freccia sbarrata &mdash; nessun trascinamento</span>
+          <span class="spiega">
+            la rilevazione del <span class="conto">27.VI.2026</span> resta dov&rsquo;&egrave;:
+            PortfolIA non la porta dentro la finestra per fabbricare un secondo capo. La regola
+            &egrave; la stessa di US&#8209;037, applicata qui a una metrica invece che a un tracciato.
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="avviso-rado senza-trascinamento">
+      <span>
+        Lo storico &egrave; rado per costruzione: si osserva quando apri il registro. Fra il
+        <b>27.VI</b> e il <b>10.VIII.2026</b> questo registro &egrave; rimasto chiuso per
+        <b>44</b> giorni, e la finestra dell&rsquo;ultimo mese cade quasi tutta l&agrave; dentro.
+        Una finestra povera di rilevazioni non &egrave; un difetto da riempire, &egrave; il
+        resoconto fedele di quante volte hai guardato (ADR&#8209;008).
+      </span>
+    </div>
+
+    <p class="nota-sezione">
+      La soglia &egrave; <b>due rilevazioni</b>, non due punti d&rsquo;archivio: i prezzi di carico
+      sono punti sul grafico e origini legittime del tracciato, ma non sono osservazioni di mercato
+      e non possono fare da capo a una variazione di periodo. &Egrave; la ragione per cui questa
+      metrica pu&ograve; dirsi non disponibile anche su un titolo che di punti ne ha
+      <b>10</b> in archivio.
+    </p>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="index.html">&larr; Torna a &laquo;entrambe disponibili&raquo;</a>
+      <a class="bottone secondario" href="pnl-non-disponibile.html">P&amp;L non disponibile &rarr;</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">Quando l&rsquo;archivio non sa, lo dichiara &mdash; non scrive zero</span>
+    <span><span class="timbro">Dato non disponibile</span> PortfolIA &middot; US-038</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-038 &middot; <a href="index.html">Entrambe disponibili</a> &middot;
+  <a href="variazione-non-disponibile.html">Variazione non disponibile</a> &middot;
+  <a href="pnl-non-disponibile.html">P&amp;L non disponibile</a>
+</p>
+
+</body>
+</html>
