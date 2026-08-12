@@ -151,11 +151,12 @@ A differenza dei portali dei broker (che mostrano solo i titoli detenuti presso 
 6. **Grafico andamento:** andamento del valore del portafoglio nel tempo, con scala selezionabile tra giorno, mese, anno, 5 anni, 10 anni precedenti.
 7. **Persistenza locale su SQLite:** tutti i dati salvati localmente; nessuna autenticazione; esecuzione solo in locale.
 8. **Cache dei prezzi storici:** memorizzazione locale delle serie storiche recuperate per performance e per ridurre le richieste alla fonte.
-9. Operazioni di **vendita** e gestione di posizioni chiuse (P&L realizzato vs latente),
+9. **Vendite e posizioni chiuse:** registrare la vendita parziale o totale di una posizione con attribuzione LIFO del costo, distinguendo il P&L **realizzato** (già incassato e congelato) da quello **latente** (ancora esposto al mercato); un titolo venduto interamente esce dai titoli posseduti e resta consultabile fra le posizioni chiuse.
 10. **Dati seed iniziali:** inizializzazione con gli ISIN `IT0003128367`, `IE00BMVB5S82`, `IE00BMVB5R75`.
 
 ### Funzionalità di crescita (Post-MVP)
 
+- **Saldo di liquidità** del portafoglio, per trattenere l'incasso delle vendite e rendere continuo il valore totale (ADR-009).
 - Gestione di **dividendi/cedole** e **commissioni** nel calcolo del rendimento (e total return).
 - Supporto **multi-valuta** con conversione cambi.
 - **Import automatico** da file di estratto conto / broker (CSV).
@@ -260,6 +261,10 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 - **ADR-006 — Full-stack TypeScript:** un solo linguaggio e tipi condivisi tra client e server per ridurre la complessità.
 - **ADR-007 — Fonte di backup MorningStar con fallback e provenienza visibile:** quando Borsa Italiana non trova il titolo o è irraggiungibile, il sistema interroga MorningStar (`https://global.morningstar.com/it`) tramite un secondo adapter isolato dietro la stessa interfaccia della fonte primaria. La provenienza (fonte primaria o di backup) è mostrata all'utente. Estende ADR-002 e mitiga il rischio di blocco/fragilità della singola fonte; le regole di Buona Cittadinanza (User-Agent corretto, basso volume, caching) valgono per entrambe le fonti.
 - **ADR-008 — Storico prezzi osservazionale invece di serie storica recuperata** *(supera ADR-005)*: lo storico dei prezzi non viene richiesto alla fonte, ma si accumula registrando le quotazioni già rilevate durante gli aggiornamenti che l'utente provoca (ricerca titolo, scheda titolo, aggiornamento massivo dei titoli obsoleti). Motivazione: il recupero della serie storica decennale via scraping era l'assunzione a maggior rischio del progetto — copertura incerta per gli ETF di emissione recente e muro anti-bot già incontrato con la fonte di backup — e la sua riuscita non dipendeva da noi. Con lo storico osservazionale la Buona Cittadinanza diventa vera per costruzione: la funzionalità non aggiunge una sola richiesta alla fonte. Costo accettato: lo storico è **rado** e parte dall'entrata in esercizio, quindi gli orizzonti lunghi (5 e 10 anni) resteranno a lungo "dato non disponibile" secondo ADR-003. La deduplica delle osservazioni è per giorno civile (Europe/Rome) e non per prezzo: due giorni consecutivi a prezzo invariato restano due osservazioni distinte, perché comprimerle renderebbe un dato piatto indistinguibile da un dato assente.
+- **ADR-009 — Vendite come iscrizioni append-only, costo LIFO, nessun saldo di liquidità:** una vendita è un **nuovo fatto** nel registro, mai la modifica o la cancellazione di un carico esistente; la rimozione di un carico resta uno strumento di errata (FR-009) e diventa impossibile su un carico già consumato. Tre decisioni compongono questo ADR:
+  1. **Attribuzione LIFO** invece del prezzo medio ponderato già usato da FR-008. Il medio ponderato avrebbe una proprietà comoda — la vendita parziale non altera il costo per quota del residuo — ma LIFO è il criterio che la normativa fiscale italiana impone sulle plusvalenze da titoli della stessa specie, e allineare il calcolo alla realtà fiscale dell'utente vale la complessità in più. Costo accettato: ogni carico diventa un **lotto** con quantità residua propria, e il prezzo medio del residuo cambia dopo ogni vendita. La quantità residua dei lotti è **derivata** rigiocando le vendite sul registro, non memorizzata, perché un valore salvato può divergere dal registro che dovrebbe riassumere.
+  2. **P&L realizzato congelato.** Si calcola una volta, all'atto della vendita, e non varia più: un guadagno già incassato che si muovesse con le rilevazioni successive renderebbe i numeri inaffidabili. Da qui l'invariante da testare: `realizzato + latente = totale`, invariato prima e dopo una vendita a prezzo di mercato fermo. La percentuale del P&L totale ha per base il costo di **tutti** i carichi, lotti venduti inclusi — con LIFO il costo dei lotti consumati più quello dei residui somma esattamente al costo complessivo dei carichi, quindi la base è verificabile con un test. Escludere il costo dei lotti venduti dal denominatore mentre il loro guadagno resta al numeratore produrrebbe percentuali gonfiate.
+  3. **Nessun saldo di liquidità.** L'app tiene i titoli, non la cassa: l'incasso di una vendita non è trattenuto come liquidità del portafoglio. Conseguenza da governare in UI e non da nascondere con la matematica: al momento di una vendita totale il valore attuale scende, e sommare il realizzato al valore attuale per "compensare" mescolerebbe un flusso con uno stock, gonfiando il patrimonio con un guadagno che non è titoli. L'app dichiara quindi esplicitamente che l'incasso è fuori dal suo perimetro. Un saldo di liquidità resta un candidato Post-MVP.
 
 ---
 
@@ -285,7 +290,16 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 
 - **FR-007:** L'utente può aggiungere un titolo a un portafoglio specificando data di carico, prezzo di acquisto e quantità acquistata.
 - **FR-008:** L'utente può inserire più carichi dello stesso titolo nello stesso portafoglio, con calcolo del prezzo medio di carico.
-- **FR-009:** L'utente può modificare o rimuovere una posizione/carico inserito.
+- **FR-009:** L'utente può modificare o rimuovere una posizione/carico inserito. La rimozione è una **correzione di un'iscrizione errata** (errata) e non rappresenta una vendita: cancella il carico come se non fosse mai avvenuto, senza produrre alcun P&L realizzato. Per ridurre una posizione a seguito di un'operazione realmente eseguita si usa la vendita (FR-022).
+
+### Vendite e posizioni chiuse
+
+- **FR-022:** L'utente può registrare la vendita di una parte o di tutta la quantità posseduta di un titolo, indicando data, prezzo di vendita e quantità. La vendita è registrata come **nuova iscrizione** nel registro: nessun carico esistente viene modificato o cancellato.
+- **FR-023:** Il sistema attribuisce il costo delle quote vendute secondo il criterio **LIFO** (ADR-009), consumando per primi i carichi con data più recente fra quelli non successivi alla data di vendita, e ricalcola il prezzo medio di carico della quantità residua sui soli lotti non consumati.
+- **FR-024:** Il sistema rifiuta una vendita di quantità superiore a quella disponibile alla data indicata e una vendita anteriore al carico che dovrebbe consumare: la quantità residua non è mai negativa. Un carico già consumato, anche solo in parte, da una vendita non può essere rimosso né modificato.
+- **FR-025:** Per ogni portafoglio il sistema mostra il **P&L realizzato** (calcolato all'atto della vendita e immutabile al sopraggiungere di nuove rilevazioni di prezzo), il **P&L latente** (calcolato sulla sola quantità residua) e il loro totale. Il P&L realizzato non è mai sommato al valore attuale del portafoglio (FR-010), che comprende i soli titoli posseduti; l'assenza di un saldo di liquidità è dichiarata esplicitamente all'utente (ADR-009).
+- **FR-026:** Un titolo con quantità residua nulla non compare fra i titoli posseduti (FR-013) ed è elencato in una sezione **posizioni chiuse** con quantità venduta, incasso e P&L realizzato. Un nuovo carico sullo stesso ISIN riapre la posizione senza cancellare lo storico delle vendite.
+- **FR-027:** La quantità detenuta a una data è calcolata come somma dei carichi meno somma delle vendite non successive a quella data, così che il grafico dell'andamento (FR-015) resti storicamente veritiero anche dopo una vendita.
 
 ### Riepilogo e indicatori di rendimento
 
