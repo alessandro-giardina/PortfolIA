@@ -1,6 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DataSource, PositionDetail, RefetchConfirmation } from '@portfolia/shared';
-import { dataRegistro } from './Foglio.js';
+// `dataCarico` sta in `Foglio.tsx` e non qui: la tabella dei carichi e il
+// grafico dell'andamento (US-036) mostrano la stessa data, e devono scriverla
+// con lo stesso formattatore. Da US-038 vale lo stesso per `importo`, `prezzo` e
+// la convenzione di segno: la casella «Differenza» qui sotto e il riquadro del
+// P&L sotto il grafico mostrano la **stessa** cifra, e due formattatori distinti
+// potrebbero scriverla in due modi — che per chi guarda è una divergenza.
+import {
+  classeSegno,
+  dataCarico,
+  dataRegistro,
+  importo,
+  importoConSegno,
+  percentualeConSegno,
+  prezzo,
+} from './Foglio.js';
+import GraficoTitolo from './GraficoTitolo.js';
+import MetricheTitolo from './MetricheTitolo.js';
 import { recuperaTitolo } from '../domain/recuperoTitolo.js';
 
 interface SchedaTitoloProps {
@@ -40,26 +56,9 @@ function dataRilevazione(fetchedAt: number): string {
   return `${dataRegistro(fetchedAt)} · ${hh}:${mm}`;
 }
 
-/** Formatta una data ISO-8601 (YYYY-MM-DD) in stile registro (es. "19.IX.2021"). */
-const MESI_ROMANI = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
-function dataCarico(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  return `${String(d).padStart(2, '0')}.${MESI_ROMANI[m - 1]}.${y}`;
-}
-
 /** Giorno della settimana di una rilevazione, es. "lunedì". */
 function giornoSettimana(observedAt: number): string {
   return new Date(observedAt * 1000).toLocaleDateString('it-IT', { weekday: 'long' });
-}
-
-/** Cifra con due decimali all'italiana, es. "28.261,20". */
-function importo(valore: number): string {
-  return valore.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-/** Prezzo unitario a quattro decimali, es. "68,3000". */
-function prezzo(valore: number): string {
-  return valore.toLocaleString('it-IT', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 }
 
 /** Simbolo della valuta di denominazione; l'euro è la valuta del registro. */
@@ -90,13 +89,16 @@ function VoceAnagrafica({ etichetta, valore }: { etichetta: string; valore: stri
 /**
  * Scheda di dettaglio di un titolo iscritto a portafoglio (US-018, FR-014).
  *
- * Quattro sezioni: il cartellino della posizione a conto, l'anagrafica ufficiale
+ * Cinque sezioni: il cartellino della posizione a conto, l'anagrafica ufficiale
  * con la riga di provenienza del dato (FR-021) e l'elenco dei carichi registrati
  * — come da mockup `docs/mockups/US-018/index.html` — seguiti dallo storico dei
  * prezzi osservati (US-009, `docs/mockups/US-009/index.html` e
  * `prima-osservazione.html`). Lo storico è una lettura d'archivio come tutto il
  * resto della scheda: mostra le rilevazioni che gli aggiornamenti già esistenti
- * hanno prodotto, senza provocarne di nuove.
+ * hanno prodotto, senza provocarne di nuove. Chiude la scheda il grafico
+ * dell'andamento del prezzo (US-036, `docs/mockups/US-036/index.html`), che
+ * traccia gli stessi dati delle due sezioni precedenti — prezzi di carico e
+ * rilevazioni registrate — e per questo non aggiunge alcuna richiesta alla fonte.
  *
  * Dalla riga di provenienza si può chiedere l'aggiornamento dei dati (US-030):
  * è l'unica azione della scheda che contatta la fonte, e passa dallo stesso
@@ -270,7 +272,6 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
 
   const numeroCarichi = detail.loads.length;
   const numeroOsservazioni = detail.priceHistory.length;
-  const inGuadagno = detail.difference !== null && detail.difference >= 0;
   const simboloValuta = simboloDi(detail.currency);
   const inAttesa = esito?.tipo === 'in-corso';
 
@@ -357,20 +358,29 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
           )}
         </div>
 
-        <div className={`orizzonte${detail.difference === null ? ' non-valorizzato' : ''}`}>
+        {/* La casella è «rimandata» al riquadro del P&L sotto il grafico
+            (US-038): non è un secondo conto, è la stessa lettura ripresa dove
+            serve. Le due stringhe nascono dagli stessi formattatori proprio
+            perché non possano divergere. */}
+        <div
+          className={`orizzonte${detail.difference === null ? ' non-valorizzato' : ' rimandata'}`}
+        >
           <span className="et">Differenza</span>
           {detail.difference !== null ? (
             <>
               <span
-                className={`valore ${inGuadagno ? 'guadagno' : 'perdita'}`}
+                className={`valore ${classeSegno(detail.difference)}`}
                 data-testid="dettaglio-differenza"
               >
-                {inGuadagno ? '+' : '−'}€ {importo(Math.abs(detail.difference))}
+                {importoConSegno(detail.difference)}
               </span>
-              <span className={`perc ${inGuadagno ? 'guadagno' : 'perdita'}`}>
+              <span className={`perc ${classeSegno(detail.difference)}`}>
                 {detail.differencePercent !== null
-                  ? `${inGuadagno ? '+' : '−'}${Math.abs(detail.differencePercent).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`
+                  ? percentualeConSegno(detail.differencePercent)
                   : 'percentuale non calcolabile'}
+              </span>
+              <span className="segna-rimando" data-testid="segna-rimando-differenza">
+                &#8225; ripresa sotto il grafico
               </span>
             </>
           ) : (
@@ -673,6 +683,62 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
           </>
         )}
       </p>
+
+      {/* ===== 5. Andamento del titolo (US-036, US-039, FR-015, FR-017, ADR-008) =====
+          Il titolo della sezione è «del titolo» e non «del prezzo» da US-039: la
+          sezione ospita ora due viste della stessa storia — il prezzo di una
+          quota e il valore del pacchetto — e intestarla al solo prezzo
+          dichiarerebbe a schermo una cosa falsa nella metà dei casi. */}
+      <div className="sezione-titolo" data-testid="sezione-grafico-titolo">
+        Andamento del titolo
+        <span className="nota">
+          FR-015 &middot; FR-017 &middot; ADR-008 &middot; dal primo carico a oggi &middot; due viste
+          della stessa storia, sui soli dati d&rsquo;archivio
+        </span>
+      </div>
+
+      {/* Il grafico è una seconda lettura degli stessi dati che le sezioni 3 e 4
+          già mostrano: i tre valori arrivano dal `detail` che la scheda ha già
+          letto, e da qui non parte alcuna richiesta in più alla fonte (criterio 7).
+          `avgLoadPrice` si passa così com'è — la media ponderata la calcola il
+          server, e due letture dello stesso fatto non devono poter divergere. Il
+          caso «dati assenti» lo dichiara il componente stesso: a serie vuota
+          mostra l'avviso al posto del tracciato, come la tabella dello storico
+          mostra la riga vuota invece di sparire. */}
+      {/* `key={detail.isin}` non è una formalità di lista: il grafico porta lo
+          stato della scala temporale scelta (US-037), e la scheda **non si
+          rimonta** cambiando titolo — `PortfolioDetailPage` la monta con
+          `isin={isinSelezionato}` e il ricaricamento avviene in un effetto.
+          Senza la chiave, la scala scelta su un titolo sopravviverebbe
+          all'apertura del successivo, contro il criterio «tutto lo storico è la
+          scala predefinita all'apertura della scheda». Con la chiave il criterio
+          è vero per costruzione, invece che per un effetto di azzeramento da
+          ricordarsi. */}
+      {/* `sottoIlGrafico` è la cucitura fra i due lati (US-038): la scala vive
+          nel grafico, i fatti della posizione vivono qui, e le due metriche
+          hanno bisogno di entrambi. Nessun campo viene ricalcolato — si passa
+          ciò che il server ha già prodotto, ed è così che il P&L non può
+          divergere dalla «Differenza» qui sopra. */}
+      <GraficoTitolo
+        key={detail.isin}
+        loads={detail.loads}
+        observations={detail.priceHistory}
+        avgLoadPrice={detail.avgLoadPrice}
+        simboloValuta={simboloValuta}
+        sottoIlGrafico={(contesto) => (
+          <MetricheTitolo
+            {...contesto}
+            difference={detail.difference}
+            differencePercent={detail.differencePercent}
+            totalQuantity={detail.totalQuantity}
+            avgLoadPrice={detail.avgLoadPrice}
+            totalLoadValue={detail.totalLoadValue}
+            currentPrice={detail.currentPrice}
+            numeroCarichi={numeroCarichi}
+            simboloValuta={simboloValuta}
+          />
+        )}
+      />
     </div>
   );
 }

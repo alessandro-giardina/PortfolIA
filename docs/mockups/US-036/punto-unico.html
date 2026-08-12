@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Andamento del prezzo: un solo punto (US-036)</title>
+  <meta name="description" content="Mockup US-036, variante degenere: un solo carico e nessuna rilevazione. Il grafico compare comunque, con il punto disponibile e il vuoto fino a oggi dichiarato invece di lasciato ambiguo.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; scheda anagrafica del titolo</p>
+      <h1>Recordati <span class="corsivo">S.p.A.</span></h1>
+      <p class="sottotesto">ISIN IT0003828271 &middot; iscritto al Conto <em>Lungo Periodo</em></p>
+    </div>
+    <div class="colonna-registro">
+      <div>Quantit&agrave; &nbsp;&nbsp;&nbsp;&nbsp;<b>90</b> su 1 carico</div>
+      <div>Pr. medio di carico &nbsp;<b>€&thinsp;42,0000</b></div>
+      <div>Pr. ultimo rilevato &nbsp;<b>&mdash; nessuna rilevazione</b></div>
+      <div>Punti in archivio &nbsp;<b>1</b></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="#" class="disabilitata">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="punto-unico.html" class="attiva">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <!-- La sezione «Storico prezzi» di US-009, in forma ridotta: qui è vuota,
+         ed è proprio questa la premessa della variante. -->
+    <div class="sezione-titolo" style="margin-top:6px">
+      Storico prezzi
+      <span class="nota">US&#8209;009 &middot; FR&#8209;018 &middot; le quotazioni gi&agrave; rilevate &middot; nessuna richiesta in pi&ugrave; alla fonte</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro" aria-label="Storico dei prezzi rilevati per questo titolo">
+        <thead>
+          <tr>
+            <th>Data di rilevamento</th>
+            <th class="allineato-dx">Prezzo rilevato</th>
+            <th>Fonte</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="riga-vuota">
+            <td colspan="3">Nessuna rilevazione registrata per questo titolo.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="nota-sezione">
+      Un carico solo, quello del <b>14.II.2025</b>: <b>90</b> quote a €&thinsp;42,0000.
+      L&rsquo;archivio non conserva ancora nessuna quotazione osservata per questo titolo.
+    </p>
+
+    <!-- =====================================================================
+         US-036 — il grafico compare anche qui. Un titolo con un solo punto non
+         perde la sezione: la perderebbe soltanto se la sezione assente e la
+         sezione guasta si somigliassero, che è l'ambiguità da evitare.
+         ===================================================================== -->
+
+    <div class="sezione-titolo">
+      Andamento del prezzo
+      <span class="nota">FR&#8209;015 &middot; ADR&#8209;008 &middot; un solo punto in archivio &middot; nessun andamento da tracciare</span>
+    </div>
+
+    <div class="grafico-cornice">
+      <span class="cartellino-finestra">14.II.2025 &rarr; 10.VIII.2026</span>
+
+      <svg class="tracciato" viewBox="0 0 960 304" role="img"
+           aria-label="Il titolo ha un solo punto d'archivio: il carico del 14 febbraio 2025 a 42,00 euro per quota. Dal carico a oggi passano 542 giorni civili senza alcuna rilevazione, e la fascia tratteggiata li dichiara vuoti. Non esiste ancora un andamento.">
+
+        <defs>
+          <!-- Fascia dei giorni non osservati: campitura obliqua, non superficie piena.
+               Una superficie piena somiglierebbe a un dato; il tratteggio no. -->
+          <pattern id="giorniVuoti" width="11" height="11" patternUnits="userSpaceOnUse"
+                   patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="11" stroke="#9e2b25" stroke-width="2.4" opacity=".16"/>
+          </pattern>
+        </defs>
+
+        <!-- ---------- Rigatura di lettura ---------- -->
+        <g stroke="#8a9bb0" stroke-width="1" opacity=".55">
+          <line x1="88" y1="78"  x2="884" y2="78"/>
+          <line x1="88" y1="122" x2="884" y2="122"/>
+          <line x1="88" y1="166" x2="884" y2="166"/>
+          <line x1="88" y1="210" x2="884" y2="210"/>
+        </g>
+
+        <!-- ---------- La fascia dei 542 giorni senza rilevazioni ---------- -->
+        <rect x="88" y="34" width="796" height="220" fill="url(#giorniVuoti)"/>
+        <rect x="88" y="34" width="796" height="220" fill="none"
+              stroke="#9e2b25" stroke-width="1.2" stroke-dasharray="6 5" opacity=".65"/>
+
+        <!-- ---------- Assi ---------- -->
+        <line x1="88" y1="34" x2="88" y2="254" stroke="#221c14" stroke-width="1.5"/>
+        <line x1="88" y1="254" x2="884" y2="254" stroke="#221c14" stroke-width="1.5"/>
+
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="end">
+          <text x="80" y="81.8">50,00</text>
+          <text x="80" y="125.8">45,00</text>
+          <text x="80" y="169.8">40,00</text>
+          <text x="80" y="213.8">35,00</text>
+          <text x="80" y="257.8">30,00</text>
+        </g>
+        <text x="88" y="22" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">EURO PER QUOTA</text>
+
+        <!-- ---------- Verticale di «oggi» ---------- -->
+        <line x1="884" y1="34" x2="884" y2="254"
+              stroke="#6e5a36" stroke-width="1.2" stroke-dasharray="2 4"/>
+        <text x="880" y="22" text-anchor="end"
+              font-family="'IM Fell English SC', serif" font-size="10.5" letter-spacing="1.2"
+              fill="#6e5a36">OGGI &middot; 10.VIII.2026</text>
+
+        <!-- ---------- Riga del prezzo medio ponderato di carico ---------- -->
+        <!-- Con un carico solo la media ponderata coincide col prezzo pagato: la
+             riga passa esattamente per il punto, e va detto. -->
+        <line x1="88" y1="148.4" x2="884" y2="148.4"
+              stroke="#9c7d34" stroke-width="2.2" stroke-dasharray="10 5"/>
+        <rect x="430" y="132.5" width="330" height="15" fill="#f7efda" opacity=".92"/>
+        <text x="595" y="143.5" text-anchor="middle"
+              font-family="'Courier Prime', monospace" font-size="10.5" letter-spacing=".4"
+              fill="#9c7d34">PREZZO MEDIO PONDERATO DI CARICO &nbsp;€ 42,0000 &nbsp;(= il carico)</text>
+
+        <!-- ---------- Dichiarazione dentro la fascia ---------- -->
+        <g text-anchor="middle">
+          <rect x="286" y="66" width="420" height="34" fill="#f7efda"
+                stroke="#9e2b25" stroke-width="1.2"/>
+          <text x="496" y="80" font-family="'IM Fell English SC', serif" font-size="11"
+                letter-spacing="1.3" fill="#9e2b25">542 GIORNI CIVILI, NESSUNA RILEVAZIONE</text>
+          <text x="496" y="94" font-family="'IM Fell English', serif" font-size="12"
+                font-style="italic" fill="#6e5a36">non esiste ancora un andamento da tracciare</text>
+        </g>
+
+        <!-- ---------- L'unico punto: il prezzo di carico ---------- -->
+        <path d="M88,140.4 L96,148.4 L88,156.4 L80,148.4 Z"
+              fill="#8d231f" stroke="#221c14" stroke-width="1.6"/>
+        <!-- Nessun segmento parte da qui: un punto solo non ha continuazione, e il
+             disegno non ne inventa una. -->
+        <g font-family="'Courier Prime', monospace" font-size="11" fill="#8d231f">
+          <rect x="97" y="161" width="80" height="14" fill="#f7efda" opacity=".95"/>
+          <text x="100" y="172">€ 42,0000</text>
+          <rect x="97" y="176" width="132" height="13" fill="#f7efda" opacity=".95"/>
+          <text x="100" y="186" font-size="10" fill="#6e5a36">carico del 14.II.2025</text>
+        </g>
+
+        <!-- ---------- Quota del vuoto ---------- -->
+        <g stroke="#9e2b25" stroke-width="1.1" opacity=".8">
+          <line x1="88" y1="258" x2="88" y2="268"/>
+          <line x1="884" y1="258" x2="884" y2="268"/>
+          <line x1="88" y1="263" x2="884" y2="263"/>
+        </g>
+        <g text-anchor="middle">
+          <rect x="371" y="256" width="250" height="13" fill="#f7efda" opacity=".95"/>
+          <text x="496" y="266" font-family="'Courier Prime', monospace" font-size="10"
+                fill="#9e2b25">dal carico a oggi: 542 giorni senza dati</text>
+        </g>
+
+        <!-- ---------- Scala dei tempi ---------- -->
+        <g stroke="#221c14" stroke-width="1">
+          <line x1="287.7" y1="254" x2="287.7" y2="259"/>
+          <line x1="557.9" y1="254" x2="557.9" y2="259"/>
+          <line x1="823.8" y1="254" x2="823.8" y2="259"/>
+        </g>
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="middle">
+          <text x="88" y="282" text-anchor="start">14.II.2025</text>
+          <text x="287.7" y="282">VII.2025</text>
+          <text x="557.9" y="282">I.2026</text>
+          <text x="823.8" y="282">VII.2026</text>
+          <text x="884" y="299" text-anchor="end">oggi</text>
+        </g>
+        <text x="88" y="299" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">GIORNI CIVILI &middot; PRIMO CARICO REGISTRATO &rarr; OGGI</text>
+      </svg>
+
+      <p class="estremi-tracciato">
+        <span>Primo punto: <b>14.II.2025</b> (carico)</span>
+        <span>1 punto in 542 giorni civili</span>
+        <span>Ultimo punto: <b>14.II.2025</b> &mdash; lo stesso</span>
+      </p>
+    </div>
+
+    <!-- ---------- Legenda: resta la stessa, e dichiara ciò che manca ---------- -->
+    <div class="legenda-tracciato">
+      <div class="intestazione-legenda">Legenda del tracciato &mdash; due sole origini, nessuna terza</div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <path d="M18,2 L25,8 L18,14 L11,8 Z" fill="#8d231f" stroke="#221c14" stroke-width="1.4"/>
+        </svg>
+        <span>
+          <span class="et">Prezzi di carico &mdash; rombo in carminio</span>
+          <span class="spiega">
+            il prezzo d&rsquo;acquisto di ciascuna iscrizione a registro.
+            <span class="conto">1 punto: 14.II.2025.</span>
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <circle cx="18" cy="8" r="5" fill="none" stroke="#6e5a36" stroke-width="1.4"
+                  stroke-dasharray="3 3"/>
+        </svg>
+        <span>
+          <span class="et">Rilevazioni registrate &mdash; cerchio in inchiostro</span>
+          <span class="spiega">
+            <span class="conto">Nessun punto.</span> Il segno compare vuoto perch&eacute; la
+            categoria esiste ma l&rsquo;archivio non ne ha ancora alcuna.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <line x1="1" y1="8" x2="35" y2="8" stroke="#9c7d34" stroke-width="2.6" stroke-dasharray="8 4"/>
+        </svg>
+        <span>
+          <span class="et">Prezzo medio ponderato di carico</span>
+          <span class="spiega">
+            riga orizzontale d&rsquo;ottone a <span class="conto">€ 42,0000</span>: con un carico solo
+            coincide col prezzo pagato, e passa dunque per il punto stesso.
+          </span>
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <defs>
+            <pattern id="giorniVuotiLegenda" width="11" height="11" patternUnits="userSpaceOnUse"
+                     patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="11" stroke="#9e2b25" stroke-width="2.4" opacity=".3"/>
+            </pattern>
+          </defs>
+          <rect x="1" y="2" width="34" height="12" fill="url(#giorniVuotiLegenda)"
+                stroke="#9e2b25" stroke-width="1" stroke-dasharray="4 3" opacity=".9"/>
+        </svg>
+        <span>
+          <span class="et">Giorni non osservati</span>
+          <span class="spiega">
+            campitura obliqua, non superficie piena: dichiara i giorni di cui il registro
+            non sa nulla, invece di lasciare un&rsquo;area bianca che si potrebbe leggere come guasto.
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="avviso-rado senza-andamento">
+      <span>
+        Il grafico c&rsquo;&egrave; anche con <b>1</b> punto solo, e mostra quel punto. Ci&ograve; che non c&rsquo;&egrave;
+        &egrave; l&rsquo;andamento: per averne uno servono almeno due punti d&rsquo;archivio, e il secondo
+        arriver&agrave; alla prima quotazione rilevata. Il bianco a destra non &egrave; un guasto ed
+        &egrave; per questo che porta scritto quanti giorni misura.
+      </span>
+    </div>
+
+    <p class="nota-sezione">
+      Una sezione assente e una sezione guasta si somigliano troppo: per questo il grafico non
+      si nasconde quando i punti sono pochi. L&rsquo;asse dei tempi arriva comunque a <b>oggi</b>,
+      il punto disponibile &egrave; tracciato, e il tratto senza dati &egrave; campito e misurato.
+      Nulla &egrave; stimato n&eacute; interpolato (ADR&#8209;003).
+    </p>
+
+    <div class="bottoni">
+      <a class="bottone secondario" href="index.html">&larr; Torna ai quattro punti</a>
+      <a class="bottone secondario" href="storico-rado.html">Variante &laquo;storico rado&raquo; &rarr;</a>
+    </div>
+
+  </main>
+
+  <!-- PIÈ -->
+  <footer class="pie">
+    <span class="firma">Un punto solo, dichiarato per quello che &egrave; &mdash; nessun valore interpolato</span>
+    <span><span class="timbro mancante">Andamento assente</span> PortfolIA &middot; US-036</span>
+  </footer>
+
+</div>
+
+<p class="nav-mockup">
+  Mockup US-036 &middot; <a href="index.html">Quattro punti (due carichi, due rilevazioni)</a> &middot;
+  <a href="punto-unico.html">Un solo punto</a> &middot;
+  <a href="storico-rado.html">Storico rado (ADR-008)</a>
+</p>
+
+</body>
+</html>

@@ -1733,3 +1733,1273 @@ body {
   font-size: 13px;
   color: var(--inchiostro);
 }
+
+/* ============================================================
+   US-036 — Andamento del prezzo del titolo
+   (portato da docs/mockups/US-036/shared.css)
+
+   Il tracciato è SVG scritto a mano: nessuna libreria di grafici entra nel
+   progetto. I colori del disegno stanno qui e non negli attributi SVG, così le
+   variabili del registro restano l'unica fonte del colore — e un ritocco di
+   palette non richiede di riaprire il componente.
+
+   Il selettore di finestra temporale (`.scala-temporale`) è portato più sotto,
+   nella sezione di US-037: appartiene a quella spec, ed è là che vive il codice
+   che lo usa.
+   ============================================================ */
+
+/* ---------- Cornice: carta quadrettata sotto il tracciato ---------- */
+.grafico-cornice {
+  border: 2px solid var(--inchiostro);
+  background:
+    linear-gradient(rgba(56,73,47,.04), rgba(56,73,47,.04)),
+    repeating-linear-gradient(0deg, transparent 0 19px, rgba(138,155,176,.35) 19px 20px),
+    repeating-linear-gradient(90deg, transparent 0 19px, rgba(138,155,176,.35) 19px 20px),
+    var(--carta-chiara);
+  padding: 18px 18px 14px;
+  position: relative;
+}
+
+/* La responsività sta qui e non nel `viewBox`: il disegno è in unità fisse, la
+   larghezza la decide il contenitore e la proporzione la tiene il viewBox. */
+.grafico-cornice svg.tracciato { display: block; width: 100%; height: auto; }
+
+/* Cartellino d'angolo: dichiara la finestra temporale del tracciato, come la
+   nota a margine di una tavola rilegata. */
+.cartellino-finestra {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--carta-chiara);
+  background: var(--verde-mastro);
+  border: 2px solid var(--inchiostro);
+  padding: 3px 10px;
+}
+
+/* ---------- I segni del tracciato ----------
+   Quattro segni e sempre gli stessi: rombo di carico, cerchio di rilevazione,
+   riga d'ottone del prezzo medio, tratteggio dei vuoti. */
+
+/* Rigatura di lettura: leggerissima, sopra i quadretti della cornice. */
+.tracciato .rigatura-tracciato line { stroke: var(--blu-riga); stroke-width: 1; opacity: .55; }
+
+.tracciato .asse-tracciato { stroke: var(--inchiostro); stroke-width: 1.5; }
+
+/* La verticale di «oggi»: l'asse dei tempi arriva sempre alla data corrente,
+   anche quando l'ultimo punto è anteriore. */
+.tracciato .verticale-oggi { stroke: var(--seppia); stroke-width: 1.2; stroke-dasharray: 2 4; }
+
+/* Prezzo di carico: rombo in carminio. */
+.tracciato .punto-carico,
+.voce-legenda .punto-carico { fill: var(--carminio); stroke: var(--inchiostro); stroke-width: 1.4; }
+
+/* Rilevazione registrata: cerchio in inchiostro. */
+.tracciato .punto-rilevazione,
+.voce-legenda .punto-rilevazione { fill: var(--inchiostro); stroke: var(--carta-chiara); stroke-width: 1.3; }
+
+/* Il segno della categoria che esiste ma è ancora senza punti: contorno
+   interrotto e nessun riempimento, come una voce lasciata in sospeso. */
+.voce-legenda .punto-assente {
+  fill: none;
+  stroke: var(--seppia);
+  stroke-width: 1.4;
+  stroke-dasharray: 3 3;
+}
+
+/* Riga del prezzo medio ponderato di carico. */
+.tracciato .riga-media,
+.voce-legenda .riga-media { stroke: var(--ottone); stroke-width: 2.2; stroke-dasharray: 10 5; }
+
+/* Il tratteggio dei segmenti è una dichiarazione, non uno stile: fra due punti
+   l'archivio non possiede alcun prezzo, e una linea continua affermerebbe un
+   percorso che il registro non contiene. */
+.tracciato .segmento-vuoto line,
+.voce-legenda .segmento-vuoto {
+  stroke: var(--inchiostro);
+  stroke-width: 2.2;
+  stroke-dasharray: 7 6;
+  stroke-linecap: round;
+  fill: none;
+}
+
+/* Campitura obliqua dei giorni non osservati: non una superficie piena, che
+   somiglierebbe a un dato. */
+.tracciato .campitura-vuoto { stroke: var(--rosso-margine); stroke-width: 2.4; opacity: .16; }
+.tracciato .contorno-vuoto {
+  fill: none;
+  stroke: var(--rosso-margine);
+  stroke-width: 1.2;
+  stroke-dasharray: 6 5;
+  opacity: .65;
+}
+
+/* Quote di misura sotto l'asse: contano i giorni civili di ciascun vuoto. */
+.tracciato .quota-vuoto line { stroke: var(--seppia); stroke-width: 1.1; opacity: .85; }
+
+/* ---------- Le scritte dentro il disegno ---------- */
+.tracciato .etichetta-asse,
+.tracciato .etichetta-vuoto,
+.tracciato .etichetta-punto {
+  font-family: 'Courier Prime', monospace;
+  font-size: 10.5px;
+  fill: var(--seppia);
+}
+.tracciato .etichetta-vuoto { font-size: 10px; }
+.tracciato .etichetta-punto { fill: var(--carminio); font-size: 11px; }
+.tracciato .didascalia-asse {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 10.5px;
+  letter-spacing: .14em;
+  fill: var(--seppia);
+}
+.tracciato .etichetta-media {
+  font-family: 'Courier Prime', monospace;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  fill: var(--ottone);
+}
+
+/* Fondo delle scritte: le riporta leggibili dove passano sopra rigatura,
+   tratteggio o campitura. */
+.tracciato .fondo-etichetta { fill: var(--carta-chiara); opacity: .93; }
+
+/* La dichiarazione dentro la fascia dei giorni non osservati. */
+.tracciato .riquadro-dichiarazione {
+  fill: var(--carta-chiara);
+  stroke: var(--rosso-margine);
+  stroke-width: 1.2;
+}
+.tracciato .dichiarazione-forte {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 11px;
+  letter-spacing: .12em;
+  fill: var(--rosso-margine);
+}
+.tracciato .dichiarazione-tenue {
+  font-family: 'IM Fell English', serif;
+  font-size: 12px;
+  font-style: italic;
+  fill: var(--seppia);
+}
+
+/* ---------- Estremi dell'asse, sotto la cornice ---------- */
+.estremi-tracciato {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11.5px;
+  letter-spacing: .05em;
+  color: var(--seppia);
+  margin: 7px 0 0;
+}
+.estremi-tracciato b { color: var(--inchiostro); }
+
+/* ---------- Legenda del tracciato ----------
+   Le origini d'archivio vanno dichiarate, non indovinate dal colore. */
+.legenda-tracciato {
+  margin-top: 14px;
+  border: 1px solid rgba(110,90,54,.5);
+  border-left: 4px solid var(--verde-panno);
+  background: rgba(247,239,218,.6);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.legenda-tracciato .intestazione-legenda {
+  grid-column: 1 / -1;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: 11.5px;
+  color: var(--inchiostro);
+  background: var(--verde-tenue);
+  padding: 7px 14px;
+  border-bottom: 1px solid rgba(34,28,20,.25);
+}
+.voce-legenda {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px dotted rgba(110,90,54,.45);
+  border-left: 1px solid rgba(34,28,20,.12);
+}
+.voce-legenda:nth-child(odd) { border-left: none; }
+.voce-legenda:nth-last-child(-n+2) { border-bottom: none; }
+.voce-legenda svg { flex: 0 0 auto; margin-top: 2px; }
+.voce-legenda .et {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  font-size: 11.5px;
+  color: var(--inchiostro);
+  display: block;
+}
+.voce-legenda .spiega {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13.5px;
+  color: var(--seppia);
+  display: block;
+  margin-top: 2px;
+}
+.voce-legenda .conto {
+  font-family: 'Courier Prime', monospace;
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--inchiostro);
+}
+
+/* ---------- Avviso di tracciato assente (un solo punto, o serie vuota) ----------
+   Variante dell'avviso di radità di US-009: stesso posto, stesso registro, filo
+   rosso al posto del punteggiato perché qui a mancare non sono alcune righe ma
+   l'andamento stesso. */
+.avviso-rado.senza-andamento {
+  border-left: 4px solid var(--rosso-margine);
+  background: rgba(158,43,37,.06);
+}
+
+@media (max-width: 900px) {
+  .legenda-tracciato { grid-template-columns: 1fr; }
+  .voce-legenda { border-left: none; }
+  .voce-legenda:nth-last-child(-n+2) { border-bottom: 1px dotted rgba(110,90,54,.45); }
+  .voce-legenda:last-child { border-bottom: none; }
+  .cartellino-finestra { position: static; display: inline-block; margin-bottom: 10px; }
+}
+
+/* ============================================================
+   US-037 — Scala temporale del grafico del titolo
+   (portato da docs/mockups/US-037/shared.css)
+
+   Estensione del foglio di US-036: il tracciato non cambia, gli si antepone il
+   selettore delle cinque scale e gli si aggiungono i due stati che la scelta di
+   una finestra può produrre — finestra priva di dati (criterio 4 · ADR-003) e
+   copertura parziale (criterio 5 · ADR-008). Nessuna regola di US-036 è
+   riscritta: qui si aggiunge soltanto.
+   ============================================================ */
+
+/* ---------- La traversa delle cinque scale, sopra la cornice ---------- */
+.barra-scala {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 9px 16px;
+  border: 2px solid var(--inchiostro);
+  border-bottom: 1px solid rgba(34,28,20,.32);
+  background:
+    linear-gradient(180deg, rgba(56,73,47,.05), transparent),
+    var(--verde-tenue);
+}
+/* La traversa e ciò che sormonta sono un pezzo solo: il filo in mezzo sarebbe
+   doppio. */
+.barra-scala + .grafico-cornice,
+.barra-scala + .dichiarazione-vuota { border-top: none; }
+
+.barra-scala .et-scala {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: 11.5px;
+  color: var(--inchiostro);
+  white-space: nowrap;
+}
+
+/* La finestra effettivamente risolta dalla scala scelta: sta sulla stessa
+   traversa dei bottoni perché è la loro conseguenza, non un commento. */
+.barra-scala .finestra-attiva {
+  margin-left: auto;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11.5px;
+  letter-spacing: .05em;
+  color: var(--seppia);
+  white-space: nowrap;
+}
+.barra-scala .finestra-attiva b { color: var(--inchiostro); }
+.barra-scala .finestra-attiva.assente { color: var(--rosso-margine); font-style: italic; }
+.barra-scala .finestra-attiva.parziale { color: var(--ottone); }
+
+/* ---------- I cinque bottoni ----------
+   Bottoni veri, quindi attivabili da tastiera senza una riga di codice in più. */
+.scala-temporale { display: flex; gap: 7px; flex-wrap: wrap; }
+.scala-temporale button {
+  position: relative;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  padding: 6px 13px;
+  border: 1.5px solid var(--inchiostro);
+  background: var(--carta-chiara);
+  color: var(--inchiostro);
+  cursor: pointer;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(34,28,20,.16);
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.scala-temporale button:hover {
+  background: rgba(217,191,120,.28);
+  transform: translate(-1px,-1px);
+  box-shadow: 3px 3px 0 rgba(34,28,20,.2);
+}
+.scala-temporale button:active { transform: translate(1px,1px); box-shadow: none; }
+.scala-temporale button:focus-visible { outline: 2px solid var(--rosso-margine); outline-offset: 2px; }
+
+/* Scala scelta: panno verde e filo rosso di margine, come la linguetta attiva. */
+.scala-temporale button.attiva {
+  background: var(--verde-mastro);
+  color: var(--carta-chiara);
+  font-weight: 700;
+  box-shadow: 2px 2px 0 rgba(34,28,20,.3), inset 3px 0 0 var(--rosso-margine);
+  transform: none;
+}
+.scala-temporale button.attiva:hover { background: var(--verde-panno); transform: none; }
+
+/* Due dichiarazioni di stato sul bottone stesso: la scala scelta è vuota
+   (carminio) oppure copre solo in parte la finestra chiesta (ottone). Il colore
+   non decora: ripete quello che il riquadro sotto già dice a parole. */
+.scala-temporale button.attiva.senza-dati {
+  background: var(--rosso-margine);
+  border-color: var(--inchiostro);
+  box-shadow: 2px 2px 0 rgba(158,43,37,.32), inset 3px 0 0 var(--inchiostro);
+}
+.scala-temporale button.attiva.senza-dati:hover { background: var(--rosso-vivo); }
+.scala-temporale button.attiva.parziale {
+  background: var(--ottone);
+  border-color: #7a6128;
+  box-shadow: 2px 2px 0 rgba(122,97,40,.34), inset 3px 0 0 var(--inchiostro);
+}
+.scala-temporale button.attiva.parziale:hover { background: #8c6f2d; }
+
+/* Postilla dentro il bottone: dichiara quale scala è la predefinita (criterio 2). */
+.postilla-predefinita {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 8.5px;
+  margin-left: 8px;
+  padding: 1px 5px;
+  border: 1px dotted currentColor;
+  vertical-align: 1px;
+  opacity: .85;
+}
+
+/* ============================================================
+   Stato «finestra priva di dati» (criterio 4 · ADR-003)
+   Al posto del grafico non compare un grafico vuoto: compare una
+   dichiarazione. La carta quadrettata resta, perché il posto del tracciato è
+   quello — soltanto, non c'è niente da tracciarvi.
+   ============================================================ */
+.dichiarazione-vuota {
+  border: 2px solid var(--inchiostro);
+  background:
+    repeating-linear-gradient(45deg, transparent 0 9px, rgba(158,43,37,.055) 9px 18px),
+    repeating-linear-gradient(0deg, transparent 0 19px, rgba(138,155,176,.28) 19px 20px),
+    repeating-linear-gradient(90deg, transparent 0 19px, rgba(138,155,176,.28) 19px 20px),
+    var(--carta-chiara);
+  padding: 30px 26px 24px;
+  position: relative;
+  text-align: center;
+}
+.dichiarazione-vuota .timbro-grande {
+  display: inline-block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .22em;
+  font-size: 17px;
+  padding: 9px 22px;
+  border: 3px double var(--rosso-vivo);
+  color: var(--rosso-vivo);
+  background: rgba(247,239,218,.86);
+  transform: rotate(-1.6deg);
+  box-shadow: inset 0 0 0 1px rgba(184,54,44,.28);
+}
+.dichiarazione-vuota .riga-intervallo {
+  font-family: 'Courier Prime', monospace;
+  font-size: 15px;
+  letter-spacing: .04em;
+  color: var(--inchiostro);
+  margin: 18px 0 0;
+  background: rgba(247,239,218,.9);
+  display: inline-block;
+  padding: 7px 16px;
+  border: 1px solid rgba(34,28,20,.35);
+}
+.dichiarazione-vuota .riga-intervallo .et-int {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 10.5px;
+  color: var(--seppia);
+  display: block;
+  margin-bottom: 4px;
+}
+.dichiarazione-vuota .spiegazione {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--seppia);
+  max-width: 640px;
+  margin: 16px auto 0;
+}
+.dichiarazione-vuota .spiegazione b {
+  font-style: normal;
+  font-family: 'Courier Prime', monospace;
+  font-size: 14px;
+  color: var(--inchiostro);
+}
+
+/* Cartiglio del punto più recente: dice dove il dato esiste davvero, così che il
+   vuoto risulti assenza d'archivio e non guasto. */
+.dove-esiste {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 18px auto 0;
+  padding: 9px 16px;
+  border: 1px solid rgba(110,90,54,.55);
+  border-left: 4px solid var(--verde-panno);
+  background: rgba(247,239,218,.9);
+  font-family: 'Courier Prime', monospace;
+  font-size: 12.5px;
+  color: var(--inchiostro);
+  text-align: left;
+}
+.dove-esiste .et {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 10.5px;
+  color: var(--seppia);
+}
+
+/* Invito a tornare a una scala più ampia: rimedio, non scusa. */
+.invito-scala {
+  margin: 20px auto 0;
+  padding-top: 14px;
+  border-top: 1px dotted rgba(110,90,54,.5);
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--seppia);
+  max-width: 640px;
+}
+.invito-scala .tasto-citato {
+  font-family: 'Courier Prime', monospace;
+  font-style: normal;
+  font-size: 12px;
+  padding: 2px 9px;
+  border: 1.5px solid var(--inchiostro);
+  background: var(--carta-chiara);
+  color: var(--inchiostro);
+  white-space: nowrap;
+}
+
+/* Avviso di non-trascinamento: la regola che vieta di portare l'ultimo prezzo
+   noto dentro una finestra che non lo contiene. */
+.avviso-rado.senza-trascinamento {
+  border-left: 4px solid var(--rosso-margine);
+  background: rgba(158,43,37,.06);
+}
+
+/* ============================================================
+   Stato «copertura parziale» (criterio 5 · ADR-008)
+   L'orizzonte chiesto non si accorcia: l'asse copre davvero i dieci anni, e il
+   tratto scoperto è campito con la stessa obliqua che US-036 usa per i vuoti.
+   ============================================================ */
+.misura-copertura {
+  margin-top: 12px;
+  border: 1px solid rgba(110,90,54,.55);
+  border-left: 4px solid var(--ottone);
+  background: rgba(247,239,218,.6);
+  padding: 11px 14px 13px;
+}
+.misura-copertura .intestazione-misura {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 11px;
+  color: var(--inchiostro);
+}
+.misura-copertura .intestazione-misura .cifra-misura {
+  font-family: 'Courier Prime', monospace;
+  text-transform: none;
+  letter-spacing: .04em;
+  font-size: 12.5px;
+  color: var(--seppia);
+}
+
+/* Il regolo: una misura, non una percentuale sola. La parte scoperta è campita
+   come i vuoti del tracciato — stesso segno, stesso significato. */
+.barra-copertura {
+  position: relative;
+  height: 22px;
+  margin-top: 9px;
+  border: 1.5px solid var(--inchiostro);
+  background:
+    repeating-linear-gradient(45deg, transparent 0 9px, rgba(158,43,37,.16) 9px 18px),
+    var(--carta-chiara);
+  overflow: hidden;
+}
+.barra-copertura .coperto {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  background: var(--verde-panno);
+  border-left: 1.5px solid var(--inchiostro);
+}
+.barra-copertura .etichetta-scoperto {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  color: var(--rosso-margine);
+  background: rgba(247,239,218,.9);
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+.legenda-copertura {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 6px 0 0;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  color: var(--seppia);
+}
+.legenda-copertura b { color: var(--inchiostro); }
+
+/* ---------- Su schermo stretto i bottoni vanno a capo ---------- */
+@media (max-width: 900px) {
+  .barra-scala {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .barra-scala .finestra-attiva { margin-left: 0; white-space: normal; }
+  .scala-temporale button { flex: 1 1 auto; text-align: center; }
+  .dichiarazione-vuota { padding: 24px 16px 20px; }
+  .dichiarazione-vuota .timbro-grande { font-size: 14px; letter-spacing: .16em; padding: 8px 14px; }
+  .dichiarazione-vuota .riga-intervallo { font-size: 13px; }
+  .dove-esiste { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 560px) {
+  .scala-temporale { flex-direction: column; }
+  .scala-temporale button { width: 100%; }
+  .postilla-predefinita { float: right; margin-left: 0; }
+}
+
+/* ============================================================
+   US-038 — P&L da carico e variazione di periodo, accanto al grafico
+   Il pannello sta SOTTO la cornice del tracciato e SOPRA la legenda,
+   dentro la sezione «Andamento del prezzo» (mockup docs/mockups/US-038/).
+   Forma: una bilancia a due piatti. I due piatti non si sommano e non
+   si confrontano — misurano cose diverse — e il perno che li separa
+   porta il segno «≠» invece di un fulcro d'equilibrio.
+   Nessuna regola di US-036/US-037 viene riscritta: qui si aggiunge
+   soltanto. Il verde e il rosso sono le classi .guadagno / .perdita
+   già in uso, così che significhino ovunque la stessa cosa.
+   ============================================================ */
+
+/* ---------- La bilancia ---------- */
+.bilancia {
+  margin-top: 14px;
+  border: 2px solid var(--inchiostro);
+  background: rgba(247,239,218,.6);
+  box-shadow: 4px 4px 0 rgba(34,28,20,.12);
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 66px minmax(0,1fr);
+  align-items: stretch;
+}
+.bilancia .intestazione-bilancia {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: 11.5px;
+  color: var(--inchiostro);
+  background: var(--verde-tenue);
+  padding: 7px 14px;
+  border-bottom: 1px solid rgba(34,28,20,.25);
+}
+.bilancia .intestazione-bilancia .chiosa {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  color: var(--seppia);
+}
+
+/* ---------- Il perno: non un fulcro, un «≠» ---------- */
+.bilancia .fulcro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px dotted rgba(110,90,54,.6);
+  border-right: 1px dotted rgba(110,90,54,.6);
+  background: repeating-linear-gradient(0deg, transparent 0 7px, rgba(110,90,54,.08) 7px 14px);
+}
+.bilancia .fulcro .segno {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--inchiostro);
+  background: var(--carta-chiara);
+  color: var(--inchiostro);
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 25px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 0 rgba(34,28,20,.22);
+  transform: rotate(-4deg);
+  user-select: none;
+}
+
+/* ---------- I due piatti ---------- */
+.piatto {
+  padding: 15px 17px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* Il filetto di sinistra ripete la riga di riferimento che il piatto misura
+   sul grafico: ottone = prezzo medio di carico, blu = prima rilevazione. */
+.piatto.pnl { border-left: 4px solid var(--ottone); }
+.piatto.periodo { border-left: 4px solid var(--blu-inchiostro); }
+
+.piatto .testa-piatto { display: flex; flex-direction: column; gap: 3px; }
+.piatto .et-piatto {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .17em;
+  font-size: 13px;
+  color: var(--inchiostro);
+}
+/* L'unità di misura del piatto: dichiara su che cosa è calcolato il numero,
+   ed è la ragione per cui i due importi non sono confrontabili. */
+.piatto .unita {
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--seppia);
+}
+.piatto .unita b { color: var(--inchiostro); }
+
+.piatto .cifre {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 4px 0 2px;
+}
+.piatto .importo {
+  font-family: 'Courier Prime', monospace;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  line-height: 1.05;
+  color: var(--inchiostro);
+}
+.piatto .percento {
+  font-family: 'Courier Prime', monospace;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border: 1.5px solid currentColor;
+  color: var(--seppia);
+  white-space: nowrap;
+}
+/* Guadagno e perdita sui due piatti. Stessa trappola già documentata sul
+   cartellino: le utility globali `.guadagno` / `.perdita` hanno specificità
+   (0,1,0) e da sole perderebbero contro `.piatto .importo` (0,2,0), che fissa il
+   colore d'inchiostro. Senza queste due regole la **stessa** perdita sarebbe
+   rossa nella casella «Differenza» in cima alla scheda e nera nel riquadro del
+   P&L sotto il grafico — cioè proprio la divergenza percettiva che US-038
+   esiste per eliminare. */
+.piatto .importo.guadagno,
+.piatto .percento.guadagno { color: var(--verde-attivo); }
+.piatto .importo.perdita,
+.piatto .percento.perdita { color: var(--rosso-perdita); }
+
+/* ---------- La riga di provenienza: da dove viene il numero ---------- */
+.provenienza {
+  margin: 0;
+  padding: 9px 12px 10px;
+  border: 1px solid rgba(110,90,54,.5);
+  background: rgba(247,239,218,.92);
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--seppia);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 9px;
+}
+.provenienza .et-prov {
+  flex: 0 0 100%;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 10px;
+  color: var(--seppia);
+  border-bottom: 1px dotted rgba(110,90,54,.45);
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+}
+.provenienza .passo b { color: var(--inchiostro); }
+.provenienza .freccia {
+  font-family: 'Courier Prime', monospace;
+  font-size: 14px;
+  color: var(--carminio);
+}
+.provenienza .coda {
+  flex: 0 0 100%;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--seppia);
+}
+.provenienza .coda b { font-style: normal; color: var(--inchiostro); }
+
+/* ---------- Riga d'orizzonte: dice se il numero dipende dalla scala ---------- */
+.orizzonte-piatto {
+  margin: 0;
+  padding-top: 9px;
+  border-top: 1px dotted rgba(110,90,54,.5);
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--seppia);
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  /* Le due righe d'orizzonte si allineano fra i piatti anche quando il
+     contenuto sopra ha altezze diverse: il confronto «fisso vs mobile» è il
+     punto della bilancia, e va letto sulla stessa riga. */
+  margin-top: auto;
+}
+.segna-orizzonte {
+  font-family: 'IM Fell English SC', serif;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: .11em;
+  font-size: 9.5px;
+  padding: 2px 7px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.segna-orizzonte.fisso { color: var(--ottone); }
+.segna-orizzonte.mobile { color: var(--blu-inchiostro); }
+
+/* ---------- Rimando al cartellino «Posizione a conto» (criterio 2) ---------- */
+.rimando-differenza {
+  margin: 0;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11.5px;
+  color: var(--ottone);
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.rimando-differenza .croce {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  line-height: 1;
+}
+/* La casella «Differenza» in cima alla scheda porta lo stesso richiamo:
+   due letture dello stesso fatto, marcate come tali. */
+.orizzonte.rimandata { box-shadow: inset 0 -3px 0 var(--ottone); }
+.orizzonte .segna-rimando {
+  display: inline-block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 9px;
+  color: var(--ottone);
+  border: 1px dotted var(--ottone);
+  padding: 1px 6px;
+  margin-top: 6px;
+}
+
+/* ---------- Piatto senza dato (criterio 4 · FR-012) ----------
+   Quello che manca non diventa zero: diventa un timbro e una ragione. */
+.piatto.assente {
+  background: repeating-linear-gradient(45deg, transparent 0 9px, rgba(158,43,37,.055) 9px 18px);
+}
+.piatto.assente.pnl,
+.piatto.assente.periodo { border-left-color: var(--rosso-margine); }
+
+.timbro-piatto {
+  align-self: flex-start;
+  display: inline-block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  font-size: 14px;
+  padding: 8px 18px;
+  margin: 4px 0 2px;
+  border: 3px double var(--rosso-vivo);
+  color: var(--rosso-vivo);
+  background: rgba(247,239,218,.88);
+  transform: rotate(-1.6deg);
+  box-shadow: inset 0 0 0 1px rgba(184,54,44,.28);
+}
+.perche-assente {
+  margin: 0;
+  padding: 9px 12px 10px;
+  border: 1px solid rgba(158,43,37,.45);
+  border-left: 4px solid var(--rosso-margine);
+  background: rgba(158,43,37,.06);
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--seppia);
+}
+.perche-assente b {
+  font-style: normal;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12.5px;
+  color: var(--inchiostro);
+}
+.perche-assente .et-perche {
+  display: block;
+  font-family: 'IM Fell English SC', serif;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 10px;
+  color: var(--rosso-margine);
+  margin-bottom: 5px;
+}
+.elenco-perche {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-style: normal;
+  font-family: 'IM Fell English', serif;
+  font-size: 13.5px;
+  color: var(--seppia);
+}
+.elenco-perche li { margin-bottom: 4px; }
+.elenco-perche li::marker { color: var(--rosso-margine); }
+
+/* ---------- La postilla: le due misure non sono la stessa cosa ---------- */
+.postilla-bilancia {
+  margin: 0;
+  border: 2px solid var(--inchiostro);
+  border-top: none;
+  background: rgba(44,58,44,.07);
+  padding: 12px 16px 13px;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--inchiostro-2);
+  box-shadow: 4px 4px 0 rgba(34,28,20,.12);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.postilla-bilancia .glifo-postilla {
+  font-family: 'Playfair Display', serif;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--rosso-margine);
+  flex: 0 0 auto;
+  padding-top: 2px;
+}
+.postilla-bilancia b {
+  font-style: normal;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 12.5px;
+  color: var(--inchiostro);
+}
+.postilla-bilancia .mai {
+  font-style: normal;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12.5px;
+  color: var(--rosso-margine);
+}
+
+/* ---------- Su schermo stretto i due piatti si impilano ---------- */
+@media (max-width: 980px) {
+  .bilancia { grid-template-columns: 1fr; }
+  .bilancia .fulcro {
+    border-left: none;
+    border-right: none;
+    border-top: 1px dotted rgba(110,90,54,.6);
+    border-bottom: 1px dotted rgba(110,90,54,.6);
+    padding: 9px 0;
+  }
+  .piatto .importo { font-size: 26px; }
+  /* Impilati, i due piatti non stanno più sulla stessa riga: l'allineamento
+     forzato dell'orizzonte non ha più nulla da allineare. */
+  .orizzonte-piatto { margin-top: 0; }
+}
+@media (max-width: 560px) {
+  .piatto .cifre { gap: 9px; }
+  .piatto .importo { font-size: 23px; }
+  .timbro-piatto { font-size: 12px; letter-spacing: .14em; padding: 7px 13px; }
+  .postilla-bilancia { font-size: 13px; }
+}
+
+/* ============================================================
+   US-039 — Commutare il grafico fra prezzo unitario e valore
+   della posizione (EP-007, FR-017)
+   (portato da docs/mockups/US-039/shared.css)
+
+   Il grafico non cambia forma: cambia che cosa misura l'ordinata.
+   Perciò nulla di US-036/US-037/US-038 viene riscritto — si
+   aggiunge una SECONDA traversa sopra quella della scala, e i tre
+   segni che la vista del valore porta con sé: il gradino del nuovo
+   carico, la fascia della quantità detenuta, la voce di legenda
+   soppressa del prezzo medio.
+
+   Due comandi, due traverse, due grammatiche visive distinte: il
+   commutatore della vista porta il sigillo d'ottone su inchiostro,
+   la scala tiene il panno verde con filo di carminio che già aveva.
+   Nessuno dei due eredita il colore dell'altro, perché sono
+   indipendenti e devono sembrarlo.
+   ============================================================ */
+
+/* ---------- La traversa della vista: sta SOPRA quella della scala ----------
+   Ordine di lettura dall'alto: che cosa misuro → su che periodo → il
+   tracciato. La prima domanda sormonta la seconda perché la contiene. */
+.barra-vista {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 9px 16px;
+  border: 2px solid var(--inchiostro);
+  border-bottom: 1px solid rgba(34,28,20,.32);
+  background:
+    linear-gradient(180deg, rgba(156,125,52,.10), transparent),
+    var(--carta-scura);
+}
+/* Le traverse si incastrano senza raddoppiare i filetti. */
+.barra-vista + .barra-scala,
+.barra-vista + .grafico-cornice,
+.barra-vista + .dichiarazione-vuota,
+.sigillo-indipendenza + .barra-scala { border-top: none; }
+
+.barra-vista .et-vista {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: 11.5px;
+  color: var(--inchiostro);
+  white-space: nowrap;
+}
+
+/* ---------- I due bottoni della vista ----------
+   Stessa meccanica dei cinque della scala — stessa carta, stesso rilievo,
+   stessa ombra: sono comandi della stessa specie. Cambia il sigillo del
+   bottone scelto, ottone su inchiostro invece di carminio su panno,
+   perché appartengono a un gruppo diverso. */
+.commutatore-vista { display: flex; gap: 7px; flex-wrap: wrap; }
+.commutatore-vista button {
+  position: relative;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  padding: 6px 13px;
+  border: 1.5px solid var(--inchiostro);
+  background: var(--carta-chiara);
+  color: var(--inchiostro);
+  cursor: pointer;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(34,28,20,.16);
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.commutatore-vista button:hover {
+  background: rgba(217,191,120,.28);
+  transform: translate(-1px,-1px);
+  box-shadow: 3px 3px 0 rgba(34,28,20,.2);
+}
+.commutatore-vista button:active { transform: translate(1px,1px); box-shadow: none; }
+.commutatore-vista button:focus-visible { outline: 2px solid var(--rosso-margine); outline-offset: 2px; }
+.commutatore-vista button.attiva {
+  background: var(--inchiostro-2);
+  color: var(--carta-chiara);
+  font-weight: 700;
+  box-shadow: 2px 2px 0 rgba(34,28,20,.3), inset 3px 0 0 var(--ottone);
+  transform: none;
+}
+.commutatore-vista button.attiva:hover { background: var(--inchiostro); transform: none; }
+/* Vista scelta ma senza nulla da tracciare: il bottone resta attivo e
+   selezionabile — un bottone spento non spiega perché è spento — e porta
+   il carminio, come quello della scala quando la finestra è priva di dati. */
+.commutatore-vista button.attiva.senza-dati {
+  background: var(--rosso-margine);
+  box-shadow: 2px 2px 0 rgba(158,43,37,.32), inset 3px 0 0 var(--inchiostro);
+}
+.commutatore-vista button.attiva.senza-dati:hover { background: var(--rosso-vivo); }
+
+/* Che cosa porta l'ordinata: è la conseguenza del bottone scelto, quindi sta
+   sulla sua stessa traversa — come la finestra risolta sta su quella della
+   scala. */
+.barra-vista .ordinata-attiva {
+  margin-left: auto;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11.5px;
+  letter-spacing: .05em;
+  color: var(--seppia);
+  white-space: nowrap;
+}
+.barra-vista .ordinata-attiva b { color: var(--inchiostro); }
+.barra-vista .ordinata-attiva.senza-dati,
+.barra-vista .ordinata-attiva.senza-dati b { color: var(--rosso-margine); }
+
+/* ---------- Il sigillo d'indipendenza ----------
+   Una graffa fra le due traverse che scrive quello che il colore già
+   suggerisce: i due comandi non si toccano. */
+.sigillo-indipendenza {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 6px 16px;
+  border-left: 2px solid var(--inchiostro);
+  border-right: 2px solid var(--inchiostro);
+  background: repeating-linear-gradient(90deg, transparent 0 7px, rgba(110,90,54,.06) 7px 14px);
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--seppia);
+}
+.sigillo-indipendenza .graffa {
+  font-family: 'Playfair Display', serif;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ottone);
+  letter-spacing: .1em;
+  flex: 0 0 auto;
+}
+.sigillo-indipendenza b {
+  font-style: normal;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11.5px;
+  color: var(--inchiostro);
+}
+
+/* ============================================================
+   I segni che solo la vista del valore porta, dentro l'SVG
+   ============================================================ */
+
+/* Il gradino è l'UNICO tratto pieno del disegno. Tutti gli altri segmenti
+   restano tratteggiati perché fra due punti l'archivio non possiede alcun
+   prezzo (ADR-003); il gradino invece ha larghezza zero nel tempo — fra i
+   suoi due capi non passa un solo giorno ignoto — ed è un fatto registrato,
+   non un'ipotesi. Il pieno non decora: distingue quello che il registro sa
+   da quello che il registro tace. */
+.tracciato .segmento-gradino line,
+.voce-legenda .segmento-gradino line {
+  stroke: var(--carminio);
+  stroke-width: 3.4;
+  stroke-linecap: butt;
+  fill: none;
+}
+
+/* Il capo basso del gradino: non è un dato nuovo, è il valore della posizione
+   precedente calcolato al prezzo del giorno. Cerchio vuoto, non rombo pieno. */
+.tracciato .punto-ante-carico {
+  fill: var(--carta-chiara);
+  stroke: var(--carminio);
+  stroke-width: 2;
+}
+
+/* La quota di misura del gradino e il suo cartellino. */
+.tracciato .gradino-carico .filo-quota {
+  stroke: var(--carminio);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: .8;
+}
+.tracciato .gradino-carico .asta-quota { stroke: var(--carminio); stroke-width: 1.6; }
+.tracciato .cartellino-gradino {
+  fill: var(--carta-chiara);
+  fill-opacity: .95;
+  stroke: var(--carminio);
+  stroke-width: 1.4;
+}
+.tracciato .et-capitale {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 10px;
+  letter-spacing: .15em;
+  fill: var(--carminio);
+}
+.tracciato .cifra-capitale {
+  font-family: 'Courier Prime', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  fill: var(--inchiostro);
+}
+.tracciato .conto-capitale {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9.5px;
+  fill: var(--rosso-margine);
+}
+
+/* La fascia a gradini della quantità detenuta, sotto l'asse dei tempi: è il
+   secondo fattore del prodotto, reso visibile. */
+.tracciato .riquadro-fascia,
+.voce-legenda .riquadro-fascia {
+  fill: var(--verde-tenue);
+  stroke: var(--inchiostro);
+  stroke-width: 1;
+}
+.tracciato .etichetta-fascia {
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  fill: var(--inchiostro);
+}
+
+/* ============================================================
+   Il gradino, dichiarato sotto la cornice (criterio 4)
+   ============================================================ */
+.dichiarazione-gradino {
+  margin-top: 12px;
+  border: 2px solid var(--inchiostro);
+  border-left: 5px solid var(--carminio);
+  background: rgba(247,239,218,.72);
+  box-shadow: 4px 4px 0 rgba(34,28,20,.12);
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  gap: 0 18px;
+  align-items: center;
+  padding: 14px 18px 15px;
+}
+.dichiarazione-gradino .misura-salto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 18px;
+  border-right: 1px dotted rgba(110,90,54,.6);
+}
+.dichiarazione-gradino .et-salto {
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .17em;
+  font-size: 11px;
+  color: var(--carminio);
+}
+.dichiarazione-gradino .cifra-salto {
+  font-family: 'Courier Prime', monospace;
+  font-size: 29px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--inchiostro);
+  white-space: nowrap;
+}
+.dichiarazione-gradino .conto-salto {
+  font-family: 'Courier Prime', monospace;
+  font-size: 11.5px;
+  color: var(--seppia);
+  white-space: nowrap;
+}
+.dichiarazione-gradino .spiega-salto {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--inchiostro-2);
+  margin: 0;
+}
+.dichiarazione-gradino .spiega-salto b {
+  font-style: normal;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12.5px;
+  color: var(--inchiostro);
+}
+/* La negazione porta il rosso di margine: è la lettura da NON fare. */
+.dichiarazione-gradino .non-e {
+  font-style: normal;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 11.5px;
+  color: var(--rosso-margine);
+  border-bottom: 1.5px solid var(--rosso-margine);
+}
+
+/* ============================================================
+   La voce di legenda SOPPRESSA (criterio 5)
+   La riga d'ottone del prezzo medio non compare nella vista del valore.
+   Il posto in legenda resta, occupato dalla ragione: un'assenza
+   dichiarata non è una dimenticanza, un'assenza silenziosa sembra un
+   difetto.
+   ============================================================ */
+.voce-legenda.soppressa { background: repeating-linear-gradient(45deg, transparent 0 9px, rgba(110,90,54,.055) 9px 18px); }
+.voce-legenda.soppressa svg { opacity: .35; }
+.voce-legenda.soppressa .et {
+  color: rgba(110,90,54,.8);
+  text-decoration: line-through;
+  text-decoration-color: var(--rosso-margine);
+  text-decoration-thickness: 1.5px;
+}
+.segna-soppressa {
+  display: inline-block;
+  font-family: 'IM Fell English SC', serif;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: .11em;
+  font-size: 9px;
+  color: var(--rosso-margine);
+  border: 1px dotted var(--rosso-margine);
+  padding: 1px 6px;
+  margin-left: 8px;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+
+/* ---------- Soglie responsive, le stesse già scelte per la barra della scala ---------- */
+@media (max-width: 980px) {
+  .dichiarazione-gradino { grid-template-columns: 1fr; gap: 12px; }
+  .dichiarazione-gradino .misura-salto {
+    padding-right: 0;
+    padding-bottom: 12px;
+    border-right: none;
+    border-bottom: 1px dotted rgba(110,90,54,.6);
+  }
+}
+@media (max-width: 900px) {
+  .barra-vista { flex-direction: column; align-items: stretch; gap: 10px; }
+  .barra-vista .ordinata-attiva { margin-left: 0; white-space: normal; }
+  .commutatore-vista button { flex: 1 1 auto; text-align: center; }
+  .sigillo-indipendenza { align-items: flex-start; }
+}
+@media (max-width: 560px) {
+  .commutatore-vista { flex-direction: column; }
+  .commutatore-vista button { width: 100%; }
+  .dichiarazione-gradino .cifra-salto { font-size: 24px; }
+}

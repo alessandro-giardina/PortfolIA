@@ -1,3 +1,25 @@
+/**
+ * Il dominio della serie di prezzo del titolo (US-036) vive in `shared/domain/`
+ * ma si affaccia da qui: `@portfolia/shared` ha questo file come unico entry
+ * point, quindi client e server lo importano dallo stesso nome di tutti gli
+ * altri tipi condivisi.
+ */
+export * from '../domain/serieTitolo.js';
+/**
+ * Le due metriche della scheda titolo (US-038) — P&L da carico e variazione di
+ * periodo — si affacciano da qui per la stessa ragione della serie: il server le
+ * usa per calcolare la «Differenza», il client per mostrarla accanto al grafico,
+ * e devono importarle dallo stesso nome.
+ */
+export * from '../domain/metricheTitolo.js';
+/**
+ * La serie del **valore della posizione** (US-039) si affaccia da qui per la
+ * stessa ragione delle due precedenti: è la rimisura degli stessi punti, e chi
+ * commuta la vista deve leggerne i tipi e le costanti dallo stesso nome invece di
+ * riscriverli.
+ */
+export * from '../domain/serieValore.js';
+
 export interface HealthResponse {
   status: string;
   timestamp: string;

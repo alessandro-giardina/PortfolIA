@@ -527,7 +527,333 @@ export const TITOLO_US_009_VARIANTI: TitoloSeminabile = {
 };
 
 /**
- * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009).
+ * Riservato a `US-036__grafico-titolo.spec.ts` (il file demo).
+ *
+ * È il titolo su cui lo scenario dimostrativo costruisce il grafico: due carichi
+ * a prezzi diversi e due rilevazioni seminate in giorni diversi, cioè i quattro
+ * punti che la curva deve mostrare insieme alla linea del prezzo medio ponderato
+ * di carico. Il grafico ha bisogno di *entrambe* le sorgenti perché è proprio il
+ * loro incrocio a raccontare se si è comprato sopra o sotto il mercato.
+ *
+ * `price` coincide con l'osservazione più recente che la spec semina, per la
+ * stessa ragione registrata su US-009: la scheda dichiara quella cifra come
+ * prezzo attuale e la riporta anche in cima allo storico, quindi una divergenza
+ * fra il cartellino e l'ultimo punto del grafico sarebbe, per chi guarda, un dato
+ * falso — e nessuna asserzione la coglierebbe, perché ogni pezzo resterebbe
+ * coerente con sé stesso.
+ *
+ * `data_source` è esplicito per la ragione di US-018: la scheda dichiara la
+ * provenienza, e senza fissarla il timbro dipenderebbe da quale fonte ha popolato
+ * la cache per ultima.
+ */
+export const TITOLO_US_036: TitoloSeminabile = {
+  isin: 'IE00B4K48X80',
+  campi: {
+    name: 'Ishares Core Msci Europe Ucits Etf Eur Acc',
+    price: 84.15,
+    ticker: 'SMEA',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,12%',
+    currency: 'EUR',
+    issuer: 'ISHARES III PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-036__grafico-titolo-varianti.spec.ts`.
+ *
+ * Regge tre scenari sullo stesso ISIN — un solo carico e nessuna rilevazione,
+ * due carichi di quantità diverse, nessuna richiesta verso
+ * `**\/api\/securities\/**` — perché sono varianti dello stesso grafico e
+ * ciascuno si costruisce la propria premessa: il file semina il titolo, e
+ * *rimuove o sostituisce* le osservazioni prima di contare i punti. Rimuovere e
+ * ripristinare è la stessa pila di undo del seeding, quindi vale comunque la
+ * riserva per file; gli scenari girano in serie dentro il file
+ * (`fullyParallel: false`), quindi la pila resta consistente.
+ *
+ * Il `price` è la cifra che la scheda mostra sul cartellino ed è quindi anche il
+ * riferimento dello scenario a storico vuoto, dove il grafico ha un punto solo.
+ * Quando invece uno scenario semina osservazioni, deve tenere la più recente su
+ * questo stesso valore: la divergenza fra cima dello storico e cartellino non
+ * farebbe fallire nulla — ogni pezzo resterebbe coerente con sé stesso — ma
+ * mostrerebbe un dato falso, che è esattamente ciò che la demo dovrebbe
+ * smentire.
+ *
+ * Lo scenario che conta le richieste di pagina ha bisogno che il titolo sia già
+ * in cache *e* rilevato adesso (il default di `seminaTitolo`): è la sola premessa
+ * sotto cui zero chiamate a `**\/api\/securities\/**` significano «il grafico si
+ * disegna con i dati che la pagina ha già» e non «la guardia ha risposto no».
+ */
+export const TITOLO_US_036_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00B8GKDB10',
+  campi: {
+    name: 'Vanguard Ftse All-World High Dividend Yield Ucits Etf',
+    price: 62.4,
+    ticker: 'VHYL',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,29%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-037__scala-temporale-grafico.spec.ts` (lo scenario dimostrativo).
+ *
+ * Lo scenario semina carichi e rilevazioni di quest'anno e poi cambia scala
+ * temporale: «ultimo mese» deve restringere il tracciato, «ultimi 10 anni» deve
+ * dichiarare da quando la copertura comincia davvero. Il `price` è la cifra che
+ * la scheda mostra sul cartellino, e la rilevazione più recente seminata va
+ * tenuta su questo stesso valore — divergere non farebbe fallire nulla, ma
+ * mostrerebbe un dato falso proprio nel filmato che dovrebbe smentirlo.
+ *
+ * Il titolo va seminato con `fetched_at` di **adesso** (il default di
+ * `seminaTitolo`): è la guardia di buona cittadinanza a impedire un recupero
+ * reale, e un recupero registrerebbe un'osservazione a oggi che cambierebbe il
+ * conteggio dei punti sotto i piedi del test.
+ */
+export const TITOLO_US_037: TitoloSeminabile = {
+  isin: 'LU1681043599',
+  campi: {
+    name: 'Amundi Index Solutions Msci World Ucits Etf',
+    price: 94.2,
+    ticker: 'CW8',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,38%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-037__scala-temporale-varianti.spec.ts`.
+ *
+ * Regge tre scenari sullo stesso ISIN — finestra priva di dati, scala
+ * predefinita a ogni apertura, zero richieste al server cambiando scala —
+ * perché sono varianti dello stesso selettore e ciascuno si costruisce la
+ * propria premessa con `seminaOsservazioni`, che *sostituisce* lo storico.
+ *
+ * Qui il seme con `fetched_at` di adesso non è una comodità ma una **premessa
+ * dello scenario**: un recupero reale registrerebbe un'osservazione a oggi, che
+ * da sola riempirebbe la finestra «ultimo mese» e smonterebbe in silenzio proprio
+ * il caso che il criterio 4 mette alla prova.
+ */
+export const TITOLO_US_037_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00BKM4GZ66',
+  campi: {
+    name: 'Ishares Core Msci Em Imi Ucits Etf',
+    price: 41.86,
+    ticker: 'EIMI',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,18%',
+    currency: 'EUR',
+    issuer: 'BLACKROCK ASSET MANAGEMENT IRELAND LTD',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Il **secondo** titolo di `US-037__scala-temporale-varianti.spec.ts`.
+ *
+ * Serve a un solo scenario, quello del criterio 2: la scala scelta su un titolo
+ * non deve sopravvivere all'apertura della scheda di un *altro* titolo. Senza
+ * una seconda anagrafica quello scenario non è scrivibile — riaprire la stessa
+ * scheda proverebbe qualcos'altro.
+ *
+ * Due ISIN riservati allo stesso file non violano la regola un-ISIN-per-file:
+ * ciò che quella regola vieta è **condividere una chiave fra file**, perché il
+ * seeding è uno stack di undo e due file in parallelo si ripristinerebbero a
+ * vicenda lo stato sbagliato. Qui entrambe le chiavi appartengono a un solo
+ * file, che gira in serie con sé stesso.
+ */
+export const TITOLO_US_037_SECONDO: TitoloSeminabile = {
+  isin: 'IE00BYZK4552',
+  campi: {
+    name: 'Ishares Automation & Robotics Ucits Etf',
+    price: 132.74,
+    ticker: 'RBOT',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,40%',
+    currency: 'EUR',
+    issuer: 'BLACKROCK ASSET MANAGEMENT IRELAND LTD',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-038__metriche-titolo.spec.ts` (lo scenario dimostrativo).
+ *
+ * Lo scenario iscrive **due carichi a prezzi e quantità diversi** — perché la
+ * media ponderata e quella aritmetica coincidono a quantità uguali, e un titolo
+ * a quantità uguali non dimostrerebbe la ponderazione — e semina rilevazioni
+ * distribuite sull'ultimo anno, così che cambiando scala la variazione di
+ * periodo cambi capi mentre il P&L da carico resta immobile.
+ *
+ * Il `price` è la cifra che la scheda mostra sul cartellino ed entra nel P&L: la
+ * rilevazione più recente seminata va tenuta su questo stesso valore, per la
+ * ragione già registrata su US-009 e US-036 — divergere non farebbe fallire
+ * nulla, ma mostrerebbe un dato falso proprio nel filmato che dovrebbe smentirlo.
+ *
+ * Il titolo va seminato con `fetched_at` di **adesso** (il default di
+ * `seminaTitolo`): è la guardia di buona cittadinanza a impedire un recupero
+ * reale, e un recupero registrerebbe un'osservazione a oggi che cambierebbe il
+ * conteggio delle rilevazioni comprese sotto i piedi del test.
+ */
+export const TITOLO_US_038: TitoloSeminabile = {
+  isin: 'IE00BYX2JD69',
+  campi: {
+    name: 'Vanguard Esg Global All Cap Ucits Etf Acc',
+    price: 128.46,
+    ticker: 'V3AA',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,24%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-038__metriche-titolo-varianti.spec.ts`.
+ *
+ * Regge tre scenari sullo stesso ISIN — una sola rilevazione in finestra, due
+ * rilevazioni allo stesso prezzo, più carichi e una sola rilevazione — perché
+ * sono varianti della stessa bilancia e ciascuno si costruisce la propria
+ * premessa con `seminaOsservazioni`, che *sostituisce* lo storico.
+ *
+ * Anche qui il seme con `fetched_at` di adesso è una **premessa dello scenario**
+ * e non una comodità: un recupero reale registrerebbe un'osservazione a oggi che
+ * da sola porterebbe a due le rilevazioni comprese, smontando in silenzio proprio
+ * il caso del criterio 4.
+ */
+export const TITOLO_US_038_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00BZ163L38',
+  campi: {
+    name: 'Vanguard Usd Corporate Bond Ucits Etf',
+    price: 51.2,
+    ticker: 'VDCP',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,09%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-039__vista-valore-posizione.spec.ts` (scenario dimostrativo).
+ *
+ * Regge il caso della spec: **due carichi a prezzi e quantità diversi**, il
+ * secondo dei quali produce il gradino verticale che la vista del valore deve
+ * dichiarare come capitale versato. Le quantità sono diverse perché il gradino
+ * dimostra qualcosa solo se la quantità *cambia*: a quantità nulla aggiunta non
+ * ci sarebbe salto da misurare.
+ *
+ * Il `price` è la cifra che la scheda mostra sul cartellino: la rilevazione più
+ * recente seminata va tenuta su questo stesso valore, per la ragione già
+ * registrata su US-009, US-036 e US-038 — divergere non farebbe fallire nulla, e
+ * mostrerebbe un dato falso proprio nel filmato che dovrebbe smentirlo.
+ *
+ * Seme con `fetched_at` di **adesso** (il default di `seminaTitolo`): è la
+ * guardia di buona cittadinanza a impedire un recupero reale, e un recupero
+ * registrerebbe un'osservazione a oggi che sposterebbe l'ultimo punto della
+ * curva del valore sotto i piedi del test.
+ */
+export const TITOLO_US_039: TitoloSeminabile = {
+  isin: 'IE00BFMXXD54',
+  campi: {
+    name: 'Vanguard Sp 500 Ucits Etf Usd Accumulating',
+    price: 128.46,
+    ticker: 'VUAA',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,07%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-039__vista-valore-varianti.spec.ts`.
+ *
+ * Regge tre premesse diverse sullo stesso ISIN — quantità non retroattiva,
+ * rilevazioni anteriori al primo carico, titolo senza alcun carico — perché sono
+ * varianti della stessa commutazione e ciascuna si costruisce la propria
+ * premessa con `seminaOsservazioni`, che *sostituisce* lo storico.
+ *
+ * Il caso «senza alcun carico» è la ragione per cui questo ISIN non può essere
+ * condiviso con il file dimostrativo: là il titolo ha due carichi, qui in uno
+ * scenario non ne ha nessuno, e il portafoglio che li ospita è diverso per
+ * costruzione.
+ */
+export const TITOLO_US_039_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00BG0J4C88',
+  campi: {
+    name: 'Ishares Global Aggregate Bond Ucits Etf',
+    price: 43.7,
+    ticker: 'AGGH',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,10%',
+    currency: 'EUR',
+    issuer: 'ISHARES VI PUBLIC LIMITED COMPANY',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Il **secondo** titolo di `US-039__vista-valore-varianti.spec.ts`.
+ *
+ * Serve a un solo scenario, quello del criterio 2: la vista scelta su un titolo
+ * non deve sopravvivere all'apertura della scheda di un *altro* titolo. Senza
+ * una seconda anagrafica quello scenario non è scrivibile — riaprire la stessa
+ * scheda proverebbe qualcos'altro.
+ *
+ * Due ISIN riservati allo stesso file non violano la regola un-ISIN-per-file:
+ * ciò che quella regola vieta è **condividere una chiave fra file**, perché il
+ * seeding è uno stack di undo e due file in parallelo si ripristinerebbero a
+ * vicenda lo stato sbagliato. Qui entrambe le chiavi appartengono a un solo
+ * file, che gira in serie con sé stesso.
+ */
+export const TITOLO_US_039_SECONDO: TitoloSeminabile = {
+  isin: 'LU2089238039',
+  campi: {
+    name: 'Amundi Msci Emerging Markets Ucits Etf Acc',
+    price: 27.94,
+    ticker: 'AEEM',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,20%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
+ * US-038, US-039).
  *
  * Serve alla bonifica di `globalSetup`, che è la rete sotto il run ucciso con
  * SIGKILL: senza teardown, lo storico seminato resterebbe in archivio e il run
@@ -541,4 +867,21 @@ export const TITOLO_US_009_VARIANTI: TitoloSeminabile = {
 export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   TITOLO_US_009.isin,
   TITOLO_US_009_VARIANTI.isin,
+  TITOLO_US_036.isin,
+  TITOLO_US_036_VARIANTI.isin,
+  TITOLO_US_037.isin,
+  TITOLO_US_037_VARIANTI.isin,
+  // Il secondo titolo di US-037 non viene seminato di osservazioni da alcuno
+  // scenario, ma resta in elenco: il backfill d'avvio (US-009) ne creerebbe una
+  // dalla riga di cache lasciata da un run precedente, e la bonifica deve poterla
+  // togliere.
+  TITOLO_US_037_SECONDO.isin,
+  TITOLO_US_038.isin,
+  TITOLO_US_038_VARIANTI.isin,
+  TITOLO_US_039.isin,
+  TITOLO_US_039_VARIANTI.isin,
+  // Stessa ragione del secondo titolo di US-037: nessuno scenario vi semina
+  // osservazioni, ma il backfill d'avvio ne creerebbe una dalla riga di cache
+  // lasciata da un run precedente, e la bonifica deve poterla togliere.
+  TITOLO_US_039_SECONDO.isin,
 ];

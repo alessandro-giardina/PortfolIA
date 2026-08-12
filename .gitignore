@@ -16,3 +16,8 @@ data/
 # esecuzione e producevano solo rumore nei diff. Per rivedere il demo di una
 # spec, riesegui `npx playwright test` e apri il file sotto docs/test-results/.
 docs/test-results/
+
+# ARchetipo: stato transitorio di una sessione di autopilot. È il diario di una
+# esecuzione, non un artefatto di progetto, e finirebbe altrimenti nel commit
+# della spec in lavorazione.
+.archetipo/autopilot-state-*.yaml

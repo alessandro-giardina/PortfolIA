@@ -5,6 +5,6 @@
     "outDir": "./dist",
     "composite": true
   },
-  "include": ["types/**/*"],
+  "include": ["types/**/*", "domain/**/*"],
   "references": []
 }

@@ -6,7 +6,7 @@ epic:
   title: P&L e grafico del singolo titolo
 priority: HIGH
 points: 5
-status: TODO
+status: REVIEW
 body: |
   #### US-036: Visualizzare il grafico dell'andamento del prezzo del titolo
 
@@ -35,3 +35,9 @@ body: |
 history:
   - status: TODO
     at: "2026-08-10T20:06:17Z"
+  - status: PLANNED
+    at: "2026-08-10T20:39:03Z"
+  - status: IN PROGRESS
+    at: "2026-08-10T20:40:17Z"
+  - status: REVIEW
+    at: "2026-08-11T05:51:34Z"
