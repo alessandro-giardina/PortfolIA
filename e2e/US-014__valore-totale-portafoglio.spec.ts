@@ -8,22 +8,29 @@
  * per un altro ISIN. Entrambe le premesse erano residui di run passati, non fatti.
  *
  * Scenario demo (con video):
- *   semina IE00BJRHVJ28 a 13,60, crea portafoglio con 200 quote, apre la scheda
- *   Riepilogo e verifica il totale atteso — 200 × 13,60 = EUR 2.720,00.
+ *   semina la chiave con prezzo a 13,60, crea portafoglio con 200 quote, apre la
+ *   scheda Riepilogo e verifica il totale atteso — 200 × 13,60 = EUR 2.720,00.
  *
  * Scenario dati mancanti (senza video):
- *   rimuove IT0003128367 dalla cache, così il cache miss è garantito, e verifica
- *   che il riquadro mostri "EUR –" con la nota esplicativa, mai un numero inventato.
+ *   rimuove dalla cache la chiave senza prezzo, così il cache miss è garantito, e
+ *   verifica che il riquadro mostri "EUR –" con la nota esplicativa, mai un numero
+ *   inventato.
  *
  * La rimozione dalla cache non innesca alcuna chiamata di rete: la vista arricchita
  * legge i prezzi con una LEFT JOIN sulla cache e non tenta il recupero live.
  */
 import { test, expect } from './support/fixtures.js';
+import { ISIN_CON_PREZZO_US_014, ISIN_SENZA_PREZZO_US_014 } from './support/titoli.js';
 
-/** ISIN con prezzo seminato: Wellington Euro High Yield Bond. */
-const ISIN_CON_PREZZO = 'IE00BJRHVJ28';
-/** ISIN senza prezzo: ENEL — reale e valido, ma tenuto fuori dalla cache. */
-const ISIN_SENZA_PREZZO = 'IT0003128367';
+/**
+ * Le due chiavi sono riservate a questo file in `support/titoli.ts`, e nessuna
+ * delle due coincide con i segnaposto mostrati dal client. Prima di US-040 erano
+ * letterali locali, e quello con prezzo era anche l'ISIN di esempio stampato in
+ * `PortfolioDetailPage.tsx`: un `toContainText` su quella stringa poteva essere
+ * soddisfatto dal segnaposto invece che dal dato.
+ */
+const ISIN_CON_PREZZO = ISIN_CON_PREZZO_US_014.isin;
+const ISIN_SENZA_PREZZO = ISIN_SENZA_PREZZO_US_014.isin;
 
 /**
  * Prezzo seminato e quantità danno un totale atteso noto: 200 × 13,60 = 2720.
@@ -53,7 +60,7 @@ demoTest(
   async ({ page, archivio }) => {
     // Prezzo noto in cache: il totale atteso è verificabile anche su archivio vergine.
     archivio.seminaTitolo(ISIN_CON_PREZZO, {
-      name: 'Wellington Euro High Yield Bond Fund EUR D Ac',
+      name: 'Ishares Core Msci Em Imi Ucits Etf Dist',
       price: PREZZO_SEMINATO,
       currency: 'EUR',
     });

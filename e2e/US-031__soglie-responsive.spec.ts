@@ -17,6 +17,7 @@
  */
 import type { Page } from '@playwright/test';
 import { test, expect } from './support/fixtures.js';
+import { TITOLO_US_031_SOGLIE } from './support/titoli.js';
 
 /**
  * Porta la finestra alla larghezza indicata e restituisce le misure calcolate.
@@ -56,12 +57,14 @@ test('le soglie responsive a 840, 760 e 640px si comportano come prima dell\'all
 }) => {
   const { id: portfolioId } = await archivio.creaPortafoglio('Soglie Responsive');
 
-  // ISIN letto e mai seminato: la sua anagrafica è già in archivio e a questo
-  // test non interessano i valori, solo la geometria che li ospita.
-  await archivio.aggiungiPosizione(portfolioId, 'IE00B4L5Y983', '2026-01-20', 95.5, 30);
+  // A questo test non interessano i valori, solo la geometria che li ospita — ma
+  // la riga di riepilogo rileva comunque il prezzo dalla cache con una LEFT JOIN,
+  // e la premessa va costruita invece che ereditata da un altro file.
+  archivio.seminaTitolo(TITOLO_US_031_SOGLIE.isin, TITOLO_US_031_SOGLIE.campi);
+  await archivio.aggiungiPosizione(portfolioId, TITOLO_US_031_SOGLIE.isin, '2026-01-20', 95.5, 30);
 
   await page.goto(`/portfolio/${portfolioId}`);
-  await page.getByTestId('riepilogo-IE00B4L5Y983').click();
+  await page.getByTestId(`riepilogo-${TITOLO_US_031_SOGLIE.isin}`).click();
 
   // La Scheda Titolo è l'unica schermata che contiene tutte e tre le regole.
   await expect(page.getByTestId('scheda-titolo')).toBeVisible({ timeout: 15000 });

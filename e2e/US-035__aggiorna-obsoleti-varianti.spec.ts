@@ -264,12 +264,12 @@ test('quando la guardia risponde dall’archivio il titolo è registrato come no
   // La crepa dichiarata: riga in cache recentissima e prezzo nullo. Il riepilogo
   // la classifica «mai rilevato» e la mette in lista; la guardia, che guarda solo
   // `fetched_at`, risponde dall'archivio senza contattare la fonte.
-  archivio.seminaTitolo(ISIN_GUARDIA_US_035, {
+  archivio.seminaTitolo(ISIN_GUARDIA_US_035.isin, {
     name: 'Ishares Msci Europe Sri Ucits Etf',
     price: null,
     fetched_at: Math.floor(Date.now() / 1000),
   });
-  await archivio.aggiungiPosizione(conto.id, ISIN_GUARDIA_US_035, '2026-03-01', 30.0, 10);
+  await archivio.aggiungiPosizione(conto.id, ISIN_GUARDIA_US_035.isin, '2026-03-01', 30.0, 10);
 
   // Passaggio in chiaro, non intercettazione: la guardia che risponde è quella
   // del server. Serve solo a registrare che cosa è stato chiesto.
@@ -289,7 +289,7 @@ test('quando la guardia risponde dall’archivio il titolo è registrato come no
   await expect(consuntivo).toBeVisible({ timeout: 15_000 });
   await expect(consuntivo).toContainText('Nessun titolo aggiornato');
   await expect(consuntivo).toContainText('Aggiornati 0 titoli su 1.');
-  await expect(page.getByTestId(`esito-${ISIN_GUARDIA_US_035}`)).toContainText(
+  await expect(page.getByTestId(`esito-${ISIN_GUARDIA_US_035.isin}`)).toContainText(
     'l’archivio ha risposto senza contattare la fonte',
   );
 
@@ -299,7 +299,7 @@ test('quando la guardia risponde dall’archivio il titolo è registrato come no
   expect(urlRichiesti.some((url) => url.includes('force'))).toBe(false);
 
   // L'archivio è rimasto com'era: il prezzo non è stato inventato.
-  expect(archivio.leggiTitolo(ISIN_GUARDIA_US_035)?.price).toBeNull();
+  expect(archivio.leggiTitolo(ISIN_GUARDIA_US_035.isin)?.price).toBeNull();
 });
 
 test('due clic ravvicinati non avviano due corse: nessun titolo è chiesto due volte', async ({

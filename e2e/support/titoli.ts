@@ -9,42 +9,106 @@
  * suite gira: la prima esecuzione della giornata paga il recupero, le successive
  * no. Esattamente il tipo di dipendenza dallo stato che US-029 elimina.
  *
- * **Un ISIN per file spec, mai condiviso.** Playwright esegue i file in parallelo
- * su worker distinti (`fullyParallel: false` serializza solo dentro un file), e
- * seminare-e-ripristinare è per sua natura uno stack di undo: se due file si
- * sovrappongono sulla stessa chiave, l'ultimo a ripristinare torna allo stato
- * intermedio lasciato dall'altro, non a quello iniziale. Nessun ripristino
- * condizionato può rimediare, perché l'informazione su quale fosse lo stato
- * originale è già andata persa. Assegnare a ogni file il proprio ISIN elimina il
- * problema per costruzione — la stessa logica dei nomi univoci in `nomi.ts`.
+ * **Un ISIN per file spec, mai condiviso — e da US-040 è un controllo, non
+ * un'esortazione.** Playwright esegue i file in parallelo su worker distinti
+ * (`fullyParallel: false` serializza solo dentro un file), e seminare-e-ripristinare
+ * è per sua natura uno stack di undo: se due file si sovrappongono sulla stessa
+ * chiave, l'ultimo a ripristinare torna allo stato intermedio lasciato dall'altro,
+ * non a quello iniziale. Nessun ripristino condizionato può rimediare, perché
+ * l'informazione su quale fosse lo stato originale è già andata persa. Assegnare a
+ * ogni file il proprio ISIN elimina il problema per costruzione — la stessa logica
+ * dei nomi univoci in `nomi.ts`.
  *
- * La regola vincola chi *scrive*, non chi legge. `IE00B4L5Y983` resta letto anche
- * da US-011, US-012, US-013, US-017 e `US-026__apre-scheda-riepilogo`, che vi
- * iscrivono posizioni: la vista di riepilogo ne rileva il prezzo con una LEFT JOIN.
- * Oggi è innocuo perché i campi qui sotto coincidono con la riga già in archivio e
- * nessuna di quelle asserzioni guarda il valore corrente. Cambiare `price` in
- * questo file, però, cambierebbe ciò che quei test vedono: se un giorno servisse un
- * prezzo diverso, si assegni a US-025 un ISIN che nessun altro usa.
+ * ## Come si dichiara una chiave
+ *
+ * Ogni costante di questo file porta il campo `file`: il nome del `*.spec.ts` che
+ * la possiede, e l'unico autorizzato a seminarla o rimuoverla. Non è prosa
+ * promossa a stringa — è il dato che `verifica-chiavi.ts` legge. Aggiungere una
+ * costante la registra: il controllo deriva il registro dagli export del modulo,
+ * quindi non esiste una seconda lista da tenere allineata e dimenticarsi di
+ * registrarla è impossibile.
+ *
+ * Vale anche per le chiavi che un file **rimuove** invece di seminare
+ * (`ISIN_SENZA_ANAGRAFICA_US_018` e simili): rimuovere e ripristinare è la stessa
+ * pila di undo, e una scorciatoia che le sottraesse al controllo lascerebbe lo
+ * stesso residuo. Più chiavi riservate allo stesso file non violano nulla: ciò che
+ * la regola vieta è condividerle *fra* file.
+ *
+ * ## Quando è lecito `lettoDa`
+ *
+ * La regola vincola chi *scrive*, non chi legge — ma la lettura va dichiarata, con
+ * `lettoDa`, altrimenti è indistinguibile da una svista. È il caso di
+ * `US-027__dialog-elenco-portafogli.spec.ts`, che legge i campi di `TITOLO_US_027`
+ * per servirli con `route.fulfill()` senza mai toccare l'archivio, e delle due
+ * chiavi di solo stub (`ISIN_STUB_US_007`, `ISIN_STUB_US_008`).
+ *
+ * `lettoDa` è per chi non tocca l'archivio. Un file che iscrive posizioni su un
+ * ISIN **non** rientra: la vista di riepilogo ne rileva il prezzo con una LEFT
+ * JOIN, quindi la premessa esiste e va costruita — chiave propria, seminata dal
+ * file. È esattamente il difetto che US-040 ha bonificato: US-011, US-012, US-013,
+ * US-017, US-026 e US-031 ereditavano `IE00B4L5Y983` da US-025 e funzionavano solo
+ * perché quella riga era già in archivio di sviluppo.
+ *
+ * ## Quando il controllo fallisce
+ *
+ * `npm run check:chiavi` (in `npm run check`, e di nuovo nel `globalSetup` di
+ * Playwright) stampa la regola infranta e cosa fare:
+ *
+ * - **R1**, due proprietari sulla stessa chiave: assegnane una nuova a uno dei due.
+ * - **R2**, un file nomina una chiave altrui: dagli la sua e falla seminare dal
+ *   file, oppure — se non tocca mai l'archivio — aggiungilo ai `lettoDa`.
+ * - **R3**, la stessa chiave inventata in due file: dichiarala qui con un
+ *   proprietario.
+ * - **R4**, riserva morta: il proprietario non esiste o non la nomina mai; togli la
+ *   voce o correggi il proprietario.
+ * - **R5**, letterale passato a un helper che scrive: dichiara la chiave qui e
+ *   passa la costante.
  *
  * Gli altri scenari che passano dalla pagina di ricerca — US-007, US-008,
  * `demo__recupera-anagrafica-isin`, `fallback-morningstar` — non hanno bisogno di
- * queste costanti perché intercettano `**\/api\/securities\/**` con `route.fulfill()`
- * e non arrivano mai al server. Da qui una conseguenza da conoscere: nessun test
- * della suite esercita più il recupero dalla fonte reale. La copertura di quel
- * percorso vive nei test unitari degli adapter (`server/tests/`) e nello smoke
- * test manuale `server/scripts/morningstar-smoke.ts`.
+ * un'anagrafica seminata perché intercettano `**\/api\/securities\/**` con
+ * `route.fulfill()` e non arrivano mai al server; le loro chiavi sono comunque
+ * dichiarate qui in fondo, così anche quella condivisione è sotto controllo. Da qui
+ * una conseguenza da conoscere: nessun test della suite esercita più il recupero
+ * dalla fonte reale. La copertura di quel percorso vive nei test unitari degli
+ * adapter (`server/tests/`) e nello smoke test manuale
+ * `server/scripts/morningstar-smoke.ts`.
  */
 import type { CampiTitolo } from './archivio.js';
 
-/** Titolo con la sua anagrafica: quanto basta per seminarlo e poi cercarlo. */
-export interface TitoloSeminabile {
+/**
+ * Una chiave della cache prezzi con il file che la possiede.
+ *
+ * `file` non è un commento promosso a stringa: è il dato su cui poggia
+ * `verifica-chiavi.ts`, che rifiuta due proprietari sulla stessa chiave e un file
+ * che ne riferisce una altrui. Prima di US-040 l'appartenenza era affermata in
+ * prosa («Riservato a …») e nessuno la verificava — e infatti due chiavi erano
+ * condivise da anni.
+ *
+ * `lettoDa` elenca i file che possono *nominare* la chiave senza mai toccare
+ * l'archivio: servirne i campi con `route.fulfill()`, digitarla in un campo di
+ * ricerca intercettata. È il permesso esplicito per il caso legittimo, e resta
+ * una riga che si rivede in code review — al contrario della lettura tacita, che
+ * era indistinguibile da una svista.
+ */
+export interface ChiaveRiservata {
+  /** L'ISIN, cioè la chiave della riga in `securities`. */
   isin: string;
+  /** Il file di spec che semina o rimuove questa chiave, e l'unico che può farlo. */
+  file: string;
+  /** I file che nominano la chiave senza scrivere in archivio. */
+  lettoDa?: string[];
+}
+
+/** Titolo con la sua anagrafica: quanto basta per seminarlo e poi cercarlo. */
+export interface TitoloSeminabile extends ChiaveRiservata {
   campi: CampiTitolo;
 }
 
 /** Riservato a `US-025__aggiungi-titolo-a-portafoglio.spec.ts`. */
 export const TITOLO_US_025: TitoloSeminabile = {
   isin: 'IE00B4L5Y983',
+  file: 'US-025__aggiungi-titolo-a-portafoglio.spec.ts',
   campi: {
     name: 'Ishares Core Msci World Ucits Etf Acc',
     price: 128.46,
@@ -67,6 +131,8 @@ export const TITOLO_US_025: TitoloSeminabile = {
  */
 export const TITOLO_US_027: TitoloSeminabile = {
   isin: 'IE00B5BMR087',
+  file: 'US-027__scorre-elenco-portafogli.spec.ts',
+  lettoDa: ['US-027__dialog-elenco-portafogli.spec.ts'],
   campi: {
     name: 'Ishares Core S&P 500 Ucits Etf Usd Acc',
     price: 552.18,
@@ -88,6 +154,7 @@ export const TITOLO_US_027: TitoloSeminabile = {
  */
 export const TITOLO_US_018: TitoloSeminabile = {
   isin: 'LU1781541179',
+  file: 'US-018__dettaglio-titolo.spec.ts',
   campi: {
     name: 'Amundi S&P 500 Ii Ucits Etf Acc',
     price: 112.74,
@@ -110,7 +177,10 @@ export const TITOLO_US_018: TitoloSeminabile = {
  * ISIN per file — rimuovere e ripristinare è lo stesso stack di undo del
  * seeding, e condividerlo lascerebbe lo stesso residuo.
  */
-export const ISIN_SENZA_ANAGRAFICA_US_018 = 'LU0908500753';
+export const ISIN_SENZA_ANAGRAFICA_US_018: ChiaveRiservata = {
+  isin: 'LU0908500753',
+  file: 'US-018__dettaglio-titolo-dati-mancanti.spec.ts',
+};
 
 /**
  * Riservato a `US-030__aggiorna-dati-titolo.spec.ts` (il file demo).
@@ -123,6 +193,7 @@ export const ISIN_SENZA_ANAGRAFICA_US_018 = 'LU0908500753';
  */
 export const TITOLO_US_030: TitoloSeminabile = {
   isin: 'IE00BK5BQT80',
+  file: 'US-030__aggiorna-dati-titolo.spec.ts',
   campi: {
     name: 'Vanguard Ftse All-World Ucits Etf Usd Acc',
     price: 118.42,
@@ -148,6 +219,7 @@ export const TITOLO_US_030: TitoloSeminabile = {
  */
 export const TITOLO_US_030_VARIANTI: TitoloSeminabile = {
   isin: 'LU1681045370',
+  file: 'US-030__aggiorna-dati-titolo-varianti.spec.ts',
   campi: {
     name: 'Amundi Msci Emerging Markets Ucits Etf Acc',
     price: 27.86,
@@ -173,6 +245,7 @@ export const TITOLO_US_030_VARIANTI: TitoloSeminabile = {
  */
 export const TITOLO_US_032: TitoloSeminabile = {
   isin: 'IE00BFY0GT14',
+  file: 'US-032__prezzo-e-rilevamento.spec.ts',
   campi: {
     name: 'Spdr Msci World Ucits Etf',
     price: 137.92,
@@ -202,7 +275,10 @@ export const TITOLO_US_032: TitoloSeminabile = {
  * alla prova, quindi tenerla sotto gli occhi del test vale più della simmetria
  * con le altre costanti.
  */
-export const ISIN_SENZA_PREZZO_US_032 = 'LU1650487413';
+export const ISIN_SENZA_PREZZO_US_032: ChiaveRiservata = {
+  isin: 'LU1650487413',
+  file: 'US-032__prezzo-e-rilevamento-varianti.spec.ts',
+};
 
 /**
  * Riservati a `US-034__rilevamento-obsoleto.spec.ts` (il file demo).
@@ -226,6 +302,7 @@ export const ISIN_SENZA_PREZZO_US_032 = 'LU1650487413';
  */
 export const TITOLO_US_034_OBSOLETO: TitoloSeminabile = {
   isin: 'IE00B3RBWM25',
+  file: 'US-034__rilevamento-obsoleto.spec.ts',
   campi: {
     name: 'Vanguard Ftse All-World Ucits Etf Dist',
     price: 128.4,
@@ -242,6 +319,7 @@ export const TITOLO_US_034_OBSOLETO: TitoloSeminabile = {
 /** Riservato a `US-034__rilevamento-obsoleto.spec.ts`: il titolo rilevato adesso. */
 export const TITOLO_US_034_FRESCO: TitoloSeminabile = {
   isin: 'IE00BFNM3P36',
+  file: 'US-034__rilevamento-obsoleto.spec.ts',
   campi: {
     name: 'Amundi Msci World Ucits Etf Acc',
     price: 96.75,
@@ -262,6 +340,7 @@ export const TITOLO_US_034_FRESCO: TitoloSeminabile = {
  */
 export const TITOLO_US_034_VARIANTI: TitoloSeminabile = {
   isin: 'IE00BK5BQV03',
+  file: 'US-034__rilevamento-obsoleto-varianti.spec.ts',
   campi: {
     name: 'Vanguard S&P 500 Ucits Etf Usd Acc',
     price: 108.32,
@@ -281,11 +360,15 @@ export const TITOLO_US_034_VARIANTI: TitoloSeminabile = {
  * deve dimostrare. Rimuovere e ripristinare è la stessa pila di undo del
  * seeding, quindi vale comunque la riserva per file.
  */
-export const ISIN_MAI_RILEVATO_US_034 = 'LU1437016972';
+export const ISIN_MAI_RILEVATO_US_034: ChiaveRiservata = {
+  isin: 'LU1437016972',
+  file: 'US-034__rilevamento-obsoleto-varianti.spec.ts',
+};
 
 /** Riservato a `US-026__schede-portafoglio.spec.ts`. */
 export const TITOLO_US_026: TitoloSeminabile = {
   isin: 'IE00BMVB5R75',
+  file: 'US-026__schede-portafoglio.spec.ts',
   campi: {
     name: 'Vanguard Lifestrategy 80% Equity Ucits Etf',
     price: 43.3,
@@ -321,6 +404,7 @@ export const TITOLO_US_026: TitoloSeminabile = {
 export const TITOLI_US_035_OBSOLETI: TitoloSeminabile[] = [
   {
     isin: 'IE00B4L5YC18',
+    file: 'US-035__aggiorna-obsoleti.spec.ts',
     campi: {
       name: 'Ishares Core Msci Emerging Markets Imi Ucits Etf',
       price: 31.2,
@@ -335,6 +419,7 @@ export const TITOLI_US_035_OBSOLETI: TitoloSeminabile[] = [
   },
   {
     isin: 'LU0290358497',
+    file: 'US-035__aggiorna-obsoleti.spec.ts',
     campi: {
       name: 'Xtrackers Ii Eur Overnight Rate Swap Ucits Etf',
       price: 142.5,
@@ -349,6 +434,7 @@ export const TITOLI_US_035_OBSOLETI: TitoloSeminabile[] = [
   },
   {
     isin: 'IE00B3XXRP09',
+    file: 'US-035__aggiorna-obsoleti.spec.ts',
     campi: {
       name: 'Vanguard S&P 500 Ucits Etf Usd Dist',
       price: 88.4,
@@ -373,6 +459,7 @@ export const TITOLI_US_035_OBSOLETI: TitoloSeminabile[] = [
  */
 export const TITOLO_US_035_FRESCO: TitoloSeminabile = {
   isin: 'IE00BJ0KDQ92',
+  file: 'US-035__aggiorna-obsoleti.spec.ts',
   campi: {
     name: 'Xtrackers Msci World Ucits Etf 1c',
     price: 96.1,
@@ -397,6 +484,7 @@ export const TITOLO_US_035_FRESCO: TitoloSeminabile = {
 export const TITOLI_US_035_VARIANTI: TitoloSeminabile[] = [
   {
     isin: 'IE00BGV5VN51',
+    file: 'US-035__aggiorna-obsoleti-varianti.spec.ts',
     campi: {
       name: 'Xtrackers S&P 500 Equal Weight Ucits Etf 1c',
       price: 76.3,
@@ -411,6 +499,7 @@ export const TITOLI_US_035_VARIANTI: TitoloSeminabile[] = [
   },
   {
     isin: 'IE00BDBRDM35',
+    file: 'US-035__aggiorna-obsoleti-varianti.spec.ts',
     campi: {
       name: 'Ishares Core Global Aggregate Bond Ucits Etf',
       price: 4.68,
@@ -425,6 +514,7 @@ export const TITOLI_US_035_VARIANTI: TitoloSeminabile[] = [
   },
   {
     isin: 'IE00BF4RFH31',
+    file: 'US-035__aggiorna-obsoleti-varianti.spec.ts',
     campi: {
       name: 'Ishares Msci World Small Cap Ucits Etf',
       price: 6.94,
@@ -446,6 +536,7 @@ export const TITOLI_US_035_VARIANTI: TitoloSeminabile[] = [
  */
 export const TITOLO_US_035_VARIANTI_FRESCO: TitoloSeminabile = {
   isin: 'LU1737652237',
+  file: 'US-035__aggiorna-obsoleti-varianti.spec.ts',
   campi: {
     name: 'Amundi Index Msci World Ucits Etf Dr',
     price: 54.7,
@@ -474,7 +565,10 @@ export const TITOLO_US_035_VARIANTI_FRESCO: TitoloSeminabile = {
  * server, e proprio perché risponde dall'archivio nessuna fonte reale viene
  * contattata.
  */
-export const ISIN_GUARDIA_US_035 = 'IE00B52VJ196';
+export const ISIN_GUARDIA_US_035: ChiaveRiservata = {
+  isin: 'IE00B52VJ196',
+  file: 'US-035__aggiorna-obsoleti-varianti.spec.ts',
+};
 
 /**
  * Riservato a `US-009__storico-prezzi.spec.ts` (il file demo).
@@ -484,19 +578,25 @@ export const ISIN_GUARDIA_US_035 = 'IE00B52VJ196';
  * dalla spec: la scheda dichiara *quel* prezzo come attuale, e una divergenza
  * fra la cifra in cima allo storico e quella del cartellino sarebbe, per chi
  * guarda, un dato falso.
+ *
+ * Fino a US-040 questo file seminava `IE00BFY0GT14`, la stessa chiave di
+ * `TITOLO_US_032`: due file su worker paralleli che si ripristinavano a vicenda
+ * lo stato sbagliato. La chiave è ora esclusiva, e il prezzo è rimasto quello che
+ * lo scenario asserisce.
  */
 export const TITOLO_US_009: TitoloSeminabile = {
-  isin: 'IE00BFY0GT14',
+  isin: 'IE00B0M62Q58',
+  file: 'US-009__storico-prezzi.spec.ts',
   campi: {
-    name: 'Spdr Msci World Ucits Etf',
+    name: 'Ishares Msci World Ucits Etf Dist',
     price: 128.46,
-    ticker: 'SWRD',
+    ticker: 'IWRD',
     instrument_type: 'ETF ARMONIZZATI',
-    total_annual_fees: '0,12%',
+    total_annual_fees: '0,50%',
     currency: 'EUR',
-    issuer: 'SPDR ETFS EUROPE I PLC',
+    issuer: 'ISHARES PLC',
     segment: 'ETF Indicizzati',
-    dividend_policy: 'ad accumulazione',
+    dividend_policy: 'a distribuzione',
     data_source: 'borsaitaliana',
   },
 };
@@ -509,17 +609,23 @@ export const TITOLO_US_009: TitoloSeminabile = {
  * stesso storico e ciascuno lo semina da capo. `data_source` resta esplicito per
  * la stessa ragione di US-018: senza fissarlo, il timbro dipenderebbe da quale
  * fonte ha popolato la cache per ultima.
+ *
+ * Fino a US-040 questo file seminava `IE00B3XXRP09`, che è anche il terzo titolo
+ * di `TITOLI_US_035_OBSOLETI`: una collisione mai dichiarata, identica a quella
+ * fra US-009 e US-032. La chiave è ora esclusiva e il quartetto narrativo di
+ * US-035 è rimasto intatto.
  */
 export const TITOLO_US_009_VARIANTI: TitoloSeminabile = {
-  isin: 'IE00B3XXRP09',
+  isin: 'IE00B02KXK85',
+  file: 'US-009__storico-prezzi-varianti.spec.ts',
   campi: {
-    name: 'Vanguard S&P 500 Ucits Etf',
+    name: 'Ishares Msci Emerging Markets Ucits Etf Dist',
     price: 104.2,
-    ticker: 'VUSA',
+    ticker: 'IEEM',
     instrument_type: 'ETF ARMONIZZATI',
-    total_annual_fees: '0,07%',
+    total_annual_fees: '0,75%',
     currency: 'EUR',
-    issuer: 'VANGUARD FUNDS PLC',
+    issuer: 'ISHARES PLC',
     segment: 'ETF Indicizzati',
     dividend_policy: 'a distribuzione',
     data_source: 'borsaitaliana',
@@ -548,6 +654,7 @@ export const TITOLO_US_009_VARIANTI: TitoloSeminabile = {
  */
 export const TITOLO_US_036: TitoloSeminabile = {
   isin: 'IE00B4K48X80',
+  file: 'US-036__grafico-titolo.spec.ts',
   campi: {
     name: 'Ishares Core Msci Europe Ucits Etf Eur Acc',
     price: 84.15,
@@ -589,6 +696,7 @@ export const TITOLO_US_036: TitoloSeminabile = {
  */
 export const TITOLO_US_036_VARIANTI: TitoloSeminabile = {
   isin: 'IE00B8GKDB10',
+  file: 'US-036__grafico-titolo-varianti.spec.ts',
   campi: {
     name: 'Vanguard Ftse All-World High Dividend Yield Ucits Etf',
     price: 62.4,
@@ -620,6 +728,7 @@ export const TITOLO_US_036_VARIANTI: TitoloSeminabile = {
  */
 export const TITOLO_US_037: TitoloSeminabile = {
   isin: 'LU1681043599',
+  file: 'US-037__scala-temporale-grafico.spec.ts',
   campi: {
     name: 'Amundi Index Solutions Msci World Ucits Etf',
     price: 94.2,
@@ -649,6 +758,7 @@ export const TITOLO_US_037: TitoloSeminabile = {
  */
 export const TITOLO_US_037_VARIANTI: TitoloSeminabile = {
   isin: 'IE00BKM4GZ66',
+  file: 'US-037__scala-temporale-varianti.spec.ts',
   campi: {
     name: 'Ishares Core Msci Em Imi Ucits Etf',
     price: 41.86,
@@ -679,6 +789,7 @@ export const TITOLO_US_037_VARIANTI: TitoloSeminabile = {
  */
 export const TITOLO_US_037_SECONDO: TitoloSeminabile = {
   isin: 'IE00BYZK4552',
+  file: 'US-037__scala-temporale-varianti.spec.ts',
   campi: {
     name: 'Ishares Automation & Robotics Ucits Etf',
     price: 132.74,
@@ -714,6 +825,7 @@ export const TITOLO_US_037_SECONDO: TitoloSeminabile = {
  */
 export const TITOLO_US_038: TitoloSeminabile = {
   isin: 'IE00BYX2JD69',
+  file: 'US-038__metriche-titolo.spec.ts',
   campi: {
     name: 'Vanguard Esg Global All Cap Ucits Etf Acc',
     price: 128.46,
@@ -743,6 +855,7 @@ export const TITOLO_US_038: TitoloSeminabile = {
  */
 export const TITOLO_US_038_VARIANTI: TitoloSeminabile = {
   isin: 'IE00BZ163L38',
+  file: 'US-038__metriche-titolo-varianti.spec.ts',
   campi: {
     name: 'Vanguard Usd Corporate Bond Ucits Etf',
     price: 51.2,
@@ -778,6 +891,7 @@ export const TITOLO_US_038_VARIANTI: TitoloSeminabile = {
  */
 export const TITOLO_US_039: TitoloSeminabile = {
   isin: 'IE00BFMXXD54',
+  file: 'US-039__vista-valore-posizione.spec.ts',
   campi: {
     name: 'Vanguard Sp 500 Ucits Etf Usd Accumulating',
     price: 128.46,
@@ -807,6 +921,7 @@ export const TITOLO_US_039: TitoloSeminabile = {
  */
 export const TITOLO_US_039_VARIANTI: TitoloSeminabile = {
   isin: 'IE00BG0J4C88',
+  file: 'US-039__vista-valore-varianti.spec.ts',
   campi: {
     name: 'Ishares Global Aggregate Bond Ucits Etf',
     price: 43.7,
@@ -837,6 +952,7 @@ export const TITOLO_US_039_VARIANTI: TitoloSeminabile = {
  */
 export const TITOLO_US_039_SECONDO: TitoloSeminabile = {
   isin: 'LU2089238039',
+  file: 'US-039__vista-valore-varianti.spec.ts',
   campi: {
     name: 'Amundi Msci Emerging Markets Ucits Etf Acc',
     price: 27.94,
@@ -849,6 +965,274 @@ export const TITOLO_US_039_SECONDO: TitoloSeminabile = {
     dividend_policy: 'ad accumulazione',
     data_source: 'borsaitaliana',
   },
+};
+
+/**
+ * Riservati a `US-011__aggiungi-posizione.spec.ts`.
+ *
+ * Due chiavi perché il file ne digita due nel campo di ricerca: il primo carico
+ * dello scenario dimostrativo e quello della persistenza. Fino a US-040 erano due
+ * letterali presi in prestito da altri file — `IE00B4L5Y983` di US-025 e
+ * `IE00B3RBWM25` di US-034 — e funzionavano solo perché quelle righe erano già in
+ * archivio di sviluppo: la premessa era ereditata, non costruita.
+ *
+ * Il file le semina entrambe con `fetched_at` di **adesso** (il default di
+ * `seminaTitolo`), e non è una comodità: senza riga fresca in cache la guardia di
+ * buona cittadinanza lascia passare, `GET /api/securities/:isin` contatta Borsa
+ * Italiana e poi il browser headless su MorningStar — 8-12 secondi, oltre il
+ * budget del test e dipendenti dall'ora del run.
+ */
+export const TITOLO_US_011: TitoloSeminabile = {
+  isin: 'LU0274208692',
+  file: 'US-011__aggiungi-posizione.spec.ts',
+  campi: {
+    name: 'Xtrackers Msci World Ucits Etf 1c',
+    price: 89.42,
+    ticker: 'XMWO',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,19%',
+    currency: 'EUR',
+    issuer: 'XTRACKERS',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/** Il **secondo** titolo di `US-011__aggiungi-posizione.spec.ts`: quello della persistenza. */
+export const TITOLO_US_011_SECONDO: TitoloSeminabile = {
+  isin: 'IE00B3VVMM84',
+  file: 'US-011__aggiungi-posizione.spec.ts',
+  campi: {
+    name: 'Vanguard Ftse Emerging Markets Ucits Etf',
+    price: 115.2,
+    ticker: 'VFEM',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,22%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+  },
+};
+
+/**
+ * Riservati a `US-012__carichi-multipli.spec.ts`.
+ *
+ * Due chiavi perché lo scenario multi-ISIN deve mostrare **due righe distinte**
+ * nella tabella aggregata: con una chiave sola quel criterio non è scrivibile. La
+ * prima è anche quella che lo scenario dimostrativo digita nel campo di ricerca,
+ * quindi vale la stessa cautela sul `fetched_at` registrata su US-011.
+ */
+export const TITOLO_US_012: TitoloSeminabile = {
+  isin: 'IE00B810Q511',
+  file: 'US-012__carichi-multipli.spec.ts',
+  campi: {
+    name: 'Vanguard Ftse Japan Ucits Etf',
+    price: 90.2,
+    ticker: 'VJPN',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,15%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+  },
+};
+
+/** Il **secondo** titolo di `US-012__carichi-multipli.spec.ts`: la seconda riga aggregata. */
+export const TITOLO_US_012_SECONDO: TitoloSeminabile = {
+  isin: 'IE00B945VV12',
+  file: 'US-012__carichi-multipli.spec.ts',
+  campi: {
+    name: 'Vanguard Ftse Developed Europe Ucits Etf',
+    price: 115.5,
+    ticker: 'VEUR',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,10%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+  },
+};
+
+/**
+ * Riservati a `US-013__modifica-rimuovi-posizione.spec.ts`.
+ *
+ * Due chiavi perché lo scenario dimostrativo iscrive due carichi e poi ne
+ * *rimuove* uno: il criterio è che la riga sparisca dalla tabella aggregata, e con
+ * una chiave sola sparirebbe l'intera tabella invece della sola riga. Entrambe
+ * sono digitate nel campo di ricerca, quindi vale la cautela sul `fetched_at`
+ * registrata su US-011.
+ */
+export const TITOLO_US_013: TitoloSeminabile = {
+  isin: 'IE00BZ163G84',
+  file: 'US-013__modifica-rimuovi-posizione.spec.ts',
+  campi: {
+    name: 'Vanguard Eur Corporate Bond Ucits Etf',
+    price: 89.0,
+    ticker: 'VECP',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,09%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+  },
+};
+
+/** Il **secondo** titolo di `US-013__modifica-rimuovi-posizione.spec.ts`: quello rimosso. */
+export const TITOLO_US_013_SECONDO: TitoloSeminabile = {
+  isin: 'IE00BZ163K21',
+  file: 'US-013__modifica-rimuovi-posizione.spec.ts',
+  campi: {
+    name: 'Vanguard Eur Eurozone Government Bond Ucits Etf',
+    price: 115.0,
+    ticker: 'VETY',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,07%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+  },
+};
+
+/**
+ * Riservato a `US-017__visualizza-tabella-titoli.spec.ts`.
+ *
+ * Qui l'ISIN entra solo dalle posizioni iscritte via API e nessuna asserzione
+ * guarda il prezzo — ma la riga di riepilogo lo rileva con una LEFT JOIN sulla
+ * cache, quindi la premessa va comunque costruita invece che ereditata dalla riga
+ * che un altro file ha lasciato in archivio.
+ */
+export const TITOLO_US_017: TitoloSeminabile = {
+  isin: 'IE00B6R52259',
+  file: 'US-017__visualizza-tabella-titoli.spec.ts',
+  campi: {
+    name: 'Ishares Msci Acwi Ucits Etf',
+    price: 92.31,
+    ticker: 'SSAC',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,20%',
+    currency: 'EUR',
+    issuer: 'ISHARES III PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservato a `US-026__apre-scheda-riepilogo.spec.ts` (il file demo).
+ *
+ * Il file fratello `US-026__schede-portafoglio.spec.ts` ha la sua chiave in
+ * `TITOLO_US_026`: sono due file, e Playwright li esegue su worker paralleli.
+ */
+export const TITOLO_US_026_RIEPILOGO: TitoloSeminabile = {
+  isin: 'IE00B3YLTY66',
+  file: 'US-026__apre-scheda-riepilogo.spec.ts',
+  campi: {
+    name: 'Spdr Msci Acwi Imi Ucits Etf',
+    price: 78.64,
+    ticker: 'IMIE',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,17%',
+    currency: 'EUR',
+    issuer: 'SSGA SPDR ETFS EUROPE II PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservato a `US-031__larghezza-foglio.spec.ts` (il file demo).
+ *
+ * Lo scenario misura geometrie e non numeri, ma la riga di riepilogo che ospita
+ * quelle geometrie legge comunque il prezzo dalla cache: la premessa va costruita.
+ */
+export const TITOLO_US_031_LARGHEZZA: TitoloSeminabile = {
+  isin: 'IE00B52MJY50',
+  file: 'US-031__larghezza-foglio.spec.ts',
+  campi: {
+    name: 'Ishares Core Msci Pacific Ex-Japan Ucits Etf',
+    price: 96.85,
+    ticker: 'CPXJ',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,20%',
+    currency: 'EUR',
+    issuer: 'ISHARES III PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/** Riservato a `US-031__soglie-responsive.spec.ts`: stessa ragione del file fratello. */
+export const TITOLO_US_031_SOGLIE: TitoloSeminabile = {
+  isin: 'IE00B1FZS467',
+  file: 'US-031__soglie-responsive.spec.ts',
+  campi: {
+    name: 'Ishares Global Infrastructure Ucits Etf',
+    price: 34.12,
+    ticker: 'INFR',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,65%',
+    currency: 'EUR',
+    issuer: 'ISHARES PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+  },
+};
+
+/**
+ * Riservati a `US-014__valore-totale-portafoglio.spec.ts`: una chiave che il file
+ * semina, una che rimuove.
+ *
+ * Solo le chiavi, senza anagrafica: i campi cambiano da uno scenario all'altro —
+ * prezzo noto contro cache miss — e sono precisamente la variabile che ciascuno
+ * mette alla prova, quindi tenerli sotto gli occhi del test vale più della
+ * simmetria con le altre costanti (stessa scelta di `ISIN_SENZA_PREZZO_US_032`).
+ *
+ * Fino a US-040 erano due letterali locali, e uno dei due — `IE00BJRHVJ28` — è
+ * anche il segnaposto mostrato in `client/src/pages/PortfolioDetailPage.tsx`:
+ * un `toContainText` su quell'ISIN poteva essere soddisfatto dal testo di esempio
+ * invece che dal dato. Le chiavi qui sotto sono diverse da entrambi i segnaposto
+ * del client.
+ */
+export const ISIN_CON_PREZZO_US_014: ChiaveRiservata = {
+  isin: 'IE00BKM4H197',
+  file: 'US-014__valore-totale-portafoglio.spec.ts',
+};
+
+/** L'ISIN che US-014 *rimuove* dalla cache, per garantire il cache miss dello scenario. */
+export const ISIN_SENZA_PREZZO_US_014: ChiaveRiservata = {
+  isin: 'IE00BLRPRL42',
+  file: 'US-014__valore-totale-portafoglio.spec.ts',
+};
+
+/**
+ * Le due chiavi che la suite usa solo come **dato di stub**, mai in archivio.
+ *
+ * Nessuno dei file coinvolti tocca la cache: intercettano `**\/api\/securities\/**`
+ * con `route.fulfill()` e la richiesta non arriva mai al server. La condivisione è
+ * quindi innocua — ma prima di US-040 era anche tacita, cioè indistinguibile da
+ * una svista. Dichiararla la rende una riga che si rivede in code review, e mette
+ * le due chiavi sotto il controllo insieme a tutte le altre.
+ *
+ * Le costanti non sono importate dai file: quelli continuano a portare il
+ * letterale, che è ciò che l'utente digita nel campo di ricerca ed è più leggibile
+ * lì. Il controllo risolve comunque i letterali, quindi la dichiarazione vincola.
+ */
+export const ISIN_STUB_US_007: ChiaveRiservata = {
+  isin: 'IE00BMVB5S82',
+  file: 'US-007__ricerca-isin.spec.ts',
+  lettoDa: ['demo__recupera-anagrafica-isin.spec.ts'],
+};
+
+/** L'ISIN di stub condiviso fra US-008 e lo scenario di ripiego su MorningStar. */
+export const ISIN_STUB_US_008: ChiaveRiservata = {
+  isin: 'IE00BJRHVJ28',
+  file: 'US-008__trasparenza-dati.spec.ts',
+  lettoDa: ['fallback-morningstar.spec.ts'],
 };
 
 /**

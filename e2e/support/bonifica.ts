@@ -22,6 +22,7 @@ import { BASE_API, elencaPortafogli, eliminaPortafoglio, type Portafoglio } from
 import { rimuoviOsservazioni } from './archivio.js';
 import { MARCATORE_E2E } from './nomi.js';
 import { ISIN_CON_OSSERVAZIONI_E2E } from './titoli.js';
+import { formattaViolazioni, intestazioneViolazioni, verificaChiavi } from './verifica-chiavi.js';
 
 /**
  * Un portafoglio è residuo della suite se porta il marcatore di `nomeUnico`.
@@ -81,7 +82,31 @@ function bonificaOsservazioni(): void {
   }
 }
 
+/**
+ * Il controllo delle chiavi (US-040), eseguito **prima** dei test e non dentro.
+ *
+ * `npm run check:chiavi` lo esegue già in CI, ma chi lancia `npx playwright test`
+ * in locale non passa da lì: senza questo passo scoprirebbe la collisione come un
+ * fallimento intermittente a metà suite — cioè nel modo più costoso possibile,
+ * dopo che l'archivio è già stato sporcato. Qui invece il run si ferma subito,
+ * con l'elenco delle violazioni.
+ *
+ * È l'unico punto in cui la bonifica fa fallire il run: gli altri passi sono
+ * best-effort per scelta, ma una chiave condivisa non è un residuo da ripulire —
+ * è un difetto che i test successivi non potrebbero che nascondere.
+ */
+function verificaChiaviOFallisci(): void {
+  const violazioni = verificaChiavi();
+  if (violazioni.length === 0) return;
+  throw new Error(
+    `${intestazioneViolazioni(violazioni.length)}\n${formattaViolazioni(violazioni)}\n\n` +
+      `La regola e i casi leciti sono documentati in e2e/support/titoli.ts.`,
+  );
+}
+
 export default async function bonifica(): Promise<void> {
+  verificaChiaviOFallisci();
+
   if (!(await attendiServer())) {
     console.warn(`[e2e] bonifica saltata: ${BASE_API} non raggiungibile.`);
     return;

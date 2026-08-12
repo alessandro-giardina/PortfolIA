@@ -83,93 +83,104 @@ tasks:
     title: Dichiara l'appartenenza nel modello di titoli.ts
     description: 'Introduce il tipo `ChiaveRiservata { isin, file, lettoDa? }` e fa estendere `TitoloSeminabile`; aggiunge il campo `file` a ogni costante esistente, riprendendo il file già indicato in prosa nel commento («Riservato a …»), e `lettoDa: [''US-027__dialog-elenco-portafogli.spec.ts'']` su `TITOLO_US_027`.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'Introduce il tipo `ChiaveRiservata { isin, file, lettoDa? }` e fa estendere `TitoloSeminabile`; aggiunge il campo `file` a ogni costante esistente, riprendendo il file già indicato in prosa nel commento («Riservato a …»), e `lettoDa: [''US-027__dialog-elenco-portafogli.spec.ts'']` su `TITOLO_US_027`.'
+    ref: TASK-01
   - id: TASK-02
     title: Converte le quattro costanti-stringa in chiavi riservate
     description: '`ISIN_SENZA_ANAGRAFICA_US_018`, `ISIN_SENZA_PREZZO_US_032`, `ISIN_MAI_RILEVATO_US_034` e `ISIN_GUARDIA_US_035` diventano oggetti `ChiaveRiservata`, così anche le chiavi solo rimosse portano il proprietario. Aggiorna i call site nei rispettivi file di spec (`.isin`) senza toccare le asserzioni.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: '`ISIN_SENZA_ANAGRAFICA_US_018`, `ISIN_SENZA_PREZZO_US_032`, `ISIN_MAI_RILEVATO_US_034` e `ISIN_GUARDIA_US_035` diventano oggetti `ChiaveRiservata`, così anche le chiavi solo rimosse portano il proprietario. Aggiorna i call site nei rispettivi file di spec (`.isin`) senza toccare le asserzioni.'
+    ref: TASK-02
   - id: TASK-03
     title: Scrive la logica del controllo delle chiavi
     description: Crea `e2e/support/verifica-chiavi.ts` con la funzione pura `trovaViolazioni(voci, riferimentiPerFile)` che applica R1-R5, e il guscio CLI che deriva il registro dagli export di `titoli.ts`, ricava i riferimenti di ogni `e2e/*.spec.ts` (letterali ISIN + costanti importate da `./support/titoli.js`), stampa le violazioni ed esce con codice 1.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: Crea `e2e/support/verifica-chiavi.ts` con la funzione pura `trovaViolazioni(voci, riferimentiPerFile)` che applica R1-R5, e il guscio CLI che deriva il registro dagli export di `titoli.ts`, ricava i riferimenti di ogni `e2e/*.spec.ts` (letterali ISIN + costanti importate da `./support/titoli.js`), stampa le violazioni ed esce con codice 1.
+    ref: TASK-03
   - id: TASK-04
     title: Test unitari della logica del controllo
     description: 'Aggiunge `e2e/vitest.config.ts` (con `include: [''support/**/*.test.ts'']`, per non raccogliere i `*.spec.ts` di Playwright) e lo script di root `test:e2e-support`. Copre un caso per regola, compresa la prova negativa del campo Dimostra: due file che dichiarano la stessa chiave devono produrre una violazione.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: 'Aggiunge `e2e/vitest.config.ts` (con `include: [''support/**/*.test.ts'']`, per non raccogliere i `*.spec.ts` di Playwright) e lo script di root `test:e2e-support`. Copre un caso per regola, compresa la prova negativa del campo Dimostra: due file che dichiarano la stessa chiave devono produrre una violazione.'
+    ref: TASK-04
   - id: TASK-05
     title: Aggancia il controllo a npm run check e al globalSetup
     description: Aggiunge lo script `check:chiavi` e lo inserisce nella catena di `check` subito dopo `typecheck:e2e`, insieme a `test:e2e-support`. Invoca la stessa verifica da `e2e/support/bonifica.ts`, così un run locale di Playwright fallisce prima dei test invece che dentro.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: Aggiunge lo script `check:chiavi` e lo inserisce nella catena di `check` subito dopo `typecheck:e2e`, insieme a `test:e2e-support`. Invoca la stessa verifica da `e2e/support/bonifica.ts`, così un run locale di Playwright fallisce prima dei test invece che dentro.
+    ref: TASK-05
   - id: TASK-06
     title: Scioglie la collisione su IE00BFY0GT14 (US-009 demo contro US-032)
     description: Assegna un ISIN nuovo e non usato a `TITOLO_US_009`, lasciando `IE00BFY0GT14` a `TITOLO_US_032`. Mantiene il `price` allineato all'osservazione più recente seminata dalla spec e aggiorna la voce in `ISIN_CON_OSSERVAZIONI_E2E`.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: Assegna un ISIN nuovo e non usato a `TITOLO_US_009`, lasciando `IE00BFY0GT14` a `TITOLO_US_032`. Mantiene il `price` allineato all'osservazione più recente seminata dalla spec e aggiorna la voce in `ISIN_CON_OSSERVAZIONI_E2E`.
+    ref: TASK-06
   - id: TASK-07
     title: Scioglie la collisione su IE00B3XXRP09 (US-009 varianti contro US-035)
     description: 'Collisione non dichiarata dalla spec ma identica alla precedente: `TITOLO_US_009_VARIANTI` e il terzo titolo di `TITOLI_US_035_OBSOLETI` seminano la stessa chiave. Assegna un ISIN nuovo a `TITOLO_US_009_VARIANTI`, lasciando intatto il quartetto narrativo di US-035, e aggiorna `ISIN_CON_OSSERVAZIONI_E2E`.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Collisione non dichiarata dalla spec ma identica alla precedente: `TITOLO_US_009_VARIANTI` e il terzo titolo di `TITOLI_US_035_OBSOLETI` seminano la stessa chiave. Assegna un ISIN nuovo a `TITOLO_US_009_VARIANTI`, lasciando intatto il quartetto narrativo di US-035, e aggiorna `ISIN_CON_OSSERVAZIONI_E2E`.'
+    ref: TASK-07
   - id: TASK-08
     title: Assegna a US-011 le sue chiavi e le fa seminare dal file
     description: Sostituisce i letterali `IE00B4L5Y983` e `IE00B3RBWM25` in `US-011__aggiungi-posizione.spec.ts` con due costanti riservate al file, e semina entrambe con `fetched_at` di adesso prima dei flussi che le digitano nel campo di ricerca — altrimenti la guardia lascia passare e la ricerca contatta la fonte reale.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: Sostituisce i letterali `IE00B4L5Y983` e `IE00B3RBWM25` in `US-011__aggiungi-posizione.spec.ts` con due costanti riservate al file, e semina entrambe con `fetched_at` di adesso prima dei flussi che le digitano nel campo di ricerca — altrimenti la guardia lascia passare e la ricerca contatta la fonte reale.
+    ref: TASK-08
   - id: TASK-09
     title: Assegna a US-012 e US-013 le loro chiavi e le premesse
     description: 'Stessa operazione di TASK-08 su `US-012__carichi-multipli.spec.ts` e `US-013__modifica-rimuovi-posizione.spec.ts`: due costanti riservate per file, seminate dal file, e aggiornamento dei `data-testid` derivati dall''ISIN (`summary-<ISIN>`, `riepilogo-<ISIN>`) senza toccare ciò che le asserzioni verificano.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Stessa operazione di TASK-08 su `US-012__carichi-multipli.spec.ts` e `US-013__modifica-rimuovi-posizione.spec.ts`: due costanti riservate per file, seminate dal file, e aggiornamento dei `data-testid` derivati dall''ISIN (`summary-<ISIN>`, `riepilogo-<ISIN>`) senza toccare ciò che le asserzioni verificano.'
+    ref: TASK-09
   - id: TASK-10
     title: Assegna le loro chiavi a US-017, US-026 e US-031
     description: 'Sostituisce il letterale `IE00B4L5Y983` in `US-017__visualizza-tabella-titoli.spec.ts`, `US-026__apre-scheda-riepilogo.spec.ts`, `US-026__schede-portafoglio.spec.ts`, `US-031__larghezza-foglio.spec.ts` e `US-031__soglie-responsive.spec.ts` con una chiave riservata a ciascun file, seminata dal file stesso: qui l''ISIN entra solo dalle posizioni via API, ma la riga di riepilogo ne legge il prezzo con una LEFT JOIN e la premessa va comunque costruita.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Sostituisce il letterale `IE00B4L5Y983` in `US-017__visualizza-tabella-titoli.spec.ts`, `US-026__apre-scheda-riepilogo.spec.ts`, `US-026__schede-portafoglio.spec.ts`, `US-031__larghezza-foglio.spec.ts` e `US-031__soglie-responsive.spec.ts` con una chiave riservata a ciascun file, seminata dal file stesso: qui l''ISIN entra solo dalle posizioni via API, ma la riga di riepilogo ne legge il prezzo con una LEFT JOIN e la premessa va comunque costruita.'
+    ref: TASK-10
   - id: TASK-11
     title: Porta nel registro le chiavi di US-014 e dichiara quelle solo-stub
     description: 'Sposta i letterali locali di `US-014__valore-totale-portafoglio.spec.ts` in `titoli.ts` come chiavi riservate, scegliendole diverse dai due ISIN usati come placeholder in `client/src` — oggi `IE00BJRHVJ28` è insieme chiave seminata e segnaposto visibile, e un `toContainText` può essere soddisfatto dal secondo. Registra poi le due chiavi solo-stub con proprietario e `lettoDa`: `IE00BMVB5S82` (US-007 + demo) e `IE00BJRHVJ28` (US-008 + fallback-morningstar).'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Sposta i letterali locali di `US-014__valore-totale-portafoglio.spec.ts` in `titoli.ts` come chiavi riservate, scegliendole diverse dai due ISIN usati come placeholder in `client/src` — oggi `IE00BJRHVJ28` è insieme chiave seminata e segnaposto visibile, e un `toContainText` può essere soddisfatto dal secondo. Registra poi le due chiavi solo-stub con proprietario e `lettoDa`: `IE00BMVB5S82` (US-007 + demo) e `IE00BJRHVJ28` (US-008 + fallback-morningstar).'
+    ref: TASK-11
   - id: TASK-12
     title: 'Verifica la bonifica: check verde, suite completa, prova negativa'
     description: Esegue `npm run check` e `npx playwright test` a bonifica conclusa; rivede il diff dei file di spec per confermare che siano sostituzioni di identificativo e aggiunte di premessa, mai variazioni di asserzione (criterio 4); introduce di proposito una chiave condivisa e verifica che il controllo fallisca, poi la rimuove.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-04
       - TASK-05
@@ -180,11 +191,13 @@ tasks:
       - TASK-10
       - TASK-11
     body: Esegue `npm run check` e `npx playwright test` a bonifica conclusa; rivede il diff dei file di spec per confermare che siano sostituzioni di identificativo e aggiunte di premessa, mai variazioni di asserzione (criterio 4); introduce di proposito una chiave condivisa e verifica che il controllo fallisca, poi la rimuove.
+    ref: TASK-12
   - id: TASK-13
     title: Aggiorna la documentazione della regola
     description: 'Riscrive la testata di `e2e/support/titoli.ts` e la sezione corrispondente del `CLAUDE.md`: la regola un-ISIN-per-file non è più un''esortazione ma un controllo, e la documentazione deve dire come si dichiara una chiave, quando è lecito usare `lettoDa` e cosa fare quando il controllo fallisce.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-12
     body: 'Riscrive la testata di `e2e/support/titoli.ts` e la sezione corrispondente del `CLAUDE.md`: la regola un-ISIN-per-file non è più un''esortazione ma un controllo, e la documentazione deve dire come si dichiara una chiave, quando è lecito usare `lettoDa` e cosa fare quando il controllo fallisce.'
+    ref: TASK-13

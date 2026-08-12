@@ -35,18 +35,18 @@ test('senza anagrafica in archivio la scheda dichiara ogni campo assente, senza 
   const { id: portfolioId } = await archivio.creaPortafoglio('Scheda Titolo Senza Anagrafica');
 
   // Il cache miss è la premessa dello scenario: va garantita, non ereditata.
-  archivio.rimuoviTitolo(ISIN_SENZA_ANAGRAFICA_US_018);
+  archivio.rimuoviTitolo(ISIN_SENZA_ANAGRAFICA_US_018.isin);
 
   await archivio.aggiungiPosizione(
     portfolioId,
-    ISIN_SENZA_ANAGRAFICA_US_018,
+    ISIN_SENZA_ANAGRAFICA_US_018.isin,
     '2026-05-03',
     242.50,
     40,
   );
 
   await page.goto(`/portfolio/${portfolioId}`);
-  const riga = page.getByTestId(`riepilogo-${ISIN_SENZA_ANAGRAFICA_US_018}`);
+  const riga = page.getByTestId(`riepilogo-${ISIN_SENZA_ANAGRAFICA_US_018.isin}`);
   await expect(riga).toBeVisible({ timeout: 8000 });
   await riga.click();
 
@@ -73,7 +73,7 @@ test('senza anagrafica in archivio la scheda dichiara ogni campo assente, senza 
   await expect(anagrafica.locator('.dato.assente')).toHaveCount(VOCI_SENZA_DATO.length);
   await expect(
     anagrafica.locator('.voce-def', { hasText: 'ISIN' }).locator('.dato'),
-  ).toHaveText(ISIN_SENZA_ANAGRAFICA_US_018);
+  ).toHaveText(ISIN_SENZA_ANAGRAFICA_US_018.isin);
 
   // 4. La provenienza è dichiarata non registrata: nessuna fonte attribuita d'ufficio
   const fonte = page.getByTestId('fonte-dato');

@@ -7,6 +7,7 @@
  * Scenario persistenza: inserisci carico → ricarica pagina → posizione ancora visibile.
  */
 import { test, expect } from './support/fixtures.js';
+import { TITOLO_US_011, TITOLO_US_011_SECONDO } from './support/titoli.js';
 
 // ─── Scenario demo (con video) ────────────────────────────────────────────────
 
@@ -20,6 +21,10 @@ demoTest.use({
 demoTest(
   'demo: aggiungi posizione in un portafoglio e vedi comparire nella tabella',
   async ({ page, archivio }) => {
+    // Anagrafica in cache come recupero appena avvenuto: la premessa è costruita
+    // qui e non ereditata dalla riga che un altro file ha lasciato in archivio.
+    archivio.seminaTitolo(TITOLO_US_011.isin, TITOLO_US_011.campi);
+
     const { id: portfolioId, name: portfolioName } = await archivio.creaPortafoglio('Demo Carico');
 
     // 1. Naviga alla scheda Carico titoli
@@ -31,7 +36,7 @@ demoTest(
     await expect(page.getByTestId('input-isin')).toBeVisible();
 
     // 2. Compila il form
-    await page.getByTestId('input-isin').fill('IE00B4L5Y983');
+    await page.getByTestId('input-isin').fill(TITOLO_US_011.isin);
     await page.getByTestId('input-data').fill('2026-03-15');
     await page.getByTestId('input-prezzo').fill('89.42');
     await page.getByTestId('input-quantita').fill('40');
@@ -43,7 +48,7 @@ demoTest(
     await expect(page.getByTestId('avviso-successo')).toBeVisible({ timeout: 8000 });
 
     // 5. La posizione compare nella tabella
-    await expect(page.getByTestId('tabella-posizioni')).toContainText('IE00B4L5Y983');
+    await expect(page.getByTestId('tabella-posizioni')).toContainText(TITOLO_US_011.isin);
     await expect(page.getByTestId('contatore-posizioni')).toContainText('1 ISIN distinto');
 
     // Pausa finale per il video — stato con posizione iscritta
@@ -87,13 +92,15 @@ test('validazione: ISIN troppo corto e prezzo zero → messaggi errore inline', 
 });
 
 test('validazione: data assente → messaggio errore data', async ({ page, archivio }) => {
+  archivio.seminaTitolo(TITOLO_US_011.isin, TITOLO_US_011.campi);
+
   const { id: portfolioId } = await archivio.creaPortafoglio('Validazione Data');
 
   await page.goto(`/portfolio/${portfolioId}`);
   await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
   await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
-  await page.getByTestId('input-isin').fill('IE00B4L5Y983');
+  await page.getByTestId('input-isin').fill(TITOLO_US_011.isin);
   // non compila data
   await page.getByTestId('input-prezzo').fill('89.42');
   await page.getByTestId('input-quantita').fill('40');
@@ -110,6 +117,8 @@ test('persistenza: posizione iscritta è ancora visibile dopo ricarica pagina', 
   page,
   archivio,
 }) => {
+  archivio.seminaTitolo(TITOLO_US_011_SECONDO.isin, TITOLO_US_011_SECONDO.campi);
+
   const { id: portfolioId } = await archivio.creaPortafoglio('Persistenza');
 
   await page.goto(`/portfolio/${portfolioId}`);
@@ -117,7 +126,7 @@ test('persistenza: posizione iscritta è ancora visibile dopo ricarica pagina', 
   await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
   // Inserisce carico valido
-  await page.getByTestId('input-isin').fill('IE00B3RBWM25');
+  await page.getByTestId('input-isin').fill(TITOLO_US_011_SECONDO.isin);
   await page.getByTestId('input-data').fill('2026-06-01');
   await page.getByTestId('input-prezzo').fill('115.20');
   await page.getByTestId('input-quantita').fill('20');
@@ -127,7 +136,7 @@ test('persistenza: posizione iscritta è ancora visibile dopo ricarica pagina', 
   await expect(page.getByTestId('avviso-successo')).toBeVisible({ timeout: 8000 });
 
   // Verifica che la posizione compaia
-  await expect(page.getByTestId('tabella-posizioni')).toContainText('IE00B3RBWM25');
+  await expect(page.getByTestId('tabella-posizioni')).toContainText(TITOLO_US_011_SECONDO.isin);
 
   // Ricarica la pagina (re-fetch API)
   await page.reload();
@@ -137,6 +146,6 @@ test('persistenza: posizione iscritta è ancora visibile dopo ricarica pagina', 
   await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 
   // La posizione è ancora visibile nella tabella (persistenza)
-  await expect(page.getByTestId('tabella-posizioni')).toContainText('IE00B3RBWM25');
+  await expect(page.getByTestId('tabella-posizioni')).toContainText(TITOLO_US_011_SECONDO.isin);
   await expect(page.getByTestId('contatore-posizioni')).toContainText('1 ISIN distinto');
 });

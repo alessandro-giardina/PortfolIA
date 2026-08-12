@@ -9,6 +9,7 @@
  *   portafoglio senza posizioni → stato vuoto visibile nella scheda Riepilogo.
  */
 import { test, expect } from './support/fixtures.js';
+import { TITOLO_US_017 } from './support/titoli.js';
 
 // ---------------------------------------------------------------------------
 // Scenario demo (con video) — docs/test-results/US-017/
@@ -24,10 +25,14 @@ demoTest.use({
 demoTest(
   'demo: apre scheda Riepilogo e vede tabella con riga ISIN del titolo registrato',
   async ({ page, archivio }) => {
+    // La riga di riepilogo rileva il prezzo dalla cache con una LEFT JOIN: la
+    // premessa è costruita qui, non ereditata dalla riga di un altro file.
+    archivio.seminaTitolo(TITOLO_US_017.isin, TITOLO_US_017.campi);
+
     const { id: portfolioId, name: portfolioName } = await archivio.creaPortafoglio('Demo Riepilogo');
 
-    // Aggiunge una posizione via API (IE00B4L5Y983, 89.00 × 40)
-    await archivio.aggiungiPosizione(portfolioId, 'IE00B4L5Y983', '2026-03-15', 89.0, 40);
+    // Aggiunge una posizione via API (89.00 × 40)
+    await archivio.aggiungiPosizione(portfolioId, TITOLO_US_017.isin, '2026-03-15', 89.0, 40);
 
     // Naviga al portafoglio → scheda Carico titoli (default)
     await page.goto(`/portfolio/${portfolioId}`);
@@ -38,11 +43,11 @@ demoTest(
     await expect(page.getByTestId('tabella-riepilogo')).toBeVisible({ timeout: 8000 });
 
     // Verifica presenza della riga con l'ISIN corretto
-    const rigaIsin = page.getByTestId('riepilogo-IE00B4L5Y983');
+    const rigaIsin = page.getByTestId(`riepilogo-${TITOLO_US_017.isin}`);
     await expect(rigaIsin).toBeVisible();
 
     // La riga contiene l'ISIN
-    await expect(rigaIsin).toContainText('IE00B4L5Y983');
+    await expect(rigaIsin).toContainText(TITOLO_US_017.isin);
 
     // Prezzo medio carico visibile (89.0000, formatted by toFixed(4))
     await expect(rigaIsin).toContainText('89.0000');

@@ -18,7 +18,7 @@ import { test, expect } from './support/fixtures.js';
 import { ISIN_MAI_RILEVATO_US_034, TITOLO_US_034_VARIANTI } from './support/titoli.js';
 
 const ISIN_ALLINEATO = TITOLO_US_034_VARIANTI.isin;
-const ISIN_MAI_RILEVATO = ISIN_MAI_RILEVATO_US_034;
+const ISIN_MAI_RILEVATO = ISIN_MAI_RILEVATO_US_034.isin;
 
 test('un portafoglio rilevato per intero adesso non ha marcature, ma il riquadro resta', async ({
   page,

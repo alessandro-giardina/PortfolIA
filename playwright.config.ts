@@ -2,6 +2,12 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  // Solo i `*.spec.ts`. Il default di Playwright raccoglie anche i `*.test.ts`, e
+  // da US-040 `e2e/support/` ne contiene: sono i test unitari di Vitest sul
+  // controllo delle chiavi, che caricati qui esploderebbero all'import di
+  // `vitest`. La divisione dei suffissi è la stessa già in uso nel workspace
+  // `server`, dove i test unitari sono `*.test.ts`.
+  testMatch: '**/*.spec.ts',
   fullyParallel: false,
   reporter: 'list',
   // Bonifica dei portafogli residui prima che i test partano (US-029). Playwright

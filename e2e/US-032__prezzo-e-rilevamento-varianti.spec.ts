@@ -17,7 +17,7 @@
 import { test, expect } from './support/fixtures.js';
 import { ISIN_SENZA_PREZZO_US_032 } from './support/titoli.js';
 
-const ISIN = ISIN_SENZA_PREZZO_US_032;
+const ISIN = ISIN_SENZA_PREZZO_US_032.isin;
 
 /** Prezzo e istante seminati dagli scenari che hanno bisogno di una posizione valorizzata. */
 const PREZZO_CORRENTE = 84.5;

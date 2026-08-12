@@ -13,6 +13,7 @@
  * rallentamento.
  */
 import { test, expect } from './support/fixtures.js';
+import { TITOLO_US_031_LARGHEZZA } from './support/titoli.js';
 
 /** Larghezza del foglio a monitor largo, come dichiarata da `--larghezza-foglio`. */
 const LARGHEZZA_FOGLIO = 1440;
@@ -48,10 +49,24 @@ test('demo: su un monitor largo il foglio misura 1440px e resta centrato', async
     await archivio.creaPortafoglio('Demo Larghezza Foglio');
 
   // Due carichi, così il riepilogo ha righe da mostrare nello spazio in più.
-  // L'ISIN è letto e mai seminato: la sua anagrafica è già in archivio e nessuna
-  // asserzione qui guarda i valori: si misura la geometria, non i numeri.
-  await archivio.aggiungiPosizione(portfolioId, 'IE00B4L5Y983', '2026-02-10', 92.4, 25);
-  await archivio.aggiungiPosizione(portfolioId, 'IE00B4L5Y983', '2026-04-22', 101.8, 17);
+  // Nessuna asserzione qui guarda i valori — si misura la geometria, non i numeri —
+  // ma la riga di riepilogo rileva comunque il prezzo dalla cache con una LEFT
+  // JOIN, e la premessa va costruita invece che ereditata da un altro file.
+  archivio.seminaTitolo(TITOLO_US_031_LARGHEZZA.isin, TITOLO_US_031_LARGHEZZA.campi);
+  await archivio.aggiungiPosizione(
+    portfolioId,
+    TITOLO_US_031_LARGHEZZA.isin,
+    '2026-02-10',
+    92.4,
+    25,
+  );
+  await archivio.aggiungiPosizione(
+    portfolioId,
+    TITOLO_US_031_LARGHEZZA.isin,
+    '2026-04-22',
+    101.8,
+    17,
+  );
 
   // ─── 1. Elenco portafogli: il foglio si estende a 1440px, centrato ─────────
   await page.goto('/');

@@ -13,8 +13,10 @@
     "typecheck": "tsc --build",
     "typecheck:e2e": "tsc --noEmit -p e2e",
     "lint": "eslint .",
+    "check:chiavi": "tsx e2e/support/verifica-chiavi.ts",
     "test": "npm run test --workspace=server",
-    "check": "npm run lint && npm run typecheck && npm run typecheck:e2e && npm run test"
+    "test:e2e-support": "vitest run --root e2e",
+    "check": "npm run lint && npm run typecheck && npm run typecheck:e2e && npm run check:chiavi && npm run test:e2e-support && npm run test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -24,8 +26,10 @@
     "concurrently": "^9.0.0",
     "drizzle-orm": "^0.45.2",
     "eslint": "^10.6.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.4.0",
-    "typescript-eslint": "^8.62.0"
+    "typescript-eslint": "^8.62.0",
+    "vitest": "^2.0.0"
   },
   "allowScripts": {
     "better-sqlite3@11.10.0": true

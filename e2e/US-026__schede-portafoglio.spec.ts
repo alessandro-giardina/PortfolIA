@@ -52,7 +52,10 @@ test('portafoglio vuoto: si apre su Riepilogo con il rimando alla scheda Carico 
 test('schede: il passaggio manuale Riepilogo ↔ Carico titoli funziona in entrambe le direzioni', async ({ page, archivio }) => {
   const { id: portfolioId, name: portfolioName } = await archivio.creaPortafoglio('Toggle Schede');
 
-  await archivio.aggiungiPosizione(portfolioId, 'IE00B4L5Y983', '2026-03-15', 89.0, 40);
+  // La riga di riepilogo rileva il prezzo dalla cache con una LEFT JOIN: il file
+  // usa la chiave che già possiede invece del letterale di US-025.
+  archivio.seminaTitolo(TITOLO_US_026.isin, TITOLO_US_026.campi);
+  await archivio.aggiungiPosizione(portfolioId, TITOLO_US_026.isin, '2026-03-15', 89.0, 40);
 
   await page.goto('/');
   await expect(rigaPortafoglio(page, portfolioName)).toBeVisible({ timeout: 8000 });

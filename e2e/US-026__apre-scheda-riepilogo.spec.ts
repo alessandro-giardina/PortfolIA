@@ -10,6 +10,7 @@
  * US-026__schede-portafoglio.spec.ts, senza video e senza rallentamento.
  */
 import { test, expect } from './support/fixtures.js';
+import { TITOLO_US_026_RIEPILOGO } from './support/titoli.js';
 
 test.use({
   // `video: 'on'` da solo scala la registrazione a 800×450: la dimensione va dichiarata
@@ -32,11 +33,21 @@ test('demo: il clic su un portafoglio dall\'elenco apre la scheda Riepilogo con 
   page,
   archivio,
 }) => {
+  // La riga di riepilogo rileva il prezzo dalla cache con una LEFT JOIN: la
+  // premessa è costruita qui, non ereditata dalla riga di un altro file.
+  archivio.seminaTitolo(TITOLO_US_026_RIEPILOGO.isin, TITOLO_US_026_RIEPILOGO.campi);
+
   const { id: portfolioId, name: portfolioName } =
     await archivio.creaPortafoglio('Demo Riepilogo Diretto');
 
   // Un titolo iscritto, così la tabella di riepilogo ha una riga da mostrare
-  await archivio.aggiungiPosizione(portfolioId, 'IE00B4L5Y983', '2026-03-15', 89.0, 40);
+  await archivio.aggiungiPosizione(
+    portfolioId,
+    TITOLO_US_026_RIEPILOGO.isin,
+    '2026-03-15',
+    89.0,
+    40,
+  );
 
   // 1. Schermata principale con l'elenco dei portafogli
   await page.goto('/');
@@ -57,7 +68,7 @@ test('demo: il clic su un portafoglio dall\'elenco apre la scheda Riepilogo con 
 
   // 4. La tabella dei titoli è subito visibile, con la riga dell'ISIN iscritto
   await expect(page.getByTestId('tabella-riepilogo')).toBeVisible({ timeout: 8000 });
-  await expect(page.getByTestId('riepilogo-IE00B4L5Y983')).toBeVisible();
+  await expect(page.getByTestId(`riepilogo-${TITOLO_US_026_RIEPILOGO.isin}`)).toBeVisible();
 
   // 5. Il modulo di carico non è quello che accoglie l'utente
   await expect(page.getByTestId('input-isin')).not.toBeVisible();

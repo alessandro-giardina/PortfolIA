@@ -12,6 +12,7 @@
  */
 import { test, expect } from './support/fixtures.js';
 import { elencaPosizioni, modificaPosizione } from './support/api.js';
+import { TITOLO_US_013, TITOLO_US_013_SECONDO } from './support/titoli.js';
 
 // ---------------------------------------------------------------------------
 // Scenario demo (con video)
@@ -27,6 +28,11 @@ demoTest.use({
 demoTest(
   'demo: modifica prezzo carico → summary aggiornato; rimuovi secondo carico → scompare dal registro',
   async ({ page, archivio }) => {
+    // Anagrafiche in cache come recupero appena avvenuto: la premessa è costruita
+    // qui e non ereditata dalla riga che un altro file ha lasciato in archivio.
+    archivio.seminaTitolo(TITOLO_US_013.isin, TITOLO_US_013.campi);
+    archivio.seminaTitolo(TITOLO_US_013_SECONDO.isin, TITOLO_US_013_SECONDO.campi);
+
     const { id: portfolioId, name: portfolioName } =
       await archivio.creaPortafoglio('Demo Modifica Rimuovi');
 
@@ -36,16 +42,16 @@ demoTest(
     await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
     await expect(page.getByTestId('input-isin')).toBeVisible();
 
-    // Primo carico: IE00B4L5Y983, 89.00 × 40
-    await page.getByTestId('input-isin').fill('IE00B4L5Y983');
+    // Primo carico: 89.00 × 40
+    await page.getByTestId('input-isin').fill(TITOLO_US_013.isin);
     await page.getByTestId('input-data').fill('2026-03-15');
     await page.getByTestId('input-prezzo').fill('89');
     await page.getByTestId('input-quantita').fill('40');
     await page.getByTestId('btn-iscrive').click();
     await expect(page.getByTestId('avviso-successo')).toBeVisible({ timeout: 8000 });
 
-    // Secondo carico: IE00B3RBWM25, 115.00 × 20
-    await page.getByTestId('input-isin').fill('IE00B3RBWM25');
+    // Secondo carico: 115.00 × 20
+    await page.getByTestId('input-isin').fill(TITOLO_US_013_SECONDO.isin);
     await page.getByTestId('input-data').fill('2026-04-01');
     await page.getByTestId('input-prezzo').fill('115');
     await page.getByTestId('input-quantita').fill('20');
@@ -58,8 +64,8 @@ demoTest(
 
     // Ottieni la lista posizioni corrente per trovare l'id del primo carico
     const positions = await elencaPosizioni(portfolioId);
-    const primoCarico = positions.find((p) => p.isin === 'IE00B4L5Y983');
-    const secondoCarico = positions.find((p) => p.isin === 'IE00B3RBWM25');
+    const primoCarico = positions.find((p) => p.isin === TITOLO_US_013.isin);
+    const secondoCarico = positions.find((p) => p.isin === TITOLO_US_013_SECONDO.isin);
     expect(primoCarico).toBeDefined();
     expect(secondoCarico).toBeDefined();
 
@@ -75,8 +81,8 @@ demoTest(
     // Il form inline scompare e la tabella aggregata si aggiorna
     await expect(page.getByTestId(`edit-riga-${primoCarico!.id}`)).not.toBeVisible({ timeout: 8000 });
 
-    // Verifica summary: avgLoadPrice aggiornato per IE00B4L5Y983 = 95 (solo 1 carico)
-    const summaryRow = page.getByTestId('summary-IE00B4L5Y983');
+    // Verifica summary: avgLoadPrice aggiornato per il primo titolo = 95 (solo 1 carico)
+    const summaryRow = page.getByTestId(`summary-${TITOLO_US_013.isin}`);
     await expect(summaryRow).toBeVisible();
     await expect(summaryRow).toContainText('95.0000');
 
@@ -90,8 +96,10 @@ demoTest(
     // Il secondo carico scompare dal registro
     await expect(page.getByTestId(`posizione-${secondoCarico!.id}`)).not.toBeVisible({ timeout: 8000 });
 
-    // La tabella aggregata non contiene più IE00B3RBWM25
-    await expect(page.getByTestId('tabella-posizioni')).not.toContainText('IE00B3RBWM25');
+    // La tabella aggregata non contiene più il secondo titolo
+    await expect(page.getByTestId('tabella-posizioni')).not.toContainText(
+      TITOLO_US_013_SECONDO.isin,
+    );
 
     // Contatore mostra 1 ISIN distinto
     await expect(page.getByTestId('contatore-posizioni')).toContainText('1');
@@ -106,8 +114,16 @@ demoTest(
 // ---------------------------------------------------------------------------
 
 test('validazione form modifica: prezzo non positivo mostra errore inline', async ({ page, archivio }) => {
+  archivio.seminaTitolo(TITOLO_US_013.isin, TITOLO_US_013.campi);
+
   const { id: portfolioId } = await archivio.creaPortafoglio('Validazione Modifica');
-  const posId = await archivio.aggiungiPosizione(portfolioId, 'IE00B4L5Y983', '2026-03-15', 89.0, 40);
+  const posId = await archivio.aggiungiPosizione(
+    portfolioId,
+    TITOLO_US_013.isin,
+    '2026-03-15',
+    89.0,
+    40,
+  );
 
   await page.goto(`/portfolio/${portfolioId}`);
   await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
@@ -131,8 +147,16 @@ test('validazione form modifica: prezzo non positivo mostra errore inline', asyn
 });
 
 test('annullamento confirm rimozione: il carico non viene rimosso', async ({ page, archivio }) => {
+  archivio.seminaTitolo(TITOLO_US_013.isin, TITOLO_US_013.campi);
+
   const { id: portfolioId } = await archivio.creaPortafoglio('Annulla Rimozione');
-  const posId = await archivio.aggiungiPosizione(portfolioId, 'IE00B4L5Y983', '2026-03-15', 89.0, 40);
+  const posId = await archivio.aggiungiPosizione(
+    portfolioId,
+    TITOLO_US_013.isin,
+    '2026-03-15',
+    89.0,
+    40,
+  );
 
   await page.goto(`/portfolio/${portfolioId}`);
   await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
@@ -148,8 +172,16 @@ test('annullamento confirm rimozione: il carico non viene rimosso', async ({ pag
 });
 
 test('persistenza: i dati modificati rimangono dopo ricarica pagina', async ({ page, archivio }) => {
+  archivio.seminaTitolo(TITOLO_US_013.isin, TITOLO_US_013.campi);
+
   const { id: portfolioId } = await archivio.creaPortafoglio('Persistenza Modifica');
-  const posId = await archivio.aggiungiPosizione(portfolioId, 'IE00B4L5Y983', '2026-03-15', 89.0, 40);
+  const posId = await archivio.aggiungiPosizione(
+    portfolioId,
+    TITOLO_US_013.isin,
+    '2026-03-15',
+    89.0,
+    40,
+  );
 
   await page.goto(`/portfolio/${portfolioId}`);
   await page.locator('nav.linguette a', { hasText: 'Carico titoli' }).click();
@@ -169,7 +201,7 @@ test('persistenza: i dati modificati rimangono dopo ricarica pagina', async ({ p
   await expect(riga).toContainText('100');
 
   // Il summary riflette la modifica
-  const summaryRow = page.getByTestId('summary-IE00B4L5Y983');
+  const summaryRow = page.getByTestId(`summary-${TITOLO_US_013.isin}`);
   await expect(summaryRow).toBeVisible();
   await expect(summaryRow).toContainText('100');
 });
