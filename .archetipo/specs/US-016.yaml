@@ -1,33 +1,39 @@
 schema: archetipo/spec/v2
 code: US-016
-title: Segnalare in modo trasparente gli orizzonti senza dati
+title: Dichiarare titolo per titolo perché il grafico del portafoglio è parziale
 epic:
-  code: EP-004
-  title: Riepilogo e indicatori di rendimento
+  code: EP-006
+  title: Grafico andamento del portafoglio
 priority: MEDIUM
-points: 2
+points: 3
 status: TODO
 blocked_by:
   - US-015
 scope: MVP
 body: |-
-  #### US-016: Segnalare in modo trasparente gli orizzonti senza dati
+  #### US-016: Dichiarare titolo per titolo perché il grafico del portafoglio è parziale
 
-  **Epic:** EP-004 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Epic:** EP-006 | **Priorità:** MEDIUM | **Punti:** 3 | **Stato:** TODO
   **Bloccata da:** US-015
 
   **User Story**
   Come Giulia, investitrice prudente,
-  voglio che gli orizzonti temporali privi di dati storici sufficienti siano segnalati chiaramente,
-  in modo da non scambiare un'assenza di dati per un risultato reale (FR-012, ADR-003).
+  voglio sapere quale titolo rende parziale il grafico e da quando l'archivio lo copre,
+  in modo da capire di che cosa non ho ancora i dati e potervi rimediare, invece di dubitare di tutto il grafico (FR-012, ADR-003).
+
+  **Nota di scopo**
+  Un grafico aggregato può essere parziale per due ragioni diverse — un titolo entra con una quotazione riportata, oppure non ha alcun prezzo noto — e un avviso complessivo non dice quale titolo, né da quando, né che cosa farne. Questa spec chiude il cerchio con ciò che l'app già sa fare: quando la parzialità dipende da rilevazioni obsolete, il rimedio è l'aggiornamento in blocco già consegnato da US-035, che vive nella stessa scheda.
 
   **Dimostra**
-  Dopo l'implementazione di questa spec, per un titolo di emissione recente l'orizzonte a 10 anni mostra esplicitamente "dato non disponibile" anziché un numero, mentre gli orizzonti coperti mostrano il P&L.
+  Dopo l'implementazione di questa spec, un portafoglio di tre titoli di cui uno mai rilevato mostra accanto al grafico l'elenco dei tre: due con la data d'inizio copertura e il numero di rilevazioni nella finestra, il terzo marcato come non valorizzato; l'avviso di parzialità del grafico rimanda a quel terzo titolo per nome, non a un conteggio anonimo.
 
   **Criteri di Accettazione**
-  - [ ] Un orizzonte senza dati storici sufficienti mostra "dato non disponibile" invece di un valore
-  - [ ] Nessun valore è stimato o interpolato per gli orizzonti mancanti
-  - [ ] Gli orizzonti coperti continuano a mostrare correttamente il P&L
+  - [ ] Accanto al grafico un elenco riporta, per ciascun titolo detenuto nella finestra, da quando l'archivio ne ha un prezzo e quante rilevazioni cadono nella finestra selezionata
+  - [ ] Un titolo che entra nei punti solo con una quotazione riportata è marcato come tale, con la data della quotazione usata
+  - [ ] Un titolo detenuto nella finestra e privo di qualsiasi prezzo noto è elencato come non valorizzato, ed è nominato come ragione della parzialità del tratto
+  - [ ] L'elenco riporta soltanto fatti d'archivio: nessuna stima, nessuna copertura dedotta (ADR-003)
+  - [ ] Quando la parzialità dipende da rilevazioni obsolete, l'elenco rimanda al comando di aggiornamento in blocco già presente nel Riepilogo (US-035), senza descrivere un rimedio manuale alternativo
+  - [ ] Un portafoglio interamente coperto nella finestra mostra l'elenco in forma piena e senza avvisi, non un riquadro vuoto
 history:
   - status: TODO
     at: "2026-06-26T15:47:52Z"

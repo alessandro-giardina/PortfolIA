@@ -1,34 +1,41 @@
 schema: archetipo/spec/v2
 code: US-015
-title: Calcolare il P&L multi-orizzonte assoluto e percentuale
+title: Mostrare il P&L del portafoglio accanto al suo grafico
 epic:
-  code: EP-004
-  title: Riepilogo e indicatori di rendimento
+  code: EP-006
+  title: Grafico andamento del portafoglio
 priority: HIGH
 points: 5
 status: TODO
 blocked_by:
-  - US-014
+  - US-020
 scope: MVP
 body: |-
-  #### US-015: Calcolare il P&L multi-orizzonte assoluto e percentuale
+  #### US-015: Mostrare il P&L del portafoglio accanto al suo grafico
 
-  **Epic:** EP-004 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
-  **Bloccata da:** US-014
+  **Epic:** EP-006 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** US-020
 
   **User Story**
   Come Alessandro, investitore-proprietario,
-  voglio vedere il P&L del portafoglio in valore assoluto (€) e in percentuale su giorno, mese, anno, 5 e 10 anni precedenti,
-  in modo da capire come si è comportato il portafoglio su diversi orizzonti temporali (FR-011).
+  voglio vedere sotto il grafico quanto il portafoglio si è mosso nel periodo che sto guardando, distinto da quanto ci ho versato dentro,
+  in modo da non scambiare un versamento per un guadagno (FR-011, FR-012).
+
+  **Nota di scopo**
+  Questa spec sostituisce l'intento originario — una tabella del P&L su cinque orizzonti insieme — con la stessa idea nella forma già consegnata da US-038: due metriche sotto il grafico, una che dipende dall'orizzonte scelto e una che non ci dipende. Il P&L complessivo non viene ricalcolato: esiste già nel quadro del risultato di US-043 (realizzato + latente = totale), e due letture dello stesso fatto non possono divergere.
+  Il fatto nuovo, che il titolo singolo non aveva, è che la differenza fra il primo e l'ultimo punto di una finestra di portafoglio non è tutta performance: dentro quella finestra possono cadere carichi e vendite. Dichiararla come «variazione» senza scomporla scriverebbe a schermo un rendimento falso.
 
   **Dimostra**
-  Dopo l'implementazione di questa spec, il riepilogo del portafoglio mostra per ciascun orizzonte (giorno, mese, anno, 5 anni, 10 anni) la variazione assoluta in € e in percentuale calcolata sui prezzi storici in cache.
+  Dopo l'implementazione di questa spec, su una finestra che contiene un carico da 5.000 € e in cui il valore è passato da 20.000 a 26.000 € le metriche mostrano +6.000 € di variazione del valore, scomposta in +5.000 € di capitale netto versato e +1.000 € di movimento di mercato; cambiando scala le tre cifre si aggiornano, mentre il P&L complessivo del quadro del risultato resta identico.
 
   **Criteri di Accettazione**
-  - [ ] Il riepilogo mostra il P&L assoluto (€) e percentuale per giorno, mese, anno, 5 e 10 anni precedenti
-  - [ ] I calcoli usano la serie storica dei prezzi in cache
-  - [ ] Le definizioni delle metriche (P&L da prezzo) sono coerenti e verificate da test sui calcoli
-  - [ ] La distinzione tra performance "di periodo" e dato di riferimento è chiara nel riepilogo
+  - [ ] Sotto il grafico compaiono, etichettate distintamente, la variazione del valore nella finestra selezionata e la sua scomposizione in capitale netto versato (carichi meno vendite cadute nella finestra) e movimento di mercato, ciascuna in €
+  - [ ] Vale l'identità variazione del valore = capitale netto versato + movimento di mercato, verificata da un test
+  - [ ] Il movimento di mercato è espresso anche in percentuale, e la base del rapporto è dichiarata a schermo
+  - [ ] Il P&L complessivo mostrato nel Riepilogo resta quello del quadro del risultato (US-043) e non è ricalcolato qui: non dipende dall'orizzonte e non cambia al cambiare della scala
+  - [ ] Una finestra con meno di due punti dichiara «dato non disponibile» per la variazione, mai zero, con la stessa soglia già in uso per il titolo
+  - [ ] Una finestra in cui non tutti i titoli detenuti sono valorizzati dichiara la variazione parziale e nomina il perimetro su cui è calcolata
+  - [ ] Test puri coprono i calcoli, incluso il caso di un carico e una vendita entrambi dentro la finestra
 history:
   - status: TODO
     at: "2026-06-26T15:47:52Z"

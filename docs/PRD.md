@@ -1,8 +1,8 @@
 # PortfolIA - Product Requirements Document
 
 **Autore:** ARchetipo
-**Data:** 2026-06-28
-**Versione:** 1.1
+**Data:** 2026-08-13
+**Versione:** 1.2
 
 ---
 
@@ -146,9 +146,9 @@ A differenza dei portali dei broker (che mostrano solo i titoli detenuti presso 
 1. **Gestione multi-portafoglio:** creare, rinominare ed eliminare più portafogli virtuali.
 2. **Ricerca titoli per ISIN:** inserendo un ISIN, l'app recupera denominazione e prezzo attuale dai dati ufficiali di Borsa Italiana; quando il titolo non è trovato su Borsa Italiana (o la fonte è irraggiungibile), l'app interroga MorningStar come fonte di backup e indica all'utente la provenienza dei dati.
 3. **Inserimento titoli in portafoglio:** aggiungere a un portafoglio un titolo con data di carico, prezzo di acquisto e quantità.
-4. **Riepilogo portafoglio:** valore attuale, P&L assoluto (€) e percentuale rispetto a giorno, mese, anno, 5 anni e 10 anni precedenti; gestione trasparente degli orizzonti senza dati.
+4. **Riepilogo portafoglio:** valore attuale, P&L complessivo (realizzato e latente) e variazione dell'orizzonte selezionato scomposta in capitale versato e movimento di mercato; gestione trasparente degli orizzonti senza dati e dei titoli non valorizzati.
 5. **Tabella titoli:** elenco dei titoli del portafoglio con ISIN, descrizione, quantità, valore attuale, valore medio di carico e differenza.
-6. **Grafico andamento:** andamento del valore del portafoglio nel tempo, con scala selezionabile tra giorno, mese, anno, 5 anni, 10 anni precedenti.
+6. **Grafico andamento:** andamento del valore nel tempo — per il singolo titolo e per il portafoglio nel suo insieme — con scala selezionabile tra ultimo mese, ultimo anno, ultimi 5 anni, ultimi 10 anni e tutto lo storico.
 7. **Persistenza locale su SQLite:** tutti i dati salvati localmente; nessuna autenticazione; esecuzione solo in locale.
 8. **Cache dei prezzi storici:** memorizzazione locale delle serie storiche recuperate per performance e per ridurre le richieste alla fonte.
 9. **Vendite e posizioni chiuse:** registrare la vendita parziale o totale di una posizione con attribuzione LIFO del costo, distinguendo il P&L **realizzato** (già incassato e congelato) da quello **latente** (ancora esposto al mercato); un titolo venduto interamente esce dai titoli posseduti e resta consultabile fra le posizioni chiuse.
@@ -265,6 +265,7 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
   1. **Attribuzione LIFO** invece del prezzo medio ponderato già usato da FR-008. Il medio ponderato avrebbe una proprietà comoda — la vendita parziale non altera il costo per quota del residuo — ma LIFO è il criterio che la normativa fiscale italiana impone sulle plusvalenze da titoli della stessa specie, e allineare il calcolo alla realtà fiscale dell'utente vale la complessità in più. Costo accettato: ogni carico diventa un **lotto** con quantità residua propria, e il prezzo medio del residuo cambia dopo ogni vendita. La quantità residua dei lotti è **derivata** rigiocando le vendite sul registro, non memorizzata, perché un valore salvato può divergere dal registro che dovrebbe riassumere.
   2. **P&L realizzato congelato.** Si calcola una volta, all'atto della vendita, e non varia più: un guadagno già incassato che si muovesse con le rilevazioni successive renderebbe i numeri inaffidabili. Da qui l'invariante da testare: `realizzato + latente = totale`, invariato prima e dopo una vendita a prezzo di mercato fermo. La percentuale del P&L totale ha per base il costo di **tutti** i carichi, lotti venduti inclusi — con LIFO il costo dei lotti consumati più quello dei residui somma esattamente al costo complessivo dei carichi, quindi la base è verificabile con un test. Escludere il costo dei lotti venduti dal denominatore mentre il loro guadagno resta al numeratore produrrebbe percentuali gonfiate.
   3. **Nessun saldo di liquidità.** L'app tiene i titoli, non la cassa: l'incasso di una vendita non è trattenuto come liquidità del portafoglio. Conseguenza da governare in UI e non da nascondere con la matematica: al momento di una vendita totale il valore attuale scende, e sommare il realizzato al valore attuale per "compensare" mescolerebbe un flusso con uno stock, gonfiando il patrimonio con un guadagno che non è titoli. L'app dichiara quindi esplicitamente che l'incasso è fuori dal suo perimetro. Un saldo di liquidità resta un candidato Post-MVP.
+- **ADR-010 — Aggregazione del valore di portafoglio sull'ultimo prezzo noto, dichiarato:** il valore del portafoglio a una data passata richiede un prezzo per **ogni** titolo detenuto a quella data, ma lo storico di ADR-008 è rado e indipendente titolo per titolo: le date di rilevazione dei diversi ISIN non coincidono quasi mai. Il valore di un punto si calcola quindi facendo entrare ciascun titolo con la sua **ultima rilevazione registrata non successiva** alla data del punto, e ogni prezzo così riportato in avanti è **dichiarato a schermo** — data della quotazione usata e sua età in giorni. Le due alternative sono state scartate: ammettere un punto solo dove tutti i titoli hanno una rilevazione alla stessa data produce, su storici radi e disallineati, una serie di pochissimi punti o vuota; sommare a ogni data i soli titoli rilevati quel giorno produce una curva che sale e scende perché cambia l'insieme sommato, non perché il mercato si muova — un artefatto indistinguibile da una performance. Il confine con ADR-003 è netto e va tenuto: si **riporta** un prezzo realmente osservato, non se ne **stima** uno mai osservato, e nessun punto è interpolato fra due rilevazioni. Costo accettato: la copertura piena comincia dalla prima data in cui ogni titolo detenuto ha un prezzo noto, e il tratto anteriore è dichiarato parziale con i titoli non ancora valorizzati nominati uno per uno (FR-012) — non disegnato come un portafoglio che valeva meno.
 
 ---
 
@@ -304,8 +305,8 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 ### Riepilogo e indicatori di rendimento
 
 - **FR-010:** Per ogni portafoglio il sistema mostra il valore attuale totale calcolato sui prezzi correnti dei titoli.
-- **FR-011:** Per ogni portafoglio il sistema mostra il P&L in valore assoluto (€) e in percentuale rispetto a: giorno precedente, mese precedente, anno precedente, 5 anni precedenti, 10 anni precedenti.
-- **FR-012:** Quando un orizzonte temporale non dispone di dati storici sufficienti, il sistema lo segnala chiaramente come "dato non disponibile".
+- **FR-011:** Per ogni portafoglio il sistema mostra, sull'orizzonte temporale selezionato per il grafico (FR-016), la variazione del valore in € e la sua **scomposizione** in capitale netto versato (carichi meno vendite cadute nell'orizzonte) e movimento di mercato, quest'ultimo anche in percentuale su una base dichiarata. Accanto a essa resta il P&L complessivo di FR-025, che non dipende dall'orizzonte scelto. *Formulazione rivista in v1.2: la versione precedente chiedeva il P&L su cinque orizzonti mostrati insieme; la sostituisce la coppia «variazione dell'orizzonte selezionato + P&L complessivo invariante», la stessa forma già in esercizio sulla scheda del singolo titolo. La scomposizione è un'aggiunta, non un taglio: su un aggregato la differenza fra due istanti comprende i versamenti, e presentarla come rendimento sarebbe un dato falso.*
+- **FR-012:** Quando un orizzonte temporale non dispone di dati storici sufficienti, il sistema lo segnala chiaramente come "dato non disponibile". Su un aggregato la copertura ha **due** dimensioni indipendenti — quanta parte dell'orizzonte è coperta nel tempo e quanti titoli detenuti sono valorizzati — e il sistema le dichiara separatamente, nominando i titoli che rendono parziale il dato invece di riportarne il solo conteggio.
 
 ### Visualizzazione titoli
 
@@ -314,8 +315,8 @@ Ambiente di sviluppo locale su macOS (MacBook). Avvio con un singolo comando (es
 
 ### Grafico andamento
 
-- **FR-015:** Per ogni portafoglio il sistema mostra un grafico dell'andamento del valore nel tempo.
-- **FR-016:** L'utente può selezionare la scala temporale del grafico tra: giorno precedente, mese precedente, anno precedente, 5 anni precedenti, 10 anni precedenti.
+- **FR-015:** Per ogni portafoglio il sistema mostra un grafico dell'andamento del valore nel tempo. La curva è una sola — il valore complessivo — e ha un punto a ogni data d'evento dell'archivio (rilevazione, carico, vendita); il valore di un punto è la somma, sui titoli del portafoglio, della quantità detenuta a quella data (FR-027) moltiplicata per l'ultimo prezzo noto a quella data secondo ADR-010. Lo stesso grafico esiste per il singolo titolo, dove commuta fra prezzo unitario e valore della posizione; per un portafoglio il prezzo unitario non ha significato e quel commutatore non compare.
+- **FR-016:** L'utente può selezionare la scala temporale del grafico tra: ultimo mese, ultimo anno, ultimi 5 anni, ultimi 10 anni e tutto lo storico (dal primo carico a oggi, scala predefinita). *Formulazione rivista in v1.2: «giorno precedente» è stato rimosso dall'elenco. Con lo storico rado di ADR-008 un orizzonte di un giorno dichiarerebbe "dato non disponibile" quasi sempre, e "tutto lo storico" — assente nella versione precedente — è l'orizzonte che l'utente usa davvero. L'elenco è identico per il portafoglio e per il singolo titolo: una sola definizione di orizzonte in tutta l'app.*
 
 ### Persistenza e dati iniziali
 

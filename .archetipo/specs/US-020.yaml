@@ -1,33 +1,40 @@
 schema: archetipo/spec/v2
 code: US-020
-title: Selezionare la scala temporale del grafico
+title: Selezionare la scala temporale del grafico del portafoglio
 epic:
   code: EP-006
   title: Grafico andamento del portafoglio
-priority: MEDIUM
-points: 2
+priority: HIGH
+points: 3
 status: TODO
 blocked_by:
   - US-019
 scope: MVP
 body: |-
-  #### US-020: Selezionare la scala temporale del grafico
+  #### US-020: Selezionare la scala temporale del grafico del portafoglio
 
-  **Epic:** EP-006 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Epic:** EP-006 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
   **Bloccata da:** US-019
 
   **User Story**
   Come Alessandro, investitore-proprietario,
-  voglio selezionare la scala temporale del grafico tra giorno, mese, anno, 5 e 10 anni precedenti,
-  in modo da analizzare l'andamento del portafoglio sull'orizzonte che mi interessa (FR-016).
+  voglio cambiare la scala temporale del grafico del portafoglio fra ultimo mese, ultimo anno, ultimi 5 anni, ultimi 10 anni e tutto lo storico,
+  in modo da analizzare l'andamento del conto sull'orizzonte che mi interessa (FR-016).
+
+  **Nota di scopo**
+  Le scale sono le stesse cinque della scheda titolo, prese dalla definizione condivisa già consegnata da US-037 e non ricopiate: una sola idea di orizzonte in tutta l'app. Ne segue uno scostamento consapevole dalla formulazione originaria di FR-016, che elencava «giorno precedente»: su uno storico rado per costruzione (FR-018) un orizzonte di un giorno dichiarerebbe «dato non disponibile» quasi sempre, e US-037 lo aveva già escluso per il titolo.
+  Una differenza sostanziale rispetto al titolo però c'è, ed è la ragione per cui questa spec non è gratuita: per un aggregato la copertura ha due dimensioni indipendenti — quanto la finestra è coperta *nel tempo* e quanti *titoli* erano valorizzati — e possono essere una piena e l'altra parziale.
 
   **Dimostra**
-  Dopo l'implementazione di questa spec, l'utente seleziona una scala temporale (giorno, mese, anno, 5 anni, 10 anni) e il grafico si aggiorna mostrando l'andamento sull'orizzonte scelto.
+  Dopo l'implementazione di questa spec, selezionando «ultimi 10 anni» su un portafoglio la cui prima rilevazione è di due anni fa il grafico dichiara da quando i dati esistono anziché suggerire dieci anni di copertura; selezionando «ultimo mese» su un portafoglio senza rilevazioni recenti si ottiene «dato non disponibile» invece di un riquadro vuoto.
 
   **Criteri di Accettazione**
-  - [ ] L'utente può scegliere tra le scale: giorno, mese, anno, 5 anni e 10 anni precedenti
+  - [ ] L'utente può scegliere fra cinque scale — ultimo mese, ultimo anno, ultimi 5 anni, ultimi 10 anni, tutto lo storico — che sono la definizione condivisa già in uso nella scheda titolo, non una seconda copia
+  - [ ] «Tutto lo storico», dal primo carico del portafoglio a oggi, è la scala predefinita all'apertura del Riepilogo
   - [ ] Il grafico si aggiorna coerentemente con la scala selezionata
-  - [ ] Se l'orizzonte selezionato non ha dati sufficienti, la condizione è segnalata in modo trasparente
+  - [ ] Una scala priva di punti nell'intervallo dichiara «dato non disponibile» invece di mostrare un grafico vuoto (ADR-003)
+  - [ ] Una scala più lunga della storia disponibile dichiara da quando i dati esistono, senza lasciar intendere una copertura piena
+  - [ ] La copertura è dichiarata su entrambe le dimensioni — tempo e perimetro dei titoli — e i due verdetti restano leggibili separatamente
 history:
   - status: TODO
     at: "2026-06-26T15:47:52Z"

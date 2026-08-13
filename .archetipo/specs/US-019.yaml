@@ -1,31 +1,42 @@
 schema: archetipo/spec/v2
 code: US-019
-title: Visualizzare il grafico dell'andamento del valore
+title: Visualizzare il grafico del valore del portafoglio nel tempo
 epic:
   code: EP-006
   title: Grafico andamento del portafoglio
 priority: HIGH
-points: 3
+points: 5
 status: TODO
 scope: MVP
 body: |-
-  #### US-019: Visualizzare il grafico dell'andamento del valore
+  #### US-019: Visualizzare il grafico del valore del portafoglio nel tempo
 
-  **Epic:** EP-006 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Epic:** EP-006 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
   **Bloccata da:** -
 
   **User Story**
   Come Giulia, investitrice prudente,
-  voglio vedere un grafico dell'andamento del valore del portafoglio nel tempo,
-  in modo da cogliere a colpo d'occhio l'andamento di lungo periodo senza interpretare tabelle di numeri (FR-015).
+  voglio vedere nella scheda Riepilogo un grafico del valore complessivo del portafoglio nel tempo,
+  in modo da cogliere a colpo d'occhio l'andamento del conto senza leggerlo titolo per titolo (FR-015).
+
+  **Nota di scopo**
+  EP-007 ha già consegnato, per il singolo ISIN, tutto ciò che questo grafico richiede tranne una cosa: la composizione della serie dai soli dati d'archivio, la quantità detenuta a una data al netto delle vendite (US-045), i gradini del capitale versato (US-039), la resa SVG scritta a mano senza librerie. Questa spec non ridisegna nulla di ciò: aggiunge l'unico fatto che al titolo singolo manca — l'aggregazione di più ISIN su un asse comune — e riusa il resto. La curva è una sola, il valore complessivo: il prezzo unitario non ha significato per un portafoglio, quindi il commutatore di vista di US-039 non compare qui.
+
+  **Regola di aggregazione**
+  Il valore a una data è Σ (quantità detenuta a quella data × ultimo prezzo noto a quella data) sui titoli del portafoglio. «Ultimo prezzo noto» è una rilevazione realmente registrata, riportata in avanti e dichiarata come tale: nessun prezzo è stimato né interpolato (ADR-003).
 
   **Dimostra**
-  Dopo l'implementazione di questa spec, aprendo un portafoglio popolato l'utente vede un grafico che traccia il valore del portafoglio nel tempo a partire dalle serie storiche in cache.
+  Dopo l'implementazione di questa spec, un portafoglio con due titoli — uno rilevato il 12.V, l'altro il 3.VI — mostra un punto a ciascuna delle due date: quello del 3.VI somma la rilevazione del giorno e la quotazione del 12.V riportata in avanti, e lo dichiara («1 di 2 titoli su prezzo riportato, 22 giorni»).
 
   **Criteri di Accettazione**
-  - [ ] Il portafoglio mostra un grafico dell'andamento del valore nel tempo
-  - [ ] Il grafico è costruito dalle serie storiche dei prezzi disponibili in cache
-  - [ ] I periodi privi di dati sono rappresentati in modo trasparente senza interpolazioni inventate
+  - [ ] Nella scheda Riepilogo compare un grafico del valore complessivo del portafoglio nel tempo, reso con la stessa grafica del grafico del titolo e senza alcuna libreria di grafici
+  - [ ] La serie ha un punto a ogni data d'evento dell'archivio — rilevazione, carico, vendita — e nessun punto dove non cade alcun evento
+  - [ ] Il valore di ogni punto applica la quantità detenuta *a quella data*, calcolata con la funzione già consegnata da US-045: carichi e vendite successivi non retroagiscono sul passato
+  - [ ] Ogni titolo che entra in un punto con una quotazione anteriore alla data del punto è dichiarato, con la data della quotazione usata e la sua età in giorni
+  - [ ] Il punto dichiara quanti titoli sono valorizzati su una rilevazione del giorno e quanti su una quotazione riportata
+  - [ ] La copertura piena comincia dalla prima data in cui ogni titolo detenuto ha un prezzo noto; il tratto precedente è dichiarato parziale e nomina quanti titoli non sono ancora valorizzati, invece di disegnare un portafoglio che sembra valere meno
+  - [ ] I dati di tutti i titoli arrivano in un solo giro di richieste al server, e la costruzione del grafico non genera alcuna richiesta alla fonte
+  - [ ] Test puri coprono l'aggregazione con titoli che entrano ed escono dal portafoglio nel tempo e con rilevazioni a date disallineate
 history:
   - status: TODO
     at: "2026-06-26T15:47:52Z"
