@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { eq, desc, and, inArray } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { portfolios, positions, priceObservations, sales, securities } from '../db/schema.js';
-import type { Position, PositionLoad, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, PriceObservation, CaricoLotto, VenditaLotto, RegistroInput, Sale } from '@portfolia/shared';
+import type { Position, PositionLoad, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, PriceObservation, CaricoLotto, VenditaLotto, RegistroInput, Sale, PortfolioSeriesEntry, RilevazioneSerie } from '@portfolia/shared';
 import { isValidIsin, normalizeIsin, normalizzaDataSource, residuoPerIsin, rigiocaRegistro } from '@portfolia/shared';
 import { classifyPriceFreshness } from '../domain/marketHours.js';
 import { toSale } from './sales.js';
@@ -490,6 +490,68 @@ export async function positionsRoutes(
     );
 
     return summaries;
+  });
+
+  /**
+   * GET /api/portfolios/:id/series
+   * Dati grezzi per comporre il grafico del valore del portafoglio (US-019):
+   * per ogni ISIN detenuto, registro carichi, registro vendite, storico delle
+   * rilevazioni di prezzo (ordinato per data crescente) e nome. Una sola
+   * chiamata: l'aggregazione fra titoli avviene lato client, così il grafico
+   * non moltiplica le richieste di rete per ISIN.
+   *
+   * `[]` quando il portafoglio esiste ma non ha titoli — non un 404, perché il
+   * portafoglio esiste davvero. Nessuna fonte esterna viene contattata: è una
+   * lettura d'archivio, come le altre viste di questo file.
+   */
+  fastify.get<{
+    Params: { id: string };
+    Reply: PortfolioSeriesEntry[] | { error: string };
+  }>('/api/portfolios/:id/series', async (request, reply) => {
+    const portfolioId = Number(request.params.id);
+    if (!Number.isInteger(portfolioId) || portfolioId <= 0) {
+      return reply.status(404).send({ error: 'Portafoglio non trovato.' });
+    }
+
+    // Verifica esistenza portafoglio
+    const portfolio = db.select().from(portfolios).where(eq(portfolios.id, portfolioId)).get();
+    if (!portfolio) {
+      return reply.status(404).send({ error: 'Portafoglio non trovato.' });
+    }
+
+    const voci = ordinaPerIsin(leggiRegistriPortafoglio(portfolioId));
+    if (voci.length === 0) return [];
+
+    const isins = voci.map(([isin]) => isin);
+    const anagrafiche = leggiAnagrafiche(isins);
+
+    // Un'unica query per **tutti** gli ISIN del portafoglio insieme, ordinata
+    // per data di rilevazione crescente — non una per ISIN: la stessa
+    // disciplina di `leggiRegistriPortafoglio`, per la stessa ragione (evitare
+    // N query dove una basta).
+    const observationRows = db
+      .select()
+      .from(priceObservations)
+      .where(inArray(priceObservations.isin, isins))
+      .orderBy(priceObservations.observed_at, priceObservations.id)
+      .all();
+
+    const storicoPerIsin = new Map<string, RilevazioneSerie[]>();
+    for (const row of observationRows) {
+      const lista = storicoPerIsin.get(row.isin) ?? [];
+      lista.push({ price: row.price, observedAt: row.observed_at });
+      storicoPerIsin.set(row.isin, lista);
+    }
+
+    const result: PortfolioSeriesEntry[] = voci.map(([isin, registro]) => ({
+      isin,
+      name: anagrafiche.get(isin)?.name ?? null,
+      loads: registro.carichi.map(({ loadDate, loadPrice, quantity }) => ({ loadDate, loadPrice, quantity })),
+      sales: registro.vendite.map(({ saleDate, quantity }) => ({ saleDate, quantity })),
+      priceHistory: storicoPerIsin.get(isin) ?? [],
+    }));
+
+    return result;
   });
 
   /**

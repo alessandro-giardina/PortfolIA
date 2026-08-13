@@ -22,7 +22,7 @@ import type { Position, PriceObservation } from '../types/index.js';
  * grafico li rende con marker diversi, quindi la distinzione appartiene al
  * dominio e non alla resa.
  */
-export type OriginePunto = 'carico' | 'rilevazione';
+export type OriginePunto = 'carico' | 'vendita' | 'rilevazione';
 
 /** Un punto della serie di prezzo del titolo. */
 export interface PuntoSerie {
@@ -67,7 +67,8 @@ export interface ComponiSerieInput {
 /** Precedenza a pari istante: il carico è il fatto anteriore della giornata. */
 const PRECEDENZA_ORIGINE: Record<OriginePunto, number> = {
   carico: 0,
-  rilevazione: 1,
+  vendita: 1,
+  rilevazione: 2,
 };
 
 /**
@@ -159,7 +160,7 @@ export function componiSerieTitolo({ loads, observations }: ComponiSerieInput): 
 export function giornoCivilePunto({ at, origin }: Pick<PuntoSerie, 'at' | 'origin'>): string {
   const d = new Date(at);
   const [anno, mese, giorno] =
-    origin === 'carico'
+    origin === 'carico' || origin === 'vendita'
       ? [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()]
       : [d.getFullYear(), d.getMonth() + 1, d.getDate()];
   return `${anno}-${String(mese).padStart(2, '0')}-${String(giorno).padStart(2, '0')}`;

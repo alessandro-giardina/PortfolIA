@@ -24,6 +24,7 @@ import {
   componiSerieTitolo,
   calcolaScalaSerie,
   giornoCivilePunto,
+  istanteDataCivile,
   calcolaFinestra,
   ritagliaSerie,
   SCALE_TEMPORALI,
@@ -416,6 +417,24 @@ describe('giornoCivilePunto', () => {
     });
   }
 
+  /**
+   * `componiSerieTitolo` non emette ancora un punto di origine `'vendita'` —
+   * lo farà `dateEventoPortafoglio` del futuro modulo del portafoglio
+   * (US-019), a partire dalle vendite del registro — quindi qui si prova
+   * `giornoCivilePunto` direttamente sull'istante che una `saleDate` civile
+   * produrrebbe, ancorato con la stessa `istanteDataCivile` che ancora
+   * `loadDate`: è così che il punto nascerà davvero, non un'approssimazione.
+   */
+  for (const fuso of FUSI) {
+    it(`con TZ=${fuso} la vendita legge il giorno civile dai campi UTC, come il carico`, () => {
+      process.env.TZ = fuso;
+
+      const at = istanteDataCivile('2026-02-16');
+
+      expect(giornoCivilePunto({ at, origin: 'vendita' })).toBe('2026-02-16');
+    });
+  }
+
   it('la rilevazione segue il giorno locale, come la tabella dello storico prezzi', () => {
     // Le 23:30Z del 10 agosto sono già l'11 agosto a Roma: `PriceObservation`
     // è un istante reale, e US-009 lo mostra nel giorno di chi legge.
@@ -439,11 +458,119 @@ describe('giornoCivilePunto', () => {
     expect(giornoCivilePunto({ at: mezzanotteUtc, origin: 'rilevazione' })).toBe('2026-02-15');
   });
 
+  it('a ovest di Greenwich la vendita non scivola al giorno prima, come il carico', () => {
+    // Stesso istante e stesso fuso del test precedente: la vendita è una data
+    // civile come il carico (ancorata a mezzanotte UTC), non un istante reale
+    // come la rilevazione — è esattamente la modifica di TASK-01 su
+    // `giornoCivilePunto`.
+    process.env.TZ = 'Pacific/Niue';
+
+    const mezzanotteUtc = Date.UTC(2026, 1, 16);
+
+    expect(giornoCivilePunto({ at: mezzanotteUtc, origin: 'vendita' })).toBe('2026-02-16');
+  });
+
   it('mese e giorno sono sempre a due cifre', () => {
     process.env.TZ = 'UTC';
 
     expect(giornoCivilePunto({ at: Date.UTC(2026, 0, 5), origin: 'carico' })).toBe('2026-01-05');
     expect(giornoCivilePunto({ at: Date.UTC(2026, 11, 31), origin: 'carico' })).toBe('2026-12-31');
+  });
+});
+
+/**
+ * `PRECEDENZA_ORIGINE` — l'ordine a pari istante fra carico, vendita e
+ * rilevazione (US-019, TASK-01).
+ *
+ * `PRECEDENZA_ORIGINE` è un dettaglio privato di `serieTitolo.ts`, e nessuna
+ * funzione esportata compone ancora un punto di origine `'vendita'`: lo farà
+ * `dateEventoPortafoglio`, nel futuro modulo del grafico del portafoglio, a
+ * partire dalle vendite del registro. Fino a quel momento il solo modo puro
+ * di provare l'ordinale dichiarato da TASK-01 — carico prima di vendita prima
+ * di rilevazione — è applicare a tre punti costruiti a mano (come già fa
+ * `punto()` per `calcolaScalaSerie`) lo stesso criterio a tre livelli che
+ * `componiSerieTitolo` applica al proprio interno: istante, poi origine, poi
+ * prezzo. Questo fissa qui il contratto numerico (carico=0, vendita=1,
+ * rilevazione=2); la prova sul composer vero arriva con quel modulo.
+ */
+describe('la precedenza a pari istante fra carico, vendita e rilevazione (US-019)', () => {
+  /** L'ordinale dichiarato da TASK-01 in `PRECEDENZA_ORIGINE`. */
+  const PRECEDENZA: Record<OriginePunto, number> = { carico: 0, vendita: 1, rilevazione: 2 };
+
+  /** Lo stesso criterio a tre livelli di `componiSerieTitolo`: istante, poi origine, poi prezzo. */
+  function ordinaPerPrecedenza(punti: readonly PuntoSerie[]): PuntoSerie[] {
+    return [...punti].sort(
+      (a, b) => a.at - b.at || PRECEDENZA[a.origin] - PRECEDENZA[b.origin] || a.price - b.price,
+    );
+  }
+
+  it('a pari istante l’ordine è carico, poi vendita, poi rilevazione', () => {
+    const istante = Date.UTC(2026, 4, 12);
+    // Ordine d'ingresso deliberatamente contrario a quello atteso: se
+    // l'ordinamento dipendesse anche in parte dall'ordine d'arrivo invece che
+    // dalla sola origine, questo caso lo smaschererebbe.
+    const ingresso = [
+      punto(istante, 12, 'rilevazione'),
+      punto(istante, 11, 'vendita'),
+      punto(istante, 10, 'carico'),
+    ];
+
+    expect(ordinaPerPrecedenza(ingresso).map((p) => p.origin)).toEqual([
+      'carico',
+      'vendita',
+      'rilevazione',
+    ]);
+  });
+
+  it('la vendita si intromette fra carico e rilevazione, non prima né dopo entrambi', () => {
+    // Non basta che 'vendita' segua 'carico': deve anche precedere
+    // 'rilevazione'. Le due coppie isolano ciascun confine separatamente.
+    const istante = Date.UTC(2026, 4, 12);
+
+    expect(
+      ordinaPerPrecedenza([punto(istante, 1, 'vendita'), punto(istante, 2, 'carico')]).map(
+        (p) => p.origin,
+      ),
+    ).toEqual(['carico', 'vendita']);
+
+    expect(
+      ordinaPerPrecedenza([punto(istante, 1, 'rilevazione'), punto(istante, 2, 'vendita')]).map(
+        (p) => p.origin,
+      ),
+    ).toEqual(['vendita', 'rilevazione']);
+  });
+});
+
+/**
+ * Non-regressione — l'introduzione di `'vendita'` non altera l'ordinamento
+ * delle serie composte solo da carichi e rilevazioni (US-019, TASK-01).
+ *
+ * TASK-01 sposta l'ordinale di `'rilevazione'` da 1 a 2 per lasciare posto a
+ * `vendita: 1`, ma l'ordine *relativo* fra carico e rilevazione resta 0 < *:
+ * ogni serie oggi in produzione — nessuna delle quali contiene vendite,
+ * perché nessun composer le emette ancora — deve disporsi esattamente come
+ * prima della modifica.
+ */
+describe('componiSerieTitolo — non-regressione dell’ordinamento dopo l’introduzione di «vendita» (US-019)', () => {
+  it('più carichi e rilevazioni, con una coppia a pari istante, restano nell’ordine di sempre', () => {
+    const istanteComune = Date.UTC(2026, 2, 10);
+    const serie = componiSerieTitolo({
+      loads: [
+        carico('2026-01-01', 10),
+        carico('2026-03-10', 12), // stesso istante di una rilevazione sotto
+      ],
+      observations: [
+        rilevazione('2026-02-01T00:00:00Z', 11),
+        { price: 13, observedAt: istanteComune / 1000 }, // pari istante col carico del 10 marzo
+      ],
+    });
+
+    expect(serie.map((p) => ({ origin: p.origin, price: p.price }))).toEqual([
+      { origin: 'carico', price: 10 },
+      { origin: 'rilevazione', price: 11 },
+      { origin: 'carico', price: 12 }, // il carico precede sempre, a pari istante
+      { origin: 'rilevazione', price: 13 },
+    ]);
   });
 });
 

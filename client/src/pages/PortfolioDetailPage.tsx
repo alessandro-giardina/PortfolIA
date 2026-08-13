@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import type { Portfolio, Position, PositionSummary, EnrichedPositionSummary, CreatePositionRequest, UpdatePositionRequest, Sale, CaricoLotto, VenditaLotto } from '@portfolia/shared';
+import type { Portfolio, Position, PositionSummary, EnrichedPositionSummary, CreatePositionRequest, UpdatePositionRequest, Sale, CaricoLotto, VenditaLotto, PortfolioSeriesEntry } from '@portfolia/shared';
 import { isValidIsin, residuoPerIsin, rigiocaRegistro } from '@portfolia/shared';
 import Foglio, { dataRegistro, importo, prezzo } from '../components/Foglio.js';
 import SchedaTitolo from '../components/SchedaTitolo.js';
 import AggiornaObsoleti from '../components/AggiornaObsoleti.js';
 import ModuloScarico, { type TitoloScaricabile } from '../components/ModuloScarico.js';
 import QuadroRisultato from '../components/QuadroRisultato.js';
+import GraficoPortafoglio from '../components/GraficoPortafoglio.js';
 
 /** Formatta una data ISO-8601 (YYYY-MM-DD) in stile registro (es. "15.III.2026"). */
 const MESI_ROMANI = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -78,6 +79,10 @@ export default function PortfolioDetailPage() {
   const [summaries, setSummaries] = useState<PositionSummary[]>([]);
   const [enrichedPositions, setEnrichedPositions] = useState<EnrichedPositionSummary[]>([]);
   const [enrichedLoading, setEnrichedLoading] = useState(false);
+  // Il perimetro grezzo per il grafico dell'andamento (US-019, TASK-05/TASK-10):
+  // un solo fetch per l'intera sezione, mai una richiesta per singolo titolo.
+  const [series, setSeries] = useState<PortfolioSeriesEntry[]>([]);
+  const [seriesLoading, setSeriesLoading] = useState(false);
   // ISIN del titolo aperto nella scheda di dettaglio (US-018). Finché è null la
   // linguetta "Scheda titolo" resta disabilitata: non c'è nulla da mostrare.
   const [isinSelezionato, setIsinSelezionato] = useState<string | null>(null);
@@ -199,14 +204,66 @@ export default function PortfolioDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  /**
+   * Rilegge il perimetro grezzo per il grafico dell'andamento (US-019).
+   *
+   * Stesso pattern di `fetchEnriched`: `silenzioso` non alza `seriesLoading`,
+   * così il ricarico al rientro sulla linguetta del browser non fa lampeggiare
+   * il grafico via uno stato di caricamento bloccante.
+   */
+  const fetchSeries = useCallback(
+    (silenzioso = false): Promise<void> => {
+      if (!id) return Promise.resolve();
+      if (!silenzioso) setSeriesLoading(true);
+      return fetch(`/api/portfolios/${id}/series`)
+        .then((res) => {
+          if (!res.ok) return [];
+          return res.json() as Promise<PortfolioSeriesEntry[]>;
+        })
+        .then((data) => setSeries(data))
+        .catch(() => setSeries([]))
+        .finally(() => {
+          if (!silenzioso) setSeriesLoading(false);
+        });
+    },
+    [id],
+  );
+
   useEffect(() => {
     if (!loading && !notFound && !error) {
       fetchPositions();
       fetchSales();
       fetchSummary();
       fetchEnriched();
+      fetchSeries();
     }
-  }, [loading, notFound, error, fetchPositions, fetchSales, fetchSummary, fetchEnriched]);
+  }, [loading, notFound, error, fetchPositions, fetchSales, fetchSummary, fetchEnriched, fetchSeries]);
+
+  /**
+   * Ricarico silenzioso al rientro sulla linguetta del browser (US-019).
+   *
+   * Nessun pattern equivalente esiste già altrove in questa pagina: il
+   * ricalcolo di `fetchEnriched` al cambio di *scheda* (sopra) risponde a un
+   * altro evento — la navigazione interna fra Riepilogo/Carico/Scheda titolo,
+   * non l'uscita e il rientro sulla linguetta del browser. Qui l'evento è
+   * `visibilitychange`/`focus`: chi lascia questa pagina aperta in una
+   * linguetta e ci torna dopo un aggiornamento in blocco altrove (o dopo che
+   * l'orologio ha fatto avanzare "oggi") ritrova un grafico aggiornato senza
+   * un lampeggio di caricamento.
+   */
+  useEffect(() => {
+    function alRientroSullaLinguetta() {
+      if (document.visibilityState === 'visible') {
+        void fetchSeries(true);
+      }
+    }
+    document.addEventListener('visibilitychange', alRientroSullaLinguetta);
+    window.addEventListener('focus', alRientroSullaLinguetta);
+    return () => {
+      document.removeEventListener('visibilitychange', alRientroSullaLinguetta);
+      window.removeEventListener('focus', alRientroSullaLinguetta);
+    };
+  }, [fetchSeries]);
 
   /**
    * Il registro per ISIN — carichi e vendite — e il residuo di ogni singolo lotto.
@@ -820,6 +877,29 @@ export default function PortfolioDetailPage() {
                     calcolo, nessuna seconda richiesta.
                   */}
                   <QuadroRisultato enrichedPositions={enrichedPositions} />
+                  {/*
+                    Andamento del portafoglio (US-019, TASK-10): sta subito
+                    sotto il quadro del risultato e sopra il comando di
+                    aggiornamento in blocco — la stessa progressione di
+                    lettura di QuadroRisultato, "quanto vale oggi" seguito da
+                    "come vi è arrivato". Un solo fetch (`fetchSeries`) per
+                    l'intera sezione: nessuna richiesta per singolo titolo, e
+                    `GraficoPortafoglio` stesso non genera alcuna richiesta di
+                    rete (TASK-05, TASK-08).
+                  */}
+                  <div className="sezione-titolo" style={{ marginTop: '40px' }}>
+                    Andamento del portafoglio
+                    <span className="nota">FR-015 &middot; valore complessivo nel tempo, dal registro dei carichi e delle rilevazioni</span>
+                  </div>
+
+                  {seriesLoading ? (
+                    <p className="messaggio attesa">Caricamento andamento…</p>
+                  ) : (
+                    // Portafoglio senza titoli: `series` è `[]` e
+                    // `GraficoPortafoglio` ha già un ramo dedicato che si
+                    // degrada a testo invece di disegnare un riquadro vuoto.
+                    <GraficoPortafoglio titoli={series} />
+                  )}
                   {/*
                     Il riquadro di conteggio di US-034 e il comando di
                     aggiornamento in blocco di US-035 sono un corpo solo: la

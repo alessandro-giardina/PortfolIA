@@ -29,6 +29,12 @@ export * from '../domain/serieValore.js';
  */
 export * from '../domain/lottiLifo.js';
 
+// `import type` e non un import a runtime: eviterebbe un ciclo con questo file
+// (che i due moduli riesportano con `export *`), ed è comunque l'unica cosa che
+// serve qui — i due tipi sotto sono ritagli di `Position`/`Sale`/`PriceObservation`.
+import type { CaricoValore, VenditaValore } from '../domain/serieValore.js';
+import type { RilevazioneSerie } from '../domain/serieTitolo.js';
+
 export interface HealthResponse {
   status: string;
   timestamp: string;
@@ -490,3 +496,39 @@ export interface PositionDetail {
    */
   priceHistory: PriceObservation[];
 }
+
+/**
+ * Ingresso grezzo per il grafico del valore del portafoglio (US-019): per
+ * ciascun ISIN detenuto, i soli campi con cui il client compone la serie —
+ * carichi e vendite (`componiSerieValore`) e le rilevazioni osservate
+ * (`componiSerieTitolo`) — e il nome per l'etichetta della curva.
+ *
+ * Una sola chiamata (`GET /api/portfolios/:id/series`) restituisce questa
+ * forma per tutti gli ISIN del portafoglio insieme: l'aggregazione fra titoli
+ * avviene lato client, senza ulteriori richieste di rete.
+ */
+export interface PortfolioSeriesEntry {
+  /** Codice ISIN normalizzato. */
+  isin: string;
+  /** Denominazione ufficiale del titolo (dalla cache securities), null se non disponibile. */
+  name: string | null;
+  /** I carichi di questo ISIN nel portafoglio, ridotti ai campi che la serie del valore usa. */
+  loads: CaricoValore[];
+  /** Le vendite di questo ISIN nel portafoglio, ridotte ai campi che la serie del valore usa. */
+  sales: VenditaValore[];
+  /**
+   * Le rilevazioni di prezzo dell'ISIN, ordinate per data di rilevazione
+   * **crescente** — l'ordine che `componiSerieTitolo` fonde con i carichi, e
+   * l'opposto di `PositionDetail.priceHistory` (che è per la tabella, dalla più
+   * recente). Vuoto quando nessuna rilevazione risulta in archivio.
+   */
+  priceHistory: RilevazioneSerie[];
+}
+
+/**
+ * La serie del **valore aggregato del portafoglio** (US-019, TASK-03) si
+ * affaccia da qui per la stessa ragione dei moduli fratelli: il componente che
+ * disegna il grafico del riepilogo deve leggerne i tipi dallo stesso nome
+ * usato dal server per `PortfolioSeriesEntry`.
+ */
+export * from '../domain/serieValorePortafoglio.js';

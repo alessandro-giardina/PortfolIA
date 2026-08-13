@@ -1549,6 +1549,125 @@ export const TITOLO_US_045_VARIANTI: TitoloSeminabile = {
 };
 
 /**
+ * Riservato a `US-019__grafico-portafoglio.spec.ts` (scenario dimostrativo): il
+ * primo dei due titoli del grafico del valore di portafoglio (`docs/mockups/US-019`).
+ *
+ * Il mockup descrive questo titolo con l'ISIN `IE00B4L5Y983` — ma quella chiave è
+ * già di `TITOLO_US_025`, e la regola un-ISIN-per-file vieta di condividerla. Qui
+ * l'anagrafica del mockup (Ishares Core MSCI World) resta, l'ISIN cambia.
+ *
+ * `price` coincide con la rilevazione più recente che lo scenario semina — il
+ * 10.VIII.2026 a € 128,4600 del mockup — per la stessa ragione già registrata su
+ * US-009, US-036, US-038, US-039 e US-045: divergere fra il cartellino e l'ultimo
+ * punto del grafico non farebbe fallire nulla, ma mostrerebbe un dato falso.
+ *
+ * Il seme porta `fetched_at` di **adesso** (il default di `seminaTitolo`): il
+ * criterio 3 dello scenario promette un solo giro di richieste verso il server, e
+ * una riga di cache non fresca farebbe scattare la guardia di buona cittadinanza
+ * verso Borsa Italiana e poi il browser headless su MorningStar — 8-12 secondi non
+ * deterministici, oltre il budget del test.
+ */
+export const TITOLO_US_019: TitoloSeminabile = {
+  isin: 'IE00BFY0GU03',
+  file: 'US-019__grafico-portafoglio.spec.ts',
+  campi: {
+    name: 'Ishares Core Msci World Ucits Etf Acc',
+    price: 128.46,
+    ticker: 'SWDA',
+    instrument_type: 'ETF',
+    total_annual_fees: '0,20%',
+    currency: 'USD',
+    issuer: 'ISHARES III PLC',
+    segment: 'ETF Indicizzati',
+  },
+};
+
+/**
+ * Riservato a `US-019__grafico-portafoglio.spec.ts`: il **secondo** titolo dello
+ * scenario dimostrativo, quello con le date di rilevazione che non coincidono con
+ * il primo — la condizione normale dello storico rado di ADR-008 che il mockup
+ * mette in scena.
+ *
+ * Stessa ragione di `TITOLO_US_019` per la scelta dell'ISIN: il mockup usa
+ * `IE00BK5BQT80`, già di `TITOLO_US_030`.
+ *
+ * `price` coincide con l'unica rilevazione che lo scenario semina per questo
+ * titolo — il 3.VI.2026 a € 74,5000 del mockup — ed è anche la cifra che
+ * definisce il punto dimostrativo (€ 16.636,00 a copertura piena).
+ */
+export const TITOLO_US_019_SECONDO: TitoloSeminabile = {
+  isin: 'IE00BFY0GU11',
+  file: 'US-019__grafico-portafoglio.spec.ts',
+  campi: {
+    name: 'Vanguard Ftse All-World Ucits Etf Usd Acc',
+    price: 74.5,
+    ticker: 'VWCE',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,22%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-019__grafico-portafoglio-varianti.spec.ts`: il titolo che regge
+ * gli scenari a copertura non piena — conto con carichi e nessuna rilevazione,
+ * verifica del giro unico di richieste, vendita totale a metà storico
+ * (`docs/mockups/US-019/copertura-parziale.html` e le varianti che quella pagina
+ * non mostra).
+ *
+ * Una sola chiave basta: gli scenari girano in serie dentro il file
+ * (`fullyParallel: false`, come già `TITOLO_US_030_VARIANTI` e
+ * `TITOLO_US_036_VARIANTI`), e ciascuno si costruisce la propria premessa con
+ * `seminaOsservazioni`, che *sostituisce* lo storico — la pila di undo resta
+ * consistente.
+ *
+ * `price` è la cifra che il cartellino del titolo mostra e va tenuta coerente con
+ * la rilevazione più recente che lo scenario in corso semina, per la stessa
+ * ragione registrata su `TITOLO_US_019`.
+ *
+ * Il seme porta `fetched_at` di **adesso** (il default di `seminaTitolo`): stessa
+ * guardia di buona cittadinanza già documentata su `TITOLO_US_019`, e qui in più
+ * la premessa esatta dello scenario «un solo giro di richieste».
+ */
+export const TITOLO_US_019_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00BFY0GT06',
+  file: 'US-019__grafico-portafoglio-varianti.spec.ts',
+  campi: {
+    name: 'Amundi Prime Global Ucits Etf Acc',
+    price: 71.4,
+    ticker: 'PRAW',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,05%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-019__grafico-portafoglio-varianti.spec.ts`: l'ISIN che quel
+ * file *rimuove* dalla cache per il caso (a) di
+ * `docs/mockups/US-019/copertura-parziale.html` — un titolo **detenuto e mai
+ * rilevato**, che tiene l'intera finestra a copertura parziale.
+ *
+ * Rimuovere e ripristinare è la stessa pila di undo del seeding (stessa nota di
+ * `ISIN_MAI_RILEVATO_US_034` e `ISIN_SENZA_ANAGRAFICA_US_018`), quindi vale
+ * comunque la riserva per file. Non entra in `ISIN_CON_OSSERVAZIONI_E2E`: non
+ * viene mai seminato in `securities`, quindi non c'è alcuna riga da cui il
+ * backfill d'avvio possa generare un'osservazione.
+ */
+export const ISIN_MAI_RILEVATO_US_019: ChiaveRiservata = {
+  isin: 'LU1955812646',
+  file: 'US-019__grafico-portafoglio-varianti.spec.ts',
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *
@@ -1604,4 +1723,9 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   // semina esplicitamente, sostituendosi l'uno con l'altro fra un test e il
   // successivo dello stesso file.
   TITOLO_US_045_VARIANTI.isin,
+  // I due titoli di US-019 e quello delle sue varianti: il seme in cache
+  // basta al backfill d'avvio per crearne un'osservazione.
+  TITOLO_US_019.isin,
+  TITOLO_US_019_SECONDO.isin,
+  TITOLO_US_019_VARIANTI.isin,
 ];
