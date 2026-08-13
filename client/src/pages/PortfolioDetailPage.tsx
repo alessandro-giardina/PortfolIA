@@ -8,6 +8,7 @@ import AggiornaObsoleti from '../components/AggiornaObsoleti.js';
 import ModuloScarico, { type TitoloScaricabile } from '../components/ModuloScarico.js';
 import QuadroRisultato from '../components/QuadroRisultato.js';
 import GraficoPortafoglio from '../components/GraficoPortafoglio.js';
+import CellaTitolo from '../components/CellaTitolo.js';
 
 /** Formatta una data ISO-8601 (YYYY-MM-DD) in stile registro (es. "15.III.2026"). */
 const MESI_ROMANI = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -354,6 +355,28 @@ export default function PortfolioDetailPage() {
   }, [registri]);
 
   /**
+   * La denominazione di ogni ISIN mai iscritto in questo portafoglio (US-046).
+   *
+   * Non è un dato nuovo e non costa una richiesta in più: `enrichedPositions` è
+   * già letta all'apertura del portafoglio — non al cambio di scheda — e riletta
+   * dopo ogni iscrizione, e comprende anche le righe a residuo zero, cioè i
+   * titoli venduti per intero che restano a registro. È per questo la sorgente
+   * giusta per «Carico titoli», dove il *Registro delle iscrizioni* elenca anche
+   * ciò che non si possiede più.
+   *
+   * Una `Map` e non un `.find()` per riga: le due tabelle risolvono il nome una
+   * volta per riga, e il registro ne ha una per ogni iscrizione — la ricerca
+   * lineare sarebbe quadratica sul numero di iscrizioni.
+   */
+  const nomePerIsin = useMemo(() => {
+    const nomi = new Map<string, string>();
+    for (const ep of enrichedPositions) {
+      if (ep.name) nomi.set(ep.isin, ep.name);
+    }
+    return nomi;
+  }, [enrichedPositions]);
+
+  /**
    * I titoli con quantità residua: i soli vendibili.
    *
    * Un titolo interamente venduto resta a registro con residuo 0 — toglierlo dal
@@ -365,14 +388,14 @@ export default function PortfolioDetailPage() {
       [...registri.entries()]
         .map(([isin, registro]) => ({
           isin,
-          name: enrichedPositions.find((ep) => ep.isin === isin)?.name ?? null,
+          name: nomePerIsin.get(isin) ?? null,
           residuo: residuoPerIsin(registro).totalQuantity,
           carichi: registro.carichi,
           vendite: registro.vendite,
         }))
         .filter((t) => t.residuo > 0)
         .sort((a, b) => (a.isin < b.isin ? -1 : 1)),
-    [registri, enrichedPositions],
+    [registri, nomePerIsin],
   );
 
   /**
@@ -970,8 +993,7 @@ export default function PortfolioDetailPage() {
                             }}
                           >
                             <td>
-                              <span className="voce">
-                                {ep.name ? <strong>{ep.name}</strong> : null}
+                              <CellaTitolo isin={ep.isin} nome={ep.name}>
                                 {/*
                                   Il segnale che questo ISIN ha un passato: una
                                   volta chiuso — residuo azzerato, uscito dalla
@@ -988,8 +1010,7 @@ export default function PortfolioDetailPage() {
                                     &#8635; riaperta
                                   </span>
                                 )}
-                                <small style={{ display: 'block', letterSpacing: '.08em', opacity: ep.name ? 0.7 : 1 }}>{ep.isin}</small>
-                              </span>
+                              </CellaTitolo>
                             </td>
                             <td className="cifra">{ep.totalQuantity.toLocaleString('it-IT')}</td>
                             {/* Il medio del residuo, assente a residuo 0: il trattino
@@ -1154,10 +1175,7 @@ export default function PortfolioDetailPage() {
                                   return (
                                     <tr key={ep.isin} data-testid={`posizione-chiusa-${ep.isin}`}>
                                       <td>
-                                        <span className="voce">
-                                          {ep.name ? <strong>{ep.name}</strong> : null}
-                                          <small style={{ display: 'block', letterSpacing: '.08em', opacity: ep.name ? 0.7 : 1 }}>{ep.isin}</small>
-                                        </span>
+                                        <CellaTitolo isin={ep.isin} nome={ep.name} />
                                       </td>
                                       <td className="et-chiusura">{chiusuraIl ? dataCarico(chiusuraIl) : '–'}</td>
                                       <td className="cifra">{ep.soldQuantity.toLocaleString('it-IT')}</td>
@@ -1594,7 +1612,9 @@ export default function PortfolioDetailPage() {
                 <table className="mastro" data-testid="tabella-posizioni">
                   <thead>
                     <tr>
-                      <th>Titolo (ISIN)</th>
+                      {/* Stessa intestazione e stessa cella del Riepilogo (US-046):
+                          una seconda variante direbbe che sono due dati diversi. */}
+                      <th>Denominazione &middot; ISIN</th>
                       {/* «Residua» e non «totale» da US-042: le vendite iscritte ne
                           hanno consumato quote, e i carichi restano tutti a registro. */}
                       <th>Quantità residua</th>
@@ -1620,7 +1640,7 @@ export default function PortfolioDetailPage() {
                       summaries.map((summary) => (
                         <tr key={summary.isin} data-testid={`summary-${summary.isin}`}>
                           <td>
-                            <span className="voce">{summary.isin}</span>
+                            <CellaTitolo isin={summary.isin} nome={nomePerIsin.get(summary.isin) ?? null} />
                           </td>
                           <td className="cifra">{summary.totalQuantity}</td>
                           <td className={summary.avgLoadPrice !== null ? 'cifra euro' : 'cifra dato-mancante'}>
@@ -1666,7 +1686,11 @@ export default function PortfolioDetailPage() {
                   <thead>
                     <tr>
                       <th>Iscrizione</th>
-                      <th>Titolo (ISIN)</th>
+                      {/* Come sopra e come nel Riepilogo (US-046). La colonna resta
+                          per iscrizione e non per ISIN: raggrupparla qui
+                          cancellerebbe l'ordine cronologico, che è il senso stesso
+                          del registro. */}
+                      <th>Denominazione &middot; ISIN</th>
                       <th>Data</th>
                       <th>Prezzo</th>
                       <th>Quantità</th>
@@ -1704,7 +1728,7 @@ export default function PortfolioDetailPage() {
                                 <span className="marca scarico">Scarico</span>
                               </td>
                               <td>
-                                <span className="voce">{vendita.isin}</span>
+                                <CellaTitolo isin={vendita.isin} nome={nomePerIsin.get(vendita.isin) ?? null} />
                               </td>
                               <td className="cifra">{dataCarico(vendita.saleDate)}</td>
                               <td className="cifra euro">{prezzo(vendita.salePrice)}</td>
@@ -1741,7 +1765,7 @@ export default function PortfolioDetailPage() {
                               <span className="marca">Carico</span>
                             </td>
                             <td>
-                              <span className="voce">{pos.isin}</span>
+                              <CellaTitolo isin={pos.isin} nome={nomePerIsin.get(pos.isin) ?? null} />
                             </td>
                             <td>
                               <input
@@ -1824,7 +1848,7 @@ export default function PortfolioDetailPage() {
                               </span>
                             </td>
                             <td>
-                              <span className="voce">{pos.isin}</span>
+                              <CellaTitolo isin={pos.isin} nome={nomePerIsin.get(pos.isin) ?? null} />
                             </td>
                             <td className="cifra">{dataCarico(pos.loadDate)}</td>
                             <td className="cifra euro">{pos.loadPrice.toFixed(4)}</td>

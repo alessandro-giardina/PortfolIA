@@ -1668,6 +1668,77 @@ export const ISIN_MAI_RILEVATO_US_019: ChiaveRiservata = {
 };
 
 /**
+ * Riservato a `US-046__denominazione-carico-titoli.spec.ts` (demo, con video): il
+ * titolo di cui le due tabelle di «Carico titoli» devono mostrare la
+ * denominazione accanto all'ISIN.
+ *
+ * Il nome è la cosa che il video deve far leggere, quindi è lungo e inequivocabile
+ * — non lo si potrebbe scambiare per un'abbreviazione dell'ISIN. `price` c'è
+ * perché la scheda Riepilogo, che lo scenario attraversa prima di passare a
+ * «Carico titoli», valorizza comunque la riga: senza prezzo mostrerebbe un
+ * trattino che nel video sembrerebbe un difetto.
+ */
+export const TITOLO_US_046: TitoloSeminabile = {
+  isin: 'IE00BFY0GV02',
+  file: 'US-046__denominazione-carico-titoli.spec.ts',
+  campi: {
+    name: 'Vanguard Ftse All-World Ucits Etf Distributing',
+    price: 118.4,
+    ticker: 'VWRL',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,22%',
+    currency: 'EUR',
+    issuer: 'VANGUARD GROUP IRELAND',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-046__denominazione-varianti.spec.ts`: il titolo **con**
+ * anagrafica dei casi limite.
+ *
+ * Serve al secondo scenario, quello che conta le richieste di rete: la
+ * denominazione deve comparire in «Carico titoli» senza che la scheda interroghi
+ * `/api/securities/`. Il seme porta `fetched_at` di adesso (il default di
+ * `seminaTitolo`), che è esattamente la premessa di quella misura — una riga
+ * scaduta farebbe ricontattare la fonte e il conteggio misurerebbe altro.
+ */
+export const TITOLO_US_046_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00BFY0GV10',
+  file: 'US-046__denominazione-varianti.spec.ts',
+  campi: {
+    name: 'Invesco S&P 500 Ucits Etf Acc',
+    price: 22.75,
+    ticker: 'SPXS',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,05%',
+    currency: 'EUR',
+    issuer: 'INVESCO INVESTMENT MANAGEMENT',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-046__denominazione-varianti.spec.ts`: l'ISIN che quel file
+ * *rimuove* dalla cache per dimostrare il criterio 3 — senza anagrafica la cella
+ * mostra il solo codice, senza etichette sostitutive né trattini.
+ *
+ * Rimuovere e ripristinare è la stessa pila di undo del seeding (stessa nota di
+ * `ISIN_SENZA_ANAGRAFICA_US_018`), quindi vale comunque la riserva per file. Non
+ * entra in `ISIN_CON_OSSERVAZIONI_E2E`: non viene mai seminato in `securities`,
+ * quindi non c'è alcuna riga da cui il backfill d'avvio possa generare
+ * un'osservazione.
+ */
+export const ISIN_SENZA_ANAGRAFICA_US_046: ChiaveRiservata = {
+  isin: 'LU0355584615',
+  file: 'US-046__denominazione-varianti.spec.ts',
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *
@@ -1728,4 +1799,10 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   TITOLO_US_019.isin,
   TITOLO_US_019_SECONDO.isin,
   TITOLO_US_019_VARIANTI.isin,
+  // I due titoli di US-046: nessuno scenario vi semina osservazioni, ma il seme
+  // in cache basta al backfill d'avvio per crearne una.
+  // ISIN_SENZA_ANAGRAFICA_US_046 non entra: non viene mai seminato in
+  // `securities`, quindi non c'è alcuna riga da cui il backfill possa partire.
+  TITOLO_US_046.isin,
+  TITOLO_US_046_VARIANTI.isin,
 ];

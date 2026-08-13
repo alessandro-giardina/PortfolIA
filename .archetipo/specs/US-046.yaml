@@ -6,7 +6,7 @@ epic:
   title: Visualizzazione dei titoli
 priority: MEDIUM
 points: 2
-status: PLANNED
+status: REVIEW
 scope: MVP
 body: |-
   #### US-046: Mostrare la denominazione del titolo nelle tabelle di «Carico titoli»
@@ -36,3 +36,7 @@ history:
     at: "2026-08-13T16:17:33Z"
   - status: PLANNED
     at: "2026-08-13T16:33:17Z"
+  - status: IN PROGRESS
+    at: "2026-08-13T16:40:09Z"
+  - status: REVIEW
+    at: "2026-08-13T16:52:32Z"
