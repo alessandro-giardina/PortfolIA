@@ -1,0 +1,36 @@
+schema: archetipo/spec/v2
+code: US-046
+title: Mostrare la denominazione del titolo nelle tabelle di «Carico titoli»
+epic:
+  code: EP-005
+  title: Visualizzazione dei titoli
+priority: MEDIUM
+points: 2
+status: TODO
+scope: MVP
+body: |-
+  #### US-046: Mostrare la denominazione del titolo nelle tabelle di «Carico titoli»
+
+  **Epic:** EP-005 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Giulia, investitrice prudente,
+  voglio leggere la denominazione del titolo accanto al suo ISIN nelle due tabelle in fondo alla scheda «Carico titoli»,
+  in modo da riconoscere ciò che ho iscritto a conto senza dover decifrare un codice di dodici caratteri.
+
+  **Nota di scopo**
+  La cella giusta esiste già: il Riepilogo scrive la denominazione in evidenza con l'ISIN sotto, in caratteri minori, sotto l'intestazione «Denominazione · ISIN». Le due tabelle di «Carico titoli» — *Titoli iscritti a conto* e *Registro delle iscrizioni* — sono rimaste indietro con la sola colonna «Titolo (ISIN)». Questa spec le allinea a quella cella, intestazione compresa, e non ne inventa una seconda variante. Il dato è già in pagina: la scheda carica l'anagrafica arricchita all'apertura del portafoglio e ne legge già il nome per il modulo di scarico — non c'è un campo nuovo da esporre né una richiesta in più da fare.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, un portafoglio con un titolo la cui anagrafica è in archivio mostra la sua denominazione sia in «Titoli iscritti a conto» sia su ogni riga del «Registro delle iscrizioni», con l'ISIN sotto; un ISIN privo di anagrafica continua a mostrare il solo codice, senza etichette di scusa.
+
+  **Criteri di Accettazione**
+  - [ ] In «Titoli iscritti a conto» la colonna si intitola «Denominazione · ISIN» e mostra la denominazione sopra l'ISIN, con la stessa resa della tabella del Riepilogo
+  - [ ] Nel «Registro delle iscrizioni» la colonna fa altrettanto su **ogni** riga, carichi e scarichi indistintamente, senza raggruppare per ISIN e senza toccare l'ordinamento cronologico
+  - [ ] Quando l'anagrafica del titolo non è in archivio la cella mostra il solo ISIN — nessuna etichetta sostitutiva, nessun trattino — esattamente come fa il Riepilogo
+  - [ ] La denominazione è letta dai dati che la scheda carica già: la resa delle due tabelle non genera alcuna richiesta aggiuntiva al server né alla fonte esterna
+  - [ ] Un test E2E verifica intestazione e denominazione in entrambe le tabelle, su un titolo con anagrafica seminata e su un ISIN che ne è privo
+history:
+  - status: TODO
+    at: "2026-08-13T16:17:33Z"
