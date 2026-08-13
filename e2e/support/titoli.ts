@@ -1739,6 +1739,116 @@ export const ISIN_SENZA_ANAGRAFICA_US_046: ChiaveRiservata = {
 };
 
 /**
+ * Riservato a `US-020__scala-portafoglio.spec.ts` (demo, con video): il primo dei
+ * due titoli del portafoglio su cui si sceglie la scala temporale.
+ *
+ * Chiave propria e non riuso di `TITOLO_US_019`: quel file semina i *suoi*
+ * storici con date assolute, e questo scenario ha bisogno di una storia che
+ * cominci **meno di un anno fa** — è la premessa che rende «ultimi 10 anni» una
+ * scala più lunga della storia disponibile, cioè il criterio 5. Due file su
+ * worker paralleli che si sovrascrivessero le rilevazioni sullo stesso ISIN
+ * costituirebbero la pila di undo condivisa che US-040 vieta.
+ *
+ * `price` coincide con l'ultima rilevazione che lo scenario semina, per la
+ * ragione già registrata su `TITOLO_US_019`: divergere fra il cartellino del
+ * riepilogo e l'ultimo punto del grafico non farebbe fallire nulla, ma
+ * mostrerebbe un dato falso proprio nel video della spec.
+ */
+export const TITOLO_US_020: TitoloSeminabile = {
+  isin: 'IE00BFY0GW01',
+  file: 'US-020__scala-portafoglio.spec.ts',
+  campi: {
+    name: 'Ishares Msci World Small Cap Ucits Etf',
+    price: 8.42,
+    ticker: 'WSML',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,35%',
+    currency: 'EUR',
+    issuer: 'ISHARES III PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Il **secondo** titolo di `US-020__scala-portafoglio.spec.ts`.
+ *
+ * Serve a rendere le due dimensioni della copertura davvero indipendenti: entra
+ * a registro dopo il primo e resta senza prezzo noto per un tratto, così il
+ * regolo del perimetro dichiara una data d'inizio copertura **diversa** da
+ * quella del regolo del tempo. Con un titolo solo i due numeri coinciderebbero e
+ * lo scenario dimostrerebbe una cosa più debole di quella che la spec promette.
+ */
+export const TITOLO_US_020_SECONDO: TitoloSeminabile = {
+  isin: 'IE00BFY0GW19',
+  file: 'US-020__scala-portafoglio.spec.ts',
+  campi: {
+    name: 'Xtrackers Msci Europe Ucits Etf',
+    price: 63.9,
+    ticker: 'XMEU',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,12%',
+    currency: 'EUR',
+    issuer: 'DWS INVESTMENT S.A.',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-020__scala-portafoglio-varianti.spec.ts`.
+ *
+ * Regge tutti gli scenari di variante sullo stesso ISIN — finestra senza punti,
+ * etichette derivate da `SCALE_TEMPORALI`, ritorno alla scala predefinita, zero
+ * richieste al cambio di scala, tempo pieno con perimetro parziale — perché
+ * girano in serie dentro il file (`fullyParallel: false`) e ciascuno si
+ * ricostruisce la premessa con `seminaOsservazioni`, che *sostituisce* lo
+ * storico.
+ *
+ * Il seme porta `fetched_at` di **adesso** (il default di `seminaTitolo`), e
+ * nello scenario della finestra vuota non è una comodità ma una premessa: un
+ * recupero reale registrerebbe un'osservazione a oggi, che da sola riempirebbe
+ * «ultimo mese» e smonterebbe in silenzio il caso messo alla prova.
+ */
+export const TITOLO_US_020_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00BFY0GW27',
+  file: 'US-020__scala-portafoglio-varianti.spec.ts',
+  campi: {
+    name: 'Amundi Msci Emerging Markets Ucits Etf',
+    price: 5.68,
+    ticker: 'AEEM',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,20%',
+    currency: 'EUR',
+    issuer: 'AMUNDI ASSET MANAGEMENT',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-020__scala-portafoglio-varianti.spec.ts`: l'ISIN che quel file
+ * *rimuove* dalla cache per lo scenario delle due dimensioni indipendenti — un
+ * titolo **detenuto e mai rilevato**, che tiene il perimetro incompleto mentre
+ * il tempo resta pieno.
+ *
+ * Non basta ometterne le rilevazioni: finché una riga di `securities` esiste, il
+ * backfill d'avvio (US-009) ne genera un'osservazione dal prezzo in cache e il
+ * titolo risulterebbe valorizzato. Rimuovere e ripristinare è la stessa pila di
+ * undo del seeding (stessa nota di `ISIN_MAI_RILEVATO_US_019`), quindi vale
+ * comunque la riserva per file. Non entra in `ISIN_CON_OSSERVAZIONI_E2E`: non
+ * viene mai seminato in `securities`, quindi non c'è alcuna riga da cui il
+ * backfill possa partire.
+ */
+export const ISIN_MAI_RILEVATO_US_020: ChiaveRiservata = {
+  isin: 'LU1955812653',
+  file: 'US-020__scala-portafoglio-varianti.spec.ts',
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *
@@ -1805,4 +1915,11 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   // `securities`, quindi non c'è alcuna riga da cui il backfill possa partire.
   TITOLO_US_046.isin,
   TITOLO_US_046_VARIANTI.isin,
+  // I tre titoli di US-020: i due del demo seminano rilevazioni esplicite,
+  // quello delle varianti le sostituisce a ogni scenario. ISIN_MAI_RILEVATO_US_020
+  // non entra, per la stessa ragione di ISIN_MAI_RILEVATO_US_019: non viene mai
+  // seminato in `securities`, quindi il backfill d'avvio non ha da dove partire.
+  TITOLO_US_020.isin,
+  TITOLO_US_020_SECONDO.isin,
+  TITOLO_US_020_VARIANTI.isin,
 ];

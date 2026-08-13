@@ -20,9 +20,15 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
+  SCALE_TEMPORALI,
+  calcolaFinestra,
   componiSerieValorePortafoglio,
+  coperturaPerimetroFinestra,
   dateEventoPortafoglio,
   prezzoNotoA,
+  ritagliaSerie,
+  type PuntoPortafoglio,
+  type ScalaTemporale,
   type TitoloPortafoglio,
   type CaricoValore,
   type VenditaValore,
@@ -513,5 +519,174 @@ describe('casi degeneri — dati malformati non propagano NaN', () => {
 
     expect(serie.punti).toEqual([]);
     expect(serie.primaCoperturaPiena).toBeNull();
+  });
+});
+
+// ─── US-020 · la copertura del perimetro sulla finestra ritagliata ───────────
+
+/**
+ * L'istante corrente di tutti gli scenari di questa sezione. Fisso e passato
+ * come argomento: `calcolaFinestra` è pura, e una finestra che dipendesse
+ * dall'orologio renderebbe irriproducibile proprio il rapporto d'ordine fra i
+ * punti e gli estremi che questi test mettono alla prova.
+ */
+const ORA_FISSA = Date.UTC(2026, 7, 13, 12);
+
+/**
+ * Ritaglia una serie sulla finestra di una scala, leggendo la scala da
+ * `SCALE_TEMPORALI` invece di riscriverne i mesi.
+ *
+ * La lettura non è una comodità: le cinque scale sono la definizione condivisa
+ * di US-037, e un test che ne ricopiasse la durata continuerebbe a passare
+ * anche dopo che quella definizione fosse cambiata — cioè smetterebbe di
+ * provare che US-020 la riusa.
+ */
+function ritaglioSullaScala(
+  scala: ScalaTemporale,
+  punti: readonly PuntoPortafoglio[],
+): { punti: PuntoPortafoglio[]; da: number } {
+  const definizione = SCALE_TEMPORALI.find((candidata) => candidata.id === scala);
+  if (definizione === undefined) throw new Error(`scala ignota: ${scala}`);
+
+  const finestra = calcolaFinestra({ scala: definizione.id, punti, now: ORA_FISSA });
+  return { punti: ritagliaSerie({ punti, finestra }).punti, da: finestra.da };
+}
+
+describe('coperturaPerimetroFinestra', () => {
+  it('misura sulla finestra, non sulla serie: una copertura piena anteriore alla finestra non è quella della finestra', () => {
+    // Storia lunga: la copertura piena comincia nel 2019, sette anni prima
+    // dell'inizio della finestra «ultimo anno».
+    const serie = componiSerieValorePortafoglio([
+      titolo({
+        isin: 'LUNGA',
+        loads: [carico('2019-01-10', 10)],
+        priceHistory: [
+          rilevazione('2019-01-10T10:00:00Z', 100),
+          rilevazione('2026-05-01T10:00:00Z', 110),
+          rilevazione('2026-07-01T10:00:00Z', 120),
+        ],
+      }),
+    ]);
+
+    const { punti, da } = ritaglioSullaScala('anno', serie.punti);
+
+    // La premessa dello scenario, asserita e non data per scontata: il valore
+    // globale cade *prima* dell'inizio della finestra, quindi riusarlo
+    // dichiarerebbe una data che l'asse non mostra nemmeno.
+    expect(serie.primaCoperturaPiena).not.toBeNull();
+    expect(serie.primaCoperturaPiena!).toBeLessThan(da);
+
+    const copertura = coperturaPerimetroFinestra(punti);
+
+    expect(copertura.verdetto).toBe('piena');
+    expect(copertura.primaCoperturaPiena).toBe(Date.parse('2026-05-01T10:00:00Z'));
+    expect(copertura.puntiPieni).toBe(2);
+    expect(copertura.puntiParziali).toBe(0);
+  });
+
+  it('segue la regressione della copertura: piena, poi parziale, poi piena di nuovo', () => {
+    // Il secondo titolo entra a registro un anno dopo il primo e resta senza
+    // prezzo noto per oltre un anno: la copertura, già piena, torna parziale —
+    // il caso che un valore calcolato una volta sola non può rappresentare.
+    const serie = componiSerieValorePortafoglio([
+      titolo({
+        isin: 'PRIMO',
+        loads: [carico('2024-01-10', 10)],
+        priceHistory: [
+          rilevazione('2024-01-10T10:00:00Z', 100),
+          rilevazione('2025-06-01T10:00:00Z', 110),
+          rilevazione('2026-07-01T10:00:00Z', 120),
+        ],
+      }),
+      titolo({
+        isin: 'SECONDO',
+        loads: [carico('2025-01-15', 5)],
+        priceHistory: [rilevazione('2026-06-01T10:00:00Z', 50)],
+      }),
+    ]);
+
+    // Sull'intera storia la copertura è parziale, e comincia a essere piena nel
+    // 2024 — prima della regressione.
+    const tutto = coperturaPerimetroFinestra(ritaglioSullaScala('tutto', serie.punti).punti);
+    expect(tutto.verdetto).toBe('parziale');
+    expect(tutto.primaCoperturaPiena).toBe(Date.parse('2024-01-10T10:00:00Z'));
+    expect(tutto.puntiPieni).toBe(3);
+    expect(tutto.puntiParziali).toBe(3);
+
+    // Sulla finestra aperta *dopo* la regressione il perimetro è di nuovo
+    // completo, e la data d'inizio è quella del secondo tratto: non la data del
+    // 2024, che in questa finestra non afferma nulla.
+    const anno = coperturaPerimetroFinestra(ritaglioSullaScala('anno', serie.punti).punti);
+    expect(anno.verdetto).toBe('piena');
+    expect(anno.primaCoperturaPiena).toBe(Date.parse('2026-06-01T10:00:00Z'));
+    expect(anno.puntiPieni).toBe(2);
+    expect(anno.puntiParziali).toBe(0);
+  });
+
+  it('una finestra senza punti è «senza-oggetto», mai «piena»', () => {
+    const serie = componiSerieValorePortafoglio([
+      titolo({
+        isin: 'VECCHIO',
+        loads: [carico('2026-01-10', 10)],
+        priceHistory: [rilevazione('2026-01-10T10:00:00Z', 40)],
+      }),
+    ]);
+
+    const { punti } = ritaglioSullaScala('mese', serie.punti);
+    expect(punti).toHaveLength(0);
+
+    const copertura = coperturaPerimetroFinestra(punti);
+
+    // «Piena» sarebbe vera solo vacuamente — nessuna eccezione su un insieme di
+    // date vuoto — e a schermo si leggerebbe come una rassicurazione sopra un
+    // riquadro che non mostra nulla.
+    expect(copertura.verdetto).toBe('senza-oggetto');
+    expect(copertura.primaCoperturaPiena).toBeNull();
+    expect(copertura.puntiPieni).toBe(0);
+    expect(copertura.puntiParziali).toBe(0);
+  });
+
+  it('tutti i punti completi: verdetto pieno e inizio copertura sul primo punto della finestra', () => {
+    // Una rilevazione anteriore al carico rende valorizzato anche il punto del
+    // carico: nessun punto della serie ha un titolo detenuto senza prezzo.
+    const serie = componiSerieValorePortafoglio([
+      titolo({
+        isin: 'COMPLETO',
+        loads: [carico('2026-02-01', 7)],
+        priceHistory: [
+          rilevazione('2026-01-05T10:00:00Z', 20),
+          rilevazione('2026-03-05T10:00:00Z', 22),
+        ],
+      }),
+    ]);
+
+    const { punti } = ritaglioSullaScala('tutto', serie.punti);
+    const copertura = coperturaPerimetroFinestra(punti);
+
+    expect(copertura.verdetto).toBe('piena');
+    expect(copertura.primaCoperturaPiena).toBe(punti[0].at);
+    expect(copertura.puntiPieni).toBe(punti.length);
+    expect(copertura.puntiParziali).toBe(0);
+  });
+
+  it('tutti i punti incompleti: verdetto parziale e nessuna data d’inizio copertura', () => {
+    // Un titolo detenuto e mai rilevato: la copertura piena non comincia a
+    // nessuna data, e `null` lo dice senza inventare un confine.
+    const serie = componiSerieValorePortafoglio([
+      titolo({ isin: 'MAI-RILEVATO', loads: [carico('2026-01-10', 4)] }),
+      titolo({
+        isin: 'RILEVATO',
+        loads: [carico('2026-01-10', 6)],
+        priceHistory: [rilevazione('2026-02-10T10:00:00Z', 30)],
+      }),
+    ]);
+
+    const { punti } = ritaglioSullaScala('tutto', serie.punti);
+    const copertura = coperturaPerimetroFinestra(punti);
+
+    expect(copertura.verdetto).toBe('parziale');
+    expect(copertura.primaCoperturaPiena).toBeNull();
+    expect(copertura.puntiPieni).toBe(0);
+    expect(copertura.puntiParziali).toBe(punti.length);
   });
 });

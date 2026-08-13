@@ -3909,3 +3909,182 @@ body {
   .riga-contributo { grid-template-columns: 1fr; }
   .riga-contributo .valore-contributo { text-align: left; }
 }
+
+/* ============================================================
+   US-020 — SCALA TEMPORALE DEL GRAFICO DEL PORTAFOGLIO
+   ------------------------------------------------------------
+   La traversa delle cinque scale (`.barra-scala`, `.scala-temporale`)
+   arriva già da US-037 e qui NON viene riscritta, esattamente come le
+   cinque scale non vengono ricopiate nel dominio. Questa sezione
+   aggiunge la sola cosa che il portafoglio ha in più del titolo: la
+   copertura ha DUE dimensioni indipendenti — quanta parte della
+   finestra chiesta l'archivio copre nel tempo, e quanti titoli
+   detenuti erano valorizzati — e i due verdetti devono restare
+   leggibili separatamente.
+
+   Nota sul perché le regole della barra sono annidate sotto
+   `.doppio-regolo`: `.barra-copertura` esiste già da US-037 dentro
+   `.misura-copertura` (il regolo unico della scheda titolo), con altri
+   colori e altro spessore. Ridefinirla a livello di documento
+   cambierebbe di riflesso il grafico del titolo, che questa spec non
+   tocca — l'annidamento tiene le due rese distinte senza riscrivere
+   nulla di US-037.
+   ============================================================ */
+
+/* La traversa del perimetro e quella della scala sono due traverse
+   sovrapposte: il filo in mezzo resta quello interno, non il doppio
+   bordo di due riquadri accostati. */
+.barra-perimetro + .barra-scala { border-top: 1px solid rgba(34,28,20,.32); }
+
+/* ---------- Il doppio regolo: due misure, mai una media ---------- */
+.doppio-regolo {
+  border: var(--filetto);
+  background: var(--carta-chiara);
+  margin-top: 16px;
+}
+.doppio-regolo .testa-regoli {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 9px 16px;
+  background: var(--verde-mastro);
+  color: var(--carta);
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.doppio-regolo .testa-regoli .chiosa {
+  margin-left: auto;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  letter-spacing: .05em;
+  text-transform: none;
+  opacity: .82;
+}
+
+.doppio-regolo .regolo {
+  display: grid;
+  grid-template-columns: 172px 1fr;
+  gap: 0 18px;
+  padding: 14px 16px 15px;
+  border-bottom: 1px dashed rgba(34,28,20,.28);
+}
+.doppio-regolo .regolo:last-of-type { border-bottom: none; }
+
+/* La dimensione, scritta a sinistra: è l'etichetta che impedisce di
+   leggere i due regoli come un solo numero. */
+.doppio-regolo .et-dimensione {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--seppia);
+  align-self: start;
+  padding-top: 2px;
+}
+.doppio-regolo .et-dimensione .ordinale {
+  display: block;
+  font-family: 'Courier Prime', monospace;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ottone);
+  margin-bottom: 3px;
+}
+.doppio-regolo .regolo.perimetro .et-dimensione .ordinale { color: var(--blu-inchiostro); }
+
+.doppio-regolo .misura {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.doppio-regolo .verdetto-regolo {
+  font-family: 'Courier Prime', monospace;
+  font-size: 13.5px;
+  color: var(--inchiostro);
+  letter-spacing: .02em;
+}
+.doppio-regolo .verdetto-regolo b { color: var(--carminio); }
+.doppio-regolo .regolo.tempo .verdetto-regolo b { color: var(--ottone); }
+.doppio-regolo .regolo.perimetro .verdetto-regolo b { color: var(--blu-inchiostro); }
+
+/* La barra: la parte coperta è piena, quella scoperta resta campita —
+   non vuota, perché il vuoto si legge come «zero» invece che come
+   «non misurato». */
+.doppio-regolo .barra-copertura {
+  position: relative;
+  height: 22px;
+  margin-top: 0;
+  border: 1px solid var(--inchiostro);
+  background: repeating-linear-gradient(45deg,
+              transparent 0 7px, rgba(110,90,54,.16) 7px 14px);
+  overflow: hidden;
+}
+.doppio-regolo .barra-copertura .coperto {
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  background: var(--verde-tenue);
+  border-left: 1.5px solid var(--verde-panno);
+}
+.doppio-regolo .regolo.perimetro .barra-copertura .coperto {
+  background: rgba(29,43,64,.16);
+  border-left-color: var(--blu-inchiostro);
+}
+.doppio-regolo .barra-copertura .etichetta-scoperto {
+  position: absolute;
+  left: 8px; top: 3px;
+  transform: none;
+  background: none;
+  padding: 0;
+  font-family: 'Courier Prime', monospace;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  color: var(--seppia);
+}
+.doppio-regolo .barra-copertura .etichetta-coperto {
+  position: absolute;
+  right: 8px; top: 3px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  color: var(--inchiostro);
+}
+.doppio-regolo .legenda-regolo {
+  font-family: 'IM Fell English', serif;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--seppia);
+  margin: 0;
+}
+.doppio-regolo .legenda-regolo b {
+  font-family: 'Courier Prime', monospace;
+  font-size: 12.5px;
+  color: var(--inchiostro);
+}
+
+/* Il sigillo che scrive perché i regoli sono due e non uno solo. */
+.sigillo-due-dimensioni {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 11px 16px 13px;
+  background: rgba(215,221,196,.34);
+  border-top: 1px solid rgba(34,28,20,.28);
+  font-family: 'IM Fell English', serif;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--seppia);
+}
+.sigillo-due-dimensioni .graffa {
+  font-size: 21px;
+  line-height: 1;
+  color: var(--ottone);
+  flex: 0 0 auto;
+}
+.sigillo-due-dimensioni b { color: var(--inchiostro); }
+
+@media (max-width: 900px) {
+  .doppio-regolo .regolo { grid-template-columns: 1fr; gap: 8px; }
+}

@@ -393,3 +393,86 @@ export function componiSerieValorePortafoglio(
 
   return { punti, primaCoperturaPiena };
 }
+
+// ─── La copertura del perimetro sulla finestra ritagliata (US-020) ───────────
+
+/**
+ * Il verdetto sulla **seconda** dimensione della copertura di un aggregato.
+ *
+ * Per un singolo titolo la copertura è una domanda sola — la finestra chiesta è
+ * coperta dall'archivio, oppure no — ed è quella che `ritagliaSerie` già
+ * risponde (`Copertura`). Per un portafoglio le domande sono due e
+ * **indipendenti**: quanta parte della finestra l'archivio possiede *nel tempo*,
+ * e quanti dei titoli *detenuti* erano valorizzati alle date che l'archivio
+ * copre. Possono essere una piena e l'altra parziale, e nessuna delle due si
+ * deduce dall'altra.
+ *
+ * Il terzo esito è `'senza-oggetto'` e **non** `'piena'`. Con zero punti in
+ * finestra l'affermazione «ogni titolo detenuto ha un prezzo noto» è vera solo
+ * *vacuamente*: non c'è alcuna data su cui contare i titoli valorizzati, quindi
+ * non è stato guardato nulla. Scritta a schermo, «piena» si leggerebbe come una
+ * rassicurazione sopra un riquadro che non mostra niente — cioè il guasto
+ * silenzioso che ADR-003 vieta.
+ */
+export type VerdettoPerimetro = 'piena' | 'parziale' | 'senza-oggetto';
+
+/** Quanto il perimetro è coperto **dentro la finestra ritagliata**. */
+export interface CoperturaPerimetro {
+  /** Il verdetto sulla seconda dimensione. */
+  verdetto: VerdettoPerimetro;
+  /**
+   * Istante del primo punto **della finestra** a copertura piena; `null` quando
+   * la finestra non ne contiene alcuno. È il confine da cui campire la zona a
+   * perimetro incompleto: relativo alla finestra, mai globale (vedi
+   * `coperturaPerimetroFinestra`).
+   */
+  primaCoperturaPiena: number | null;
+  /** Quanti punti della finestra sono a copertura piena. */
+  puntiPieni: number;
+  /** Quanti punti della finestra hanno almeno un titolo detenuto non valorizzato. */
+  puntiParziali: number;
+}
+
+/**
+ * Misura la copertura del perimetro **sui soli punti ritagliati**, non sulla
+ * serie intera.
+ *
+ * Il calcolo è deliberatamente relativo alla finestra, e non un riuso della
+ * `primaCoperturaPiena` che `componiSerieValorePortafoglio` calcola sulla serie
+ * completa, per due ragioni che sono entrambe casi reali e non ipotesi:
+ *
+ * - la copertura piena globale può cadere **prima** di `finestra.da`. Su una
+ *   scala stretta quel confine è fuori campo: campire la zona fino a lì
+ *   significherebbe disegnare un tratto incompleto che nella finestra non
+ *   esiste, e dichiarare «completo dal …» una data che l'asse non mostra;
+ * - la copertura può **regredire**. Un titolo iscritto a registro e mai
+ *   rilevato entra nel perimetro alla sua data di carico e rende parziali i
+ *   punti successivi, dopo un tratto che era pieno. Un valore globale calcolato
+ *   una volta sola non tornerebbe mai indietro, e sopra una finestra aperta sul
+ *   tratto regredito affermerebbe una copertura che lì non c'è più.
+ *
+ * Funzione pura: nessun orologio, nessuna finestra da ricalcolare — riceve i
+ * punti che `ritagliaSerie` ha già selezionato e non ne scarta né aggiunge
+ * alcuno.
+ */
+export function coperturaPerimetroFinestra(
+  punti: readonly PuntoPortafoglio[],
+): CoperturaPerimetro {
+  let puntiPieni = 0;
+  let puntiParziali = 0;
+  let primaCoperturaPiena: number | null = null;
+
+  for (const punto of punti) {
+    if (punto.copertura === 'piena') {
+      puntiPieni += 1;
+      if (primaCoperturaPiena === null) primaCoperturaPiena = punto.at;
+    } else {
+      puntiParziali += 1;
+    }
+  }
+
+  const verdetto: VerdettoPerimetro =
+    punti.length === 0 ? 'senza-oggetto' : puntiParziali === 0 ? 'piena' : 'parziale';
+
+  return { verdetto, primaCoperturaPiena, puntiPieni, puntiParziali };
+}

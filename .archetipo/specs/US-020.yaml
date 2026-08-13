@@ -6,7 +6,7 @@ epic:
   title: Grafico andamento del portafoglio
 priority: HIGH
 points: 3
-status: PLANNED
+status: REVIEW
 blocked_by:
   - US-019
 scope: MVP
@@ -40,3 +40,7 @@ history:
     at: "2026-06-26T15:47:52Z"
   - status: PLANNED
     at: "2026-08-13T18:21:38Z"
+  - status: IN PROGRESS
+    at: "2026-08-13T20:32:02Z"
+  - status: REVIEW
+    at: "2026-08-13T20:58:42Z"
