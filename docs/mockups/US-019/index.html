@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Grafico del valore del portafoglio (US-019)</title>
+  <meta name="description" content="Mockup US-019: nella scheda Riepilogo il grafico del valore complessivo del portafoglio nel tempo. Ogni punto somma la quantità detenuta a quella data per l'ultimo prezzo noto, e ogni prezzo riportato in avanti è dichiarato con la data della quotazione e la sua età in giorni.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; riepilogo del portafoglio</p>
+      <h1>Conto <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">2 titoli iscritti &middot; aperto il 19.IX.2025</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Titoli detenuti &nbsp;&nbsp;<b>2</b></div>
+      <div>Valore attuale totale &nbsp;<b>€&thinsp;19.216,80</b></div>
+      <div>Capitale versato &nbsp;<b>€&thinsp;13.216,00</b></div>
+      <div>Differenza &nbsp;<span class="totale-positivo">+€&thinsp;6.000,80</span></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="index.html" class="attiva">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="#" class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <!-- =====================================================================
+         Il riquadro del valore attuale (US-014) e il quadro del risultato
+         (US-043) restano dove sono: US-019 non li tocca. Il grafico si
+         inserisce SOTTO di essi, perché quelle due caselle dicono quanto il
+         conto vale ADESSO e il grafico dice come ci è arrivato.
+         ===================================================================== -->
+    <div class="sezione-titolo" style="margin-top:6px">
+      Andamento del portafoglio
+      <span class="nota">FR&#8209;015 &middot; ADR&#8209;010 &middot; ADR&#8209;003 &middot; una sola curva: il valore complessivo</span>
+    </div>
+
+    <!-- ---------- La traversa del perimetro ----------
+         Non è il selettore di scala (quello arriva con US-020) e non è il
+         commutatore prezzo/valore di US-039 (per un portafoglio il prezzo
+         unitario non ha significato, e infatti qui non compare). Dichiara
+         soltanto quanti titoli entrano nella curva e con quale copertura. -->
+    <div class="barra-perimetro" role="group" aria-label="Perimetro del grafico">
+      <span class="et-perimetro">Perimetro</span>
+      <span class="conteggio-titoli">
+        <b>2</b> titoli detenuti &middot; <b>5</b> date d&rsquo;evento in archivio &middot; finestra <b>19.IX.2025 &rarr; 10.VIII.2026</b>
+      </span>
+      <span class="verdetto parziale">copertura piena dal 3.VI.2026</span>
+    </div>
+
+    <!-- ---------- Il tracciato ---------- -->
+    <div class="grafico-cornice">
+      <span class="cartellino-finestra">Valore complessivo &middot; tutto lo storico</span>
+
+      <svg class="tracciato" viewBox="0 0 960 336" role="img"
+           aria-label="Valore complessivo del portafoglio dal 19 settembre 2025 al 10 agosto 2026. Fino al 3 giugno 2026 la copertura è parziale: il 19 settembre 2025 e il 4 marzo 2026 cadono due carichi ma nessuna quotazione è ancora stata rilevata, e il 12 maggio 2026 un solo titolo su due è valorizzato. La copertura piena comincia il 3 giugno 2026, quando entrambi i titoli hanno un prezzo noto: il valore è 16.636 euro, somma di 7.696 euro del primo titolo alla quotazione del 12 maggio riportata in avanti di 22 giorni e di 8.940 euro del secondo alla rilevazione del giorno. Il 10 agosto 2026 il valore è 19.216 euro e 80 centesimi, con il primo titolo sulla rilevazione del giorno e il secondo sulla quotazione del 3 giugno riportata di 68 giorni. Nessun valore è stimato o interpolato.">
+
+        <defs>
+          <!-- Campitura del tratto a copertura parziale: è la stessa obliqua
+               che US-036 usa per i vuoti d'archivio, ma qui dichiara un
+               PERIMETRO incompleto, non un intervallo senza prezzi. -->
+          <pattern id="coperturaParziale" width="11" height="11" patternUnits="userSpaceOnUse"
+                   patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="11" stroke="#9c7d34" stroke-width="2.4" opacity=".2"/>
+          </pattern>
+        </defs>
+
+        <!-- ---------- Rigatura di lettura ---------- -->
+        <g stroke="#8a9bb0" stroke-width="1" opacity=".55">
+          <line x1="88" y1="94"  x2="884" y2="94"/>
+          <line x1="88" y1="144" x2="884" y2="144"/>
+          <line x1="88" y1="194" x2="884" y2="194"/>
+        </g>
+
+        <!-- ---------- Assi ---------- -->
+        <line x1="88" y1="34" x2="88" y2="254" stroke="#221c14" stroke-width="1.5"/>
+        <line x1="88" y1="254" x2="884" y2="254" stroke="#221c14" stroke-width="1.5"/>
+
+        <!-- Scala del controvalore, ancorata a ZERO come nella vista valore di
+             US-039: il valore del portafoglio è una grandezza assoluta, e
+             tagliarne la base ingrandirebbe di nascosto ogni movimento. -->
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="end">
+          <text x="80" y="47.9">20.000</text>
+          <text x="80" y="97.9">15.000</text>
+          <text x="80" y="147.9">10.000</text>
+          <text x="80" y="197.9">&nbsp;5.000</text>
+          <text x="80" y="257.9">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0</text>
+        </g>
+        <text x="88" y="22" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">VALORE COMPLESSIVO DEL PORTAFOGLIO &middot; EURO</text>
+
+        <!-- =====================================================================
+             IL TRATTO A COPERTURA PARZIALE (criterio 6)
+             Dal 19.IX.2025 al 3.VI.2026 non tutti i titoli detenuti hanno un
+             prezzo noto. La curva NON viene disegnata più in basso con i soli
+             titoli valorizzati: quel tracciato somiglierebbe a un portafoglio
+             che vale meno, ed è esattamente la lettura falsa che il criterio
+             vieta. La zona è campita, i punti restano visibili come segni
+             barrati e la ragione è scritta sotto.
+             ===================================================================== -->
+        <rect x="88" y="34" width="629.4" height="220" fill="url(#coperturaParziale)"/>
+        <rect x="88" y="34" width="629.4" height="220" fill="none"
+              stroke="#9c7d34" stroke-width="1.2" stroke-dasharray="5 5" opacity=".8"/>
+
+        <g>
+          <rect x="112" y="44" width="330" height="36" fill="#f7efda" opacity=".94"
+                stroke="#9c7d34" stroke-width="1" stroke-dasharray="4 4"/>
+          <text x="118" y="58" font-family="'IM Fell English SC', serif" font-size="9.5"
+                letter-spacing="1.2" fill="#9c7d34">257 GIORNI A COPERTURA PARZIALE</text>
+          <text x="118" y="72" font-family="'Courier Prime', monospace" font-size="10"
+                fill="#6e5a36">non ogni titolo detenuto ha ancora un prezzo noto</text>
+        </g>
+
+        <!-- ---------- La verticale della prima copertura piena ---------- -->
+        <line x1="717.4" y1="34" x2="717.4" y2="254"
+              stroke="#9c7d34" stroke-width="1.6"/>
+        <text x="722" y="46" font-family="'IM Fell English SC', serif" font-size="10"
+              letter-spacing="1.2" fill="#9c7d34">COPERTURA PIENA DAL 3.VI.2026</text>
+
+        <!-- ---------- Verticale di «oggi» ---------- -->
+        <line x1="884" y1="34" x2="884" y2="254"
+              stroke="#6e5a36" stroke-width="1.2" stroke-dasharray="2 4"/>
+        <text x="880" y="22" text-anchor="end"
+              font-family="'IM Fell English SC', serif" font-size="10.5" letter-spacing="1.2"
+              fill="#6e5a36">OGGI &middot; 10.VIII.2026</text>
+
+        <!-- =====================================================================
+             LA CURVA — soltanto dove la copertura è piena.
+             Tratteggiata, come ogni tratto di US-036: fra il 3.VI e il 10.VIII
+             l'archivio non possiede alcuna rilevazione, e il tratteggio lo
+             dichiara invece di suggerire una linea continua di prezzi.
+             ===================================================================== -->
+        <g stroke="#221c14" stroke-width="2.4" stroke-dasharray="7 6" stroke-linecap="round" fill="none">
+          <line x1="717.4" y1="77.6" x2="884" y2="51.8"/>
+        </g>
+
+        <!-- I due punti a copertura piena: cerchi pieni, come le rilevazioni
+             di US-036. -->
+        <g fill="#221c14">
+          <circle cx="717.4" cy="77.6" r="5.4"/>
+          <circle cx="884" cy="51.8" r="5.4"/>
+        </g>
+
+        <!-- Cartiglio del punto del 3.VI: è il fatto che la spec chiede di
+             dimostrare — la somma di una rilevazione del giorno e di una
+             quotazione riportata, dichiarata come tale. -->
+        <g>
+          <rect x="474" y="96" width="238" height="52" fill="#f7efda" opacity=".95"
+                stroke="#221c14" stroke-width="1"/>
+          <text x="480" y="110" font-family="'IM Fell English SC', serif" font-size="10"
+                letter-spacing="1.2" fill="#221c14">3.VI.2026 &middot; €&#8201;16.636,00</text>
+          <text x="480" y="124" font-family="'Courier Prime', monospace" font-size="10"
+                fill="#6e5a36">1 di 2 titoli su prezzo riportato, 22 giorni</text>
+          <text x="480" y="138" font-family="'Courier Prime', monospace" font-size="10"
+                fill="#6e5a36">7.696,00 (rip. 12.V) + 8.940,00 (del giorno)</text>
+          <line x1="712" y1="110" x2="717.4" y2="80" stroke="#221c14" stroke-width="1"
+                stroke-dasharray="2 3" opacity=".8"/>
+        </g>
+
+        <!-- Cartiglio del punto di oggi. -->
+        <g>
+          <rect x="640" y="176" width="240" height="52" fill="#f7efda" opacity=".95"
+                stroke="#221c14" stroke-width="1"/>
+          <text x="646" y="190" font-family="'IM Fell English SC', serif" font-size="10"
+                letter-spacing="1.2" fill="#221c14">10.VIII.2026 &middot; €&#8201;19.216,80</text>
+          <text x="646" y="204" font-family="'Courier Prime', monospace" font-size="10"
+                fill="#6e5a36">1 di 2 titoli su prezzo riportato, 68 giorni</text>
+          <text x="646" y="218" font-family="'Courier Prime', monospace" font-size="10"
+                fill="#6e5a36">10.276,80 (del giorno) + 8.940,00 (rip. 3.VI)</text>
+          <line x1="880" y1="176" x2="884" y2="56" stroke="#221c14" stroke-width="1"
+                stroke-dasharray="2 3" opacity=".8"/>
+        </g>
+
+        <!-- =====================================================================
+             I PUNTI D'EVENTO CHE NON PRODUCONO UN VALORE DI PORTAFOGLIO.
+             Esistono — il criterio 2 vuole un punto a ogni data d'evento — ma
+             il loro valore non è quello del portafoglio, perché il perimetro è
+             incompleto. Segno vuoto e barrato, mai un punto pieno sulla curva.
+             ===================================================================== -->
+        <!-- 19.IX.2025 · carico del primo titolo, nessuna quotazione rilevata -->
+        <g>
+          <path d="M88,247 L94.7,254 L88,261 L81.3,254 Z" fill="none" stroke="#9e2b25" stroke-width="1.6"/>
+          <text x="94" y="276" font-family="'Courier Prime', monospace" font-size="9.5" fill="#9e2b25">
+            19.IX.2025 &middot; carico &middot; 0 di 1 valorizzati
+          </text>
+        </g>
+        <!-- 4.III.2026 · carico del secondo titolo, ancora nessuna quotazione -->
+        <g>
+          <path d="M494.6,247 L501.3,254 L494.6,261 L487.9,254 Z" fill="none" stroke="#9e2b25" stroke-width="1.6"/>
+          <text x="500" y="276" font-family="'Courier Prime', monospace" font-size="9.5" fill="#9e2b25">
+            4.III.2026 &middot; carico &middot; 0 di 2
+          </text>
+        </g>
+        <!-- 12.V.2026 · prima rilevazione: un titolo su due -->
+        <g>
+          <circle cx="663.5" cy="167" r="5.4" fill="none" stroke="#9e2b25" stroke-width="1.8"/>
+          <g stroke="#9e2b25" stroke-width="1.8">
+            <line x1="659.7" y1="163.2" x2="667.3" y2="170.8"/>
+            <line x1="667.3" y1="163.2" x2="659.7" y2="170.8"/>
+          </g>
+          <line x1="663.5" y1="160" x2="663.5" y2="150" stroke="#9e2b25" stroke-width="1"
+                stroke-dasharray="2 3"/>
+          <rect x="486" y="150" width="222" height="26" fill="#f7efda" opacity=".95"/>
+          <text x="490" y="161" font-family="'IM Fell English SC', serif" font-size="9.5"
+                letter-spacing="1.2" fill="#9e2b25">12.V.2026 &middot; 1 DI 2 VALORIZZATI</text>
+          <text x="490" y="172" font-family="'Courier Prime', monospace" font-size="9.5"
+                fill="#6e5a36" text-decoration="line-through">€ 7.696,00 non è il valore del conto</text>
+        </g>
+
+        <!-- ---------- La striscia del perimetro, sotto l'asse ----------
+             Il secondo fattore del prodotto reso visibile, come la fascia
+             della quantità detenuta nella vista valore di US-039: qui però
+             il fattore è QUANTI TITOLI il conto possiede a ciascuna data. -->
+        <g>
+          <rect x="88" y="292" width="406.6" height="20" fill="rgba(215,221,196,.6)"
+                stroke="#6e5a36" stroke-width="1"/>
+          <text x="94" y="306" font-family="'Courier Prime', monospace" font-size="10" fill="#6e5a36">
+            1 titolo detenuto
+          </text>
+          <rect x="494.6" y="292" width="389.4" height="20" fill="rgba(215,221,196,.85)"
+                stroke="#6e5a36" stroke-width="1"/>
+          <text x="500" y="306" font-family="'Courier Prime', monospace" font-size="10" fill="#221c14">
+            2 titoli detenuti &mdash; dal 4.III.2026
+          </text>
+        </g>
+
+        <!-- ---------- Estremi dell'asse dei tempi ---------- -->
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36">
+          <text x="88" y="330">19.IX.2025</text>
+          <text x="884" y="330" text-anchor="end">10.VIII.2026</text>
+        </g>
+      </svg>
+    </div>
+
+    <p class="estremi-tracciato">
+      <span>Finestra: <b>19.IX.2025 &rarr; 10.VIII.2026</b> &middot; 325 giorni civili</span>
+      <span>Punti d&rsquo;evento: <b>5</b> &mdash; 2 carichi, 3 rilevazioni</span>
+      <span>Copertura piena dal <b>3.VI.2026</b></span>
+    </p>
+
+    <!-- =====================================================================
+         LA COMPOSIZIONE DEL PUNTO (criteri 3, 4, 5)
+         Sotto il tracciato, l'ultimo punto letto per esteso: da quali titoli è
+         composto, con quale quantità detenuta A QUELLA DATA, a quale prezzo e
+         di quando è la quotazione usata. È qui che il riporto smette di essere
+         un dettaglio implementativo e diventa un fatto scritto.
+         ===================================================================== -->
+    <div class="composizione-punto">
+      <div class="intestazione-composizione">
+        <span class="data-punto">Punto del 10.VIII.2026</span>
+        <span class="conto-punto">1 titolo su rilevazione del giorno &middot; 1 su quotazione riportata &middot; 0 non valorizzati</span>
+        <span class="cifra-punto">€&thinsp;19.216,80</span>
+      </div>
+
+      <div class="riga-contributo">
+        <span class="titolo-contributo">
+          <strong>Ishares Core MSCI World</strong>
+          <small>IE00B4L5Y983</small>
+        </span>
+        <span class="conto-contributo">
+          80 quote &times; €&thinsp;128,4600
+          <span class="timbro-riporto del-giorno">rilevazione del 10.VIII.2026</span>
+        </span>
+        <span class="valore-contributo">€&thinsp;10.276,80</span>
+      </div>
+
+      <div class="riga-contributo riportata">
+        <span class="titolo-contributo">
+          <strong>Vanguard FTSE All-World</strong>
+          <small>IE00BK5BQT80</small>
+        </span>
+        <span class="conto-contributo">
+          120 quote &times; €&thinsp;74,5000
+          <span class="timbro-riporto">quotazione del 3.VI.2026 &middot; 68 giorni</span>
+        </span>
+        <span class="valore-contributo">€&thinsp;8.940,00</span>
+      </div>
+    </div>
+
+    <!-- ---------- Il tratto parziale, dichiarato a parole (criterio 6) ---------- -->
+    <div class="copertura-parziale">
+      <span class="et-copertura">Copertura parziale &middot; 19.IX.2025 &rarr; 3.VI.2026</span>
+      Per <b>257</b> giorni civili non ogni titolo detenuto ha un prezzo noto: al 19.IX.2025 e al
+      4.III.2026 l&rsquo;archivio non aveva ancora rilevato alcuna quotazione, e al 12.V.2026 era
+      valorizzato <b>1 titolo su 2</b>. Il tratto resta perci&ograve; <b>senza curva</b>: disegnare
+      la somma dei soli titoli valorizzati mostrerebbe un portafoglio che sembra valere meno, ed
+      &egrave; un dato falso &mdash; non un dato parziale.
+      <span class="rimando-us016">
+        Quale titolo manca, da quando l&rsquo;archivio lo copre e come rimediare &egrave; l&rsquo;elenco
+        titolo per titolo di US&#8209;016; il selettore della scala temporale arriva con US&#8209;020.
+      </span>
+    </div>
+
+    <!-- ---------- Legenda ---------- -->
+    <div class="legenda-tracciato">
+      <p class="intestazione-legenda">Come si legge il tracciato</p>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <circle cx="18" cy="8" r="5" fill="#221c14"/>
+        </svg>
+        <span class="et">Punto a copertura piena</span>
+        <span class="spiega">
+          Ogni titolo detenuto a quella data ha un prezzo noto. Il valore &egrave; la somma dei
+          controvalori: quantit&agrave; detenuta <em>a quella data</em> per l&rsquo;ultimo prezzo noto.
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <circle cx="18" cy="8" r="5" fill="none" stroke="#9e2b25" stroke-width="1.8"/>
+          <line x1="14.5" y1="4.5" x2="21.5" y2="11.5" stroke="#9e2b25" stroke-width="1.6"/>
+          <line x1="21.5" y1="4.5" x2="14.5" y2="11.5" stroke="#9e2b25" stroke-width="1.6"/>
+        </svg>
+        <span class="et">Punto a perimetro incompleto</span>
+        <span class="spiega">
+          La data d&rsquo;evento c&rsquo;&egrave;, il valore del portafoglio no: almeno un titolo
+          detenuto non ha alcun prezzo noto. Il segno resta visibile e barrato, mai unito alla curva.
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <line x1="2" y1="8" x2="34" y2="8" stroke="#221c14" stroke-width="2.2" stroke-dasharray="7 6"/>
+        </svg>
+        <span class="et">Tratteggio fra due punti</span>
+        <span class="spiega">
+          Fra quelle due date l&rsquo;archivio non possiede alcuna rilevazione. Il tratteggio &egrave;
+          una dichiarazione, non uno stile (ADR&#8209;003): nessun valore &egrave; interpolato.
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <svg width="36" height="16" viewBox="0 0 36 16" aria-hidden="true">
+          <rect x="2" y="2" width="32" height="12" fill="none" stroke="#9c7d34" stroke-width="1.2"/>
+          <line x1="6" y1="14" x2="14" y2="2" stroke="#9c7d34" stroke-width="1.6" opacity=".55"/>
+          <line x1="14" y1="14" x2="22" y2="2" stroke="#9c7d34" stroke-width="1.6" opacity=".55"/>
+          <line x1="22" y1="14" x2="30" y2="2" stroke="#9c7d34" stroke-width="1.6" opacity=".55"/>
+        </svg>
+        <span class="et">Zona campita</span>
+        <span class="spiega">
+          Il tratto anteriore alla prima copertura piena. Nomina quanti titoli non erano ancora
+          valorizzati invece di disegnare un conto che sembra valere meno.
+        </span>
+      </div>
+
+      <div class="voce-legenda">
+        <span class="et" style="grid-column:1/-1">Timbro di riporto</span>
+        <span class="spiega" style="grid-column:1/-1">
+          <span class="timbro-riporto del-giorno">rilevazione del giorno</span>
+          il prezzo &egrave; stato osservato proprio a quella data.
+          <span class="timbro-riporto">quotazione del 3.VI.2026 &middot; 68 giorni</span>
+          il prezzo &egrave; l&rsquo;ultima rilevazione <em>realmente registrata</em> non successiva alla
+          data del punto, riportata in avanti (ADR&#8209;010): mai stimata, mai interpolata, e
+          sempre dichiarata con la sua et&agrave;.
+        </span>
+      </div>
+    </div>
+
+    <p class="nota-sezione">
+      La curva &egrave; una sola &mdash; il valore complessivo &mdash; perch&eacute; il prezzo unitario
+      non ha significato per un portafoglio: il commutatore di vista della scheda titolo (US&#8209;039)
+      qui non compare. Tutti i dati arrivano in <b>un solo giro di richieste</b> al server e la
+      costruzione del grafico non genera <b>alcuna</b> richiesta alla fonte: il tracciato si compone
+      dei soli fatti gi&agrave; in archivio &mdash; carichi, vendite e rilevazioni registrate.
+    </p>
+
+    <nav class="nav-mockup">
+      <span>US-019 &middot; </span>
+      <a href="index.html">copertura piena (questa pagina)</a> &middot;
+      <a href="copertura-parziale.html">titolo mai rilevato e conto senza rilevazioni</a>
+    </nav>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; registro dei conti</span>
+    <span>US-019 &middot; FR-015 &middot; ADR-010</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

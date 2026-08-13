@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Grafico del portafoglio: copertura parziale e dato assente (US-019)</title>
+  <meta name="description" content="Mockup US-019, casi limite: un titolo detenuto e mai rilevato tiene l'intera finestra a copertura parziale; un portafoglio senza alcuna rilevazione dichiara «dato non disponibile» invece di disegnare un grafico vuoto.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; riepilogo del portafoglio</p>
+      <h1>Quando il perimetro <span class="corsivo">non &egrave; completo</span></h1>
+      <p class="sottotesto">US-019 &middot; i due casi in cui il valore complessivo non pu&ograve; essere affermato</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Caso <b>a</b> &nbsp;un titolo mai rilevato</div>
+      <div>Caso <b>b</b> &nbsp;nessuna rilevazione in archivio</div>
+      <div>Regola &nbsp;<b>ADR-003</b></div>
+      <div>Aggregazione &nbsp;<b>ADR-010</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="copertura-parziale.html" class="attiva">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="#" class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- =====================================================================
+         CASO (a) — un titolo detenuto e mai rilevato
+         Tre titoli in conto, due con rilevazioni e uno mai rilevato: la
+         copertura piena non comincia MAI, perché a nessuna data ogni titolo
+         detenuto ha un prezzo noto. La curva non esiste, i punti d'evento
+         restano visibili e la ragione è dichiarata con un conteggio.
+         ===================================================================== -->
+    <div class="sezione-titolo" style="margin-top:6px">
+      (a) Conto <em>Prudente</em> &mdash; 3 titoli, uno mai rilevato
+      <span class="nota">criterio 6 &middot; la copertura piena non comincia mai</span>
+    </div>
+
+    <div class="barra-perimetro" role="group" aria-label="Perimetro del grafico">
+      <span class="et-perimetro">Perimetro</span>
+      <span class="conteggio-titoli">
+        <b>3</b> titoli detenuti &middot; <b>2</b> valorizzati &middot; <b>1</b> senza alcun prezzo noto
+      </span>
+      <span class="verdetto assente">copertura parziale su tutta la finestra</span>
+    </div>
+
+    <div class="grafico-cornice">
+      <span class="cartellino-finestra">Valore complessivo &middot; tutto lo storico</span>
+
+      <svg class="tracciato" viewBox="0 0 960 336" role="img"
+           aria-label="Grafico del valore del portafoglio a copertura parziale su tutta la finestra, dal 19 settembre 2025 al 10 agosto 2026. Tre titoli sono detenuti e uno non ha alcun prezzo noto in archivio, quindi il valore complessivo non è affermabile a nessuna data: la curva non viene disegnata. I sei punti d'evento restano visibili come segni barrati e, dove due titoli su tre sono valorizzati, la somma parziale è mostrata barrata perché non è il valore del portafoglio.">
+
+        <defs>
+          <pattern id="coperturaParzialeB" width="11" height="11" patternUnits="userSpaceOnUse"
+                   patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="11" stroke="#9e2b25" stroke-width="2.4" opacity=".16"/>
+          </pattern>
+        </defs>
+
+        <g stroke="#8a9bb0" stroke-width="1" opacity=".55">
+          <line x1="88" y1="94"  x2="884" y2="94"/>
+          <line x1="88" y1="144" x2="884" y2="144"/>
+          <line x1="88" y1="194" x2="884" y2="194"/>
+        </g>
+
+        <line x1="88" y1="34" x2="88" y2="254" stroke="#221c14" stroke-width="1.5"/>
+        <line x1="88" y1="254" x2="884" y2="254" stroke="#221c14" stroke-width="1.5"/>
+
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="end">
+          <text x="80" y="47.9">20.000</text>
+          <text x="80" y="97.9">15.000</text>
+          <text x="80" y="147.9">10.000</text>
+          <text x="80" y="197.9">&nbsp;5.000</text>
+          <text x="80" y="257.9">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0</text>
+        </g>
+        <text x="88" y="22" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">VALORE COMPLESSIVO DEL PORTAFOGLIO &middot; EURO</text>
+
+        <!-- L'intera finestra è campita: la copertura piena non comincia mai. -->
+        <rect x="88" y="34" width="796" height="220" fill="url(#coperturaParzialeB)"/>
+        <rect x="88" y="34" width="796" height="220" fill="none"
+              stroke="#9e2b25" stroke-width="1.2" stroke-dasharray="5 5" opacity=".75"/>
+
+        <line x1="884" y1="34" x2="884" y2="254"
+              stroke="#6e5a36" stroke-width="1.2" stroke-dasharray="2 4"/>
+        <text x="880" y="22" text-anchor="end"
+              font-family="'IM Fell English SC', serif" font-size="10.5" letter-spacing="1.2"
+              fill="#6e5a36">OGGI &middot; 10.VIII.2026</text>
+
+        <!-- Il timbro al centro della cornice: nessuna curva, e perché. -->
+        <g>
+          <rect x="242" y="60" width="476" height="66" fill="#f7efda" opacity=".95"
+                stroke="#9e2b25" stroke-width="1.4"/>
+          <text x="262" y="84" font-family="'Playfair Display', serif" font-size="21"
+                font-weight="700" fill="#9e2b25">Valore complessivo non affermabile</text>
+          <text x="262" y="102" font-family="'Courier Prime', monospace" font-size="11"
+                fill="#6e5a36">1 titolo su 3 detenuti non ha alcun prezzo noto in archivio:</text>
+          <text x="262" y="117" font-family="'Courier Prime', monospace" font-size="11"
+                fill="#6e5a36">la copertura piena non comincia a nessuna data della finestra.</text>
+        </g>
+
+        <!-- I sei punti d'evento: esistono, e nessuno vale come portafoglio. -->
+        <!-- 19.IX.2025 carico A -->
+        <path d="M88,247 L94.7,254 L88,261 L81.3,254 Z" fill="none" stroke="#9e2b25" stroke-width="1.6"/>
+        <!-- 2.II.2026 carico C (il titolo mai rilevato) -->
+        <path d="M421.1,247 L427.8,254 L421.1,261 L414.4,254 Z" fill="none" stroke="#9e2b25" stroke-width="1.6"/>
+        <!-- 4.III.2026 carico B -->
+        <path d="M494.6,247 L501.3,254 L494.6,261 L487.9,254 Z" fill="none" stroke="#9e2b25" stroke-width="1.6"/>
+
+        <!-- Le tre somme parziali, barrate: 2 titoli su 3. -->
+        <g stroke="#9e2b25" stroke-width="1.8" fill="none">
+          <circle cx="663.5" cy="167" r="5.4"/>
+          <line x1="659.7" y1="163.2" x2="667.3" y2="170.8"/>
+          <line x1="667.3" y1="163.2" x2="659.7" y2="170.8"/>
+
+          <circle cx="717.4" cy="77.6" r="5.4"/>
+          <line x1="713.6" y1="73.8" x2="721.2" y2="81.4"/>
+          <line x1="721.2" y1="73.8" x2="713.6" y2="81.4"/>
+
+          <circle cx="884" cy="51.8" r="5.4"/>
+          <line x1="880.2" y1="48" x2="887.8" y2="55.6"/>
+          <line x1="887.8" y1="48" x2="880.2" y2="55.6"/>
+        </g>
+
+        <g>
+          <rect x="580" y="196" width="300" height="40" fill="#f7efda" opacity=".95"
+                stroke="#9e2b25" stroke-width="1" stroke-dasharray="4 4"/>
+          <text x="586" y="210" font-family="'IM Fell English SC', serif" font-size="9.5"
+                letter-spacing="1.2" fill="#9e2b25">SOMME PARZIALI &mdash; 2 TITOLI SU 3</text>
+          <text x="586" y="226" font-family="'Courier Prime', monospace" font-size="10"
+                fill="#6e5a36" text-decoration="line-through">€ 7.696,00 &middot; € 16.636,00 &middot; € 19.216,80</text>
+        </g>
+
+        <!-- Striscia del perimetro: quanti titoli detenuti a ciascuna data. -->
+        <g>
+          <rect x="88" y="292" width="333.1" height="20" fill="rgba(215,221,196,.45)"
+                stroke="#6e5a36" stroke-width="1"/>
+          <text x="94" y="306" font-family="'Courier Prime', monospace" font-size="10" fill="#6e5a36">1 titolo</text>
+          <rect x="421.1" y="292" width="73.5" height="20" fill="rgba(215,221,196,.65)"
+                stroke="#6e5a36" stroke-width="1"/>
+          <text x="427" y="306" font-family="'Courier Prime', monospace" font-size="10" fill="#6e5a36">2</text>
+          <rect x="494.6" y="292" width="389.4" height="20" fill="rgba(215,221,196,.85)"
+                stroke="#6e5a36" stroke-width="1"/>
+          <text x="500" y="306" font-family="'Courier Prime', monospace" font-size="10" fill="#221c14">
+            3 titoli detenuti &mdash; di cui 1 senza alcun prezzo noto
+          </text>
+        </g>
+
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36">
+          <text x="88" y="330">19.IX.2025</text>
+          <text x="884" y="330" text-anchor="end">10.VIII.2026</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="composizione-punto">
+      <div class="intestazione-composizione">
+        <span class="data-punto">Punto del 10.VIII.2026</span>
+        <span class="conto-punto">1 titolo su rilevazione del giorno &middot; 1 su quotazione riportata &middot; <b>1 non valorizzato</b></span>
+        <span class="cifra-punto" style="color:var(--rosso-margine)">non affermabile</span>
+      </div>
+
+      <div class="riga-contributo">
+        <span class="titolo-contributo">
+          <strong>Ishares Core MSCI World</strong>
+          <small>IE00B4L5Y983</small>
+        </span>
+        <span class="conto-contributo">
+          80 quote &times; €&thinsp;128,4600
+          <span class="timbro-riporto del-giorno">rilevazione del 10.VIII.2026</span>
+        </span>
+        <span class="valore-contributo">€&thinsp;10.276,80</span>
+      </div>
+
+      <div class="riga-contributo riportata">
+        <span class="titolo-contributo">
+          <strong>Vanguard FTSE All-World</strong>
+          <small>IE00BK5BQT80</small>
+        </span>
+        <span class="conto-contributo">
+          120 quote &times; €&thinsp;74,5000
+          <span class="timbro-riporto">quotazione del 3.VI.2026 &middot; 68 giorni</span>
+        </span>
+        <span class="valore-contributo">€&thinsp;8.940,00</span>
+      </div>
+
+      <div class="riga-contributo non-valorizzata">
+        <span class="titolo-contributo">
+          <strong>Amundi Global Aggregate Bond</strong>
+          <small>LU1681043599</small>
+        </span>
+        <span class="conto-contributo">
+          200 quote &times; &ndash;
+          <span class="timbro-riporto assente">nessun prezzo noto</span>
+        </span>
+        <span class="valore-contributo">non valorizzato</span>
+      </div>
+    </div>
+
+    <div class="copertura-parziale">
+      <span class="et-copertura">Perch&eacute; il punto non porta una cifra</span>
+      Due titoli su tre hanno un prezzo noto: la loro somma sarebbe <b>€&thinsp;19.216,80</b>, ma non
+      &egrave; il valore del conto &mdash; &egrave; il valore di <b>due terzi</b> del conto. Presentarla
+      come valore complessivo direbbe che il portafoglio vale meno di quanto vale: un dato
+      <em>falso</em>, non un dato parziale. La cifra resta perci&ograve; dichiarata come somma
+      parziale, con il numero dei titoli su cui &egrave; calcolata.
+      <span class="rimando-us016">
+        <em>Quale</em> titolo manca, da quando l&rsquo;archivio lo copre e come rimediare &mdash;
+        l&rsquo;aggiornamento in blocco gi&agrave; presente nel Riepilogo (US&#8209;035) &mdash;
+        &egrave; l&rsquo;elenco titolo per titolo di US&#8209;016. US&#8209;019 si limita al
+        <em>quanti</em>.
+      </span>
+    </div>
+
+    <!-- =====================================================================
+         CASO (b) — nessuna rilevazione in archivio
+         Il conto ha carichi, quindi ha quantità; ma nessun titolo ha una
+         rilevazione registrata, quindi nessun punto porta un prezzo noto. Non
+         si disegna una cornice vuota: si dichiara.
+         ===================================================================== -->
+    <div class="sezione-titolo">
+      (b) Conto <em>Appena Aperto</em> &mdash; carichi iscritti, nessuna rilevazione
+      <span class="nota">ADR&#8209;003 &middot; dato non disponibile, non un grafico vuoto</span>
+    </div>
+
+    <div class="barra-perimetro" role="group" aria-label="Perimetro del grafico">
+      <span class="et-perimetro">Perimetro</span>
+      <span class="conteggio-titoli">
+        <b>2</b> titoli detenuti &middot; <b>0</b> valorizzati &middot; 2 date d&rsquo;evento (soli carichi)
+      </span>
+      <span class="verdetto assente">nessun prezzo noto</span>
+    </div>
+
+    <div class="dichiarazione-vuota">
+      <span class="cartellino-finestra">9.VIII.2026 &rarr; 10.VIII.2026</span>
+
+      <p style="margin:0">
+        <span class="timbro-grande">Dato non disponibile</span>
+      </p>
+
+      <p class="riga-intervallo">
+        <span class="et-int">Perimetro del portafoglio</span>
+        2 titoli detenuti &nbsp;&middot;&nbsp; <b>nessuna rilevazione</b> registrata per alcuno di essi
+      </p>
+
+      <p class="spiegazione">
+        Il valore di un punto &egrave; <b>quantit&agrave; detenuta &times; ultimo prezzo noto</b>. Le
+        quantit&agrave; ci sono &mdash; i carichi sono iscritti a registro &mdash; ma di prezzi noti
+        l&rsquo;archivio non ne possiede nessuno: lo storico &egrave; osservazionale e si accumula con
+        gli aggiornamenti che chiedi tu (ADR&#8209;008). Non c&rsquo;&egrave; dunque nulla da tracciare,
+        e in particolare non c&rsquo;&egrave; un portafoglio che valga zero euro.
+      </p>
+
+      <p class="dove-esiste">
+        <span class="et">Dove il dato esiste davvero</span>
+        <span>
+          il <b>capitale versato</b> &egrave; al suo posto (€&thinsp;13.216,00, dai due carichi del
+          9.VIII.2026): il quadro del risultato qui sopra lo dichiara. Il grafico compare con la
+          <b>prima rilevazione</b> &mdash; basta un aggiornamento dei prezzi.
+        </span>
+      </p>
+
+      <p class="invito-scala">
+        Nessuna scala pu&ograve; produrre un punto che non esiste: ci&ograve; che manca non &egrave;
+        l&rsquo;intervallo ma il <b>prezzo</b>, e l&rsquo;archivio non lo inventa n&eacute; lo chiede
+        alla fonte per conto proprio.
+      </p>
+    </div>
+
+    <p class="nota-sezione">
+      In tutti e tre gli stati &mdash; copertura piena, parziale, assente &mdash; il grafico legge
+      <b>gli stessi dati</b>, arrivati in un solo giro di richieste al server: carichi, vendite e
+      rilevazioni gi&agrave; registrate. Cambia solo quanto di essi basta ad affermare una cifra, e
+      il grafico lo dichiara sempre invece di lasciarlo dedurre.
+    </p>
+
+    <nav class="nav-mockup">
+      <span>US-019 &middot; </span>
+      <a href="index.html">copertura piena e riporto dichiarato</a> &middot;
+      <a href="copertura-parziale.html">casi limite (questa pagina)</a>
+    </nav>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; registro dei conti</span>
+    <span>US-019 &middot; FR-015 &middot; ADR-010 &middot; ADR-003</span>
+  </footer>
+
+</div>
+
+</body>
+</html>
