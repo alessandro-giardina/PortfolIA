@@ -10,6 +10,9 @@ import Fastify from 'fastify';
 import * as schema from '../src/db/schema.js';
 import type { EnrichedPositionSummary } from '@portfolia/shared';
 
+/** ISIN dello scenario US-042/US-043: due carichi a prezzi diversi. */
+const ISIN_LIFO = 'IE00BK5BQT80';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(__dirname, '..', 'src', 'db', 'migrations');
 
@@ -31,6 +34,7 @@ vi.mock('../src/db/index.js', () => ({
 }));
 
 const { positionsRoutes } = await import('../src/api/positions.js');
+const { salesRoutes } = await import('../src/api/sales.js');
 
 // ---------------------------------------------------------------------------
 // buildApp — crea un db SQLite temporaneo per ogni test
@@ -61,6 +65,7 @@ async function buildApp(opzioni: { now?: () => Date } = {}) {
   });
 
   await fastify.register(positionsRoutes, opzioni);
+  await fastify.register(salesRoutes);
   await fastify.ready();
   return fastify;
 }
@@ -509,5 +514,111 @@ describe('GET /api/portfolios/:id/positions/enriched', () => {
     // Seminato "adesso": qualunque sia l'ora di esecuzione, non può essere
     // obsoleto — `classifyRefetch(now, now)` non restituisce mai `none`.
     expect(res.json<EnrichedPositionSummary[]>()[0].freshness).toBe('current');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// I campi del P&L (US-043): realizedPnl, latentPnl, totalPnl, totalLoadCost.
+// ---------------------------------------------------------------------------
+
+function vendi(
+  app: Awaited<ReturnType<typeof buildApp>>,
+  portfolioId: number,
+  payload: Record<string, unknown>,
+) {
+  return app.inject({ method: 'POST', url: `/api/portfolios/${portfolioId}/sales`, payload });
+}
+
+describe('GET /api/portfolios/:id/positions/enriched — i campi del P&L (US-043)', () => {
+  it('un ISIN senza vendite riporta realizedPnl 0 e latentPnl identico a difference', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio Arricchito Senza Vendite Pnl');
+
+    await addPosition(app, portfolioId, ISIN_LIFO, 9.8, 600);
+    await addPosition(app, portfolioId, ISIN_LIFO, 11.5, 400);
+    insertSecurity(ISIN_LIFO, 'Vanguard FTSE All-World UCITS ETF Acc', 12.5);
+
+    const [ep] = (
+      await app.inject({ method: 'GET', url: `/api/portfolios/${portfolioId}/positions/enriched` })
+    ).json<EnrichedPositionSummary[]>();
+
+    expect(ep.realizedPnl).toBe(0);
+    // Nessuna regressione sulle cifre già fissate da US-042/US-034.
+    expect(ep.currentValue).toBeCloseTo(12.5 * 1000, 8);
+    expect(ep.difference).toBeCloseTo(ep.latentPnl ?? NaN, 8);
+    expect(ep.totalPnl).toBeCloseTo(ep.realizedPnl + (ep.latentPnl ?? NaN), 8);
+  });
+
+  it('dopo una vendita il totale è la somma di realizzato e latente, con la base della percentuale su tutti i carichi', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio Arricchito Con Vendita Pnl');
+
+    await addPosition(app, portfolioId, ISIN_LIFO, 9.8, 600);
+    await addPosition(app, portfolioId, ISIN_LIFO, 11.5, 400);
+    insertSecurity(ISIN_LIFO, 'Vanguard FTSE All-World UCITS ETF Acc', 12.5);
+    const venditaRes = await vendi(app, portfolioId, {
+      isin: ISIN_LIFO,
+      sale_date: '2026-06-03',
+      sale_price: 12.5,
+      quantity: 400,
+    });
+    expect(venditaRes.statusCode).toBe(201);
+
+    const [ep] = (
+      await app.inject({ method: 'GET', url: `/api/portfolios/${portfolioId}/positions/enriched` })
+    ).json<EnrichedPositionSummary[]>();
+
+    expect(ep.totalQuantity).toBe(600);
+    expect(ep.realizedPnl).toBeCloseTo(400, 8);
+    expect(ep.latentPnl).toBeCloseTo(12.5 * 600 - 9.8 * 600, 8);
+    expect(ep.totalPnl).toBeCloseTo(ep.realizedPnl + (ep.latentPnl ?? NaN), 8);
+    // Criterio 5: costo di tutti i carichi, lotti venduti inclusi.
+    expect(ep.totalLoadCost).toBeCloseTo(9.8 * 600 + 11.5 * 400, 8);
+  });
+
+  it('un titolo interamente venduto porta il latente a zero misurato, non assente', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio Arricchito Interamente Venduto');
+
+    await addPosition(app, portfolioId, ISIN_LIFO, 9.8, 600);
+    await addPosition(app, portfolioId, ISIN_LIFO, 11.5, 400);
+    // Nessun prezzo corrente in cache: il residuo è comunque zero misurato.
+    const venditaRes = await vendi(app, portfolioId, {
+      isin: ISIN_LIFO,
+      sale_date: '2026-06-03',
+      sale_price: 12.5,
+      quantity: 1000,
+    });
+    expect(venditaRes.statusCode).toBe(201);
+
+    const [ep] = (
+      await app.inject({ method: 'GET', url: `/api/portfolios/${portfolioId}/positions/enriched` })
+    ).json<EnrichedPositionSummary[]>();
+
+    expect(ep.totalQuantity).toBe(0);
+    expect(ep.avgLoadPrice).toBeNull();
+    expect(ep.currentPrice).toBeNull();
+    expect(ep.latentPnl).toBe(0);
+    expect(ep.totalPnl).toBe(ep.realizedPnl);
+    // US-044: l'incasso della vendita che azzera il residuo, coerente con la
+    // cifra reale (1.000 quote a 12,50), e il realizzato resta quello di
+    // sempre — l'aggiunta di soldRevenue non lo tocca.
+    expect(ep.soldRevenue).toBeCloseTo(1000 * 12.5, 8);
+    expect(ep.realizedPnl).toBeCloseTo(1000 * 12.5 - (9.8 * 600 + 11.5 * 400), 8);
+  });
+
+  it('un ISIN senza vendite riporta soldRevenue 0 (US-044)', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio Arricchito Senza Vendite Ricavo');
+
+    await addPosition(app, portfolioId, ISIN_LIFO, 9.8, 600);
+    await addPosition(app, portfolioId, ISIN_LIFO, 11.5, 400);
+    insertSecurity(ISIN_LIFO, 'Vanguard FTSE All-World UCITS ETF Acc', 12.5);
+
+    const [ep] = (
+      await app.inject({ method: 'GET', url: `/api/portfolios/${portfolioId}/positions/enriched` })
+    ).json<EnrichedPositionSummary[]>();
+
+    expect(ep.soldRevenue).toBe(0);
   });
 });

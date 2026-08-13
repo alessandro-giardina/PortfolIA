@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-044 · Caso limite: portafoglio interamente venduto</title>
+<meta name="description" content="Mockup US-044: ogni titolo del portafoglio è stato venduto per intero — la tabella dei posseduti è vuota, il valore attuale è zero misurato, e «Posizioni chiuse» porta tutto il risultato realizzato.">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro · partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Caso limite · nessuna posizione ancora posseduta</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> — ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Criteri <b>1 · 2 · 3</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <p style="font-family:'IM Fell English',serif;font-style:italic;color:var(--seppia);font-size:14px;margin:6px 0 22px;">
+      Ipotesi di continuazione: a differenza di <em>index.html</em>, qui Giulia ha liquidato
+      anche le tre posizioni che lì restavano possedute (Enel, iShares Core MSCI World,
+      Recordati), oltre alle due già chiuse (Vanguard, BTP). Stesso portafoglio, stesso costo
+      complessivo dei carichi — nessuna posizione ha più quantità residua.
+    </p>
+
+    <div class="sezione-titolo" style="margin-top: 6px;">
+      Titoli posseduti
+      <span class="nota">FR-013 · nessuna posizione con quantità residua &gt; 0</span>
+    </div>
+
+    <!-- ══ Valore attuale: zero MISURATO, non assente — nulla è posseduto ══ -->
+    <div class="riquadro-valore-totale" aria-label="Valore attuale totale del portafoglio">
+      <div class="fascia-colore assente"></div>
+      <div class="contenuto-totale">
+        <div class="blocco-cifra">
+          <span class="et-totale">Valore attuale totale</span>
+          <span class="cifra-totale zero-misurato"><span class="valuta">EUR</span>0,00</span>
+        </div>
+        <div class="timestamp-totale">
+          Nessuna posizione posseduta<br>
+          0 di 0 posizioni da valorizzare
+        </div>
+      </div>
+    </div>
+
+    <p style="font-family:'IM Fell English',serif;font-style:italic;color:var(--seppia);font-size:13px;margin:-4px 0 22px;">
+      «€&nbsp;0,00» qui è una cifra <em>misurata</em>, non un dato che manca (criterio 3): il
+      conto è stato fatto ed è zero perché non resta alcun titolo, non perché un prezzo sia
+      irreperibile.
+    </p>
+
+    <!-- ══ La tabella dei posseduti è vuota — riuso del pattern di US-017 ══ -->
+    <div class="stato-vuoto" role="status" aria-label="Nessun titolo posseduto">
+      <div class="ornamento" aria-hidden="true">₤</div>
+      <p class="titolo-vuoto">Nessun titolo è oggi posseduto</p>
+      <p class="desc-vuoto">
+        Ogni ISIN mai iscritto in questo portafoglio è stato interamente venduto. Il registro
+        delle iscrizioni non è vuoto — porta cinque carichi e sei scarichi — ma la quantità
+        residua di ciascun titolo è zero: qui non c'è nulla da mostrare come posseduto.
+      </p>
+      <span class="timbro-vuoto">Conto attivo &middot; senza posizioni residue</span>
+    </div>
+
+    <!-- ══ Il quadro del risultato: tutto realizzato, nulla latente ══ -->
+    <div class="sezione-titolo" style="margin-top: 34px;">
+      Quadro del risultato
+      <span class="nota">FR-025 · un portafoglio senza posizioni residue non ha alcun latente da mostrare</span>
+    </div>
+
+    <div class="quadro-risultato" aria-label="Quadro del risultato: solo realizzato, latente a zero misurato">
+      <div class="fascia-colore"></div>
+      <div class="interno">
+
+        <div class="capo-quadro">
+          <h2>Quadro del risultato</h2>
+        </div>
+
+        <div class="somma">
+
+          <div class="voce-pl">
+            <span class="et-pl">P&amp;L realizzato</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>12.075,00
+            </span>
+            <span class="verdetto guadagno">guadagno incassato</span>
+            <span class="sigillo">congelato · 5 posizioni chiuse</span>
+            <span class="chiosa">
+              Somma del risultato congelato delle <b>cinque</b> posizioni ora chiuse — l'intero
+              portafoglio. Nessuna cifra qui dipende da un prezzo corrente: sono tutte scritture
+              già avvenute.
+            </span>
+          </div>
+
+          <div class="operatore" aria-hidden="true">+</div>
+
+          <div class="voce-pl">
+            <span class="et-pl">P&amp;L latente</span>
+            <span class="cifra-pl nulla zero-misurato">
+              <span class="euro-pl">€</span>0,00
+            </span>
+            <span class="verdetto neutro">nessuna quota residua in portafoglio</span>
+            <span class="chiosa">
+              Zero <em>misurato</em>, non dato assente: non c'è alcuna posizione con quantità
+              residua su cui calcolare una differenza. È lo stesso zero che US-043 già mostrava
+              per una singola posizione azzerata, qui semplicemente vero per <em>tutte</em>.
+            </span>
+          </div>
+
+          <div class="operatore uguale" aria-hidden="true">═</div>
+
+          <div class="voce-pl totale">
+            <span class="et-pl">P&amp;L totale</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>12.075,00
+            </span>
+            <span class="verdetto guadagno">guadagno complessivo</span>
+            <span class="percentuale positiva">+29,53&nbsp;%</span>
+            <span class="base-percentuale">
+              su <b>€&nbsp;40.890,00</b>, costo di tutti i carichi delle cinque posizioni — la
+              base non si azzera insieme al latente: resta il costo di ciò che è stato comprato,
+              non di ciò che è ancora posseduto.
+            </span>
+          </div>
+
+        </div>
+
+        <div class="postilla-liquidita">
+          <span class="titoletto">L'app tiene i titoli, non la cassa</span>
+          <div>
+            <p>
+              L'incasso complessivo delle cinque vendite — €&nbsp;52.965,00 — non è trattenuto
+              come liquidità: qui non c'è nessun titolo da valorizzare, e l'intero esito del
+              portafoglio è, per costruzione, tutto e solo realizzato.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ Posizioni chiuse: ora porta l'intero portafoglio ══ -->
+    <div class="sezione-titolo" style="margin-top: 40px;">
+      Posizioni chiuse
+      <span class="nota">FR-026 · cinque posizioni, nessuna quantità residua</span>
+    </div>
+
+    <div class="blocco-posizioni-chiuse" aria-label="Posizioni interamente vendute">
+      <div class="fascia-colore"></div>
+      <div class="contenuto">
+
+        <div class="capo-chiuse">
+          <span class="timbro carminio">Sola consultazione</span>
+          <span class="nota-capo">
+            l'intero portafoglio è qui: nessuna posizione compare nella tabella dei posseduti
+          </span>
+        </div>
+
+        <div class="tabella-scroll">
+          <table class="mastro chiuse" aria-label="Tabella delle posizioni interamente vendute">
+            <thead>
+              <tr>
+                <th>Denominazione · ISIN</th>
+                <th>Chiusa il</th>
+                <th>Quantità venduta</th>
+                <th>Incasso</th>
+                <th>P&amp;L realizzato</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <span class="voce">
+                    <strong>ENEL S.p.A.</strong>
+                    <small>IT0003128367</small>
+                  </span>
+                </td>
+                <td class="et-chiusura">05.VIII.2026</td>
+                <td class="cifra">1.200</td>
+                <td class="cifra euro">8.900,00</td>
+                <td class="cifra guadagno">+2.396,00</td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="voce">
+                    <strong>iShares Core MSCI World UCITS ETF</strong>
+                    <small>IE00BMVB5S82</small>
+                  </span>
+                </td>
+                <td class="et-chiusura">08.VIII.2026</td>
+                <td class="cifra">220</td>
+                <td class="cifra euro">21.000,00</td>
+                <td class="cifra guadagno">+5.974,00</td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="voce">
+                    <strong>Recordati S.p.A.</strong>
+                    <small>IT0003828271</small>
+                  </span>
+                </td>
+                <td class="et-chiusura">11.VIII.2026</td>
+                <td class="cifra">90</td>
+                <td class="cifra euro">5.100,00</td>
+                <td class="cifra guadagno">+1.320,00</td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="voce">
+                    <strong>Vanguard FTSE All-World UCITS ETF Acc</strong>
+                    <small>IE00BK5BQT80</small>
+                  </span>
+                </td>
+                <td class="et-chiusura">10.VIII.2026</td>
+                <td class="cifra">1.000</td>
+                <td class="cifra euro">12.740,00</td>
+                <td class="cifra guadagno">+2.260,00</td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="voce">
+                    <strong>BTP Italia Tf 2,80% Sc2030</strong>
+                    <small>IT0005438004</small>
+                  </span>
+                </td>
+                <td class="et-chiusura">02.VII.2026</td>
+                <td class="cifra">5.000</td>
+                <td class="cifra euro">5.225,00</td>
+                <td class="cifra guadagno">+125,00</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3">Totale posizioni chiuse (5)</td>
+                <td class="cifra euro">52.965,00</td>
+                <td class="cifra guadagno">+12.075,00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="cartiglio" style="margin-top: 30px;">
+      <h4>Un portafoglio senza titoli non è un portafoglio vuoto</h4>
+      <p>
+        Lo stato vuoto di questa pagina è, alla lettera, lo stesso di un portafoglio appena
+        creato e mai popolato (US-017): stesso ornamento, stessa dicitura, stesso invito grafico.
+        Ma il registro dietro le due pagine non si somiglia per nulla — qui porta cinque carichi
+        e sei scarichi, e il quadro del risultato lo dichiara a chiare lettere con dodicimila
+        euro di realizzato. Riusare lo stesso stato vuoto per la tabella dei posseduti è corretto
+        perché quella tabella, in entrambi i casi, risponde alla stessa domanda ("che cosa
+        possiedo ora") con la stessa risposta ("nulla"); sarebbe scorretto lasciare che
+        quell'identità visiva si estendesse al resto della pagina, dove i due portafogli non
+        potrebbero essere più diversi.
+      </p>
+    </div>
+
+    <div class="nav-mockup">
+      Mockup US-044 &nbsp;·&nbsp;
+      <a href="index.html">Riepilogo · posseduti e chiusi</a>
+      <a href="riapertura.html">Caso limite · un ISIN chiuso si riapre</a>
+      <a href="esaurito.html">Caso limite · portafoglio interamente venduto</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto — A. Giardina, contabile in proprio</span>
+    <span>PortfolIA · libro mastro · c. 3</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

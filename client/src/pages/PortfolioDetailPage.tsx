@@ -6,6 +6,7 @@ import Foglio, { dataRegistro, importo, prezzo } from '../components/Foglio.js';
 import SchedaTitolo from '../components/SchedaTitolo.js';
 import AggiornaObsoleti from '../components/AggiornaObsoleti.js';
 import ModuloScarico, { type TitoloScaricabile } from '../components/ModuloScarico.js';
+import QuadroRisultato from '../components/QuadroRisultato.js';
 
 /** Formatta una data ISO-8601 (YYYY-MM-DD) in stile registro (es. "15.III.2026"). */
 const MESI_ROMANI = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -236,6 +237,7 @@ export default function PortfolioDetailPage() {
         id: vendita.id,
         saleDate: vendita.saleDate,
         quantity: vendita.quantity,
+        salePrice: vendita.salePrice,
       });
     }
     return perIsin;
@@ -250,6 +252,48 @@ export default function PortfolioDetailPage() {
       }
     }
     return residui;
+  }, [registri]);
+
+  /**
+   * Le posizioni **aperte** — quantità residua superiore a zero — e quelle
+   * **chiuse** — venduto per intero (US-044, FR-013, FR-026).
+   *
+   * La partizione vive qui e non nel rendering perché entrambe le sezioni della
+   * scheda Riepilogo (la tabella dei posseduti, il riquadro del valore totale, e
+   * la nuova tabella «Posizioni chiuse») leggono lo stesso confine: calcolarlo in
+   * due punti diversi rischierebbe di farli divergere su un arrotondamento o un
+   * refactor futuro. `QuadroRisultato` **non** legge questi due elenchi: continua
+   * a ricevere `enrichedPositions` per intero, perché il realizzato delle
+   * posizioni chiuse deve restare nel P&L totale del portafoglio anche dopo che
+   * la loro riga è uscita dalla tabella dei posseduti (criterio 3).
+   */
+  const posizioniAperte = useMemo(
+    () => enrichedPositions.filter((ep) => ep.totalQuantity > 0),
+    [enrichedPositions],
+  );
+  const posizioniChiuse = useMemo(
+    () => enrichedPositions.filter((ep) => ep.totalQuantity === 0),
+    [enrichedPositions],
+  );
+
+  /**
+   * L'ultima data di vendita per ISIN, per la colonna «Chiusa il» di «Posizioni
+   * chiuse» (US-044).
+   *
+   * Non è un nuovo campo di dominio: si legge dal registro già rigiocato per la
+   * tabella unificata di «Carico titoli» (`registri`), lo stesso registro da cui
+   * `residuoPerLotto` legge il residuo lotto per lotto. Le vendite sono ordinate
+   * per data crescente da `rigiocaRegistro`, quindi l'ultima dell'array è la più
+   * recente.
+   */
+  const ultimaVenditaPerIsin = useMemo(() => {
+    const date = new Map<string, string>();
+    for (const [isin, registro] of registri.entries()) {
+      const { vendite } = rigiocaRegistro(registro);
+      const ultima = vendite.at(-1);
+      if (ultima) date.set(isin, ultima.saleDate);
+    }
+    return date;
   }, [registri]);
 
   /**
@@ -720,37 +764,62 @@ export default function PortfolioDetailPage() {
               ) : (
                 <>
                   {(() => {
-                    const positionsWithPrice = enrichedPositions.filter((ep) => ep.currentValue !== null);
+                    // Da US-044 il riquadro si calcola sulle sole posizioni
+                    // APERTE, non più su `enrichedPositions`: una posizione
+                    // chiusa contribuisce 0 al valore attuale (criterio 3), e
+                    // non deve né contarsi come "posizione senza prezzo" né
+                    // gonfiare il denominatore del conteggio qui sotto.
+                    const positionsWithPrice = posizioniAperte.filter((ep) => ep.currentValue !== null);
                     const totalCurrentValue = positionsWithPrice.reduce((s, ep) => s + (ep.currentValue ?? 0), 0);
-                    const missingPriceCount = enrichedPositions.length - positionsWithPrice.length;
+                    const missingPriceCount = posizioniAperte.length - positionsWithPrice.length;
+                    // Zero **misurato**, non assente: nessuna posizione aperta
+                    // significa che il conto non possiede oggi alcun titolo, non
+                    // che un prezzo sia irreperibile. Il trattino resta riservato
+                    // al solo caso — posizioni aperte, nessun prezzo in cache —
+                    // in cui il dato manca davvero.
+                    const nessunaPosizioneAperta = posizioniAperte.length === 0;
                     return (
                       <div className="riquadro-valore-totale" data-testid="valore-totale-portafoglio" aria-label="Valore attuale totale del portafoglio">
-                        <div className={`fascia-colore${missingPriceCount > 0 ? (positionsWithPrice.length === 0 ? ' assente' : ' parziale') : ''}`}></div>
+                        <div className={`fascia-colore${nessunaPosizioneAperta ? ' assente' : missingPriceCount > 0 ? (positionsWithPrice.length === 0 ? ' assente' : ' parziale') : ''}`}></div>
                         <div className="contenuto-totale">
                           <div className="blocco-cifra">
                             <span className="et-totale">Valore attuale totale</span>
-                            <span className={`cifra-totale${positionsWithPrice.length === 0 ? ' assente' : missingPriceCount > 0 ? ' parziale' : ''}`}>
+                            <span className={`cifra-totale${nessunaPosizioneAperta ? ' zero-misurato' : positionsWithPrice.length === 0 ? ' assente' : missingPriceCount > 0 ? ' parziale' : ''}`}>
                               <span className="valuta">EUR</span>
-                              {positionsWithPrice.length === 0
-                                ? '–'
-                                : totalCurrentValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              {nessunaPosizioneAperta
+                                ? '0,00'
+                                : positionsWithPrice.length === 0
+                                  ? '–'
+                                  : totalCurrentValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
-                          {missingPriceCount > 0 && (
+                          {!nessunaPosizioneAperta && missingPriceCount > 0 && (
                             <div className="nota-mancante" role="note">
                               <strong>{positionsWithPrice.length === 0 ? 'Nessun prezzo disponibile' : 'Valore parziale'}</strong>
                               {positionsWithPrice.length === 0
-                                ? `Il prezzo corrente non è in archivio per nessuna delle ${enrichedPositions.length} ${enrichedPositions.length === 1 ? 'posizione' : 'posizioni'}. Il valore sarà calcolato non appena almeno un prezzo sarà recuperato.`
+                                ? `Il prezzo corrente non è in archivio per nessuna delle ${posizioniAperte.length} ${posizioniAperte.length === 1 ? 'posizione' : 'posizioni'}. Il valore sarà calcolato non appena almeno un prezzo sarà recuperato.`
                                 : `${missingPriceCount} ${missingPriceCount === 1 ? 'posizione senza prezzo corrente' : 'posizioni senza prezzo corrente'}: il totale esclude ${missingPriceCount === 1 ? 'questo titolo' : 'questi titoli'}.`}
                             </div>
                           )}
                           <div className="timestamp-totale">
-                            {positionsWithPrice.length} di {enrichedPositions.length} {enrichedPositions.length === 1 ? 'posizione valorizzata' : 'posizioni valorizzate'}
+                            {nessunaPosizioneAperta
+                              ? 'Nessuna posizione posseduta'
+                              : <>{positionsWithPrice.length} di {posizioniAperte.length} {posizioniAperte.length === 1 ? 'posizione valorizzata' : 'posizioni valorizzate'}</>}
                           </div>
                         </div>
                       </div>
                     );
                   })()}
+                  {/*
+                    Il quadro del risultato (US-043) sta subito sotto il
+                    riquadro del valore attuale e sopra il comando di
+                    aggiornamento in blocco: il primo riquadro dichiara che
+                    cosa il conto possiede oggi, questo quanto quel possesso è
+                    valso — comprese le quote già vendute. Riceve le stesse
+                    `enrichedPositions` del riquadro sopra: nessun secondo
+                    calcolo, nessuna seconda richiesta.
+                  */}
+                  <QuadroRisultato enrichedPositions={enrichedPositions} />
                   {/*
                     Il riquadro di conteggio di US-034 e il comando di
                     aggiornamento in blocco di US-035 sono un corpo solo: la
@@ -767,6 +836,26 @@ export default function PortfolioDetailPage() {
                       onTitoloInCorso={setIsinInLavorazione}
                     />
                   )}
+                  {posizioniAperte.length === 0 ? (
+                    // Ogni posizione di questo portafoglio è stata venduta per
+                    // intero (US-044, criterio 3): la tabella dei posseduti non
+                    // ha righe da mostrare, ma non è lo stato "mai popolato" di
+                    // `riepilogo-vuoto` — il registro porta carichi e vendite,
+                    // solo nessuno con residuo. Il risultato non è perduto: sta
+                    // nel quadro qui sopra e nella sezione «Posizioni chiuse» qui
+                    // sotto.
+                    <div className="dettaglio-placeholder" data-testid="riepilogo-tutte-chiuse">
+                      <span className="icona-conto" aria-hidden="true">&#9634;</span>
+                      <p className="sottotitolo" style={{ fontFamily: "'IM Fell English', serif", fontStyle: 'italic', fontSize: '18px', fontWeight: 400 }}>
+                        Nessun titolo è oggi posseduto
+                      </p>
+                      <p className="sottotitolo">
+                        Ogni titolo mai iscritto in questo portafoglio è stato venduto per intero.
+                        Il suo esito resta consultabile qui sotto, in <em>Posizioni chiuse</em>.
+                      </p>
+                    </div>
+                  ) : (
+                  <>
                   <div className="tabella-scroll">
                     <table className="mastro" data-testid="tabella-riepilogo" aria-label="Tabella titoli del portafoglio">
                       <thead>
@@ -781,7 +870,7 @@ export default function PortfolioDetailPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {enrichedPositions.map((ep) => (
+                        {posizioniAperte.map((ep) => (
                           <tr
                             key={ep.isin}
                             className={`cliccabile${isinInLavorazione === ep.isin ? ' in-lavorazione' : ''}`}
@@ -803,6 +892,22 @@ export default function PortfolioDetailPage() {
                             <td>
                               <span className="voce">
                                 {ep.name ? <strong>{ep.name}</strong> : null}
+                                {/*
+                                  Il segnale che questo ISIN ha un passato: una
+                                  volta chiuso — residuo azzerato, uscito dalla
+                                  tabella — un nuovo carico lo riporta qui, e
+                                  `soldQuantity > 0` è il solo modo di saperlo
+                                  senza consultare «Posizioni chiuse» (US-044).
+                                  Non è un caso della sola prima apertura dopo
+                                  la chiusura: resta finché il titolo è tenuto,
+                                  perché il registro delle vendite non si azzera
+                                  mai da solo.
+                                */}
+                                {ep.soldQuantity > 0 && (
+                                  <span className="badge-riaperta" data-testid={`badge-riaperta-${ep.isin}`}>
+                                    &#8635; riaperta
+                                  </span>
+                                )}
                                 <small style={{ display: 'block', letterSpacing: '.08em', opacity: ep.name ? 0.7 : 1 }}>{ep.isin}</small>
                               </span>
                             </td>
@@ -901,14 +1006,14 @@ export default function PortfolioDetailPage() {
                         ))}
                       </tbody>
                       {(() => {
-                        const enrichedWithPrice = enrichedPositions.filter((ep) => ep.currentValue !== null);
+                        const enrichedWithPrice = posizioniAperte.filter((ep) => ep.currentValue !== null);
                         if (enrichedWithPrice.length === 0) return null;
                         const totalCurrentValue = enrichedWithPrice.reduce((s, ep) => s + (ep.currentValue ?? 0), 0);
                         const totalDiff = enrichedWithPrice.reduce((s, ep) => s + (ep.difference ?? 0), 0);
                         return (
                           <tfoot>
                             <tr>
-                              <td colSpan={5}>Totale portafoglio ({enrichedWithPrice.length} {enrichedWithPrice.length === 1 ? 'posizione valorizzata' : 'posizioni valorizzate'}{enrichedWithPrice.length < enrichedPositions.length ? ` di ${enrichedPositions.length}` : ''})</td>
+                              <td colSpan={5}>Totale portafoglio ({enrichedWithPrice.length} {enrichedWithPrice.length === 1 ? 'posizione valorizzata' : 'posizioni valorizzate'}{enrichedWithPrice.length < posizioniAperte.length ? ` di ${posizioniAperte.length}` : ''})</td>
                               <td className="cifra euro">{totalCurrentValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                               <td className={totalDiff >= 0 ? 'cifra guadagno' : 'cifra perdita'}>
                                 {`${totalDiff >= 0 ? '+' : ''}${totalDiff.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -924,6 +1029,95 @@ export default function PortfolioDetailPage() {
                     disponibile in archivio; la differenza non può essere calcolata.
                     Seleziona una riga per aprirne la <em>scheda titolo</em> con l&rsquo;anagrafica completa.
                   </p>
+                  </>
+                  )}
+                  {/*
+                    ══ Posizioni chiuse (US-044, FR-026, FR-013) ══
+                    Visibile solo quando esiste almeno un ISIN a residuo 0: un
+                    elenco derivato dallo stesso registro delle iscrizioni, non
+                    un secondo archivio. Vive sotto la tabella dei posseduti (o
+                    sotto il suo stato vuoto) e sopra i comandi di gestione del
+                    conto, così che chi legge trovi prima "che cosa ha" e poi
+                    "che cosa ha prodotto ciò che non ha più".
+                  */}
+                  {posizioniChiuse.length > 0 && (
+                    <>
+                      <div className="sezione-titolo" style={{ marginTop: '40px' }}>
+                        Posizioni chiuse
+                        <span className="nota">FR-026, FR-013 &middot; titoli venduti per intero — fuori dalla tabella qui sopra, dentro il risultato del portafoglio</span>
+                      </div>
+
+                      <div className="blocco-posizioni-chiuse" aria-label="Posizioni interamente vendute">
+                        <div className="fascia-colore"></div>
+                        <div className="contenuto">
+                          <div className="capo-chiuse">
+                            <span className="timbro carminio">Sola consultazione</span>
+                            <span className="nota-capo">
+                              quantità residua 0 su ciascuna riga: nulla da vendere né da rettificare, solo da leggere
+                            </span>
+                          </div>
+
+                          <div className="tabella-scroll">
+                            <table className="mastro chiuse" data-testid="tabella-posizioni-chiuse" aria-label="Tabella delle posizioni interamente vendute">
+                              <thead>
+                                <tr>
+                                  <th>Denominazione &middot; ISIN</th>
+                                  <th>Chiusa il</th>
+                                  <th>Quantità venduta</th>
+                                  <th>Incasso</th>
+                                  <th>P&amp;L realizzato</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {posizioniChiuse.map((ep) => {
+                                  const chiusuraIl = ultimaVenditaPerIsin.get(ep.isin);
+                                  return (
+                                    <tr key={ep.isin} data-testid={`posizione-chiusa-${ep.isin}`}>
+                                      <td>
+                                        <span className="voce">
+                                          {ep.name ? <strong>{ep.name}</strong> : null}
+                                          <small style={{ display: 'block', letterSpacing: '.08em', opacity: ep.name ? 0.7 : 1 }}>{ep.isin}</small>
+                                        </span>
+                                      </td>
+                                      <td className="et-chiusura">{chiusuraIl ? dataCarico(chiusuraIl) : '–'}</td>
+                                      <td className="cifra">{ep.soldQuantity.toLocaleString('it-IT')}</td>
+                                      <td className="cifra euro">{ep.soldRevenue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                      <td className={ep.realizedPnl >= 0 ? 'cifra guadagno' : 'cifra perdita'}>
+                                        {`${ep.realizedPnl >= 0 ? '+' : ''}${ep.realizedPnl.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                              <tfoot>
+                                <tr>
+                                  <td colSpan={3}>Totale posizioni chiuse ({posizioniChiuse.length})</td>
+                                  <td className="cifra euro">
+                                    {posizioniChiuse.reduce((s, ep) => s + ep.soldRevenue, 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </td>
+                                  {(() => {
+                                    const totaleRealizzato = posizioniChiuse.reduce((s, ep) => s + ep.realizedPnl, 0);
+                                    return (
+                                      <td className={totaleRealizzato >= 0 ? 'cifra guadagno' : 'cifra perdita'}>
+                                        {`${totaleRealizzato >= 0 ? '+' : ''}${totaleRealizzato.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                                      </td>
+                                    );
+                                  })()}
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p style={{ fontFamily: "'IM Fell English', serif", fontStyle: 'italic', color: 'var(--seppia)', fontSize: '13px', margin: '14px 0 0', paddingTop: '10px', borderTop: '1px dotted rgba(110,90,54,.4)' }}>
+                        Le due cifre «Quantità venduta» e «Incasso» sono la somma di <em>tutti</em> gli scarichi
+                        registrati su quell&rsquo;ISIN, anche quando sono avvenuti in più iscrizioni distinte. Il
+                        P&amp;L realizzato è la stessa cifra congelata che concorre al quadro del risultato qui
+                        sopra: non è ricalcolato qui, è letto da lì.
+                      </p>
+                    </>
+                  )}
                 </>
               )}
 

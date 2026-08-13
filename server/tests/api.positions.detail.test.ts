@@ -34,10 +34,13 @@ vi.mock('../src/db/index.js', () => ({
 }));
 
 const { positionsRoutes } = await import('../src/api/positions.js');
+const { salesRoutes } = await import('../src/api/sales.js');
 
 const ISIN = 'IE00B4L5Y983';
 /** ISIN formalmente valido ma mai iscritto ad alcun portafoglio di prova. */
 const ISIN_ESTRANEO = 'IE00B3RBWM25';
+/** ISIN dello scenario US-042/US-043: due carichi a prezzi diversi. */
+const ISIN_LIFO = 'IE00BK5BQT80';
 
 async function buildApp() {
   testDbPath = join(tmpdir(), `test-api-detail-${Date.now()}-${Math.random().toString(36).slice(2)}.db`);
@@ -57,6 +60,7 @@ async function buildApp() {
   });
 
   await fastify.register(positionsRoutes);
+  await fastify.register(salesRoutes);
   await fastify.ready();
   return fastify;
 }
@@ -355,5 +359,97 @@ describe('GET /api/portfolios/:id/positions/:isin/detail', () => {
 
     expect(res.statusCode).toBe(404);
     expect(res.json<{ error: string }>().error).toMatch(/portafoglio non trovato/i);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// I campi del P&L (US-043): realizedPnl, latentPnl, totalPnl, totalLoadCost.
+// ---------------------------------------------------------------------------
+
+function vendi(app: App, portfolioId: number, payload: Record<string, unknown>) {
+  return app.inject({ method: 'POST', url: `/api/portfolios/${portfolioId}/sales`, payload });
+}
+
+describe('GET /api/portfolios/:id/positions/:isin/detail — i campi del P&L (US-043)', () => {
+  it('un ISIN senza vendite riporta realizedPnl 0 e latentPnl identico a difference', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Conto Dettaglio Senza Vendite Pnl');
+    await addPosition(app, portfolioId, ISIN_LIFO, '2023-04-12', 9.8, 600);
+    await addPosition(app, portfolioId, ISIN_LIFO, '2025-02-07', 11.5, 400);
+    insertSecurityCompleta(ISIN_LIFO);
+
+    const detail = (await fetchDetail(app, portfolioId, ISIN_LIFO)).json<PositionDetail>();
+
+    expect(detail.realizedPnl).toBe(0);
+    expect(detail.latentPnl).toBeCloseTo(detail.difference ?? NaN, 8);
+    expect(detail.totalPnl).toBeCloseTo(detail.realizedPnl + (detail.latentPnl ?? NaN), 8);
+    // Nessuna regressione sui campi già fissati da US-042/US-038.
+    expect(detail.totalQuantity).toBe(1000);
+    expect(detail.avgLoadPrice).toBeCloseTo((9.8 * 600 + 11.5 * 400) / 1000, 8);
+  });
+
+  it('dopo una vendita di 400 quote a 12,50 il realizzato e il totale sono coerenti col dominio', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Conto Dettaglio Con Vendita Pnl');
+    await addPosition(app, portfolioId, ISIN_LIFO, '2023-04-12', 9.8, 600);
+    await addPosition(app, portfolioId, ISIN_LIFO, '2025-02-07', 11.5, 400);
+    testDb
+      .insert(schema.securities)
+      .values({ isin: ISIN_LIFO, name: 'Vanguard FTSE All-World UCITS ETF Acc', price: 12.5 })
+      .run();
+    const venditaRes = await vendi(app, portfolioId, {
+      isin: ISIN_LIFO,
+      sale_date: '2026-06-03',
+      sale_price: 12.5,
+      quantity: 400,
+    });
+    expect(venditaRes.statusCode).toBe(201);
+
+    const detail = (await fetchDetail(app, portfolioId, ISIN_LIFO)).json<PositionDetail>();
+
+    expect(detail.totalQuantity).toBe(600);
+    expect(detail.realizedPnl).toBeCloseTo(400, 8);
+    expect(detail.latentPnl).toBeCloseTo(12.5 * 600 - 9.8 * 600, 8);
+    expect(detail.totalPnl).toBeCloseTo(detail.realizedPnl + (detail.latentPnl ?? NaN), 8);
+    // Criterio 5: costo di tutti i carichi, lotti venduti inclusi — 4.600 + 5.880.
+    expect(detail.totalLoadCost).toBeCloseTo(9.8 * 600 + 11.5 * 400, 8);
+  });
+
+  it('una vendita totale porta il latente a zero misurato anche senza prezzo corrente', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Conto Dettaglio Venduto Per Intero');
+    await addPosition(app, portfolioId, ISIN_LIFO, '2023-04-12', 9.8, 600);
+    await addPosition(app, portfolioId, ISIN_LIFO, '2025-02-07', 11.5, 400);
+    const venditaRes = await vendi(app, portfolioId, {
+      isin: ISIN_LIFO,
+      sale_date: '2026-06-03',
+      sale_price: 12.5,
+      quantity: 1000,
+    });
+    expect(venditaRes.statusCode).toBe(201);
+
+    const detail = (await fetchDetail(app, portfolioId, ISIN_LIFO)).json<PositionDetail>();
+
+    expect(detail.totalQuantity).toBe(0);
+    expect(detail.avgLoadPrice).toBeNull();
+    expect(detail.currentPrice).toBeNull();
+    expect(detail.latentPnl).toBe(0);
+    expect(detail.totalPnl).toBe(detail.realizedPnl);
+    // US-044: soldRevenue coerente con l'incasso reale della vendita che
+    // azzera il residuo, e il realizzato resta quello di sempre.
+    expect(detail.soldRevenue).toBeCloseTo(1000 * 12.5, 8);
+    expect(detail.realizedPnl).toBeCloseTo(1000 * 12.5 - (9.8 * 600 + 11.5 * 400), 8);
+  });
+
+  it('un ISIN senza vendite riporta soldRevenue 0 (US-044)', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Conto Dettaglio Senza Vendite Ricavo');
+    await addPosition(app, portfolioId, ISIN_LIFO, '2023-04-12', 9.8, 600);
+    await addPosition(app, portfolioId, ISIN_LIFO, '2025-02-07', 11.5, 400);
+    insertSecurityCompleta(ISIN_LIFO);
+
+    const detail = (await fetchDetail(app, portfolioId, ISIN_LIFO)).json<PositionDetail>();
+
+    expect(detail.soldRevenue).toBe(0);
   });
 });

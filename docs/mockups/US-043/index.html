@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-043 · Quadro del risultato: realizzato e latente</title>
+<meta name="description" content="Mockup US-043: il quadro del risultato nella linguetta Riepilogo — P&amp;L realizzato, latente e totale, con la dichiarazione sulla liquidità.">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro · partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Riepilogo · valore attuale e quadro del risultato</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> — ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top: 6px;">
+      Titoli iscritti a conto
+      <span class="nota">FR-013 · valore attuale e differenza rispetto al carico</span>
+    </div>
+
+    <!-- ══ 1. Lo STOCK: che cosa il conto tiene, oggi ══
+         Invariato rispetto a US-014: stessa struttura, stesse classi. -->
+    <div class="riquadro-valore-totale" aria-label="Valore attuale totale del portafoglio">
+      <div class="fascia-colore"></div>
+      <div class="contenuto-totale">
+        <div class="blocco-cifra">
+          <span class="et-totale">Valore attuale totale</span>
+          <span class="cifra-totale"><span class="valuta">EUR</span>7.500,00</span>
+        </div>
+        <div class="timestamp-totale">
+          Prezzi al 03.VI.2026 17:32<br>
+          1 di 1 posizioni valorizzate
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 2. La MISURA di quello stock: il quadro del risultato ══
+         Sta qui, appena sotto, e non altrove: il valore attuale
+         dichiara che cosa il conto possiede, il quadro dichiara
+         quanto quel possesso è valso. Fra i due c'è la postilla
+         sulla liquidità, che spiega perché le due cifre non
+         quadrano fra loro — l'incasso della vendita non è dentro
+         il valore attuale, è dentro il realizzato. -->
+    <div class="quadro-risultato" aria-label="Quadro del risultato: P&amp;L realizzato, latente e totale">
+      <div class="fascia-colore"></div>
+      <div class="interno">
+
+        <div class="capo-quadro">
+          <h2>Quadro del risultato</h2>
+          <span class="rimando">FR-025 · ADR-009 — realizzato + latente = totale</span>
+        </div>
+
+        <div class="somma">
+
+          <!-- ── addendo I: il realizzato ── -->
+          <div class="voce-pl">
+            <span class="et-pl">P&amp;L realizzato</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>400,00
+            </span>
+            <span class="verdetto guadagno">guadagno incassato</span>
+            <span class="sigillo">congelato il 03.VI.2026</span>
+            <span class="chiosa">
+              Scarico di <b>400</b> quote a <b>€&nbsp;12,5000</b>: ricavo <b>€&nbsp;5.000,00</b>
+              meno il costo LIFO attribuito <b>€&nbsp;4.600,00</b>. Calcolato all'atto
+              dell'iscrizione: <b>nessuna</b> rilevazione di prezzo successiva lo tocca.
+            </span>
+          </div>
+
+          <div class="operatore" aria-hidden="true">+</div>
+
+          <!-- ── addendo II: il latente ── -->
+          <div class="voce-pl">
+            <span class="et-pl">P&amp;L latente</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>1.620,00
+            </span>
+            <span class="verdetto guadagno">guadagno sulla carta</span>
+            <span class="chiosa">
+              Sulla <b>sola</b> quantità residua: <b>600</b> quote &times; <b>€&nbsp;12,5000</b>
+              = <b>€&nbsp;7.500,00</b> contro il costo dei lotti non consumati
+              <b>€&nbsp;5.880,00</b>. È la somma della colonna <em>Differenza</em>
+              della tabella qui sotto, e si muove a ogni nuovo rilevamento.
+            </span>
+          </div>
+
+          <div class="operatore uguale" aria-hidden="true">═</div>
+
+          <!-- ── il totale, oltre la doppia riga ── -->
+          <div class="voce-pl totale">
+            <span class="et-pl">P&amp;L totale</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>2.020,00
+            </span>
+            <span class="verdetto guadagno">guadagno complessivo</span>
+            <span class="percentuale positiva">+19,27&nbsp;%</span>
+            <span class="base-percentuale">
+              su <b>€&nbsp;10.480,00</b>, costo di <em>tutti</em> i carichi — lotti già
+              venduti inclusi:<br>
+              costo consumato <b>€&nbsp;4.600,00</b> + costo residuo <b>€&nbsp;5.880,00</b>.
+            </span>
+          </div>
+
+        </div>
+
+        <!-- ── criterio 6: dove è finito l'incasso ── -->
+        <div class="postilla-liquidita">
+          <span class="titoletto">L'app tiene i titoli, non la cassa</span>
+          <div>
+            <p>
+              L'incasso delle vendite — qui <b>€&nbsp;5.000,00</b> — <b>non</b> è trattenuto
+              come liquidità del portafoglio. Il <em>valore attuale totale</em> qui sopra
+              comprende i soli titoli posseduti: l'esito dell'operazione sta per intero
+              nel <em>P&amp;L realizzato</em>.
+            </p>
+            <p>
+              Perciò il valore attuale è sceso da €&nbsp;12.500,00 a €&nbsp;7.500,00 senza che
+              nulla sia andato perduto: €&nbsp;5.000,00 hanno lasciato il conto titoli e
+              €&nbsp;400,00 di quel movimento sono passati dal latente al realizzato (ADR-009 §3).
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ 3. Il cuore della spec: la vendita a prezzo di mercato non crea né distrugge ══ -->
+    <div class="cartiglio">
+      <h4>Vendere a prezzo di mercato sposta valore dal latente al realizzato, non lo crea né lo distrugge</h4>
+      <p>
+        Lo scarico del 03.VI.2026 è avvenuto a <b>€&nbsp;12,5000</b>, cioè al prezzo che il
+        mercato segna ancora oggi. A destra e a sinistra della vendita il <b>P&amp;L totale</b>
+        è lo stesso al centesimo: cambia soltanto <em>quale delle due colonne</em> lo porta.
+        È l'invariante che il criterio&nbsp;4 chiede di coprire con un test.
+      </p>
+      <div class="coppia">
+        <div>
+          <b>Prima dello scarico — 1.000 quote detenute</b>
+          <table class="conteggio">
+            <tr><td class="et">Valore 1.000 &times; € 12,5000</td><td class="val">€ 12.500,00</td></tr>
+            <tr><td class="et">Costo di tutti i carichi</td><td class="val">− € 10.480,00</td></tr>
+            <tr><td class="et">P&amp;L latente</td><td class="val">+ € 2.020,00</td></tr>
+            <tr><td class="et">P&amp;L realizzato <em>(nessuna vendita iscritta)</em></td><td class="val">0,00</td></tr>
+            <tr class="somma-riga"><td class="et">P&amp;L totale</td><td class="val">+ € 2.020,00</td></tr>
+          </table>
+        </div>
+        <div>
+          <b>Dopo lo scarico — 600 quote residue</b>
+          <table class="conteggio">
+            <tr><td class="et">Valore 600 &times; € 12,5000</td><td class="val">€ 7.500,00</td></tr>
+            <tr><td class="et">Costo dei lotti residui</td><td class="val">− € 5.880,00</td></tr>
+            <tr><td class="et">P&amp;L latente</td><td class="val">+ € 1.620,00</td></tr>
+            <tr><td class="et">P&amp;L realizzato <em>(5.000,00 − 4.600,00)</em></td><td class="val">+ € 400,00</td></tr>
+            <tr class="somma-riga"><td class="et">P&amp;L totale</td><td class="val">+ € 2.020,00</td></tr>
+          </table>
+        </div>
+      </div>
+      <p style="margin-top:10px;">
+        La percentuale non si muove per la stessa ragione: la base resta il costo di
+        <em>tutti</em> i carichi, €&nbsp;10.480,00, prima e dopo. Se la base fosse il solo
+        costo residuo — €&nbsp;5.880,00 — lo stesso identico P&amp;L totale di €&nbsp;2.020,00
+        varrebbe <b>+34,35&nbsp;%</b> invece di +19,27&nbsp;%: la percentuale salterebbe per
+        il solo fatto d'aver venduto, senza che nulla di reale sia accaduto. È precisamente
+        ciò che il criterio&nbsp;5 vieta.
+      </p>
+    </div>
+
+    <!--
+      Nota di lettura del mockup: fra il riquadro del valore totale e la tabella
+      vive anche il riquadro di aggiornamento dei titoli obsoleti (US-034/US-035).
+      Non è riprodotto qui perché US-043 non lo tocca, e la sua posizione non
+      cambia: il quadro del risultato si inserisce PRIMA di esso.
+    -->
+
+    <div class="tabella-scroll">
+      <table class="mastro" aria-label="Tabella titoli del portafoglio">
+        <thead>
+          <tr>
+            <th>Denominazione · ISIN</th>
+            <th>Quantità</th>
+            <th>Pr. medio carico</th>
+            <th>Prezzo attuale</th>
+            <th>Ultimo rilevamento</th>
+            <th>Valore attuale</th>
+            <th>Differenza</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="voce">
+                <strong>Vanguard FTSE All-World UCITS ETF Acc</strong>
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">600</td>
+            <td class="cifra euro">9,8000</td>
+            <td class="cifra euro">12,5000</td>
+            <td class="cifra">03.VI.2026 · 17:32</td>
+            <td class="cifra euro">7.500,00</td>
+            <td class="cifra guadagno">+1.620,00</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">Totale portafoglio (1 posizione valorizzata)</td>
+            <td class="cifra euro">7.500,00</td>
+            <td class="cifra guadagno">+1.620,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p style="font-family:'IM Fell English',serif;font-style:italic;color:var(--seppia);font-size:13px;margin:14px 0 0;padding-top:10px;border-top:1px dotted rgba(110,90,54,.4);">
+      La colonna <em>Differenza</em> misura il solo <b>P&amp;L latente</b>: riguarda le quote
+      ancora detenute, e il suo totale è la seconda cifra del quadro del risultato. Il P&amp;L
+      realizzato non compare in questa tabella perché non appartiene ad alcuna riga di
+      giacenza: nasce dalle iscrizioni di scarico.
+      I valori contrassegnati con «–» indicano che il prezzo corrente non è ancora
+      disponibile in archivio; la differenza non può essere calcolata.
+      Seleziona una riga per aprirne la <em>scheda titolo</em> con l'anagrafica completa.
+    </p>
+
+    <div class="nav-mockup">
+      Mockup US-043 &nbsp;·&nbsp;
+      <a href="index.html">Dopo la vendita · € 12,5000</a>
+      <a href="nuova-rilevazione.html">Nuova rilevazione · € 12,9000</a>
+      <a href="casi-limite.html">Casi limite</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto — A. Giardina, contabile in proprio</span>
+    <span>PortfolIA · libro mastro · c. 1</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

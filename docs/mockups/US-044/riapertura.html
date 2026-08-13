@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-044 · Caso limite: un nuovo carico riapre una posizione chiusa</title>
+<meta name="description" content="Mockup US-044: un ISIN interamente venduto riceve un nuovo carico e riappare nella tabella dei titoli posseduti, senza che le due vendite pregresse siano toccate.">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro · partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Caso limite · un nuovo carico riapre una posizione chiusa</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> — ANNO <b>MMXXVI</b></div>
+      <div>Criterio <b>4</b></div>
+      <div>ISIN <b>IE00BK5BQT80</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top: 6px;">
+      Estratto sul solo Vanguard FTSE All-World UCITS ETF Acc
+      <span class="nota">le altre posizioni del conto non cambiano fra i due riquadri e non sono ripetute</span>
+    </div>
+
+    <p style="font-family:'IM Fell English',serif;font-style:italic;color:var(--seppia);font-size:14px;margin:0 0 22px;">
+      Il Vanguard era stato venduto per intero in due scarichi (03.VI.2026 e 10.VIII.2026 —
+      vedi <b>US-042</b>/<b>US-043</b>), ed è per questo l'esempio di <em>index.html</em> nella
+      sezione <em>Posizioni chiuse</em>. Il 12.VIII.2026 arriva un nuovo carico sullo stesso
+      ISIN: qui si vede l'effetto sulle due tabelle, prima e dopo quell'iscrizione.
+    </p>
+
+    <div class="trittico due">
+
+      <!-- ══════════════ PRIMA — posizione chiusa ══════════════ -->
+      <section class="pannello prima">
+        <div class="insegna-pannello">
+          Prima
+          <span class="quando">fino all'11.VIII.2026</span>
+        </div>
+
+        <div class="riquadro-mini">
+          <div class="capo-mini">Tabella dei titoli posseduti (estratto)</div>
+          <div class="assenza-mini">
+            IE00BK5BQT80 non compare: quantità residua <b>0</b>.
+          </div>
+        </div>
+
+        <div class="riquadro-mini">
+          <div class="capo-mini">Posizioni chiuse (estratto)</div>
+          <div class="corpo-mini">
+            <table class="mastro chiuse" style="font-size:13px;">
+              <thead>
+                <tr>
+                  <th>ISIN</th>
+                  <th>Chiusa il</th>
+                  <th>Qtà venduta</th>
+                  <th>Incasso</th>
+                  <th>P&amp;L realizz.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <span class="voce">
+                      <strong>Vanguard FTSE All-World UCITS ETF Acc</strong>
+                      <small>IE00BK5BQT80</small>
+                    </span>
+                  </td>
+                  <td class="et-chiusura">10.VIII.2026</td>
+                  <td class="cifra">1.000</td>
+                  <td class="cifra euro">12.740,00</td>
+                  <td class="cifra guadagno">+2.260,00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <p style="font-family:'IM Fell English',serif;font-style:italic;color:var(--seppia);font-size:13px;margin:0;">
+          Il registro delle iscrizioni (US-042) porta comunque, integri, i due carichi originari
+          e i due scarichi che li hanno consumati: la sezione <em>Posizioni chiuse</em> qui sopra
+          è un riepilogo <em>derivato</em> da quel registro, non il registro stesso.
+        </p>
+      </section>
+
+      <!-- ══════════════ DOPO — nuovo carico, posizione riaperta ══════════════ -->
+      <section class="pannello dopo">
+        <div class="insegna-pannello">
+          Dopo
+          <span class="quando">carico del 12.VIII.2026</span>
+        </div>
+
+        <div class="riquadro-mini">
+          <div class="capo-mini">Tabella dei titoli posseduti (estratto)</div>
+          <div class="corpo-mini" style="padding:0;">
+            <table class="mastro" style="font-size:13px;">
+              <thead>
+                <tr>
+                  <th>Denominazione · ISIN</th>
+                  <th>Quantità</th>
+                  <th>Pr. medio carico</th>
+                  <th>Prezzo attuale</th>
+                  <th>Valore attuale</th>
+                  <th>Differenza</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="riga-nuova">
+                  <td>
+                    <span class="voce">
+                      <strong>Vanguard FTSE All-World UCITS ETF Acc</strong>
+                      <span class="badge-riaperta">&#8635; riaperta</span>
+                      <small>IE00BK5BQT80</small>
+                    </span>
+                  </td>
+                  <td class="cifra">250</td>
+                  <td class="cifra euro">13,1000</td>
+                  <td class="cifra euro">13,4500</td>
+                  <td class="cifra euro">3.362,50</td>
+                  <td class="cifra guadagno">+87,50</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="riquadro-mini">
+          <div class="capo-mini">Posizioni chiuse (estratto)</div>
+          <div class="assenza-mini">
+            IE00BK5BQT80 non vi compare più: quantità residua <b>250</b>, non 0.
+          </div>
+        </div>
+
+        <div class="nota-storico">
+          <b>Il carico n. 3 non tocca il passato.</b> Le due vendite del 2026 restano nel
+          registro con le loro cifre originarie, e il loro esito — <b>+&nbsp;€&nbsp;2.260,00</b>
+          — resta dentro il <em>P&amp;L totale</em> del portafoglio esattamente come prima:
+          il nuovo carico apre un terzo lotto, non riscrive i primi due. Cambia solo <em>dove</em>
+          l'ISIN compare oggi: nella tabella dei posseduti, non più in quella delle chiuse.
+        </div>
+      </section>
+
+    </div>
+
+    <div class="cartiglio" style="margin-top: 30px;">
+      <h4>«Posizioni chiuse» è un elenco derivato, non un archivio a parte</h4>
+      <p>
+        La riga che compariva in <em>Posizioni chiuse</em> nel riquadro «Prima» non viene
+        <em>spostata</em> o <em>cancellata</em> quando arriva il nuovo carico: viene
+        semplicemente ricalcolata a partire dallo stesso registro, e il risultato di quel
+        calcolo — quantità residua ora 250, non più 0 — non soddisfa più la condizione che
+        fa entrare un ISIN in quella sezione. È il registro delle iscrizioni (US-042) a
+        conservare la traccia storica delle vendite, riga per riga, per sempre; la sezione
+        <em>Posizioni chiuse</em> ne è solo la lettura corrente, filtrata su "quantità residua
+        uguale a zero".
+      </p>
+      <p>
+        È la ragione per cui il criterio non chiede di "non cancellare la riga di Posizioni
+        chiuse" ma di "non cancellare la riga storica delle vendite": sono due cose diverse, e
+        solo la seconda è permanente.
+      </p>
+    </div>
+
+    <div class="nav-mockup">
+      Mockup US-044 &nbsp;·&nbsp;
+      <a href="index.html">Riepilogo · posseduti e chiusi</a>
+      <a href="riapertura.html">Caso limite · un ISIN chiuso si riapre</a>
+      <a href="esaurito.html">Caso limite · portafoglio interamente venduto</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto — A. Giardina, contabile in proprio</span>
+    <span>PortfolIA · libro mastro · c. 2</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

@@ -113,7 +113,7 @@ export async function salesRoutes(fastify: FastifyInstance): Promise<void> {
       .from(sales)
       .where(and(eq(sales.portfolio_id, portfolioId), eq(sales.isin, isin)))
       .all()
-      .map((row) => ({ id: row.id, saleDate: row.sale_date, quantity: row.quantity }));
+      .map((row) => ({ id: row.id, saleDate: row.sale_date, quantity: row.quantity, salePrice: row.sale_price }));
 
     // Fra la lettura del registro e l'inserimento non c'è alcun `await`, e non è
     // un caso: `better-sqlite3` è sincrono e Node ha un solo thread, quindi

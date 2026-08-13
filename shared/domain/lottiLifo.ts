@@ -41,12 +41,14 @@ export type CaricoLotto = Pick<Position, 'id' | 'loadDate' | 'loadPrice' | 'quan
 /**
  * La vendita, ridotta ai soli campi che l'attribuzione legge.
  *
- * Il **prezzo di vendita non c'è**, e la sua assenza è deliberata: LIFO attribuisce
- * un *costo*, quello dei lotti consumati, e il prezzo di vendita serve solo a
- * misurare il risultato realizzato — che è US-043. Tenerlo fuori da qui rende
- * impossibile calcolarlo per sbaglio in questa spec.
+ * Da US-043 porta anche `salePrice`: US-042 lo teneva deliberatamente fuori
+ * perché LIFO attribuisce un *costo*, non un ricavo, ma il P&L realizzato — che
+ * è US-043 — nasce dal confronto fra i due, e deve nascere qui e non altrove:
+ * `rigiocaRegistro` è l'unico punto che percorre le attribuzioni lotto per
+ * lotto, quindi è l'unico punto in cui `costoAttribuito` e `ricavo` sono
+ * disponibili insieme senza ricalcolare l'attribuzione una seconda volta.
  */
-export type VenditaLotto = Pick<Sale, 'id' | 'saleDate' | 'quantity'>;
+export type VenditaLotto = Pick<Sale, 'id' | 'saleDate' | 'quantity' | 'salePrice'>;
 
 /** Ingresso di `rigiocaRegistro`: il registro di **un solo ISIN** in **un solo portafoglio**. */
 export interface RegistroInput {
@@ -82,6 +84,19 @@ export interface VenditaAttribuita {
   attribuzioni: AttribuzioneLotto[];
   /** Somma dei costi attribuiti: Σ(`loadPrice × quantita`) sulle attribuzioni. */
   costoAttribuito: number;
+  /** Ricavo della vendita: `salePrice × quantita` (US-043). */
+  ricavo: number;
+  /**
+   * P&L realizzato di questa vendita: `ricavo − costoAttribuito` (US-043,
+   * criterio 2).
+   *
+   * Calcolato qui, all'atto del rigioco, e **mai** dal prezzo corrente: è
+   * l'unico modo in cui il congelamento del criterio 2 può essere vero per
+   * costruzione. Una funzione che lo ricalcolasse da `currentPrice` lo farebbe
+   * dipendere dalla rilevazione più recente, cioè esattamente ciò che il
+   * criterio vieta.
+   */
+  pnlRealizzato: number;
   /**
    * Quote che nessun lotto ha potuto coprire.
    *
@@ -140,6 +155,23 @@ export interface RegistroRigiocato {
   costoResiduo: number;
   /** Σ(`costoAttribuito`) sulle vendite: il costo delle quote uscite. */
   costoAttribuito: number;
+  /**
+   * Σ(`pnlRealizzato`) sulle vendite: il P&L **già incassato**, congelato
+   * all'atto di ciascuna iscrizione (US-043, criterio 2).
+   *
+   * `0` — misurato, non assente — su un registro senza vendite: nessuna
+   * vendita significa nessun realizzato, non un dato che manca.
+   */
+  pnlRealizzato: number;
+  /**
+   * Σ(`ricavo`) sulle vendite: l'incasso complessivo di tutte le vendite
+   * attribuite (US-044).
+   *
+   * `0` — misurato, non assente — su un registro senza vendite, per la stessa
+   * ragione di `pnlRealizzato`: è la cifra che alimenta la colonna «Incasso»
+   * della sezione «Posizioni chiuse», e non dipende dal prezzo corrente.
+   */
+  ricavoTotale: number;
   /** Σ(`scoperto`) sulle vendite: `0` su ogni registro coerente. */
   scopertoTotale: number;
 }
@@ -216,12 +248,16 @@ export function rigiocaRegistro({ carichi, vendite }: RegistroInput): RegistroRi
       });
     }
 
+    const ricavo = vendita.salePrice * vendita.quantity;
+
     attribuite.push({
       venditaId: vendita.id,
       saleDate: vendita.saleDate,
       quantita: vendita.quantity,
       attribuzioni,
       costoAttribuito,
+      ricavo,
+      pnlRealizzato: ricavo - costoAttribuito,
       scoperto: Math.max(0, daCoprire),
     });
   }
@@ -253,6 +289,8 @@ export function rigiocaRegistro({ carichi, vendite }: RegistroInput): RegistroRi
     quantitaResidua: lotti.reduce((somma, l) => somma + l.quantitaResidua, 0),
     costoResiduo,
     costoAttribuito: attribuite.reduce((somma, v) => somma + v.costoAttribuito, 0),
+    pnlRealizzato: attribuite.reduce((somma, v) => somma + v.pnlRealizzato, 0),
+    ricavoTotale: attribuite.reduce((somma, v) => somma + v.ricavo, 0),
     scopertoTotale: attribuite.reduce((somma, v) => somma + v.scoperto, 0),
   };
 }
@@ -427,6 +465,48 @@ export interface ResiduoPosizione {
   difference: number | null;
   /** Differenza in percentuale sul controvalore di carico, `null` se non calcolabile. */
   differencePercent: number | null;
+  /**
+   * P&L **realizzato**: `registro.pnlRealizzato` (US-043, criterio 2).
+   *
+   * Mai `null`: un registro senza vendite ha realizzato `0` — misurato, non
+   * assente — ed è la stessa distinzione di `totalLoadValue`. Non dipende dal
+   * prezzo corrente, ed è per questo che non cambia al sopraggiungere di una
+   * nuova rilevazione.
+   */
+  realizedPnl: number;
+  /**
+   * P&L **latente**: pari a `difference`, con una sola eccezione — a residuo
+   * nullo vale `0` anche quando `currentPrice` è `null` (US-043, criterio 3).
+   *
+   * Non è un alias di `difference`: `difference` è `null` quando manca il
+   * prezzo corrente *a prescindere dal residuo*, mentre qui lo zero a residuo
+   * nullo è **misurato** — zero quote non hanno nulla in sospeso sul mercato,
+   * che il prezzo corrente sia noto o non lo sia.
+   */
+  latentPnl: number | null;
+  /**
+   * Costo di **tutti** i carichi, lotti già venduti inclusi: `registro.costoAttribuito
+   * + registro.costoResiduo` (US-043, criterio 5).
+   *
+   * È la base della percentuale del P&L totale, e deve restare il costo
+   * complessivo e non il solo costo residuo: altrimenti la stessa identica
+   * vendita a prezzo di mercato farebbe saltare la percentuale per il solo
+   * fatto di essere avvenuta, senza che nulla di reale sia cambiato.
+   */
+  totalLoadCost: number;
+  /**
+   * P&L **totale**: `realizedPnl + latentPnl`, `null` quando `latentPnl` lo è
+   * (US-043, criterio 1).
+   */
+  totalPnl: number | null;
+  /**
+   * Incasso complessivo: `registro.ricavoTotale` (US-044).
+   *
+   * Mai `null`, `0` — misurato — senza vendite: stessa disciplina di
+   * `realizedPnl`, di cui è l'altro addendo (`ricavo − costoAttribuito =
+   * pnlRealizzato`). Alimenta la colonna «Incasso» di «Posizioni chiuse».
+   */
+  soldRevenue: number;
   /** Il registro rigiocato, per chi deve mostrare il residuo lotto per lotto. */
   registro: RegistroRigiocato;
 }
@@ -460,6 +540,15 @@ export function residuoPerIsin({
   const differencePercent =
     difference !== null && totalLoadValue !== 0 ? (difference / totalLoadValue) * 100 : null;
 
+  // Zero **misurato**, non un alias di `difference`: a residuo nullo non c'è
+  // nulla in sospeso sul mercato, prezzo corrente noto o non noto (criterio 3).
+  const latentPnl = totalQuantity === 0 ? 0 : difference;
+
+  const realizedPnl = registro.pnlRealizzato;
+  const totalLoadCost = registro.costoAttribuito + registro.costoResiduo;
+  const totalPnl = latentPnl !== null ? realizedPnl + latentPnl : null;
+  const soldRevenue = registro.ricavoTotale;
+
   return {
     loadedQuantity: registro.quantitaCaricata,
     soldQuantity: registro.quantitaVenduta,
@@ -469,6 +558,11 @@ export function residuoPerIsin({
     currentValue,
     difference,
     differencePercent,
+    realizedPnl,
+    latentPnl,
+    totalLoadCost,
+    totalPnl,
+    soldRevenue,
     registro,
   };
 }

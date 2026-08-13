@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-043 · Nuova rilevazione: il realizzato non si muove</title>
+<meta name="description" content="Mockup US-043: sopraggiunge una rilevazione a € 12,9000 — il latente cambia, il realizzato resta identico al centesimo.">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro · partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Riepilogo · dopo il rilevamento del 12.VIII.2026</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> — ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="avviso-successo">
+      <span class="timbro-ok">Rilevato</span>
+      <p>
+        Nuovo prezzo per <b>IE00BK5BQT80</b> al <b>12.VIII.2026</b>:
+        <b>€&nbsp;12,9000</b> (era <b>€&nbsp;12,5000</b>). Nessuna iscrizione del registro è
+        stata modificata.
+      </p>
+    </div>
+
+    <div class="sezione-titolo" style="margin-top: 6px;">
+      Titoli iscritti a conto
+      <span class="nota">FR-013 · valore attuale e differenza rispetto al carico</span>
+    </div>
+
+    <div class="riquadro-valore-totale" aria-label="Valore attuale totale del portafoglio">
+      <div class="fascia-colore"></div>
+      <div class="contenuto-totale">
+        <div class="blocco-cifra">
+          <span class="et-totale">Valore attuale totale</span>
+          <span class="cifra-totale"><span class="valuta">EUR</span>7.740,00</span>
+        </div>
+        <div class="timestamp-totale">
+          Prezzi al 12.VIII.2026 09:04<br>
+          1 di 1 posizioni valorizzate
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Il quadro, con la striscia del «moto» sotto ciascuna cifra ══
+         Le tre strisce hanno bordo, glifo e parola diversi: fermo
+         (punteggiato, «=», «invariato») contro mosso (pieno, «↕»,
+         «mosso dal rilevamento»). Si legge quale cifra si è spostata
+         prima ancora di leggere le cifre. -->
+    <div class="quadro-risultato" aria-label="Quadro del risultato dopo la nuova rilevazione">
+      <div class="fascia-colore"></div>
+      <div class="interno">
+
+        <div class="capo-quadro">
+          <h2>Quadro del risultato</h2>
+          <span class="rimando">confronto con lo stato al 03.VI.2026 · prezzo € 12,5000</span>
+        </div>
+
+        <div class="somma">
+
+          <div class="voce-pl">
+            <span class="et-pl">P&amp;L realizzato</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>400,00
+            </span>
+            <span class="verdetto guadagno">guadagno incassato</span>
+            <span class="sigillo">congelato il 03.VI.2026</span>
+            <div class="moto fermo">
+              <span class="etichetta-moto">invariato al centesimo</span>
+              prima <b>+ € 400,00</b> · ora <b>+ € 400,00</b><br>
+              fissato su ricavo 5.000,00 − costo LIFO 4.600,00, entrambi già iscritti.
+            </div>
+          </div>
+
+          <div class="operatore" aria-hidden="true">+</div>
+
+          <div class="voce-pl">
+            <span class="et-pl">P&amp;L latente</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>1.860,00
+            </span>
+            <span class="verdetto guadagno">guadagno sulla carta</span>
+            <div class="moto mosso">
+              <span class="etichetta-moto">mosso dal rilevamento</span>
+              <s>+ € 1.620,00</s> &rarr; <b>+ € 1.860,00</b> &nbsp;(<b>+ € 240,00</b>)<br>
+              600 quote &times; (12,9000 − 12,5000) = 240,00.
+            </div>
+          </div>
+
+          <div class="operatore uguale" aria-hidden="true">═</div>
+
+          <div class="voce-pl totale">
+            <span class="et-pl">P&amp;L totale</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>2.260,00
+            </span>
+            <span class="verdetto guadagno">guadagno complessivo</span>
+            <span class="percentuale positiva">+21,56&nbsp;%</span>
+            <span class="base-percentuale">
+              su <b>€&nbsp;10.480,00</b>, costo di <em>tutti</em> i carichi — invariato,
+              perché una rilevazione di prezzo non tocca alcun carico.
+            </span>
+            <div class="moto mosso">
+              <span class="etichetta-moto">mosso per intero dal latente</span>
+              <s>+ € 2.020,00</s> &rarr; <b>+ € 2.260,00</b> &nbsp;(<b>+ € 240,00</b>)<br>
+              <s>+19,27&nbsp;%</s> &rarr; <b>+21,56&nbsp;%</b>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="postilla-liquidita">
+          <span class="titoletto">L'app tiene i titoli, non la cassa</span>
+          <div>
+            <p>
+              L'incasso della vendita — <b>€&nbsp;5.000,00</b> — <b>non</b> è trattenuto come
+              liquidità del portafoglio: il <em>valore attuale totale</em> qui sopra comprende
+              i soli titoli posseduti, e il risultato di quell'operazione sta nel
+              <em>P&amp;L realizzato</em>.
+            </p>
+            <p>
+              Ne discende la cosa che questa pagina dimostra: le 400 quote vendute sono uscite
+              dal conto e nessun prezzo futuro potrà più riguardarle (ADR-009 §3).
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="cartiglio">
+      <h4>Una sola delle tre cifre ha una data di nascita</h4>
+      <p>
+        Il rilevamento del 12.VIII.2026 ha rivalutato le <b>600</b> quote ancora detenute e
+        <em>solo</em> quelle. Le <b>400</b> vendute non fanno più parte del conto: il loro
+        esito è stato calcolato una volta sola, il giorno dello scarico, e da allora è
+        un fatto iscritto, non una stima da rifare.
+      </p>
+      <table class="conteggio" style="max-width: 620px;">
+        <tr><td class="et">P&amp;L realizzato &nbsp;<em>— congelato il 03.VI.2026</em></td><td class="val">+ € 400,00 &nbsp;<b>invariato</b></td></tr>
+        <tr><td class="et">P&amp;L latente &nbsp;<em>— ricalcolato a ogni rilevamento</em></td><td class="val"><s>+ € 1.620,00</s> &nbsp;+ € 1.860,00</td></tr>
+        <tr class="somma-riga"><td class="et">P&amp;L totale</td><td class="val"><s>+ € 2.020,00</s> &nbsp;+ € 2.260,00</td></tr>
+      </table>
+      <p style="margin-top:12px;">
+        Se anche il realizzato si muovesse, la stessa vendita cambierebbe valore ogni giorno,
+        e il numero smetterebbe di rispondere alla domanda che gli si pone — <em>quanto ho
+        realmente incassato</em> — per rispondere a un'altra, cioè <em>quanto avrei incassato
+        vendendo oggi</em>. Il criterio&nbsp;2 esiste per tenere separate queste due domande.
+      </p>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro" aria-label="Tabella titoli del portafoglio">
+        <thead>
+          <tr>
+            <th>Denominazione · ISIN</th>
+            <th>Quantità</th>
+            <th>Pr. medio carico</th>
+            <th>Prezzo attuale</th>
+            <th>Ultimo rilevamento</th>
+            <th>Valore attuale</th>
+            <th>Differenza</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="voce">
+                <strong>Vanguard FTSE All-World UCITS ETF Acc</strong>
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">600</td>
+            <td class="cifra euro">9,8000</td>
+            <td class="cifra euro">12,9000</td>
+            <td class="cifra">12.VIII.2026 · 09:04</td>
+            <td class="cifra euro">7.740,00</td>
+            <td class="cifra guadagno">+1.860,00</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">Totale portafoglio (1 posizione valorizzata)</td>
+            <td class="cifra euro">7.740,00</td>
+            <td class="cifra guadagno">+1.860,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p style="font-family:'IM Fell English',serif;font-style:italic;color:var(--seppia);font-size:13px;margin:14px 0 0;padding-top:10px;border-top:1px dotted rgba(110,90,54,.4);">
+      La colonna <em>Differenza</em> misura il solo <b>P&amp;L latente</b>, e infatti il suo
+      totale è cambiato insieme al prezzo. Il P&amp;L realizzato non ha riga in questa tabella:
+      nasce dalle iscrizioni di scarico, non dalle giacenze.
+      Seleziona una riga per aprirne la <em>scheda titolo</em> con l'anagrafica completa.
+    </p>
+
+    <div class="nav-mockup">
+      Mockup US-043 &nbsp;·&nbsp;
+      <a href="index.html">Dopo la vendita · € 12,5000</a>
+      <a href="nuova-rilevazione.html">Nuova rilevazione · € 12,9000</a>
+      <a href="casi-limite.html">Casi limite</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto — A. Giardina, contabile in proprio</span>
+    <span>PortfolIA · libro mastro · c. 2</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

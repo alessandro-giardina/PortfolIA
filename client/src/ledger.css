@@ -3293,3 +3293,421 @@ body {
   .lotto { grid-template-columns: 1fr; }
   .lotto .esito { text-align: left; }
 }
+
+/* ==========================================================================
+   US-043 — Il quadro del risultato: P&L realizzato, latente e totale.
+   Portato da docs/mockups/US-043/shared.css, sottoinsieme stabile: nessuna
+   regola preesistente è stata riscritta (stessa disciplina di US-042). Non
+   porta .sigillo, .moto, .trittico/.caso — erano chrome delle sole pagine di
+   mockup, che raccontavano un singolo evento di vendita; QuadroRisultato.tsx
+   aggrega l'intero portafoglio e comunica il congelamento con una chiosa
+   statica invece che con un timbro o un confronto prima/dopo.
+   ========================================================================== */
+
+.quadro-risultato {
+  display: flex;
+  align-items: stretch;
+  border: 2px solid var(--inchiostro);
+  background: rgba(247,239,218,.6);
+  box-shadow: 4px 4px 0 rgba(34,28,20,.12);
+  margin: 0 0 24px;
+  overflow: hidden;
+}
+.quadro-risultato > .fascia-colore { width: 6px; background: var(--carminio); flex-shrink: 0; }
+.quadro-risultato.parziale > .fascia-colore { background: var(--ottone); }
+.quadro-risultato .interno { flex: 1; min-width: 0; }
+
+.quadro-risultato .capo-quadro {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 11px 26px 10px;
+  background: var(--verde-mastro);
+}
+.quadro-risultato .capo-quadro h2 {
+  margin: 0;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--carta-chiara);
+}
+.quadro-risultato .capo-quadro .rimando {
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: rgba(241,231,207,.68);
+}
+
+/* la somma in orizzontale: addendo · operatore · addendo · uguale · totale */
+.quadro-risultato .somma {
+  display: grid;
+  grid-template-columns: 1fr 44px 1fr 52px 1.12fr;
+  align-items: stretch;
+}
+/* `.voce-pl` e `.operatore` sono scoped sotto `.quadro-risultato`: sono nomi
+   generici — «una voce di P&L», «un operatore aritmetico» — e senza lo scope
+   una regola bare avrebbe potuto (e in un caso ha davvero) trapelare su un
+   elemento omonimo di un altro componente. Vedi la nota su `.chiosa` più sotto:
+   è lo stesso difetto, già accaduto, non solo temuto. */
+.quadro-risultato .voce-pl { padding: 20px 22px 18px; }
+.quadro-risultato .voce-pl + .operatore + .voce-pl { border-left: 1px dotted rgba(110,90,54,.5); }
+.quadro-risultato .operatore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--seppia);
+  line-height: 1;
+  user-select: none;
+}
+.quadro-risultato .operatore.uguale { font-size: 26px; letter-spacing: -.04em; }
+
+/* la casella del totale, oltre la doppia riga */
+.quadro-risultato .voce-pl.totale {
+  border-left: 3px double var(--inchiostro);
+  background: rgba(215,221,196,.42);
+}
+
+.quadro-risultato .voce-pl .et-pl {
+  display: block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: 11px;
+  color: var(--seppia);
+  margin-bottom: 7px;
+}
+.quadro-risultato .voce-pl.totale .et-pl { color: var(--inchiostro); }
+
+.cifra-pl {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(24px, 2.6vw, 34px);
+  line-height: 1.05;
+  letter-spacing: -.01em;
+  display: block;
+  color: var(--inchiostro);
+  white-space: nowrap;
+}
+.quadro-risultato .voce-pl.totale .cifra-pl { font-size: clamp(28px, 3.1vw, 40px); }
+/* Il colore è il TERZO segnale, mai il primo: prima viene il segno
+   scritto in `.segno`, poi la parola in `.verdetto`. Tolto il colore
+   la cifra resta leggibile per intero. */
+.cifra-pl.guadagno { color: var(--verde-attivo); }
+.cifra-pl.perdita  { color: var(--rosso-perdita); }
+.cifra-pl.nulla    { color: var(--inchiostro); }
+.cifra-pl .segno {
+  font-family: 'Courier Prime', monospace;
+  font-size: .62em;
+  font-weight: 700;
+  margin-right: .18em;
+  vertical-align: .06em;
+}
+.cifra-pl .euro-pl {
+  font-family: 'IM Fell English SC', serif;
+  font-size: .38em;
+  font-weight: 600;
+  letter-spacing: .12em;
+  color: var(--seppia);
+  margin-right: .3em;
+  vertical-align: .22em;
+}
+
+/* la parola accanto alla cifra: guadagno / perdita / zero dichiarato.
+   Riusa `.guadagno` e `.perdita` del mastro, che portano già il
+   triangolo ▲/▼ — glifo + parola + segno restano tutti e tre
+   leggibili in scala di grigi. */
+.verdetto {
+  display: inline-block;
+  margin-top: 7px;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 11px;
+  padding: 2px 9px 3px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  background: rgba(247,239,218,.7);
+}
+.verdetto.neutro {
+  color: var(--seppia);
+  font-weight: 400;
+  border-style: dotted;
+}
+.verdetto + .verdetto { margin-left: 6px; }
+
+/* la chiosa: che cosa la cifra misura, e su che cosa NON dipende.
+   Scoped sotto `.quadro-risultato`: `.chiosa` è già una classe in uso —
+   `MetricheTitolo.tsx` la porta sotto `.bilancia .intestazione-bilancia`, con
+   una regola scoped che ne fissa font-family/font-style/font-size/color. Una
+   `.chiosa` bare qui non sarebbe stata sovrascritta su quelle proprietà (la
+   regola esistente è più specifica), ma `display`, `margin-top` e
+   `line-height` — assenti dalla regola esistente — sarebbero trapelati lì
+   comunque: non un rischio teorico, una regressione visiva reale sulla
+   bilancia di US-038. Lo scope elimina la collisione alla radice. */
+.quadro-risultato .chiosa {
+  display: block;
+  margin-top: 9px;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.42;
+  color: var(--seppia);
+}
+.quadro-risultato .chiosa b {
+  font-family: 'Courier Prime', monospace;
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--inchiostro);
+}
+
+/* percentuale del totale, con la base dichiarata sotto: una
+   percentuale senza base scritta è un numero senza unità. Scoped per la
+   stessa ragione di `.voce-pl`/`.operatore`/`.chiosa` qui sopra. */
+.quadro-risultato .percentuale {
+  display: block;
+  margin-top: 8px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.quadro-risultato .percentuale.guadagno { color: var(--verde-attivo); }
+.quadro-risultato .percentuale.perdita  { color: var(--rosso-perdita); }
+.quadro-risultato .percentuale.assente  { color: var(--seppia); font-weight: 400; font-style: italic; }
+.base-percentuale {
+  display: block;
+  margin-top: 3px;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--seppia);
+  line-height: 1.4;
+}
+.base-percentuale b {
+  font-family: 'Courier Prime', monospace;
+  font-style: normal;
+  font-size: 12px;
+  color: var(--inchiostro);
+}
+
+/* ------------------------------------------------------------
+   La postilla sulla liquidità (criterio 6).
+   Occupa tutta la larghezza in fondo al quadro, sotto una riga
+   piena: è la cerniera fra il riquadro del valore attuale, che
+   sta sopra, e le tre cifre, che stanno qui. Dice che cosa quel
+   valore comprende e dove è finito l'incasso.
+   ------------------------------------------------------------ */
+.postilla-liquidita {
+  border-top: 1.5px solid var(--inchiostro);
+  background: rgba(215,221,196,.3);
+  padding: 13px 26px 14px;
+  font-family: 'IM Fell English', serif;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--inchiostro-2);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.postilla-liquidita .titoletto {
+  flex-shrink: 0;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 10.5px;
+  color: var(--carta-chiara);
+  background: var(--carminio);
+  padding: 4px 10px;
+  margin-top: 1px;
+}
+.postilla-liquidita p { margin: 0; }
+.postilla-liquidita p + p { margin-top: 5px; font-style: italic; color: var(--seppia); }
+.postilla-liquidita b { font-family: 'Courier Prime', monospace; font-size: 12.5px; }
+
+/* ------------------------------------------------------------
+   La differenza fra i due zeri, dichiarata a parole.
+   `.dato-mancante` esiste già e resta com'è: dice «non c'è».
+   `.zero-misurato` è il suo opposto: c'è, ed è zero.
+   ------------------------------------------------------------ */
+.zero-misurato { color: var(--inchiostro); }
+
+/* La nota «Valore parziale» è la stessa già in uso nel riquadro del
+   valore totale, dove però la regola è annidata sotto di esso. Qui la
+   si riporta identica, scoperchiata dentro il quadro: la disciplina
+   del dato parziale dev'essere la medesima nei due riquadri, ed è
+   proprio questo il punto del criterio 3 — parola per parola la
+   stessa dichiarazione, non una variante. */
+.quadro-risultato .nota-mancante {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--seppia);
+  line-height: 1.45;
+  padding: 10px 14px;
+  margin-top: 9px;
+  border-left: 1.5px solid rgba(110,90,54,.35);
+  background: rgba(156,125,52,.06);
+}
+.quadro-risultato .nota-mancante strong {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ottone);
+  display: block;
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.quadro-risultato .nota-mancante b {
+  font-family: 'Courier Prime', monospace;
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--inchiostro);
+}
+
+@media (max-width: 980px) {
+  .quadro-risultato .somma { grid-template-columns: 1fr; }
+  .quadro-risultato .voce-pl + .operatore + .voce-pl { border-left: none; }
+  .quadro-risultato .voce-pl { border-top: 1px dotted rgba(110,90,54,.5); }
+  .quadro-risultato .voce-pl:first-child { border-top: none; }
+  .quadro-risultato .voce-pl.totale { border-left: none; border-top: 3px double var(--inchiostro); }
+  .quadro-risultato .operatore { display: none; }
+  .quadro-risultato > .fascia-colore { width: 6px; }
+  .postilla-liquidita { flex-direction: column; gap: 8px; }
+}
+
+/* ============================================================
+   US-044 — Posizioni chiuse in una sezione dedicata
+   Estensione in coda: nessuna regola preesistente è riscritta.
+
+   Trapiantato dal sottoinsieme stabile di docs/mockups/US-044/shared.css:
+   il contenitore e la tabella della sezione nuova (`.blocco-posizioni-chiuse`
+   + `.mastro.chiuse`, che riusano `.mastro` di peso — thead/tbody/tfoot,
+   `.voce`, `.cifra`, `.euro`, `.guadagno`/`.perdita` — e aggiungono solo la
+   tinta carminio e il capo "sola consultazione"), il timbro carminio
+   (`.timbro.carminio`, stessa meccanica di `.timbro` con tinta diversa) e il
+   segnale di riapertura (`.badge-riaperta`). Lo stato vuoto della tabella dei
+   posseduti quando ogni posizione è chiusa riusa invece `.dettaglio-placeholder`
+   già in uso per `riepilogo-vuoto`, non la famiglia `.stato-vuoto` del mockup:
+   stesso trattamento visivo di un altro stato "niente da mostrare qui", non un
+   terzo pattern.
+   ============================================================ */
+
+/* Il ramo "zero misurato" del riquadro del valore totale: nessuna posizione
+   aperta significa che il conto non possiede oggi alcun titolo (criterio 3),
+   non che un prezzo sia irreperibile — da qui una fascia "assente" (stesso
+   grigio spento del caso "nessun prezzo", perché entrambi dicono "nulla da
+   valorizzare qui") ma una cifra `.zero-misurato`, non `.assente`: la prima
+   è normale e leggibile, la seconda è la resa esplicita di un dato mancante. */
+.riquadro-valore-totale .cifra-totale.zero-misurato {
+  color: var(--inchiostro);
+  opacity: 1;
+  font-style: normal;
+}
+
+/* ------------------------------------------------------------
+   La sezione «Posizioni chiuse»
+   ------------------------------------------------------------
+   Stessa meccanica del `.riquadro-residuo`: una fascia di colore a sinistra
+   dichiara lo stato prima di ogni cifra. Qui la fascia è sempre carminio —
+   la stessa convenzione già in uso per `.riquadro-residuo.chiuso` — e non ha
+   una variante "aperto", perché il blocco esiste solo quando c'è qualcosa da
+   mostrare come chiuso. */
+.blocco-posizioni-chiuse {
+  display: flex;
+  align-items: stretch;
+  border: 2px solid var(--inchiostro);
+  background: rgba(158,43,37,.035);
+  box-shadow: 4px 4px 0 rgba(34,28,20,.12);
+  overflow: hidden;
+}
+.blocco-posizioni-chiuse .fascia-colore {
+  width: 6px;
+  background: var(--carminio);
+  flex-shrink: 0;
+}
+.blocco-posizioni-chiuse .contenuto { flex: 1; min-width: 0; }
+
+.capo-chiuse {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  border-bottom: 1px dotted rgba(158,43,37,.4);
+  background: rgba(158,43,37,.05);
+}
+.capo-chiuse .nota-capo {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--seppia);
+}
+
+/* Il timbro "Sola consultazione": stessa meccanica di `.timbro`, tinta
+   carminio invece di verde — non è un esito positivo né negativo, è una
+   dichiarazione di modalità. */
+.timbro.carminio {
+  border-color: var(--carminio);
+  color: var(--carminio);
+  background: rgba(158,43,37,.06);
+  box-shadow: inset 0 0 0 1px rgba(158,43,37,.25);
+  transform: rotate(-1deg);
+}
+
+/* La tabella delle posizioni chiuse riusa `.mastro` per intero: stessa
+   griglia, stessi font, stesso tfoot a doppia riga. Le sole variazioni sono
+   la tinta dell'intestazione e il filo carminio che apre ogni riga — lo
+   stesso trattamento che `.mastro tbody tr.iscrizione-scarico` già usa in
+   US-042 per marcare una scrittura di segno opposto al carico. */
+.mastro.chiuse { border-color: rgba(158,43,37,.55); }
+.mastro.chiuse thead th {
+  background: var(--carminio);
+  color: var(--carta-chiara);
+}
+.mastro.chiuse tbody tr:nth-child(even) { background: rgba(158,43,37,.05); }
+.mastro.chiuse tbody td:first-child { border-left: 3px solid var(--carminio); }
+.mastro.chiuse tbody td.et-chiusura {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  color: var(--seppia);
+  text-align: left;
+}
+.mastro.chiuse tfoot td { background: rgba(158,43,37,.14); }
+
+/* ------------------------------------------------------------
+   Il segnale di riapertura
+   ------------------------------------------------------------
+   Non un colore di riga — la riga riaperta si legge già come tutte le altre
+   righe possedute, ed è il punto: non è un caso speciale nella tabella dei
+   titoli, ci è tornata dentro come qualunque altra posizione. Il badge sta
+   accanto al nome e basta a chi legge per sapere che quell'ISIN ha un
+   passato. */
+.badge-riaperta {
+  display: inline-block;
+  font-family: 'IM Fell English SC', serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 10px;
+  padding: 2px 8px;
+  margin-left: 8px;
+  border: 1.5px solid var(--ottone);
+  color: var(--ottone);
+  border-radius: 2px;
+  transform: rotate(-1.5deg);
+  vertical-align: middle;
+}
+
+@media (max-width: 980px) {
+  .blocco-posizioni-chiuse { flex-direction: column; }
+  .blocco-posizioni-chiuse .fascia-colore { width: auto; height: 6px; }
+}

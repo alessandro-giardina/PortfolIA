@@ -283,6 +283,16 @@ export interface PositionSummary {
   avgLoadPrice: number | null;
   /** Controvalore di carico del residuo: avgLoadPrice × totalQuantity, e 0 a residuo 0 — zero misurato, non inventato. */
   totalLoadValue: number;
+  /** P&L realizzato, congelato all'atto di ogni vendita: mai `null`, `0` senza vendite (US-043, criterio 2). */
+  realizedPnl: number;
+  /** P&L latente sulla sola quantità residua: `0` — misurato — a residuo nullo, `null` solo se manca il prezzo corrente e il residuo non è nullo (US-043, criterio 3). */
+  latentPnl: number | null;
+  /** Costo di tutti i carichi, lotti già venduti inclusi: base della percentuale del P&L totale (US-043, criterio 5). */
+  totalLoadCost: number;
+  /** P&L totale: realizedPnl + latentPnl, `null` quando latentPnl lo è (US-043, criterio 1). */
+  totalPnl: number | null;
+  /** Incasso complessivo di tutte le vendite: mai `null`, `0` senza vendite (US-044). */
+  soldRevenue: number;
 }
 
 /**
@@ -335,6 +345,16 @@ export interface EnrichedPositionSummary {
   currentValue: number | null;
   /** Differenza rispetto al carico residuo: currentValue − (avgLoadPrice × totalQuantity), null se currentPrice è null. */
   difference: number | null;
+  /** P&L realizzato, congelato all'atto di ogni vendita: mai `null`, `0` senza vendite (US-043, criterio 2). */
+  realizedPnl: number;
+  /** P&L latente sulla sola quantità residua: `0` — misurato — a residuo nullo, `null` solo se manca il prezzo corrente e il residuo non è nullo (US-043, criterio 3). */
+  latentPnl: number | null;
+  /** Costo di tutti i carichi, lotti già venduti inclusi: base della percentuale del P&L totale (US-043, criterio 5). */
+  totalLoadCost: number;
+  /** P&L totale: realizedPnl + latentPnl, `null` quando latentPnl lo è (US-043, criterio 1). */
+  totalPnl: number | null;
+  /** Incasso complessivo di tutte le vendite: mai `null`, `0` senza vendite (US-044). */
+  soldRevenue: number;
   /** Momento dell'ultimo rilevamento del prezzo (unix, secondi), null se l'ISIN non è nella cache securities. */
   fetchedAt: number | null;
   /**
@@ -405,6 +425,16 @@ export interface PositionDetail {
   difference: number | null;
   /** Differenza in percentuale sul controvalore di carico, null se non calcolabile. */
   differencePercent: number | null;
+  /** P&L realizzato, congelato all'atto di ogni vendita: mai `null`, `0` senza vendite (US-043, criterio 2). */
+  realizedPnl: number;
+  /** P&L latente sulla sola quantità residua: `0` — misurato — a residuo nullo, `null` solo se manca il prezzo corrente e il residuo non è nullo (US-043, criterio 3). */
+  latentPnl: number | null;
+  /** Costo di tutti i carichi, lotti già venduti inclusi: base della percentuale del P&L totale (US-043, criterio 5). */
+  totalLoadCost: number;
+  /** P&L totale: realizedPnl + latentPnl, `null` quando latentPnl lo è (US-043, criterio 1). */
+  totalPnl: number | null;
+  /** Incasso complessivo di tutte le vendite: mai `null`, `0` senza vendite (US-044). */
+  soldRevenue: number;
 
   // ─── Anagrafica ufficiale — null = non disponibile alla fonte o non in cache ─
   /** Denominazione ufficiale dello strumento. */

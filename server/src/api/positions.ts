@@ -39,7 +39,7 @@ function toCaricoLotto(row: typeof positions.$inferSelect): CaricoLotto {
 
 /** La vendita, nella forma ridotta che l'attribuzione LIFO legge. */
 function toVenditaLotto(row: typeof sales.$inferSelect): VenditaLotto {
-  return { id: row.id, saleDate: row.sale_date, quantity: row.quantity };
+  return { id: row.id, saleDate: row.sale_date, quantity: row.quantity, salePrice: row.sale_price };
 }
 
 /**
@@ -345,6 +345,11 @@ export async function positionsRoutes(
       currentValue: pnl.currentValue,
       difference: pnl.difference,
       differencePercent: pnl.differencePercent,
+      realizedPnl: pnl.realizedPnl,
+      latentPnl: pnl.latentPnl,
+      totalLoadCost: pnl.totalLoadCost,
+      totalPnl: pnl.totalPnl,
+      soldRevenue: pnl.soldRevenue,
       name: security?.name ?? null,
       ticker: security?.ticker ?? null,
       instrumentType: security?.instrument_type ?? null,
@@ -418,6 +423,11 @@ export async function positionsRoutes(
         currentPrice,
         currentValue: residuo.currentValue,
         difference: residuo.difference,
+        realizedPnl: residuo.realizedPnl,
+        latentPnl: residuo.latentPnl,
+        totalLoadCost: residuo.totalLoadCost,
+        totalPnl: residuo.totalPnl,
+        soldRevenue: residuo.soldRevenue,
         fetchedAt,
         freshness: classifyPriceFreshness(istante, adesso),
       };
@@ -461,6 +471,11 @@ export async function positionsRoutes(
           totalQuantity: residuo.totalQuantity,
           avgLoadPrice: residuo.avgLoadPrice,
           totalLoadValue: residuo.totalLoadValue,
+          realizedPnl: residuo.realizedPnl,
+          latentPnl: residuo.latentPnl,
+          totalLoadCost: residuo.totalLoadCost,
+          totalPnl: residuo.totalPnl,
+          soldRevenue: residuo.soldRevenue,
         };
       },
     );

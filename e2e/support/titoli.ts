@@ -1292,6 +1292,175 @@ export const TITOLO_US_042_RIFIUTI: TitoloSeminabile = {
   },
 };
 
+/**
+ * Riservato a `US-043__mostra-pnl-realizzato-e-latente.spec.ts` (scenario
+ * dimostrativo).
+ *
+ * Regge lo stesso scenario dei mockup e di `TITOLO_US_042`: **due carichi a
+ * prezzi diversi**, perché senza quella differenza LIFO e FIFO attribuirebbero
+ * lo stesso costo e il P&L realizzato non distinguerebbe i due criteri. Non può
+ * condividere la chiave con `TITOLO_US_042` (stessa ragione di
+ * `TITOLO_US_042_RIFIUTI`): sono file diversi su worker potenzialmente
+ * paralleli, e seminare-e-ripristinare è uno stack di undo per ISIN.
+ *
+ * Il seme porta `fetched_at` **non** di adesso ma di qualche sessione di borsa
+ * fa: lo scenario deve poter premere «Aggiorna dati» dalla scheda titolo e
+ * vedere l'aggiornamento riuscire al primo colpo, senza che la guardia di
+ * buona cittadinanza lo blocchi — è esattamente la premessa che
+ * `TITOLO_US_030` usa per lo stesso comando.
+ */
+export const TITOLO_US_043: TitoloSeminabile = {
+  isin: 'IE00BFY0GT22',
+  file: 'US-043__mostra-pnl-realizzato-e-latente.spec.ts',
+  campi: {
+    name: 'Vanguard Ftse All World Ucits Etf Acc',
+    price: 12.5,
+    ticker: 'VWCE',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,22%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-043__mostra-pnl-realizzato-e-latente-varianti.spec.ts`: la
+ * posizione venduta per intero.
+ *
+ * Il file sorello del demo — stessa coppia `US-026__*` per la ragione già
+ * documentata in `CLAUDE.md`: `launchOptions.slowMo` non si può scoppiare a un
+ * solo `describe`, quindi gli scenari senza video vivono in un file proprio.
+ * Serve al criterio 3: dopo la vendita dell'intera quantità residua il quadro
+ * deve mostrare P&L latente € 0,00 — zero *misurato* — e non «dato non
+ * disponibile», anche con il prezzo corrente ancora in cache.
+ */
+export const TITOLO_US_043_VENDUTO_INTERO: TitoloSeminabile = {
+  isin: 'IE00BFY0GT30',
+  file: 'US-043__mostra-pnl-realizzato-e-latente-varianti.spec.ts',
+  campi: {
+    name: 'Vanguard Ftse All World Ucits Etf Dist',
+    price: 12.9,
+    ticker: 'VWRL',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,22%',
+    currency: 'EUR',
+    issuer: 'VANGUARD FUNDS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'a distribuzione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-043__mostra-pnl-realizzato-e-latente-varianti.spec.ts`: il
+ * secondo titolo, caricato senza prezzo corrente in cache.
+ *
+ * Serve al solo scenario del prezzo mancante: il quadro del risultato deve
+ * dichiarare il totale e la percentuale come parziali/assenti senza inventare
+ * un rapporto, e questo richiede un ISIN che non risulti mai in `securities`.
+ * Riservare due chiavi allo stesso file non viola la regola un-ISIN-per-file:
+ * quella regola vieta di *condividerle fra file*, non di averne due proprie.
+ */
+export const TITOLO_US_043_SENZA_PREZZO: ChiaveRiservata = {
+  isin: 'IE00BMVB5T24',
+  file: 'US-043__mostra-pnl-realizzato-e-latente-varianti.spec.ts',
+};
+
+/**
+ * Riservato a `US-044__posizioni-chiuse.spec.ts` (demo, con video): il
+ * titolo che lo scenario vende per intero.
+ *
+ * Due carichi a prezzi diversi (altrimenti LIFO e FIFO attribuirebbero lo
+ * stesso costo) e una vendita che ne esaurisce l'intero residuo: è l'ISIN
+ * che il video deve mostrare uscire dalla tabella dei posseduti ed entrare
+ * in «Posizioni chiuse».
+ */
+export const TITOLO_US_044: TitoloSeminabile = {
+  isin: 'IE00BFY0GT48',
+  file: 'US-044__posizioni-chiuse.spec.ts',
+  campi: {
+    name: 'Amundi Msci World Ucits Etf Acc',
+    price: 12.5,
+    ticker: 'CW8',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,38%',
+    currency: 'EUR',
+    issuer: 'AMUNDI ASSET MANAGEMENT',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-044__posizioni-chiuse.spec.ts`: il secondo titolo dello
+ * stesso scenario, posseduto normalmente e mai venduto — il contrappunto
+ * che dimostra come il valore attuale totale continui a comprendere le sole
+ * posizioni aperte.
+ */
+export const TITOLO_US_044_POSSEDUTO: TitoloSeminabile = {
+  isin: 'IE00BFY0GT55',
+  file: 'US-044__posizioni-chiuse.spec.ts',
+  campi: {
+    name: 'iShares Core Eur Corp Bond Ucits Etf',
+    price: 65.0,
+    ticker: 'IEAC',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,20%',
+    currency: 'EUR',
+    issuer: 'BLACKROCK ASSET MANAGEMENT IRELAND',
+    segment: 'ETF Obbligazionari',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-044__posizioni-chiuse-varianti.spec.ts`: il titolo che i
+ * casi limite chiudono e poi, nel primo scenario, riaprono con un nuovo
+ * carico.
+ */
+export const TITOLO_US_044_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00BFY0GT63',
+  file: 'US-044__posizioni-chiuse-varianti.spec.ts',
+  campi: {
+    name: 'Xtrackers Msci Emerging Markets Ucits Etf',
+    price: 13.45,
+    ticker: 'XMME',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,18%',
+    currency: 'EUR',
+    issuer: 'DWS INVESTMENT S.A.',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-044__posizioni-chiuse-varianti.spec.ts`: il secondo
+ * titolo chiuso, che nello scenario «due posizioni chiuse» compare accanto
+ * a `TITOLO_US_044_VARIANTI` con cifre proprie.
+ */
+export const TITOLO_US_044_VARIANTI_SECONDO: TitoloSeminabile = {
+  isin: 'IE00BFY0GT71',
+  file: 'US-044__posizioni-chiuse-varianti.spec.ts',
+  campi: {
+    name: 'SPDR S&P 500 Ucits Etf',
+    price: 48.2,
+    ticker: 'SPY5',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,03%',
+    currency: 'EUR',
+    issuer: 'STATE STREET GLOBAL ADVISORS EUROPE',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
 
 /**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
@@ -1330,4 +1499,17 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   // ma il seme in cache basta al backfill d'avvio per crearne una.
   TITOLO_US_042.isin,
   TITOLO_US_042_RIFIUTI.isin,
+  // Stessa ragione: il seme in cache di TITOLO_US_043 e di
+  // TITOLO_US_043_VENDUTO_INTERO basta al backfill d'avvio per crearne una.
+  // TITOLO_US_043_SENZA_PREZZO non entra: non viene mai seminato in
+  // `securities`, quindi non c'è alcuna riga da cui il backfill possa
+  // generare un'osservazione.
+  TITOLO_US_043.isin,
+  TITOLO_US_043_VENDUTO_INTERO.isin,
+  // Stessa ragione per i quattro titoli di US-044: il seme in cache basta al
+  // backfill d'avvio per crearne un'osservazione.
+  TITOLO_US_044.isin,
+  TITOLO_US_044_POSSEDUTO.isin,
+  TITOLO_US_044_VARIANTI.isin,
+  TITOLO_US_044_VARIANTI_SECONDO.isin,
 ];

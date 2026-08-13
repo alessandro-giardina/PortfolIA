@@ -6,7 +6,7 @@ epic:
   title: Vendite e posizioni chiuse
 priority: MEDIUM
 points: 3
-status: TODO
+status: REVIEW
 blocked_by:
   - US-042
 scope: MVP
@@ -32,3 +32,9 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-12T14:13:45Z"
+  - status: PLANNED
+    at: "2026-08-12T21:07:41Z"
+  - status: IN PROGRESS
+    at: "2026-08-12T21:08:44Z"
+  - status: REVIEW
+    at: "2026-08-12T21:31:13Z"

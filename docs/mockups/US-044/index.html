@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-044 · Posizioni chiuse in una sezione dedicata</title>
+<meta name="description" content="Mockup US-044: la tabella dei titoli posseduti mostra solo le posizioni con quantità residua; una nuova sezione «Posizioni chiuse» conserva ISIN, quantità venduta, incasso e P&amp;L realizzato dei titoli venduti per intero.">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro · partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Riepilogo · titoli posseduti e posizioni chiuse</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> — ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top: 6px;">
+      Titoli posseduti
+      <span class="nota">FR-013 · solo le posizioni con quantità residua &gt; 0 — le posizioni interamente vendute sono più sotto, in «Posizioni chiuse» (FR-026)</span>
+    </div>
+
+    <!-- ══ Lo STOCK: che cosa il conto tiene, oggi — 0 comprende solo i posseduti ══ -->
+    <div class="riquadro-valore-totale" aria-label="Valore attuale totale del portafoglio">
+      <div class="fascia-colore"></div>
+      <div class="contenuto-totale">
+        <div class="blocco-cifra">
+          <span class="et-totale">Valore attuale totale</span>
+          <span class="cifra-totale"><span class="valuta">EUR</span>34.394,00</span>
+        </div>
+        <div class="timestamp-totale">
+          Prezzi al 12.VIII.2026 10:05<br>
+          3 di 3 posizioni possedute valorizzate
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ La MISURA di quello stock, realizzato incluso ══ -->
+    <div class="quadro-risultato" aria-label="Quadro del risultato: P&amp;L realizzato, latente e totale">
+      <div class="fascia-colore"></div>
+      <div class="interno">
+
+        <div class="capo-quadro">
+          <h2>Quadro del risultato</h2>
+          <span class="rimando">FR-025, FR-026 · il realizzato delle posizioni chiuse resta nel totale anche dopo che sono uscite dalla tabella qui sopra</span>
+        </div>
+
+        <div class="somma">
+
+          <div class="voce-pl">
+            <span class="et-pl">P&amp;L realizzato</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>2.385,00
+            </span>
+            <span class="verdetto guadagno">guadagno incassato</span>
+            <span class="sigillo">congelato · 2 posizioni chiuse</span>
+            <span class="chiosa">
+              Somma del risultato congelato delle <b>due</b> posizioni oggi chiuse:
+              <b>Vanguard FTSE All-World</b> (+&nbsp;€&nbsp;2.260,00, due scarichi) e
+              <b>BTP Italia Tf 2,80% Sc2030</b> (+&nbsp;€&nbsp;125,00, un scarico). Nessuna
+              delle tre posizioni ancora possedute ha mai venduto nulla: il loro contributo a
+              questa cifra è nullo, non assente.
+            </span>
+          </div>
+
+          <div class="operatore" aria-hidden="true">+</div>
+
+          <div class="voce-pl">
+            <span class="et-pl">P&amp;L latente</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>9.084,00
+            </span>
+            <span class="verdetto guadagno">guadagno sulla carta</span>
+            <span class="chiosa">
+              Somma della colonna <em>Differenza</em> della tabella qui sotto: riguarda le
+              sole <b>tre</b> posizioni ancora possedute. Le posizioni chiuse non hanno una
+              differenza da sommare — contribuiscono <b>0</b> al valore attuale e quindi
+              <b>0</b> al latente, non "non disponibile".
+            </span>
+          </div>
+
+          <div class="operatore uguale" aria-hidden="true">═</div>
+
+          <div class="voce-pl totale">
+            <span class="et-pl">P&amp;L totale</span>
+            <span class="cifra-pl positiva">
+              <span class="segno">+</span><span class="euro-pl">€</span>11.469,00
+            </span>
+            <span class="verdetto guadagno">guadagno complessivo</span>
+            <span class="percentuale positiva">+28,04&nbsp;%</span>
+            <span class="base-percentuale">
+              su <b>€&nbsp;40.890,00</b>, costo di <em>tutti</em> i carichi mai iscritti — inclusi
+              quelli delle due posizioni oggi chiuse. Vendere per intero un titolo non fa
+              sparire il suo costo dalla base: lo sposta soltanto da "residuo" a "consumato".
+            </span>
+          </div>
+
+        </div>
+
+        <div class="postilla-liquidita">
+          <span class="titoletto">L'app tiene i titoli, non la cassa</span>
+          <div>
+            <p>
+              L'incasso delle due vendite che hanno chiuso una posizione — €&nbsp;12.740,00 per
+              il Vanguard, €&nbsp;5.225,00 per il BTP — <b>non</b> resta in portafoglio come
+              liquidità. Il <em>valore attuale totale</em> qui sopra comprende i soli titoli
+              ancora posseduti: l'esito di ogni vendita, parziale o totale che sia, sta per
+              intero nel <em>P&amp;L realizzato</em>.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro" aria-label="Tabella dei titoli posseduti">
+        <thead>
+          <tr>
+            <th>Denominazione · ISIN</th>
+            <th>Quantità</th>
+            <th>Pr. medio carico</th>
+            <th>Prezzo attuale</th>
+            <th>Ultimo rilevamento</th>
+            <th>Valore attuale</th>
+            <th>Differenza</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="voce">
+                <strong>ENEL S.p.A.</strong>
+                <small>IT0003128367</small>
+              </span>
+            </td>
+            <td class="cifra">1.200</td>
+            <td class="cifra euro">5,4200</td>
+            <td class="cifra euro">7,1800</td>
+            <td class="cifra">12.VIII.2026 · 10:05</td>
+            <td class="cifra euro">8.616,00</td>
+            <td class="cifra guadagno">+2.112,00</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="voce">
+                <strong>iShares Core MSCI World UCITS ETF</strong>
+                <small>IE00BMVB5S82</small>
+              </span>
+            </td>
+            <td class="cifra">220</td>
+            <td class="cifra euro">68,3000</td>
+            <td class="cifra euro">94,5500</td>
+            <td class="cifra">12.VIII.2026 · 10:05</td>
+            <td class="cifra euro">20.801,00</td>
+            <td class="cifra guadagno">+5.775,00</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="voce">
+                <strong>Recordati S.p.A.</strong>
+                <small>IT0003828271</small>
+              </span>
+            </td>
+            <td class="cifra">90</td>
+            <td class="cifra euro">42,0000</td>
+            <td class="cifra euro">55,3000</td>
+            <td class="cifra">12.VIII.2026 · 10:05</td>
+            <td class="cifra euro">4.977,00</td>
+            <td class="cifra guadagno">+1.197,00</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">Totale titoli posseduti (3 posizioni valorizzate)</td>
+            <td class="cifra euro">34.394,00</td>
+            <td class="cifra guadagno">+9.084,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p style="font-family:'IM Fell English',serif;font-style:italic;color:var(--seppia);font-size:13px;margin:14px 0 0;padding-top:10px;border-top:1px dotted rgba(110,90,54,.4);">
+      Questa tabella elenca le sole posizioni con quantità residua superiore a zero (FR-013).
+      Un ISIN interamente venduto — quantità residua 0 — non vi compare più: il suo esito non è
+      perduto, è nella sezione <em>Posizioni chiuse</em> qui sotto (FR-026).
+    </p>
+
+    <!-- ══ La sezione nuova: le posizioni azzerate, sole e informative ══ -->
+    <div class="sezione-titolo" style="margin-top: 40px;">
+      Posizioni chiuse
+      <span class="nota">FR-026, FR-013 · titoli venduti per intero — fuori dalla tabella qui sopra, dentro il risultato del portafoglio</span>
+    </div>
+
+    <div class="blocco-posizioni-chiuse" aria-label="Posizioni interamente vendute">
+      <div class="fascia-colore"></div>
+      <div class="contenuto">
+
+        <div class="capo-chiuse">
+          <span class="timbro carminio">Sola consultazione</span>
+          <span class="nota-capo">
+            quantità residua 0 su ciascuna riga: nulla da vendere né da rettificare, solo da
+            leggere
+          </span>
+        </div>
+
+        <div class="tabella-scroll">
+          <table class="mastro chiuse" aria-label="Tabella delle posizioni interamente vendute">
+            <thead>
+              <tr>
+                <th>Denominazione · ISIN</th>
+                <th>Chiusa il</th>
+                <th>Quantità venduta</th>
+                <th>Incasso</th>
+                <th>P&amp;L realizzato</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <span class="voce">
+                    <strong>Vanguard FTSE All-World UCITS ETF Acc</strong>
+                    <small>IE00BK5BQT80</small>
+                  </span>
+                </td>
+                <td class="et-chiusura">10.VIII.2026</td>
+                <td class="cifra">1.000</td>
+                <td class="cifra euro">12.740,00</td>
+                <td class="cifra guadagno">+2.260,00</td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="voce">
+                    <strong>BTP Italia Tf 2,80% Sc2030</strong>
+                    <small>IT0005438004</small>
+                  </span>
+                </td>
+                <td class="et-chiusura">02.VII.2026</td>
+                <td class="cifra">5.000</td>
+                <td class="cifra euro">5.225,00</td>
+                <td class="cifra guadagno">+125,00</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3">Totale posizioni chiuse (2)</td>
+                <td class="cifra euro">17.965,00</td>
+                <td class="cifra guadagno">+2.385,00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <p style="font-family:'IM Fell English',serif;font-style:italic;color:var(--seppia);font-size:13px;margin:14px 0 0;padding-top:10px;border-top:1px dotted rgba(110,90,54,.4);">
+      Le due cifre di questa tabella — quantità venduta e incasso — sono la somma di <em>tutti</em>
+      gli scarichi registrati su quell'ISIN, anche quando sono avvenuti in più iscrizioni distinte
+      (il Vanguard, per esempio, in due). Il P&amp;L realizzato è la stessa cifra congelata che
+      concorre al quadro del risultato qui sopra: non è ricalcolato qui, è letto da lì.
+    </p>
+
+    <!-- ══ Il cuore della spec ══ -->
+    <div class="cartiglio">
+      <h4>Un titolo a quantità 0 non sparisce: cambia tabella</h4>
+      <p>
+        Prima di questa specifica, un ISIN interamente venduto restava nella tabella dei titoli
+        posseduti con una riga a quantità 0 (US-042, US-043) — vero, ma scomodo: la tabella dei
+        posseduti smetteva di rispondere solo alla domanda "che cosa ho", perché ci compariva
+        anche ciò che non si ha più.
+      </p>
+      <div class="coppia">
+        <div>
+          <b>Tabella dei titoli posseduti</b>
+          Risponde a <em>che cosa ha il conto, oggi</em>. Un ISIN a quantità 0 non vi appartiene
+          più: la sua riga uscirebbe dalla domanda a cui la tabella risponde.
+        </div>
+        <div>
+          <b>Posizioni chiuse</b>
+          Risponde a <em>che cosa ha prodotto ciò che non si ha più</em>. Non è azionabile — non
+          c'è nulla da vendere — e per questo è una tabella diversa, con un capo che lo dichiara,
+          non una riga in fondo alla prima.
+        </div>
+      </div>
+      <p style="margin-top:10px;">
+        Nessuna cifra è persa nel passaggio: il P&amp;L realizzato del Vanguard e del BTP resta,
+        identico, dentro il P&amp;L totale del portafoglio — è la stessa disciplina di
+        congelamento che US-043 ha già introdotto, applicata qui alla sola visibilità della riga.
+      </p>
+    </div>
+
+    <div class="nav-mockup">
+      Mockup US-044 &nbsp;·&nbsp;
+      <a href="index.html">Riepilogo · posseduti e chiusi</a>
+      <a href="riapertura.html">Caso limite · un ISIN chiuso si riapre</a>
+      <a href="esaurito.html">Caso limite · portafoglio interamente venduto</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto — A. Giardina, contabile in proprio</span>
+    <span>PortfolIA · libro mastro · c. 1</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

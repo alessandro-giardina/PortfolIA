@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-043 · Casi limite: lo zero misurato e il dato assente</title>
+<meta name="description" content="Mockup US-043: nessuna vendita iscritta, titolo interamente venduto, prezzo corrente mancante — tre quadri del risultato con la loro dichiarazione.">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro · partita singola</p>
+      <h1>Quadro del risultato — <span class="corsivo">casi limite</span></h1>
+      <p class="sottotesto">Tre situazioni, tre dichiarazioni · nessuna cifra inventata</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> — ANNO <b>MMXXVI</b></div>
+      <div>Criteri <b>1 · 3 · 5 · 6</b></div>
+      <div>ADR-003 · ADR-009</div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top: 6px;">
+      Tre stati d'archivio a confronto
+      <span class="nota">stesso titolo, stesso costo dei carichi · cambia una premessa per volta</span>
+    </div>
+
+    <div class="trittico">
+
+      <!-- ══════════════ CASO 1 — nessuna vendita iscritta ══════════════ -->
+      <section class="caso">
+        <div class="insegna">
+          I · Nessuna vendita iscritta
+          <small>Il realizzato è <b>zero misurato</b>, non un dato che manca.</small>
+        </div>
+
+        <div class="premessa">
+          <dl>
+            <dt>Quantità detenuta</dt><dd>1.000</dd>
+            <dt>Costo di tutti i carichi</dt><dd>€ 10.480,00</dd>
+            <dt>Scarichi a registro</dt><dd>nessuno</dd>
+            <dt>Prezzo corrente</dt><dd>€ 12,5000</dd>
+            <dt>Valore attuale</dt><dd>€ 12.500,00</dd>
+          </dl>
+        </div>
+
+        <div class="quadro-risultato compatto">
+          <div class="fascia-colore"></div>
+          <div class="interno">
+            <div class="capo-quadro">
+              <h2>Quadro del risultato</h2>
+            </div>
+            <div class="somma">
+
+              <div class="voce-pl">
+                <span class="et-pl">P&amp;L realizzato</span>
+                <span class="cifra-pl nulla zero-misurato">
+                  <span class="euro-pl">€</span>0,00
+                </span>
+                <span class="verdetto neutro">nessuna vendita iscritta</span>
+                <span class="chiosa">
+                  Zero <em>misurato</em>: il registro non porta alcuno scarico, dunque nulla è
+                  stato realizzato. Non è «dato non disponibile» — il dato c'è, e vale zero.
+                </span>
+              </div>
+
+              <div class="operatore" aria-hidden="true">+</div>
+
+              <div class="voce-pl">
+                <span class="et-pl">P&amp;L latente</span>
+                <span class="cifra-pl positiva">
+                  <span class="segno">+</span><span class="euro-pl">€</span>2.020,00
+                </span>
+                <span class="verdetto guadagno">guadagno sulla carta</span>
+                <span class="chiosa">
+                  1.000 &times; € 12,5000 = <b>€&nbsp;12.500,00</b> meno il costo dei carichi
+                  <b>€&nbsp;10.480,00</b>.
+                </span>
+              </div>
+
+              <div class="operatore uguale" aria-hidden="true">═</div>
+
+              <div class="voce-pl totale">
+                <span class="et-pl">P&amp;L totale</span>
+                <span class="cifra-pl positiva">
+                  <span class="segno">+</span><span class="euro-pl">€</span>2.020,00
+                </span>
+                <span class="verdetto guadagno">guadagno complessivo</span>
+                <span class="percentuale positiva">+19,27&nbsp;%</span>
+                <span class="base-percentuale">su <b>€&nbsp;10.480,00</b>, costo di tutti i carichi.</span>
+              </div>
+
+            </div>
+            <div class="postilla-liquidita">
+              <span class="titoletto">L'app tiene i titoli, non la cassa</span>
+              <div>
+                <p>
+                  Nessuno scarico, dunque nessun incasso da collocare: il <em>valore attuale</em>
+                  comprende i soli titoli posseduti, che qui sono ancora tutti.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════ CASO 2 — titolo interamente venduto ══════════════ -->
+      <section class="caso">
+        <div class="insegna">
+          II · Titolo interamente venduto
+          <small>Residuo 0: il latente vale <b>0,00</b> anche senza prezzo in archivio.</small>
+        </div>
+
+        <div class="premessa">
+          <dl>
+            <dt>Quantità residua</dt><dd>0</dd>
+            <dt>Costo di tutti i carichi</dt><dd>€ 10.480,00</dd>
+            <dt>Scarico 03.VI.2026</dt><dd>400 a € 12,5000</dd>
+            <dt>Scarico 10.VIII.2026</dt><dd>600 a € 12,9000</dd>
+            <dt>Prezzo corrente</dt><dd class="dato-mancante">–</dd>
+          </dl>
+        </div>
+
+        <div class="quadro-risultato compatto">
+          <div class="fascia-colore"></div>
+          <div class="interno">
+            <div class="capo-quadro">
+              <h2>Quadro del risultato</h2>
+            </div>
+            <div class="somma">
+
+              <div class="voce-pl">
+                <span class="et-pl">P&amp;L realizzato</span>
+                <span class="cifra-pl positiva">
+                  <span class="segno">+</span><span class="euro-pl">€</span>2.260,00
+                </span>
+                <span class="verdetto guadagno">guadagno incassato</span>
+                <span class="sigillo">congelato · 2 scarichi</span>
+                <span class="chiosa">
+                  <b>+ € 400,00</b> (03.VI, su costo 4.600,00) e <b>+ € 1.860,00</b>
+                  (10.VIII, su costo 5.880,00). Due cifre iscritte, mai più ricalcolate.
+                </span>
+              </div>
+
+              <div class="operatore" aria-hidden="true">+</div>
+
+              <div class="voce-pl">
+                <span class="et-pl">P&amp;L latente</span>
+                <span class="cifra-pl nulla zero-misurato">
+                  <span class="euro-pl">€</span>0,00
+                </span>
+                <span class="verdetto neutro">nessuna quota residua</span>
+                <span class="chiosa">
+                  Zero <em>misurato</em>, non «dato non disponibile»: <b>zero quote valgono zero
+                  qualunque sia il prezzo</b>. Il prezzo corrente manca in archivio (colonna
+                  <em>Prezzo attuale</em>: «–») e il latente resta comunque calcolabile — è
+                  l'unico caso in cui un prezzo assente non produce un'assenza (criterio&nbsp;3).
+                </span>
+              </div>
+
+              <div class="operatore uguale" aria-hidden="true">═</div>
+
+              <div class="voce-pl totale">
+                <span class="et-pl">P&amp;L totale</span>
+                <span class="cifra-pl positiva">
+                  <span class="segno">+</span><span class="euro-pl">€</span>2.260,00
+                </span>
+                <span class="verdetto guadagno">guadagno complessivo</span>
+                <span class="percentuale positiva">+21,56&nbsp;%</span>
+                <span class="base-percentuale">
+                  su <b>€&nbsp;10.480,00</b>: la base <em>sopravvive</em> alla vendita, perché è
+                  il costo di tutti i carichi — nessuno dei quali è stato cancellato.
+                </span>
+              </div>
+
+            </div>
+            <div class="postilla-liquidita">
+              <span class="titoletto">L'app tiene i titoli, non la cassa</span>
+              <div>
+                <p>
+                  Incasso complessivo <b>€&nbsp;12.740,00</b>, <b>non</b> trattenuto: il
+                  <em>valore attuale</em> del conto è <b>€&nbsp;0,00</b> perché non resta alcun
+                  titolo, e l'esito delle due operazioni sta per intero nel realizzato.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════ CASO 3 — prezzo mancante su posizione detenuta ══════════════ -->
+      <section class="caso">
+        <div class="insegna">
+          III · Prezzo mancante, quote ancora detenute
+          <small>Il latente e il totale sono <b>parziali</b>. Il realizzato no.</small>
+        </div>
+
+        <div class="premessa">
+          <dl>
+            <dt>IE00BK5BQT80 · 600</dt><dd>€ 12,5000</dd>
+            <dt>IT0003128367 · 500</dt><dd class="dato-mancante">–</dd>
+            <dt>Costo carichi ETF</dt><dd>€ 10.480,00</dd>
+            <dt>Costo carico Enel</dt><dd>€ 3.100,00</dd>
+            <dt>Costo di tutti i carichi</dt><dd>€ 13.580,00</dd>
+          </dl>
+        </div>
+
+        <div class="quadro-risultato compatto parziale">
+          <div class="fascia-colore"></div>
+          <div class="interno">
+            <div class="capo-quadro">
+              <h2>Quadro del risultato — parziale</h2>
+            </div>
+            <div class="somma">
+
+              <div class="voce-pl">
+                <span class="et-pl">P&amp;L realizzato</span>
+                <span class="cifra-pl positiva">
+                  <span class="segno">+</span><span class="euro-pl">€</span>400,00
+                </span>
+                <span class="verdetto guadagno">guadagno incassato</span>
+                <span class="sigillo">congelato il 03.VI.2026</span>
+                <div class="moto fermo">
+                  <span class="etichetta-moto">completo</span>
+                  Non dipende da alcun prezzo di mercato: ricavo e costo LIFO erano già
+                  entrambi iscritti. Un prezzo mancante non lo rende parziale.
+                </div>
+              </div>
+
+              <div class="operatore" aria-hidden="true">+</div>
+
+              <div class="voce-pl">
+                <span class="et-pl">P&amp;L latente — parziale</span>
+                <span class="cifra-pl positiva">
+                  <span class="segno">+</span><span class="euro-pl">€</span>1.620,00
+                </span>
+                <span class="verdetto guadagno">guadagno sulla carta</span>
+                <div class="nota-mancante" role="note" style="max-width:none;margin-top:10px;">
+                  <strong>Valore parziale</strong>
+                  1 posizione senza prezzo corrente: il latente esclude
+                  <em>Enel S.p.A.</em> (IT0003128367, 500 quote, costo € 3.100,00), il cui
+                  latente <b>non è calcolabile</b> — non zero.
+                </div>
+              </div>
+
+              <div class="operatore uguale" aria-hidden="true">═</div>
+
+              <div class="voce-pl totale">
+                <span class="et-pl">P&amp;L totale — parziale</span>
+                <span class="cifra-pl positiva">
+                  <span class="segno">+</span><span class="euro-pl">€</span>2.020,00
+                </span>
+                <span class="verdetto guadagno">guadagno complessivo</span>
+                <span class="verdetto neutro">parziale</span>
+                <span class="percentuale assente">–</span>
+                <span class="base-percentuale">
+                  Percentuale non calcolabile: la base sarebbe <b>€&nbsp;13.580,00</b>, costo di
+                  tutti i carichi, ma il numeratore non copre la posizione priva di prezzo.
+                  Un rapporto fra un numeratore parziale e una base intera sarebbe una cifra
+                  falsa, e ADR-003 non la ammette.
+                </span>
+                <div class="moto mosso">
+                  <span class="etichetta-moto">1 di 2 posizioni valorizzate</span>
+                  Il totale si completerà da sé al primo rilevamento utile su
+                  <b>IT0003128367</b>.
+                </div>
+              </div>
+
+            </div>
+            <div class="postilla-liquidita">
+              <span class="titoletto">L'app tiene i titoli, non la cassa</span>
+              <div>
+                <p>
+                  L'incasso di <b>€&nbsp;5.000,00</b> resta fuori dal <em>valore attuale</em>, che
+                  comprende i soli titoli posseduti.
+                </p>
+                <p>
+                  Il realizzato, da solo, è comunque esprimibile sulla propria base:
+                  + € 400,00 su € 4.600,00 di costo attribuito, cioè <b>+8,70&nbsp;%</b>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ══ La distinzione che tiene insieme i tre casi ══ -->
+    <div class="cartiglio" style="margin-top: 34px;">
+      <h4>Due zeri che non si somigliano</h4>
+      <p>
+        Metà di questa specifica sta nel non confondere una misura che vale zero con una misura
+        che non esiste. La tipografia le tiene distinte prima ancora del testo: lo zero misurato
+        è una <em>cifra</em>, scritta come tutte le altre; il dato assente è un trattino in
+        corsivo seppia, che di cifre non ne porta nessuna.
+      </p>
+      <div class="legenda-zeri">
+        <div>
+          <span class="campione zero-misurato">€ 0,00</span>
+          <b>Zero misurato.</b> Il conto è stato fatto e il risultato è zero: nessuna vendita
+          iscritta (caso&nbsp;I), oppure zero quote residue (caso&nbsp;II). Porta sempre la sua
+          dichiarazione accanto — «nessuna vendita iscritta», «nessuna quota residua» — perché
+          il lettore sappia <em>perché</em> è zero, non solo <em>che</em> lo è.
+        </div>
+        <div>
+          <span class="campione assente dato-mancante">–</span>
+          <b>Dato assente.</b> Il conto non si può fare: manca il prezzo corrente di una
+          posizione ancora detenuta (caso&nbsp;III), oppure manca la base della percentuale.
+          Non si scrive zero al posto di un'assenza (ADR-003): si scrive «–» e si dichiara che
+          cosa manca e che cosa il totale, di conseguenza, non comprende.
+        </div>
+      </div>
+    </div>
+
+    <div class="cartiglio">
+      <h4>Che cosa questi tre casi <em>non</em> mostrano</h4>
+      <p>
+        La sezione <b>Posizioni chiuse</b> è US-044: nel caso&nbsp;II il titolo resta perciò
+        elencato con quantità 0 nella tabella del riepilogo, e il suo realizzato entra
+        regolarmente nel quadro. Una riga sparita senza che nulla lo dichiari sarebbe la
+        variante peggiore di un dato mancante.
+      </p>
+    </div>
+
+    <div class="nav-mockup">
+      Mockup US-043 &nbsp;·&nbsp;
+      <a href="index.html">Dopo la vendita · € 12,5000</a>
+      <a href="nuova-rilevazione.html">Nuova rilevazione · € 12,9000</a>
+      <a href="casi-limite.html">Casi limite</a>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">Pareggiato e sottoscritto — A. Giardina, contabile in proprio</span>
+    <span>PortfolIA · libro mastro · c. 3</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

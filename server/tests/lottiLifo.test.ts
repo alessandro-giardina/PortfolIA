@@ -49,11 +49,20 @@ const carico = (id: number, loadDate: string, quantity: number, loadPrice: numbe
   quantity,
 });
 
-/** Una vendita, nella forma ridotta che l'attribuzione legge. */
-const vendita = (id: number, saleDate: string, quantity: number): VenditaLotto => ({
+/**
+ * Una vendita, nella forma ridotta che l'attribuzione legge.
+ *
+ * `salePrice` è opzionale e non `12.5` per pigrizia: i casi che questo file
+ * verificava prima di US-043 (attribuzione, quantità residua, invarianti 3/4)
+ * non hanno bisogno di un prezzo di vendita specifico, e un default qualunque
+ * lascia quei casi di leggere come prima. I test del P&L realizzato lo passano
+ * sempre esplicito.
+ */
+const vendita = (id: number, saleDate: string, quantity: number, salePrice = 12.5): VenditaLotto => ({
   id,
   saleDate,
   quantity,
+  salePrice,
 });
 
 // ─── Lo scenario dei mockup ─────────────────────────────────────────────────
@@ -260,6 +269,65 @@ describe('rigiocaRegistro — le invarianti', () => {
   });
 });
 
+describe('rigiocaRegistro — il P&L realizzato (US-043)', () => {
+  it('calcola il realizzato di una vendita su un solo lotto come ricavo meno costo attribuito', () => {
+    // Vendita di 150 quote a 12,00: consuma solo il carico n. 2 (il più
+    // recente), costo attribuito 150 × 11,50 = 1.725,00.
+    const registro = rigiocaRegistro({
+      carichi: CARICHI,
+      vendite: [vendita(1, '2026-06-03', 150, 12.0)],
+    });
+
+    const [venduta] = registro.vendite;
+    expect(venduta.ricavo).toBeCloseTo(150 * 12.0, 8);
+    expect(venduta.costoAttribuito).toBeCloseTo(150 * 11.5, 8);
+    expect(venduta.pnlRealizzato).toBeCloseTo(150 * 12.0 - 150 * 11.5, 8);
+  });
+
+  it('calcola il realizzato di una vendita che attraversa due lotti sul costo attribuito complessivo', () => {
+    // 700 quote a 12,00: costo attribuito = 400 × 11,50 (carico 2) + 300 × 9,80 (carico 1).
+    const registro = rigiocaRegistro({
+      carichi: CARICHI,
+      vendite: [vendita(1, '2026-06-03', 700, 12.0)],
+    });
+
+    const [venduta] = registro.vendite;
+    const costoAtteso = 11.5 * 400 + 9.8 * 300;
+    expect(venduta.costoAttribuito).toBeCloseTo(costoAtteso, 8);
+    expect(venduta.ricavo).toBeCloseTo(700 * 12.0, 8);
+    expect(venduta.pnlRealizzato).toBeCloseTo(700 * 12.0 - costoAtteso, 8);
+  });
+
+  it('il pnlRealizzato di registro è la somma dei pnlRealizzato di ciascuna vendita', () => {
+    const registro = rigiocaRegistro({
+      carichi: CARICHI,
+      vendite: [vendita(1, '2026-06-03', 400, 12.5), vendita(2, '2026-08-10', 600, 12.9)],
+    });
+
+    const sommaAttesa = registro.vendite.reduce((somma, v) => somma + v.pnlRealizzato, 0);
+    expect(registro.pnlRealizzato).toBeCloseTo(sommaAttesa, 8);
+    // Nessuna vendita: il realizzato è 0, misurato e non assente.
+    expect(rigiocaRegistro({ carichi: CARICHI, vendite: [] }).pnlRealizzato).toBe(0);
+  });
+
+  // ─── US-044 — l'incasso complessivo ───────────────────────────────────────
+
+  it('il ricavoTotale di registro è la somma dei ricavi di ciascuna vendita sullo stesso ISIN', () => {
+    const registro = rigiocaRegistro({
+      carichi: CARICHI,
+      vendite: [vendita(1, '2026-06-03', 400, 12.5), vendita(2, '2026-08-10', 600, 12.9)],
+    });
+
+    const sommaAttesa = registro.vendite.reduce((somma, v) => somma + v.ricavo, 0);
+    expect(registro.ricavoTotale).toBeCloseTo(sommaAttesa, 8);
+    expect(registro.ricavoTotale).toBeCloseTo(400 * 12.5 + 600 * 12.9, 8);
+  });
+
+  it('nessuna vendita: il ricavoTotale è 0, misurato e non assente', () => {
+    expect(rigiocaRegistro({ carichi: CARICHI, vendite: [] }).ricavoTotale).toBe(0);
+  });
+});
+
 describe('quantitaDisponibileA', () => {
   const registro = rigiocaRegistro({ carichi: CARICHI, vendite: [] });
 
@@ -448,5 +516,164 @@ describe('residuoPerIsin', () => {
       [1, 600],
       [2, 0],
     ]);
+  });
+
+  // ─── US-043 — realizzato, latente e totale ────────────────────────────────
+
+  it('congela il realizzato: due letture con lo stesso registro e prezzi diversi non lo muovono', () => {
+    // Lo scenario dei mockup: 400 quote vendute a 12,50 sul carico n. 2.
+    const carichi = CARICHI;
+    const vendite = [vendita(1, '2026-06-03', 400, 12.5)];
+
+    const primaLettura = residuoPerIsin({ carichi, vendite, currentPrice: 12.5 });
+    const secondaLettura = residuoPerIsin({ carichi, vendite, currentPrice: 12.9 });
+
+    // Il realizzato è identico al bit: non dipende dal prezzo corrente passato.
+    expect(secondaLettura.realizedPnl).toBe(primaLettura.realizedPnl);
+    expect(primaLettura.realizedPnl).toBeCloseTo(5000 - 4600, 8);
+    // Il latente invece si muove con il nuovo prezzo, com'è giusto che sia.
+    expect(secondaLettura.latentPnl).not.toBe(primaLettura.latentPnl);
+  });
+
+  it('a residuo 0 il latente è zero misurato, anche senza prezzo corrente in archivio', () => {
+    const residuo = residuoPerIsin({
+      carichi: CARICHI,
+      vendite: [vendita(1, '2026-06-03', 400), vendita(2, '2026-08-10', 600)],
+      currentPrice: null,
+    });
+
+    expect(residuo.totalQuantity).toBe(0);
+    // `0`, non `null`: zero quote non hanno nulla in sospeso sul mercato.
+    expect(residuo.latentPnl).toBe(0);
+    // Il totale è quindi calcolabile — pari al solo realizzato — anche senza prezzo.
+    expect(residuo.totalPnl).toBe(residuo.realizedPnl);
+  });
+
+  it('a residuo non nullo senza prezzo corrente il latente resta assente, non zero', () => {
+    const residuo = residuoPerIsin({
+      carichi: CARICHI,
+      vendite: [vendita(1, '2026-06-03', 400)],
+      currentPrice: null,
+    });
+
+    expect(residuo.totalQuantity).toBe(600);
+    expect(residuo.latentPnl).toBeNull();
+    expect(residuo.totalPnl).toBeNull();
+  });
+
+  it('il totale è la somma di realizzato e latente', () => {
+    const residuo = residuoPerIsin({
+      carichi: CARICHI,
+      vendite: [vendita(1, '2026-06-03', 400, 12.5)],
+      currentPrice: 12.5,
+    });
+
+    expect(residuo.totalPnl).toBeCloseTo(residuo.realizedPnl + (residuo.latentPnl ?? NaN), 8);
+  });
+
+  it('senza vendite il realizzato è 0 misurato e il totale coincide con il solo latente', () => {
+    const residuo = residuoPerIsin({ carichi: CARICHI, vendite: [], currentPrice: 12.5 });
+
+    expect(residuo.realizedPnl).toBe(0);
+    expect(residuo.totalPnl).toBe(residuo.latentPnl);
+  });
+});
+
+describe('residuoPerIsin — soldRevenue, l\'incasso complessivo (US-044)', () => {
+  it('è 0 misurato, non assente, su un registro senza vendite', () => {
+    const residuo = residuoPerIsin({ carichi: CARICHI, vendite: [], currentPrice: 12.5 });
+    expect(residuo.soldRevenue).toBe(0);
+  });
+
+  it('è coerente con Σ(salePrice × quantity) su più lotti e vendite parziali', () => {
+    // Due vendite parziali che insieme esauriscono il residuo: 400 quote a
+    // 12,50 (consuma il carico n. 2) e 600 a 12,90 (consuma il resto del
+    // carico n. 2 e tutto il carico n. 1) — lo stesso scenario già usato per
+    // il realizzato di registro.
+    const vendite = [vendita(1, '2026-06-03', 400, 12.5), vendita(2, '2026-08-10', 600, 12.9)];
+    const residuo = residuoPerIsin({ carichi: CARICHI, vendite });
+
+    const ricavoAtteso = vendite.reduce((somma, v) => somma + v.salePrice * v.quantity, 0);
+    expect(residuo.soldRevenue).toBeCloseTo(ricavoAtteso, 8);
+    expect(residuo.soldRevenue).toBe(residuo.registro.ricavoTotale);
+  });
+
+  it('è la somma dei ricavi anche con vendite su più iscrizioni dello stesso ISIN', () => {
+    const residuo = residuoPerIsin({
+      carichi: CARICHI,
+      vendite: [vendita(1, '2026-06-03', 150, 12.0), vendita(2, '2026-07-01', 100, 13.0)],
+    });
+
+    expect(residuo.soldRevenue).toBeCloseTo(150 * 12.0 + 100 * 13.0, 8);
+  });
+
+  it('non muove i campi esistenti: realizedPnl, totalLoadCost e totalPnl restano invariati', () => {
+    const vendite = [vendita(1, '2026-06-03', 400, 12.5), vendita(2, '2026-08-10', 600, 12.9)];
+    const residuo = residuoPerIsin({ carichi: CARICHI, vendite, currentPrice: 12.9 });
+
+    expect(residuo.realizedPnl).toBeCloseTo(400 * 12.5 + 600 * 12.9 - COSTO_CARICHI, 8);
+    expect(residuo.totalLoadCost).toBeCloseTo(COSTO_CARICHI, 8);
+    expect(residuo.totalPnl).toBe(residuo.realizedPnl);
+  });
+});
+
+describe('residuoPerIsin — invariante del criterio 4: vendere a prezzo di mercato non crea né distrugge', () => {
+  it('il totale prima e dopo una vendita al prezzo corrente esatto è identico al centesimo', () => {
+    // Prima dello scarico: 1.000 quote, nessuna vendita, prezzo di mercato 12,50.
+    const prima = residuoPerIsin({ carichi: CARICHI, vendite: [], currentPrice: 12.5 });
+    expect(prima.realizedPnl).toBe(0);
+
+    // Dopo lo scarico di 400 quote esattamente al prezzo di mercato: il
+    // risultato si sposta dal latente al realizzato, ma il totale non cambia.
+    const dopo = residuoPerIsin({
+      carichi: CARICHI,
+      vendite: [vendita(1, '2026-06-03', 400, 12.5)],
+      currentPrice: 12.5,
+    });
+
+    expect(dopo.totalPnl).toBeCloseTo(prima.totalPnl ?? NaN, 8);
+    // Il realizzato si è mosso da 0 a un valore positivo: qualcosa È cambiato,
+    // solo non il totale.
+    expect(dopo.realizedPnl).toBeGreaterThan(0);
+    expect(dopo.latentPnl).toBeLessThan(prima.latentPnl ?? Infinity);
+  });
+
+  it('vale anche vendendo per intero al prezzo di mercato', () => {
+    const prima = residuoPerIsin({ carichi: CARICHI, vendite: [], currentPrice: 12.9 });
+    const dopo = residuoPerIsin({
+      carichi: CARICHI,
+      vendite: [vendita(1, '2026-06-03', 400, 12.9), vendita(2, '2026-08-10', 600, 12.9)],
+      currentPrice: 12.9,
+    });
+
+    expect(dopo.totalPnl).toBeCloseTo(prima.totalPnl ?? NaN, 8);
+    expect(dopo.latentPnl).toBe(0);
+  });
+});
+
+describe('residuoPerIsin — invariante del criterio 5: la base della percentuale è il costo di tutti i carichi', () => {
+  it.each([
+    { nome: 'senza vendite', vendite: [] as VenditaLotto[] },
+    { nome: 'vendita parziale su un solo lotto', vendite: [vendita(1, '2026-06-03', 400, 12.5)] },
+    { nome: 'vendita che attraversa due lotti', vendite: [vendita(1, '2026-06-03', 700, 12.5)] },
+    {
+      nome: 'due vendite fino all\'azzeramento',
+      vendite: [vendita(1, '2026-06-03', 400, 12.5), vendita(2, '2026-08-10', 600, 12.9)],
+    },
+  ])('totalLoadCost = costo attribuito + costo residuo = costo di tutti i carichi ($nome)', ({ vendite }) => {
+    const residuo = residuoPerIsin({ carichi: CARICHI, vendite });
+
+    expect(residuo.totalLoadCost).toBeCloseTo(COSTO_CARICHI, 8);
+    expect(residuo.totalLoadCost).toBeCloseTo(
+      residuo.registro.costoAttribuito + residuo.registro.costoResiduo,
+      8,
+    );
+  });
+
+  it('non cambia per il solo fatto di vendere: la stessa base regge prima e dopo', () => {
+    const prima = residuoPerIsin({ carichi: CARICHI, vendite: [] });
+    const dopo = residuoPerIsin({ carichi: CARICHI, vendite: [vendita(1, '2026-06-03', 400, 12.5)] });
+
+    expect(dopo.totalLoadCost).toBeCloseTo(prima.totalLoadCost, 8);
   });
 });
