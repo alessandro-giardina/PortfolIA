@@ -40,12 +40,19 @@ import {
   type PuntoSerie,
   type PuntoValore,
   type RilevazioneSerie,
+  type VenditaValore,
 } from '@portfolia/shared';
 
 /** Un carico, con i tre campi che la serie del valore legge. */
 const carico = (loadDate: string, loadPrice: number, quantity: number): CaricoValore => ({
   loadDate,
   loadPrice,
+  quantity,
+});
+
+/** Una vendita, con i due soli campi che la serie del valore legge. */
+const vendita = (saleDate: string, quantity: number): VenditaValore => ({
+  saleDate,
   quantity,
 });
 
@@ -109,51 +116,114 @@ describe('VISTE_GRAFICO, VISTA_PREDEFINITA, definizioneVista', () => {
 
 describe('quantitaDetenutaA', () => {
   it('prima del primo carico la quantità è zero: la posizione non esiste ancora', () => {
-    expect(quantitaDetenutaA(CARICHI, giorno('2021-09-18'))).toBe(0);
-    expect(quantitaDetenutaA(CARICHI, giorno('2010-01-01'))).toBe(0);
+    expect(quantitaDetenutaA(CARICHI, [], giorno('2021-09-18'))).toBe(0);
+    expect(quantitaDetenutaA(CARICHI, [], giorno('2010-01-01'))).toBe(0);
   });
 
   it('il giorno **stesso** del carico le quote sono già detenute (estremo incluso)', () => {
-    expect(quantitaDetenutaA(CARICHI, giorno('2021-09-19'))).toBe(80);
-    expect(quantitaDetenutaA(CARICHI, giorno('2023-03-04'))).toBe(200);
+    expect(quantitaDetenutaA(CARICHI, [], giorno('2021-09-19'))).toBe(80);
+    expect(quantitaDetenutaA(CARICHI, [], giorno('2023-03-04'))).toBe(200);
   });
 
   it('fra i due carichi vale il solo primo: i carichi successivi non retroagiscono', () => {
-    expect(quantitaDetenutaA(CARICHI, giorno('2022-06-01'))).toBe(80);
-    expect(quantitaDetenutaA(CARICHI, giorno('2023-03-03'))).toBe(80);
+    expect(quantitaDetenutaA(CARICHI, [], giorno('2022-06-01'))).toBe(80);
+    expect(quantitaDetenutaA(CARICHI, [], giorno('2023-03-03'))).toBe(80);
   });
 
   it('dopo l’ultimo carico vale la somma di tutti', () => {
-    expect(quantitaDetenutaA(CARICHI, giorno('2026-08-10'))).toBe(200);
+    expect(quantitaDetenutaA(CARICHI, [], giorno('2026-08-10'))).toBe(200);
   });
 
   it('più carichi nello stesso giorno si sommano, e valgono già quel giorno', () => {
     const stessoGiorno = [carico('2024-02-01', 10, 30), carico('2024-02-01', 12, 45)];
-    expect(quantitaDetenutaA(stessoGiorno, giorno('2024-01-31'))).toBe(0);
-    expect(quantitaDetenutaA(stessoGiorno, giorno('2024-02-01'))).toBe(75);
+    expect(quantitaDetenutaA(stessoGiorno, [], giorno('2024-01-31'))).toBe(0);
+    expect(quantitaDetenutaA(stessoGiorno, [], giorno('2024-02-01'))).toBe(75);
   });
 
   it('l’ordine d’ingresso dei carichi non cambia l’esito', () => {
     const invertiti = [...CARICHI].reverse();
     for (const data of ['2021-09-18', '2021-09-19', '2022-06-01', '2023-03-04', '2026-01-01']) {
-      expect(quantitaDetenutaA(invertiti, giorno(data))).toBe(
-        quantitaDetenutaA(CARICHI, giorno(data)),
+      expect(quantitaDetenutaA(invertiti, [], giorno(data))).toBe(
+        quantitaDetenutaA(CARICHI, [], giorno(data)),
       );
     }
   });
 
   it('un carico con data malformata viene ignorato, non trasformato in NaN', () => {
     const conRifiuto = [...CARICHI, carico('non-una-data', 12, 999)];
-    expect(quantitaDetenutaA(conRifiuto, giorno('2026-01-01'))).toBe(200);
+    expect(quantitaDetenutaA(conRifiuto, [], giorno('2026-01-01'))).toBe(200);
   });
 
   it('una quantità non finita viene ignorata invece di avvelenare la somma', () => {
     const conRifiuto = [...CARICHI, carico('2024-01-01', 12, Number.NaN)];
-    expect(quantitaDetenutaA(conRifiuto, giorno('2026-01-01'))).toBe(200);
+    expect(quantitaDetenutaA(conRifiuto, [], giorno('2026-01-01'))).toBe(200);
   });
 
   it('un istante non finito dà zero, mai NaN', () => {
-    expect(quantitaDetenutaA(CARICHI, Number.NaN)).toBe(0);
+    expect(quantitaDetenutaA(CARICHI, [], Number.NaN)).toBe(0);
+  });
+});
+
+describe('quantitaDetenutaA — le vendite (US-045)', () => {
+  it('una vendita fra due carichi riduce la quantità dalla sua data in poi', () => {
+    const vendite = [vendita('2022-01-15', 30)];
+
+    // Prima della vendita: solo il primo carico, la vendita non ha ancora agito.
+    expect(quantitaDetenutaA(CARICHI, vendite, giorno('2022-01-14'))).toBe(80);
+    // Il giorno stesso: l'estremo è incluso, come per i carichi.
+    expect(quantitaDetenutaA(CARICHI, vendite, giorno('2022-01-15'))).toBe(50);
+    // Fra la vendita e il secondo carico la riduzione resta.
+    expect(quantitaDetenutaA(CARICHI, vendite, giorno('2022-06-01'))).toBe(50);
+    // Dopo il secondo carico: la somma dei carichi meno la vendita.
+    expect(quantitaDetenutaA(CARICHI, vendite, giorno('2026-01-01'))).toBe(170);
+  });
+
+  it('carichi e vendite interlacciati non in ordine cronologico di iscrizione danno la quantità corretta a ogni checkpoint', () => {
+    // L'ordine d'ingresso non è l'ordine delle date: il secondo carico e la
+    // seconda vendita sono iscritti prima dei rispettivi antecedenti.
+    const loadsFuoriOrdine = [
+      carico('2023-03-04', 71.2, 120),
+      carico('2021-09-19', 58.4, 80),
+    ];
+    const venditeFuoriOrdine = [vendita('2023-06-01', 50), vendita('2022-01-15', 30)];
+
+    const checkpoint = (dataCivile: string): number =>
+      quantitaDetenutaA(loadsFuoriOrdine, venditeFuoriOrdine, giorno(dataCivile));
+
+    expect(checkpoint('2021-09-18')).toBe(0);
+    expect(checkpoint('2021-09-19')).toBe(80);
+    expect(checkpoint('2022-01-15')).toBe(50);
+    expect(checkpoint('2023-03-04')).toBe(170);
+    expect(checkpoint('2023-06-01')).toBe(120);
+    expect(checkpoint('2026-01-01')).toBe(120);
+  });
+
+  it('una vendita totale porta la quantità a zero dalla sua data in poi, e la mantiene', () => {
+    const venditaTotale = [vendita('2024-01-01', 200)];
+
+    expect(quantitaDetenutaA(CARICHI, venditaTotale, giorno('2023-12-31'))).toBe(200);
+    expect(quantitaDetenutaA(CARICHI, venditaTotale, giorno('2024-01-01'))).toBe(0);
+    expect(quantitaDetenutaA(CARICHI, venditaTotale, giorno('2026-08-10'))).toBe(0);
+  });
+
+  it('un carico e una vendita nello stesso giorno: l’estremo incluso vale per entrambi', () => {
+    const soloCarico = [carico('2022-05-01', 10, 50)];
+    const venditaStessoGiorno = [vendita('2022-05-01', 20)];
+
+    // Il giorno prima del carico la posizione non esiste ancora.
+    expect(quantitaDetenutaA(soloCarico, venditaStessoGiorno, giorno('2022-04-30'))).toBe(0);
+    // Il giorno stesso: sia il carico sia la vendita sono già inclusi.
+    expect(quantitaDetenutaA(soloCarico, venditaStessoGiorno, giorno('2022-05-01'))).toBe(30);
+  });
+
+  it('una vendita con data malformata viene ignorata, non trasformata in NaN', () => {
+    const conRifiuto = [vendita('non-una-data', 999)];
+    expect(quantitaDetenutaA(CARICHI, conRifiuto, giorno('2026-01-01'))).toBe(200);
+  });
+
+  it('una vendita con quantità non finita viene ignorata invece di avvelenare la sottrazione', () => {
+    const conRifiuto = [vendita('2024-01-01', Number.NaN)];
+    expect(quantitaDetenutaA(CARICHI, conRifiuto, giorno('2026-01-01'))).toBe(200);
   });
 });
 
@@ -171,14 +241,14 @@ describe('primaDetenzione', () => {
 
 describe('componiSerieValore — la quantità non retroagisce (criterio 3)', () => {
   it('ogni punto porta la quantità detenuta alla **sua** data, non quella finale', () => {
-    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
 
     expect(punti.map((p) => p.quantita)).toEqual([80, 80, 200, 200, 200]);
     expect(punti.map((p) => p.price)).toEqual([4672, 5696, 14240, 25380, 25692]);
   });
 
   it('il punto del primo carico vale 80 × 58,40 e **non** 200 × 58,40: la scorciatoia è esclusa', () => {
-    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
 
     expect(punti[0].price).toBe(4672);
     expect(punti[0].price).not.toBe(11680);
@@ -189,7 +259,7 @@ describe('componiSerieValore — la quantità non retroagisce (criterio 3)', () 
       rilevazione('2022-06-01T09:00:00Z', 64),
       ...RILEVAZIONI,
     ]);
-    const { punti } = componiSerieValore({ punti: conRilevazioneInMezzo, loads: CARICHI });
+    const { punti } = componiSerieValore({ punti: conRilevazioneInMezzo, loads: CARICHI, sales: [] });
 
     const inMezzo = punti.find((p) => p.at === Date.parse('2022-06-01T09:00:00Z'));
     expect(inMezzo?.quantita).toBe(80);
@@ -197,7 +267,7 @@ describe('componiSerieValore — la quantità non retroagisce (criterio 3)', () 
   });
 
   it('ogni punto conserva il prezzo unitario da cui il controvalore discende', () => {
-    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
 
     for (const punto of punti) {
       expect(punto.price).toBeCloseTo(punto.prezzoUnitario * punto.quantita, 8);
@@ -206,14 +276,14 @@ describe('componiSerieValore — la quantità non retroagisce (criterio 3)', () 
   });
 
   it('la quantità finale è la somma dei carichi', () => {
-    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
     expect(serie.quantitaFinale).toBe(200);
   });
 });
 
 describe('componiSerieValore — il gradino è capitale versato (criterio 4)', () => {
   it('il salto vale esattamente prezzo di carico × quote nuove', () => {
-    const { gradini } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const { gradini } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
 
     expect(gradini).toHaveLength(1);
     const gradino = gradini[0];
@@ -225,7 +295,7 @@ describe('componiSerieValore — il gradino è capitale versato (criterio 4)', (
   });
 
   it('l’altezza del gradino è la differenza dei suoi due capi, per costruzione', () => {
-    const { gradini } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const { gradini } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
     const gradino = gradini[0];
 
     expect(gradino.valorePrima).toBe(5696);
@@ -234,7 +304,7 @@ describe('componiSerieValore — il gradino è capitale versato (criterio 4)', (
   });
 
   it('i due capi stanno sullo **stesso istante**, nell’ordine ante → post', () => {
-    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
     const capi = punti.filter((p) => p.capo !== null);
 
     expect(capi).toHaveLength(2);
@@ -249,7 +319,7 @@ describe('componiSerieValore — il gradino è capitale versato (criterio 4)', (
   });
 
   it('il capo ante porta la quantità precedente, il capo post quella nuova', () => {
-    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
     const [ante, post] = punti.filter((p) => p.capo !== null);
 
     expect(ante.quantita).toBe(80);
@@ -261,6 +331,7 @@ describe('componiSerieValore — il gradino è capitale versato (criterio 4)', (
     const { punti, gradini } = componiSerieValore({
       punti: serieDiPrezzo(CARICHI.slice(0, 1), []),
       loads: CARICHI.slice(0, 1),
+      sales: [],
     });
 
     expect(gradini).toHaveLength(0);
@@ -274,7 +345,7 @@ describe('componiSerieValore — il gradino è capitale versato (criterio 4)', (
 
   it('tre carichi producono due gradini, ciascuno col proprio capitale versato', () => {
     const tre = [...CARICHI, carico('2024-05-06', 90, 50)];
-    const { gradini } = componiSerieValore({ punti: serieDiPrezzo(tre, RILEVAZIONI), loads: tre });
+    const { gradini } = componiSerieValore({ punti: serieDiPrezzo(tre, RILEVAZIONI), loads: tre, sales: [] });
 
     expect(gradini.map((g) => g.quoteAggiunte)).toEqual([120, 50]);
     expect(gradini.map((g) => g.capitaleVersato)).toEqual([71.2 * 120, 90 * 50]);
@@ -285,6 +356,7 @@ describe('componiSerieValore — il gradino è capitale versato (criterio 4)', (
     const { gradini } = componiSerieValore({
       punti: serieDiPrezzo(conZero, RILEVAZIONI),
       loads: conZero,
+      sales: [],
     });
 
     expect(gradini).toHaveLength(1);
@@ -299,7 +371,7 @@ describe('componiSerieValore — i punti anteriori alla prima detenzione (criter
       rilevazione('2021-08-12T09:00:00Z', 56),
       ...RILEVAZIONI,
     ];
-    const serie = componiSerieValore({ punti: serieDiPrezzo(CARICHI, anteriori), loads: CARICHI });
+    const serie = componiSerieValore({ punti: serieDiPrezzo(CARICHI, anteriori), loads: CARICHI, sales: [] });
 
     expect(serie.puntiEsclusi).toBe(3);
     expect(serie.primaDetenzione).toBe(giorno('2021-09-19'));
@@ -312,6 +384,7 @@ describe('componiSerieValore — i punti anteriori alla prima detenzione (criter
     const serie = componiSerieValore({
       punti: serieDiPrezzo(CARICHI, stessoGiorno),
       loads: CARICHI,
+      sales: [],
     });
 
     expect(serie.puntiEsclusi).toBe(0);
@@ -319,7 +392,7 @@ describe('componiSerieValore — i punti anteriori alla prima detenzione (criter
   });
 
   it('senza alcun carico la serie è vuota e la ragione è dichiarata, non dedotta', () => {
-    const serie = componiSerieValore({ punti: serieDiPrezzo([], RILEVAZIONI), loads: [] });
+    const serie = componiSerieValore({ punti: serieDiPrezzo([], RILEVAZIONI), loads: [], sales: [] });
 
     expect(serie.punti).toEqual([]);
     expect(serie.gradini).toEqual([]);
@@ -339,6 +412,7 @@ describe('componiSerieValore — i punti anteriori alla prima detenzione (criter
     const serie = componiSerieValore({
       punti: serieDiPrezzo(soloRifiuti, []),
       loads: soloRifiuti,
+      sales: [],
     });
 
     expect(serie.punti).toEqual([]);
@@ -347,8 +421,50 @@ describe('componiSerieValore — i punti anteriori alla prima detenzione (criter
   });
 
   it('a serie piena la ragione è null: nessun caso limite dichiarato per errore', () => {
-    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
     expect(serie.ragioneVuota).toBeNull();
+    expect(serie.puntiEsclusi).toBe(0);
+  });
+});
+
+describe('componiSerieValore — la vendita totale (US-045)', () => {
+  // Cade fra le due rilevazioni della serie standard (2026-08-07 e
+  // 2026-08-10): un checkpoint su ciascun lato della vendita.
+  const VENDITA_TOTALE = [vendita('2026-08-08', 200)];
+
+  it('dopo una vendita totale i punti successivi compaiono a price:0 senza incrementare puntiEsclusi', () => {
+    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: VENDITA_TOTALE });
+    const dopo = serie.punti.filter((p) => p.at >= giorno('2026-08-08'));
+
+    expect(dopo).toHaveLength(1);
+    expect(dopo.every((p) => p.quantita === 0)).toBe(true);
+    expect(dopo.every((p) => p.price === 0)).toBe(true);
+    // Il punto non è scartato — è un dato legittimo, non un'esclusione: il
+    // conteggio non deve confondere «posizione azzerata» con «punto anteriore
+    // alla prima detenzione».
+    expect(serie.puntiEsclusi).toBe(0);
+  });
+
+  it('i punti anteriori alla vendita restano al valore pieno, non influenzati dal residuo futuro', () => {
+    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: VENDITA_TOTALE });
+    const prima = serie.punti.filter((p) => p.at < giorno('2026-08-08'));
+
+    expect(prima.map((p) => p.price)).toEqual([4672, 5696, 14240, 25380]);
+    expect(prima.every((p) => p.quantita > 0)).toBe(true);
+  });
+
+  it('quantitaFinale riflette il residuo dopo la vendita, non la somma dei soli carichi', () => {
+    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: VENDITA_TOTALE });
+    expect(serie.quantitaFinale).toBe(0);
+  });
+
+  it('una vendita parziale lascia un residuo positivo, non uno zero', () => {
+    const venditaParziale = [vendita('2026-08-08', 50)];
+    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: venditaParziale });
+    const dopo = serie.punti.filter((p) => p.at >= giorno('2026-08-08'));
+
+    expect(dopo.every((p) => p.quantita === 150)).toBe(true);
+    expect(serie.quantitaFinale).toBe(150);
     expect(serie.puntiEsclusi).toBe(0);
   });
 });
@@ -360,7 +476,7 @@ describe('componiSerieValore — guardie e ordine', () => {
       { at: giorno('2024-01-01'), price: Number.POSITIVE_INFINITY, origin: 'rilevazione' },
       ...serieDiPrezzo(),
     ];
-    const serie = componiSerieValore({ punti: malformati, loads: CARICHI });
+    const serie = componiSerieValore({ punti: malformati, loads: CARICHI, sales: [] });
 
     expect(serie.punti).toHaveLength(5);
     expect(serie.puntiEsclusi).toBe(0);
@@ -368,7 +484,7 @@ describe('componiSerieValore — guardie e ordine', () => {
   });
 
   it('la serie non viene riordinata: gli istanti restano non decrescenti e nell’ordine d’origine', () => {
-    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
 
     for (let i = 1; i < punti.length; i++) {
       expect(punti[i].at).toBeGreaterThanOrEqual(punti[i - 1].at);
@@ -383,7 +499,7 @@ describe('componiSerieValore — guardie e ordine', () => {
   });
 
   it('ogni punto conserva l’origine d’archivio del punto di prezzo da cui discende', () => {
-    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const { punti } = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
     expect(punti.map((p) => p.origin)).toEqual([
       'carico',
       'carico',
@@ -395,8 +511,8 @@ describe('componiSerieValore — guardie e ordine', () => {
 
   it('la funzione è pura: due chiamate sugli stessi ingressi danno lo stesso esito', () => {
     const punti = serieDiPrezzo();
-    const prima = componiSerieValore({ punti, loads: CARICHI });
-    const seconda = componiSerieValore({ punti, loads: CARICHI });
+    const prima = componiSerieValore({ punti, loads: CARICHI, sales: [] });
+    const seconda = componiSerieValore({ punti, loads: CARICHI, sales: [] });
 
     expect(seconda).toEqual(prima);
     // E la serie del prezzo non viene toccata: le due viste leggono lo stesso array.
@@ -409,7 +525,7 @@ describe('componiSerieValore + ritagliaSerie — la retroattività in forma rita
   const FINESTRA = { da: giorno('2024-01-01'), a: giorno('2026-08-11') };
 
   it('una finestra posteriore al primo carico applica comunque la quantità piena', () => {
-    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
     const ritaglio = ritagliaSerie({ punti: serie.punti, finestra: FINESTRA });
 
     expect(ritaglio.punti.map((p) => p.quantita)).toEqual([200, 200]);
@@ -426,6 +542,7 @@ describe('componiSerieValore + ritagliaSerie — la retroattività in forma rita
     const sbagliata = componiSerieValore({
       punti: ritaglioPrezzo.punti,
       loads: carichiInFinestra,
+      sales: [],
     });
 
     expect(carichiInFinestra).toHaveLength(0);
@@ -434,7 +551,7 @@ describe('componiSerieValore + ritagliaSerie — la retroattività in forma rita
     // La composizione giusta — serie intera, carichi interi, ritaglio *dopo* —
     // conserva le 200 quote.
     const giusta = ritagliaSerie({
-      punti: componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI }).punti,
+      punti: componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] }).punti,
       finestra: FINESTRA,
     });
     expect(giusta.punti).toHaveLength(2);
@@ -442,7 +559,7 @@ describe('componiSerieValore + ritagliaSerie — la retroattività in forma rita
   });
 
   it('il ritaglio conserva i campi del punto valore: quantità, prezzo unitario, gradino e capo', () => {
-    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI });
+    const serie = componiSerieValore({ punti: serieDiPrezzo(), loads: CARICHI, sales: [] });
     const ritaglio = ritagliaSerie({
       punti: serie.punti,
       finestra: { da: giorno('2023-01-01'), a: giorno('2026-08-11') },
@@ -457,7 +574,7 @@ describe('componiSerieValore + ritagliaSerie — la retroattività in forma rita
 
   it('la finestra della scala si calcola sulla serie del **prezzo**: commutare la vista non la muove', () => {
     const prezzoIntero = serieDiPrezzo();
-    const valore = componiSerieValore({ punti: prezzoIntero, loads: CARICHI }).punti;
+    const valore = componiSerieValore({ punti: prezzoIntero, loads: CARICHI, sales: [] }).punti;
     const now = Date.parse('2026-08-11T10:00:00Z');
 
     // La stessa scala, gli stessi punti d'ingresso: la finestra non dipende da

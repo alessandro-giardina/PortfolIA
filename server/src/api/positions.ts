@@ -2,9 +2,10 @@ import type { FastifyInstance } from 'fastify';
 import { eq, desc, and, inArray } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { portfolios, positions, priceObservations, sales, securities } from '../db/schema.js';
-import type { Position, PositionLoad, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, PriceObservation, CaricoLotto, VenditaLotto, RegistroInput } from '@portfolia/shared';
+import type { Position, PositionLoad, CreatePositionRequest, UpdatePositionRequest, PositionSummary, EnrichedPositionSummary, PositionDetail, PriceObservation, CaricoLotto, VenditaLotto, RegistroInput, Sale } from '@portfolia/shared';
 import { isValidIsin, normalizeIsin, normalizzaDataSource, residuoPerIsin, rigiocaRegistro } from '@portfolia/shared';
 import { classifyPriceFreshness } from '../domain/marketHours.js';
+import { toSale } from './sales.js';
 
 /**
  * Opzioni del plugin. `now` esiste solo per congelare l'orologio nei test del
@@ -107,6 +108,7 @@ function leggiRegistroIsin(portfolioId: number, isin: string): {
   carichi: CaricoLotto[];
   vendite: VenditaLotto[];
   righeCarico: (typeof positions.$inferSelect)[];
+  righeVendita: (typeof sales.$inferSelect)[];
 } {
   const righeCarico = db
     .select()
@@ -126,6 +128,7 @@ function leggiRegistroIsin(portfolioId: number, isin: string): {
     carichi: righeCarico.map(toCaricoLotto),
     vendite: righeVendita.map(toVenditaLotto),
     righeCarico,
+    righeVendita,
   };
 }
 
@@ -288,7 +291,7 @@ export async function positionsRoutes(
 
     // Il registro di questo ISIN: i carichi individuali in ordine cronologico e
     // le vendite che ne hanno consumato quote.
-    const { carichi, vendite, righeCarico: loadRows } = leggiRegistroIsin(portfolioId, isin);
+    const { carichi, vendite, righeCarico: loadRows, righeVendita: saleRows } = leggiRegistroIsin(portfolioId, isin);
 
     // Un ISIN formalmente valido ma senza carichi non è un titolo di questo
     // portafoglio: 404, non una scheda vuota con zeri inventati.
@@ -334,6 +337,11 @@ export async function positionsRoutes(
       residualQuantity: residuoPerLotto.get(row.id) ?? 0,
     }));
 
+    // Le vendite grezze del registro, già in ordine di data crescente perché la
+    // query di `leggiRegistroIsin` ordina `(sale_date, id)` — lo stesso ordine di
+    // `loads` qui sopra: nessun `.sort()` aggiuntivo serve.
+    const salesList: Sale[] = saleRows.map(toSale);
+
     const detail: PositionDetail = {
       isin,
       loadedQuantity: pnl.loadedQuantity,
@@ -361,6 +369,7 @@ export async function positionsRoutes(
       dataSource: normalizzaDataSource(security?.data_source),
       fetchedAt: security?.fetched_at ?? null,
       loads,
+      sales: salesList,
       priceHistory: observationRows.map(toPriceObservation),
     };
 

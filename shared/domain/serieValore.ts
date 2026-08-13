@@ -26,7 +26,7 @@
 
 // `import type` e non un import a runtime: `types/index.ts` riesporta questo
 // modulo, quindi un import di valori creerebbe un ciclo fra i due file.
-import type { Position } from '../types/index.js';
+import type { Position, Sale } from '../types/index.js';
 import type { PuntoSerie } from './serieTitolo.js';
 // Import a runtime **consentito**: `serieTitolo.ts` non importa a sua volta
 // questo modulo, quindi non c'è ciclo. Ed è deliberato che la regola di lettura
@@ -107,26 +107,44 @@ export function definizioneVista(vista: VistaGrafico): DefinizioneVista {
 export type CaricoValore = Pick<Position, 'loadDate' | 'loadPrice' | 'quantity'>;
 
 /**
- * La quantità detenuta a un dato istante: la somma delle quantità dei carichi la
- * cui data è **minore o uguale** all'istante chiesto.
+ * La vendita, ridotta ai due soli campi che la serie del valore legge: gemella
+ * di `CaricoValore`, non l'attribuzione LIFO di `lottiLifo.ts` — qui la quantità
+ * venduta va solo **sottratta** dalla quantità detenuta, senza sapere a quale
+ * lotto di carico appartenga.
+ */
+export type VenditaValore = Pick<Sale, 'saleDate' | 'quantity'>;
+
+/**
+ * La quantità detenuta a un dato istante: la somma delle quantità dei carichi,
+ * meno la somma delle quantità delle vendite, la cui data è **minore o uguale**
+ * all'istante chiesto.
  *
- * L'estremo è **incluso**: il giorno stesso del carico le quote sono già tue, ed
- * è il giorno in cui la curva del valore compie il gradino. La data civile viene
- * ancorata con `istanteDataCivile`, la stessa funzione che `componiSerieTitolo`
- * adopera per collocare il punto del carico sull'asse: due letture diverse della
- * stessa data farebbero cadere un carico dal lato sbagliato del proprio giorno,
- * e il gradino comparirebbe accanto — non sopra — al rombo che lo causa.
+ * L'estremo è **incluso**: il giorno stesso del carico (o della vendita) le quote
+ * sono già tue (o non più tue), ed è il giorno in cui la curva del valore compie
+ * il gradino. La data civile viene ancorata con `istanteDataCivile`, la stessa
+ * funzione che `componiSerieTitolo` adopera per collocare il punto del carico
+ * sull'asse: due letture diverse della stessa data farebbero cadere un carico o
+ * una vendita dal lato sbagliato del proprio giorno, e il gradino comparirebbe
+ * accanto — non sopra — al rombo che lo causa.
  *
- * I carichi con data malformata o quantità non finita vengono **ignorati**, non
- * corretti: propagarli darebbe un `NaN` che si diffonderebbe a tutta la serie e
- * produrrebbe un tracciato invisibile, cioè un guasto indistinguibile da un dato
- * assente.
+ * I carichi e le vendite con data malformata o quantità non finita vengono
+ * **ignorati**, non corretti: propagarli darebbe un `NaN` che si diffonderebbe a
+ * tutta la serie e produrrebbe un tracciato invisibile, cioè un guasto
+ * indistinguibile da un dato assente.
  *
  * Prima del primo carico la funzione restituisce `0`, e chi compone la serie deve
  * leggerlo come «la posizione non esisteva» e **non** come «la posizione valeva
  * zero»: `componiSerieValore` esclude quei punti invece di appiattirli sullo zero.
+ * Dopo una vendita totale, invece, la funzione restituisce `0` per la posizione
+ * che **esiste** e non vale più nulla: quel caso non va confuso col precedente, e
+ * `componiSerieValore` lo distingue guardando se l'istante è caduto prima o dopo
+ * la prima detenzione.
  */
-export function quantitaDetenutaA(loads: readonly CaricoValore[], at: number): number {
+export function quantitaDetenutaA(
+  loads: readonly CaricoValore[],
+  sales: readonly VenditaValore[],
+  at: number,
+): number {
   if (!Number.isFinite(at)) return 0;
 
   let quantita = 0;
@@ -134,6 +152,11 @@ export function quantitaDetenutaA(loads: readonly CaricoValore[], at: number): n
     const istante = istanteDataCivile(carico.loadDate);
     if (!Number.isFinite(istante) || !Number.isFinite(carico.quantity)) continue;
     if (istante <= at) quantita += carico.quantity;
+  }
+  for (const vendita of sales) {
+    const istante = istanteDataCivile(vendita.saleDate);
+    if (!Number.isFinite(istante) || !Number.isFinite(vendita.quantity)) continue;
+    if (istante <= at) quantita -= vendita.quantity;
   }
   return quantita;
 }
@@ -244,6 +267,11 @@ export interface ComponiSerieValoreInput {
   punti: readonly PuntoSerie[];
   /** I carichi che compongono la posizione: si passa `detail.loads`. */
   loads: readonly CaricoValore[];
+  /**
+   * Le vendite che hanno scaricato la posizione: si passa `detail.sales`. Come
+   * per `loads`, la serie **intera**: il ritaglio si applica dopo, non prima.
+   */
+  sales: readonly VenditaValore[];
 }
 
 /** Esito della composizione: i punti **e** i fatti che la resa deve dichiarare. */
@@ -287,7 +315,7 @@ export interface SerieValore {
  *   gradino secondo il prezzo, che oggi dà l'ordine giusto solo per coincidenza
  *   (un carico aggiunge sempre quantità, quindi il valore sale).
  */
-export function componiSerieValore({ punti, loads }: ComponiSerieValoreInput): SerieValore {
+export function componiSerieValore({ punti, loads, sales }: ComponiSerieValoreInput): SerieValore {
   const inizio = primaDetenzione(loads);
   const puntiValore: PuntoValore[] = [];
   const gradini: GradinoCarico[] = [];
@@ -312,8 +340,12 @@ export function componiSerieValore({ punti, loads }: ComponiSerieValoreInput): S
       continue;
     }
 
-    const quantita = quantitaDetenutaA(loads, punto.at);
-    if (!Number.isFinite(quantita) || quantita <= 0) {
+    // Dopo la prima detenzione la quantità **è** zero quando una vendita totale
+    // l'ha svuotata, e uno zero legittimo non va confuso con un dato malformato:
+    // solo il secondo va escluso. Il punto a quantità zero entra in `puntiValore`
+    // con `price: 0` più sotto, invece di sparire dal tracciato o farlo saltare.
+    const quantita = quantitaDetenutaA(loads, sales, punto.at);
+    if (!Number.isFinite(quantita)) {
       puntiEsclusi += 1;
       continue;
     }

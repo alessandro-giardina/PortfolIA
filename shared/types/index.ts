@@ -473,6 +473,15 @@ export interface PositionDetail {
    */
   loads: PositionLoad[];
 
+  // ─── Vendite grezze ────────────────────────────────────────────────────────
+  /**
+   * Le vendite iscritte per questo ISIN, ordinate per data di vendita
+   * crescente — lo stesso ordine di registro di `loads`, e quello in cui
+   * l'attribuzione LIFO le consuma. Vuoto quando nessuna vendita risulta in
+   * archivio: un array vuoto significa "nessuna vendita", non un dato assente.
+   */
+  sales: Sale[];
+
   // ─── Storico dei prezzi osservati (FR-018, ADR-008) ───────────────────────
   /**
    * Le rilevazioni di prezzo già registrate per questo ISIN, dalla più recente

@@ -18,7 +18,7 @@ import { isValidIsin, normalizeIsin, verificaVendita } from '@portfolia/shared';
  */
 
 /** Mappa una riga di `sales` nell'interfaccia condivisa `Sale`. */
-function toSale(row: typeof sales.$inferSelect): Sale {
+export function toSale(row: typeof sales.$inferSelect): Sale {
   return {
     id: row.id,
     portfolioId: row.portfolio_id,

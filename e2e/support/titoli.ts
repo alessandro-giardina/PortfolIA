@@ -1463,6 +1463,92 @@ export const TITOLO_US_044_VARIANTI_SECONDO: TitoloSeminabile = {
 };
 
 /**
+ * Riservato a `US-045__grafico-riflette-vendite.spec.ts` (scenario dimostrativo).
+ *
+ * Regge il caso della spec: **un carico di 1.000 quote** e, più tardi, **una
+ * vendita parziale di 400**, con tre rilevazioni di prezzo — una prima della
+ * vendita, due dopo — che devono mostrare il controvalore moltiplicato per la
+ * quantità detenuta *a quella data* e non per la quantità di oggi. Un solo
+ * lotto è deliberato: con un solo carico il prezzo medio ponderato del residuo
+ * resta identico a quello del lotto, e la vista «prezzo unitario» — che la
+ * spec promette invariata — non ha alcuna complicazione LIFO a cui reagire.
+ *
+ * `price` coincide con l'ultima rilevazione che lo scenario semina, per la
+ * stessa ragione registrata su US-009, US-036, US-038 e US-039: divergere fra
+ * il cartellino e l'ultimo punto del grafico non farebbe fallire nulla, ma
+ * mostrerebbe un dato falso proprio nel filmato che dovrebbe dimostrare il
+ * contrario.
+ *
+ * Il seme porta `fetched_at` di **adesso** (il default di `seminaTitolo`): è
+ * la guardia di buona cittadinanza a impedire un recupero reale dalla fonte,
+ * che costerebbe 8-12 secondi non deterministici e sposterebbe l'ultimo punto
+ * della curva sotto i piedi del test.
+ */
+export const TITOLO_US_045: TitoloSeminabile = {
+  isin: 'IE00BFY0GT89',
+  file: 'US-045__grafico-riflette-vendite.spec.ts',
+  campi: {
+    name: 'Amundi Ftse All-World Ucits Etf Acc',
+    price: 58.3,
+    ticker: 'AWLD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,18%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-045__grafico-riflette-vendite-varianti.spec.ts`.
+ *
+ * Non può condividere la chiave con `TITOLO_US_045` (stessa ragione già
+ * registrata per `TITOLO_US_042_RIFIUTI` e `TITOLO_US_043_VENDUTO_INTERO`):
+ * sono file diversi su worker potenzialmente paralleli, e seminare le stesse
+ * rilevazioni sarebbe uno stack di undo condiviso.
+ *
+ * Regge due scenari, entrambi costruiti attorno a una **vendita totale** — non
+ * parziale, com'è invece il caso del file dimostrativo — perché è la vendita
+ * totale a mettere alla prova ciò che il file demo non tocca: che i punti a
+ * quantità zero restino *presenti* nel tracciato (data-valore="0",
+ * data-quantita="0") invece di essere silenziosamente esclusi, e che un nuovo
+ * carico registrato dopo l'azzeramento riapra la serie da capo — senza
+ * gradino, perché `componiSerieValore` tratta un carico come gradino solo se
+ * la quantità precedente è positiva — invece di accatastarsi sulla posizione
+ * venduta.
+ *
+ * Ogni scenario semina le proprie rilevazioni con `seminaOsservazioni`, che
+ * *sostituisce* lo storico: girano in serie dentro il file
+ * (`fullyParallel: false`), quindi la pila di undo resta consistente.
+ *
+ * `price` coincide con l'ultima rilevazione che ciascuno scenario semina, per
+ * la stessa ragione registrata su `TITOLO_US_045`: divergere fra il
+ * cartellino e l'ultimo punto del grafico non farebbe fallire nulla, ma
+ * mostrerebbe un dato falso.
+ *
+ * Il seme porta `fetched_at` di **adesso** (il default di `seminaTitolo`):
+ * stessa guardia di buona cittadinanza già documentata su `TITOLO_US_045`.
+ */
+export const TITOLO_US_045_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00BFY0GT97',
+  file: 'US-045__grafico-riflette-vendite-varianti.spec.ts',
+  campi: {
+    name: 'Lyxor Msci World Ucits Etf Acc',
+    price: 47.1,
+    ticker: 'LYWD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,30%',
+    currency: 'EUR',
+    issuer: 'LYXOR INTERNATIONAL ASSET MANAGEMENT',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *
@@ -1512,4 +1598,10 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   TITOLO_US_044_POSSEDUTO.isin,
   TITOLO_US_044_VARIANTI.isin,
   TITOLO_US_044_VARIANTI_SECONDO.isin,
+  // TITOLO_US_045: le tre rilevazioni che il file semina esplicitamente.
+  TITOLO_US_045.isin,
+  // TITOLO_US_045_VARIANTI: le rilevazioni che ciascuno dei due scenari
+  // semina esplicitamente, sostituendosi l'uno con l'altro fra un test e il
+  // successivo dello stesso file.
+  TITOLO_US_045_VARIANTI.isin,
 ];

@@ -1,0 +1,162 @@
+schema: archetipo/plan/v2
+spec_code: US-045
+body: |
+  # US-045: Sottrarre le vendite dalla quantità detenuta nelle serie storiche — Piano di implementazione
+
+  **Generato da:** ARchetipo Planning Team
+  **Data:** 13 agosto 2026
+
+  ---
+
+  ## Spec
+
+  **Epica:** EP-008 — Vendite e posizioni chiuse
+  **Priorità:** HIGH | **Punti:** 3
+  **Bloccata da:** US-042 (DONE) — `rigiocaRegistro`, `VenditaLotto` e l'attribuzione LIFO esistono già; questa spec non tocca l'attribuzione, tocca solo il grafico del titolo.
+
+  **User Story**
+  Come Alessandro, investitore-proprietario, voglio che il grafico del valore della posizione rifletta le quote effettivamente detenute a ciascuna data anche dopo una vendita, in modo da non leggere una storia più liscia e più ricca di quella vera (FR-027, FR-015).
+
+  **Criteri di Accettazione**
+  - [ ] La quantità detenuta a un istante è Σ carichi non successivi a quell'istante − Σ vendite non successive a quell'istante
+  - [ ] La vista "valore della posizione" applica la quantità detenuta alla data di ciascun punto, non quella odierna
+  - [ ] Dopo una vendita totale i punti successivi alla data di vendita valgono 0 e non sono né omessi né interpolati
+  - [ ] La vista "prezzo unitario" non è influenzata dalle vendite
+  - [ ] Test unitari puri coprono la quantità detenuta con carichi e vendite interlacciati nel tempo
+
+  ---
+
+  ## Soluzione tecnica
+
+  Il grafico del valore della posizione (`shared/domain/serieValore.ts`, US-039) esiste già e applica correttamente «la quantità alla data del punto, non quella odierna» — ma solo per i **carichi**. `quantitaDetenutaA(loads, at)` somma le quantità dei carichi con `loadDate <= at` e non conosce le vendite: il difetto che il modulo dichiara di voler rendere impossibile nel proprio commento — «moltiplicare l'intera serie per la quantità posseduta oggi» — si ripresenta identico dopo una vendita, solo spostato dalla quantità odierna alla quantità *residua* odierna, applicata retroattivamente a tutta la storia. FR-027 lo dice esplicitamente: la quantità detenuta è «Σ carichi meno Σ vendite non successive a quella data». US-042 ha già una funzione di quantità puntuale — `quantitaDisponibileA` in `lottiLifo.ts` — ma è per l'attribuzione LIFO (quante quote sono *vendibili* a una data, lotto per lotto) e non è quella che il grafico deve usare: il grafico ha bisogno solo del totale, non della ripartizione per lotto, e non deve accoppiarsi a un modulo che ricalcola tutta l'attribuzione LIFO solo per contare due somme.
+
+  ### Il solo calcolo che cambia: `quantitaDetenutaA`
+
+  `shared/domain/serieValore.ts` acquisisce un tipo `VenditaValore = Pick<Sale, 'saleDate' | 'quantity'>`, gemello di `CaricoValore` e non un'importazione di `VenditaLotto` da `lottiLifo.ts`: è la stessa scelta già presente nel modulo, che definisce una propria `CaricoValore` invece di riusare la quasi identica `CaricoLotto` — ogni modulo di dominio dichiara i soli campi che legge, indipendentemente da ciò che legge un modulo fratello.
+
+  `quantitaDetenutaA` acquisisce un secondo argomento posizionale `sales: readonly VenditaValore[]` (nuova firma: `quantitaDetenutaA(loads, sales, at)`) e sottrae Σ `sale.quantity` per le vendite con `istanteDataCivile(sale.saleDate) <= at` — stessa funzione di ancoraggio già usata per i carichi, stesso estremo incluso (il giorno della vendita le quote sono già uscite), stessa disciplina di scarto silenzioso per una vendita con data malformata o quantità non finita (ignorata, non corretta — propagarla darebbe un `NaN` che si diffonderebbe a tutta la serie). `ComponiSerieValoreInput` acquisisce lo stesso campo `sales`, e `componiSerieValore` lo passa alla chiamata interna a `quantitaDetenutaA`.
+
+  ### Il bug gemello da correggere: l'esclusione dei punti a quantità zero
+
+  Oggi `componiSerieValore` scarta un punto quando `quantita <= 0`, contandolo fra i `puntiEsclusi` — corretto quando la ragione è che la posizione *non esisteva ancora* (prima del primo carico), ma quel caso è già intercettato dal controllo `punto.at < inizio` qualche riga sopra. Una volta che le vendite entrano nel calcolo, `quantita` può legittimamente valere `0` anche **dopo** che la posizione è esistita — una vendita totale — e in quel caso il punto non deve essere scartato: deve comparire a `price: 0`, esattamente il criterio 3 («i punti successivi alla vendita totale valgono 0 e non sono né omessi né interpolati»). La correzione è togliere la disgiunzione `|| quantita <= 0` dalla guardia, lasciando solo `!Number.isFinite(quantita)`: un punto con quantità zero raggiunto dopo `inizio` entra in `puntiValore` con `price: punto.price * 0`, mentre un punto anteriore a `inizio` resta escluso come già oggi. Nessun'altra riga della funzione cambia: il ramo del gradino continua a scattare solo quando `quantitaPrecedente > 0 && quantita > quantitaPrecedente` — una riapertura dopo una vendita totale (nuovo carico con quantità precedente a zero) resta trattata come origine e non come gradino, che è già la semantica corretta e documentata per il primo carico in assoluto.
+
+  ### Propagazione: dal server al client, senza una nuova rotta
+
+  Il registro delle vendite di un ISIN è già letto nella rotta esistente `GET /api/portfolios/:id/positions/:isin/detail` (`leggiRegistroIsin`, usato oggi solo per `residuoPerIsin`): manca solo l'esporlo nella risposta.
+
+  - `shared/types/index.ts`: `PositionDetail` acquisisce `sales: Sale[]`, con la stessa docstring e la stessa scelta di tipo **pieno** (non ridotto) di `loads: PositionLoad[]` e `priceHistory: PriceObservation[]` — il client riceve l'entità completa, e il grafico ne legge solo `saleDate`/`quantity` tramite `VenditaValore`, come già fa con `Position` tramite `CaricoValore`.
+  - `server/src/api/positions.ts`: `leggiRegistroIsin` acquisisce anche `righeVendita` (le righe grezze delle vendite), speculare a `righeCarico` che già restituisce oggi. La rotta `/detail` le mappa in `Sale[]` con `toSale`, oggi definita e non esportata in `server/src/api/sales.ts`: si esporta e si importa in `positions.ts` invece di duplicare la funzione (nessun ciclo — `sales.ts` non importa da `positions.ts`). Nessuna nuova rotta, nessun nuovo calcolo lato server: `sales` è un campo di lettura pura, ordinato per `(sale_date, id)` crescente come già fa `leggiRegistroIsin` per le vendite.
+  - `client/src/components/GraficoTitolo.tsx`: `GraficoTitoloProps` acquisisce `sales: readonly VenditaValore[]`, analogo a `loads`; l'unico `useMemo` che compone la serie del valore (`componiSerieValore({ punti: serie, loads, sales })`) passa il nuovo campo, con `sales` nell'array di dipendenze.
+  - `client/src/components/SchedaTitolo.tsx`: il montaggio del grafico passa `sales={detail.sales}`.
+
+  **Perché la vista "prezzo unitario" resta invariata per costruzione (criterio 4):** `componiSerieTitolo`, che produce la serie di prezzo `serie` usata da entrambe le viste, non acquisisce e non ha mai acquisito le vendite — la sua firma non cambia in questa spec. Le vendite entrano **solo** in `componiSerieValore`, la funzione che rilegge quella stessa serie come controvalore. Non c'è quindi un ramo di codice da proteggere: è impossibile che una vendita alteri i punti della vista "prezzo", perché la funzione che li produce non li vede nemmeno.
+
+  ### Fuori perimetro
+
+  - Un gradino "di vendita" (un passo verticale disegnato esattamente alla data della vendita, simmetrico al gradino di carico di US-039): nessun criterio di questa spec lo richiede — il criterio 3 chiede solo che i punti *già esistenti* dopo una vendita totale mostrino 0, non che se ne crei uno sintetico proprio quel giorno. Introdurlo richiederebbe iniettare un punto di prezzo alla data di vendita (oggi solo i carichi e le rilevazioni generano punti) e un'intera famiglia di elementi di resa (cartellino, dichiarazione, voce di legenda) analoghi a quelli già esistenti per il gradino di carico: una spec a sé, non un aggiustamento di 3 punti.
+  - Il grafico dell'andamento del portafoglio (FR-015 nella sua forma letterale, EP-006): non esiste ancora nel codice — `US-019` è ancora `TODO` — quindi non c'è nulla da correggere lì. FR-015 è citato nella spec come motivazione generale della storicità, non come un secondo grafico da toccare.
+  - L'attribuzione LIFO e `quantitaDisponibileA` (`lottiLifo.ts`): restano quelle di US-042, non richiamate da questa spec.
+
+  ---
+
+  ## Strategia di test
+
+  Il solo calcolo nuovo (la sottrazione delle vendite in `quantitaDetenutaA`, e la correzione dell'esclusione in `componiSerieValore`) è testato a livello di dominio con funzioni pure, che è dove il criterio 5 lo richiede esplicitamente; il resto della spec è propagazione di un campo già letto, quindi il peso dei test si sposta su un test di integrazione (il campo compare in risposta) e su uno scenario e2e che renda visibile a schermo la differenza.
+
+  - `server/tests/serieValore.test.ts` (esteso):
+    - `quantitaDetenutaA`: regressione bit-per-bit con `sales: []` sui fixture esistenti; una vendita fra due carichi riduce la quantità dalla sua data in poi e non prima; più vendite e più carichi interlacciati (l'ordine di iscrizione non è l'ordine cronologico) danno la quantità corretta a ogni data di controllo; una vendita totale porta la quantità a `0` esattamente dalla sua data e la mantiene a `0` dopo; carico e vendita nello stesso giorno — l'estremo incluso vale per entrambe le operazioni; una vendita con data malformata o quantità non finita viene ignorata, non propagata (stessa disciplina dei carichi malformati già testata).
+    - `componiSerieValore`: con una vendita totale, i punti della serie di prezzo successivi alla data di vendita compaiono a `price: 0` e **non** incrementano `puntiEsclusi`; i punti anteriori alla vendita restano moltiplicati per la quantità piena; `quantitaFinale` riflette il residuo dopo tutte le vendite; regressione — l'intera suite di test esistente sul gradino e sui punti esclusi (US-039) continua a passare invariata quando si passa `sales: []`, perché nessun comportamento documentato lì cambia.
+  - `server/tests/api.positions.detail.test.ts` (esteso): la risposta di `GET /detail` porta `sales`, con `saleDate`/`quantity`/`salePrice` coerenti con le vendite iscritte, ordinate per data crescente; regressione — un ISIN senza vendite riporta `sales: []`.
+
+  ### Test E2E — simulazione utente
+
+  **Framework:** Playwright (`e2e/`, fixture `archivio` obbligatoria — mai `try/finally`, come da `CLAUDE.md`).
+  **Video:** solo lo scenario dimostrativo (campo *Dimostra* della spec), salvato con `page.video().saveAs('docs/test-results/US-045/demo-grafico-riflette-vendite.webm')` in un `afterEach` dopo `page.close()`.
+  **Dati:** nuova costante `TITOLO_US_045` in `e2e/support/titoli.ts` (ISIN mai usato altrove, file-owned, verificata da `npm run check:chiavi`). Carico e vendita si registrano via API (`aggiungiPosizione`, `registraVendita`), come già in US-042/US-039. Date sempre in giorni indietro da adesso, mai fisse.
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Carico e vendita parziale, il grafico del valore riflette il residuo (**demo**) | Un titolo caricato con una quantità nel passato, poi venduto parzialmente più di recente. Aprendo la scheda titolo e passando alla vista "Valore della posizione", i punti anteriori alla vendita mostrano il controvalore sulla quantità piena e quelli successivi sul residuo; passando alla vista "Prezzo unitario" il tracciato è identico a quello di un titolo mai venduto con lo stesso storico prezzi — nessuna traccia della vendita. |
+  | Vendita totale, i punti successivi non spariscono | Sullo stesso schema, una vendita totale invece che parziale: i punti della vista "Valore della posizione" successivi alla vendita sono presenti a controvalore zero (contati, non assenti dal grafico né dal conteggio dei punti esclusi), mentre quelli anteriori restano al valore pieno. |
+  | Carico, vendita totale, nuovo carico (riapertura) | Verifica che la riapertura dopo una vendita totale sia trattata come una nuova origine (non un gradino), coerente con `quantitaPrecedente === 0`, e che il tracciato torni a un controvalore positivo dalla data del nuovo carico. |
+
+  Gli scenari senza video vivono in `e2e/US-045__grafico-riflette-vendite-varianti.spec.ts`, sorello del file dimostrativo (stessa regola della coppia `US-026__*`, dato che `test.use()` del video non è limitabile a un `describe`).
+
+  ---
+
+  _Piano generato con ARchetipo Planning — 13 agosto 2026_
+tasks:
+  - id: TASK-01
+    title: Sottrarre le vendite in quantitaDetenutaA e correggere l'esclusione dei punti a quantità zero
+    description: 'In shared/domain/serieValore.ts: nuovo tipo VenditaValore = Pick<Sale, ''saleDate''|''quantity''> (gemello di CaricoValore, non un import di VenditaLotto da lottiLifo.ts). quantitaDetenutaA acquisisce un secondo parametro sales e sottrae Σ sale.quantity con istanteDataCivile(sale.saleDate) <= at (estremo incluso, stessa disciplina di scarto silenzioso delle vendite malformate). ComponiSerieValoreInput acquisisce sales; componiSerieValore lo propaga alla chiamata interna. Bug da correggere nello stesso file: togliere "|| quantita <= 0" dalla guardia di esclusione dei punti (lasciare solo !Number.isFinite(quantita)), così un punto a quantità zero raggiunto dopo la prima detenzione (vendita totale) entra in puntiValore a price:0 invece di essere escluso.'
+    type: Impl
+    status: DONE
+    body: 'In shared/domain/serieValore.ts: nuovo tipo VenditaValore = Pick<Sale, ''saleDate''|''quantity''> (gemello di CaricoValore, non un import di VenditaLotto da lottiLifo.ts). quantitaDetenutaA acquisisce un secondo parametro sales e sottrae Σ sale.quantity con istanteDataCivile(sale.saleDate) <= at (estremo incluso, stessa disciplina di scarto silenzioso delle vendite malformate). ComponiSerieValoreInput acquisisce sales; componiSerieValore lo propaga alla chiamata interna. Bug da correggere nello stesso file: togliere "|| quantita <= 0" dalla guardia di esclusione dei punti (lasciare solo !Number.isFinite(quantita)), così un punto a quantità zero raggiunto dopo la prima detenzione (vendita totale) entra in puntiValore a price:0 invece di essere escluso.'
+    ref: TASK-01
+  - id: TASK-02
+    title: Test unitari di quantitaDetenutaA e componiSerieValore con vendite interlacciate
+    description: 'Estendere server/tests/serieValore.test.ts: regressione bit-per-bit con sales:[] sui fixture esistenti; vendita fra due carichi riduce la quantità dalla sua data in poi; carichi e vendite interlacciati non in ordine cronologico di iscrizione danno la quantità corretta a ogni checkpoint; vendita totale porta la quantità a 0 dalla sua data e la mantiene; carico e vendita nello stesso giorno con l''estremo incluso; vendita malformata (data o quantità non finita) ignorata. componiSerieValore: dopo una vendita totale i punti successivi compaiono a price:0 senza incrementare puntiEsclusi; punti anteriori restano al valore pieno; quantitaFinale riflette il residuo; regressione sulla suite esistente del gradino con sales:[].'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'Estendere server/tests/serieValore.test.ts: regressione bit-per-bit con sales:[] sui fixture esistenti; vendita fra due carichi riduce la quantità dalla sua data in poi; carichi e vendite interlacciati non in ordine cronologico di iscrizione danno la quantità corretta a ogni checkpoint; vendita totale porta la quantità a 0 dalla sua data e la mantiene; carico e vendita nello stesso giorno con l''estremo incluso; vendita malformata (data o quantità non finita) ignorata. componiSerieValore: dopo una vendita totale i punti successivi compaiono a price:0 senza incrementare puntiEsclusi; punti anteriori restano al valore pieno; quantitaFinale riflette il residuo; regressione sulla suite esistente del gradino con sales:[].'
+    ref: TASK-02
+  - id: TASK-03
+    title: Esporre le vendite nella rotta di dettaglio del titolo
+    description: 'shared/types/index.ts: PositionDetail acquisisce sales: Sale[] (tipo pieno, come loads e priceHistory), ordinato per data crescente. server/src/api/positions.ts: leggiRegistroIsin ritorna anche righeVendita (righe grezze, speculare a righeCarico). Esportare toSale da server/src/api/sales.ts (oggi non esportata) e importarla in positions.ts invece di duplicarla (nessun ciclo, sales.ts non importa da positions.ts). La rotta GET /api/portfolios/:id/positions/:isin/detail popola detail.sales mappando righeVendita con toSale. Nessuna nuova rotta.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'shared/types/index.ts: PositionDetail acquisisce sales: Sale[] (tipo pieno, come loads e priceHistory), ordinato per data crescente. server/src/api/positions.ts: leggiRegistroIsin ritorna anche righeVendita (righe grezze, speculare a righeCarico). Esportare toSale da server/src/api/sales.ts (oggi non esportata) e importarla in positions.ts invece di duplicarla (nessun ciclo, sales.ts non importa da positions.ts). La rotta GET /api/portfolios/:id/positions/:isin/detail popola detail.sales mappando righeVendita con toSale. Nessuna nuova rotta.'
+    ref: TASK-03
+  - id: TASK-04
+    title: Test di integrazione del campo sales nella rotta di dettaglio
+    description: 'Estendere server/tests/api.positions.detail.test.ts: la risposta porta sales con saleDate/quantity/salePrice coerenti con le vendite iscritte, ordinate per data crescente; regressione, un ISIN senza vendite riporta sales: [].'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+    body: 'Estendere server/tests/api.positions.detail.test.ts: la risposta porta sales con saleDate/quantity/salePrice coerenti con le vendite iscritte, ordinate per data crescente; regressione, un ISIN senza vendite riporta sales: [].'
+    ref: TASK-04
+  - id: TASK-05
+    title: 'Wiring client: GraficoTitolo e SchedaTitolo passano le vendite'
+    description: 'client/src/components/GraficoTitolo.tsx: GraficoTitoloProps acquisisce sales: readonly VenditaValore[] (da @portfolia/shared), analogo a loads; l''useMemo che chiama componiSerieValore passa anche sales, con sales nell''array di dipendenze. client/src/components/SchedaTitolo.tsx: passa sales={detail.sales} al grafico. Nessuna modifica a componiSerieTitolo né alla vista "prezzo unitario": resta invariata per costruzione, perché quella funzione non acquisisce le vendite.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-03
+    body: 'client/src/components/GraficoTitolo.tsx: GraficoTitoloProps acquisisce sales: readonly VenditaValore[] (da @portfolia/shared), analogo a loads; l''useMemo che chiama componiSerieValore passa anche sales, con sales nell''array di dipendenze. client/src/components/SchedaTitolo.tsx: passa sales={detail.sales} al grafico. Nessuna modifica a componiSerieTitolo né alla vista "prezzo unitario": resta invariata per costruzione, perché quella funzione non acquisisce le vendite.'
+    ref: TASK-05
+  - id: TASK-06
+    title: 'E2E: scenario dimostrativo con video, il grafico del valore riflette la vendita'
+    description: 'Nuovo e2e/US-045__grafico-riflette-vendite.spec.ts con fixture archivio (mai try/finally) e nuova costante TITOLO_US_045 in e2e/support/titoli.ts (ISIN mai usato altrove, file-owned, verificata da check:chiavi). Titolo caricato nel passato e venduto parzialmente più di recente via API (aggiungiPosizione, registraVendita). Nella scheda titolo, vista "Valore della posizione": punti anteriori alla vendita a controvalore pieno, successivi al residuo; vista "Prezzo unitario": tracciato identico a un titolo mai venduto con lo stesso storico prezzi. Video salvato con page.video().saveAs(''docs/test-results/US-045/demo-grafico-riflette-vendite.webm'') in afterEach dopo page.close(). Date sempre relative ad ''adesso'', mai fisse.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-05
+    body: 'Nuovo e2e/US-045__grafico-riflette-vendite.spec.ts con fixture archivio (mai try/finally) e nuova costante TITOLO_US_045 in e2e/support/titoli.ts (ISIN mai usato altrove, file-owned, verificata da check:chiavi). Titolo caricato nel passato e venduto parzialmente più di recente via API (aggiungiPosizione, registraVendita). Nella scheda titolo, vista "Valore della posizione": punti anteriori alla vendita a controvalore pieno, successivi al residuo; vista "Prezzo unitario": tracciato identico a un titolo mai venduto con lo stesso storico prezzi. Video salvato con page.video().saveAs(''docs/test-results/US-045/demo-grafico-riflette-vendite.webm'') in afterEach dopo page.close(). Date sempre relative ad ''adesso'', mai fisse.'
+    ref: TASK-06
+  - id: TASK-07
+    title: 'E2E: vendita totale e riapertura, senza video'
+    description: 'Nuovo e2e/US-045__grafico-riflette-vendite-varianti.spec.ts, senza video (file sorello del demo, stessa regola della coppia US-026__*): con una vendita totale invece che parziale, i punti della vista "Valore della posizione" successivi alla vendita sono presenti a controvalore zero (non assenti dal grafico); un nuovo carico dopo la vendita totale (riapertura) riporta il tracciato a un controvalore positivo dalla propria data, trattato come nuova origine e non come gradino.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-06
+    body: 'Nuovo e2e/US-045__grafico-riflette-vendite-varianti.spec.ts, senza video (file sorello del demo, stessa regola della coppia US-026__*): con una vendita totale invece che parziale, i punti della vista "Valore della posizione" successivi alla vendita sono presenti a controvalore zero (non assenti dal grafico); un nuovo carico dopo la vendita totale (riapertura) riporta il tracciato a un controvalore positivo dalla propria data, trattato come nuova origine e non come gradino.'
+    ref: TASK-07
+  - id: TASK-08
+    title: Chiudere con la verifica completa
+    description: 'npm run check (lint, typecheck, typecheck:e2e, check:chiavi, test:e2e-support, unit) e npx playwright test: tutti verdi, nessun residuo lasciato in archivio dalla suite, video dimostrativo presente in docs/test-results/US-045/.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+      - TASK-04
+      - TASK-06
+      - TASK-07
+    body: 'npm run check (lint, typecheck, typecheck:e2e, check:chiavi, test:e2e-support, unit) e npx playwright test: tutti verdi, nessun residuo lasciato in archivio dalla suite, video dimostrativo presente in docs/test-results/US-045/.'
+    ref: TASK-08

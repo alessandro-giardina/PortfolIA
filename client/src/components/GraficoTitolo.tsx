@@ -9,6 +9,7 @@ import type {
   PuntoValore,
   RilevazioneSerie,
   ScalaTemporale,
+  VenditaValore,
   VistaGrafico,
 } from '@portfolia/shared';
 import {
@@ -74,6 +75,15 @@ export interface GraficoTitoloProps {
    * legge nient'altro del carico.
    */
   loads: readonly CaricoValore[];
+  /**
+   * Le vendite registrate per il titolo (US-042, US-045): si passa
+   * `detail.sales`.
+   *
+   * Come `loads`, è un `Pick` sul tipo di dominio — qui `Sale` — e non
+   * l'oggetto intero: il grafico ha bisogno solo di quando e di quante quote,
+   * non degli altri campi della vendita (prezzo, lotti LIFO, …).
+   */
+  sales: readonly VenditaValore[];
   /** Le rilevazioni già in archivio (US-009): si passa `detail.priceHistory`. */
   observations: readonly RilevazioneSerie[];
   /**
@@ -308,6 +318,7 @@ interface Vuoto {
  */
 export default function GraficoTitolo({
   loads,
+  sales,
   observations,
   avgLoadPrice,
   simboloValuta = '€',
@@ -387,7 +398,10 @@ export default function GraficoTitolo({
    * ritagliata — una finestra che comincia dopo il primo carico ne dimenticherebbe
    * le quote.
    */
-  const serieValore = useMemo(() => componiSerieValore({ punti: serie, loads }), [serie, loads]);
+  const serieValore = useMemo(
+    () => componiSerieValore({ punti: serie, loads, sales }),
+    [serie, loads, sales],
+  );
 
   /**
    * La vista del valore è stata scelta ma non ha nulla da tracciare: nessun

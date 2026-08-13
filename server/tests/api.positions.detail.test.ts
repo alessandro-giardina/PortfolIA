@@ -453,3 +453,53 @@ describe('GET /api/portfolios/:id/positions/:isin/detail — i campi del P&L (US
     expect(detail.soldRevenue).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// L'elenco delle vendite in detail.sales (US-045): saleDate/quantity/salePrice
+// coerenti con le vendite iscritte, ordinate per data crescente.
+// ---------------------------------------------------------------------------
+
+describe('GET /api/portfolios/:id/positions/:isin/detail — le vendite in detail.sales (US-045)', () => {
+  it('le vendite iscritte compaiono in detail.sales con saleDate/quantity/salePrice, ordinate per data crescente', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Conto Dettaglio Vendite Elenco');
+    await addPosition(app, portfolioId, ISIN_LIFO, '2023-04-12', 9.8, 600);
+    await addPosition(app, portfolioId, ISIN_LIFO, '2025-02-07', 11.5, 400);
+
+    // Iscritte fuori ordine cronologico: l'ordinamento in risposta è
+    // responsabilità dell'endpoint, non dell'ordine di inserimento.
+    const venditaRecente = await vendi(app, portfolioId, {
+      isin: ISIN_LIFO,
+      sale_date: '2026-06-10',
+      sale_price: 12.5,
+      quantity: 100,
+    });
+    expect(venditaRecente.statusCode).toBe(201);
+    const venditaAntica = await vendi(app, portfolioId, {
+      isin: ISIN_LIFO,
+      sale_date: '2026-01-05',
+      sale_price: 11.9,
+      quantity: 50,
+    });
+    expect(venditaAntica.statusCode).toBe(201);
+
+    const detail = (await fetchDetail(app, portfolioId, ISIN_LIFO)).json<PositionDetail>();
+
+    expect(detail.sales).toHaveLength(2);
+    expect(detail.sales.map((s) => s.saleDate)).toEqual(['2026-01-05', '2026-06-10']);
+    expect(detail.sales.map((s) => s.quantity)).toEqual([50, 100]);
+    expect(detail.sales.map((s) => s.salePrice)).toEqual([11.9, 12.5]);
+    expect(detail.sales.every((s) => s.isin === ISIN_LIFO)).toBe(true);
+  });
+
+  it('un ISIN con carichi ma senza vendite riporta sales: []', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Conto Dettaglio Senza Vendite Elenco');
+    await addPosition(app, portfolioId, ISIN_LIFO, '2023-04-12', 9.8, 600);
+    insertSecurityCompleta(ISIN_LIFO);
+
+    const detail = (await fetchDetail(app, portfolioId, ISIN_LIFO)).json<PositionDetail>();
+
+    expect(detail.sales).toEqual([]);
+  });
+});

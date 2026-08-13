@@ -730,6 +730,7 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
       <GraficoTitolo
         key={detail.isin}
         loads={detail.loads}
+        sales={detail.sales}
         observations={detail.priceHistory}
         avgLoadPrice={detail.avgLoadPrice}
         simboloValuta={simboloValuta}
