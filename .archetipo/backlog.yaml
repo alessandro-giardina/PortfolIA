@@ -20,17 +20,14 @@ epics:
   - code: EP-008
     title: Vendite e posizioni chiuse
 order:
-  - US-015
-  - US-016
   - US-019
   - US-020
-  - US-010
+  - US-015
   - US-001
   - US-002
   - US-003
   - US-004
   - US-005
-  - US-006
   - US-007
   - US-024
   - US-021
@@ -40,27 +37,30 @@ order:
   - US-014
   - US-017
   - US-025
-  - US-012
-  - US-013
-  - US-026
   - US-028
-  - US-027
-  - US-029
-  - US-018
-  - US-030
   - US-031
   - US-032
   - US-034
   - US-035
-  - US-033
   - US-009
-  - US-041
   - US-036
   - US-037
   - US-038
-  - US-039
   - US-040
   - US-042
   - US-043
   - US-045
+  - US-010
+  - US-016
+  - US-041
+  - US-006
+  - US-012
+  - US-013
+  - US-026
+  - US-027
+  - US-029
+  - US-018
+  - US-030
+  - US-033
+  - US-039
   - US-044
