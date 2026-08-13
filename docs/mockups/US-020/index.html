@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Scala temporale del grafico del portafoglio (US-020)</title>
+  <meta name="description" content="Mockup US-020: le cinque scale temporali condivise applicate al grafico del valore del portafoglio. La copertura ha due dimensioni indipendenti — quanta parte della finestra chiesta l'archivio copre nel tempo, e quanti titoli detenuti erano valorizzati — e i due verdetti restano leggibili separatamente.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; riepilogo del portafoglio</p>
+      <h1>Conto <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">2 titoli iscritti &middot; aperto il 19.IX.2025</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Titoli detenuti &nbsp;&nbsp;<b>2</b></div>
+      <div>Valore attuale totale &nbsp;<b>€&thinsp;19.216,80</b></div>
+      <div>Capitale versato &nbsp;<b>€&thinsp;13.216,00</b></div>
+      <div>Differenza &nbsp;<span class="totale-positivo">+€&thinsp;6.000,80</span></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="index.html" class="attiva">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="#" class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      Andamento del portafoglio
+      <span class="nota">FR&#8209;016 &middot; ADR&#8209;003 &middot; le stesse cinque scale della scheda titolo, non una seconda copia</span>
+    </div>
+
+    <!-- ---------- La traversa del perimetro (US-019, invariata) ----------
+         Dice CHE COSA entra nella curva. Non è il selettore della scala:
+         quello viene subito sotto e dice SU QUALE FINESTRA la si guarda. -->
+    <div class="barra-perimetro" role="group" aria-label="Perimetro del grafico">
+      <span class="et-perimetro">Perimetro</span>
+      <span class="conteggio-titoli">
+        <b>2</b> titoli detenuti &middot; <b>2</b> valorizzati &middot; <b>5</b> date d&rsquo;evento in archivio
+        &middot; visibili in finestra <b>5</b>
+      </span>
+      <span class="verdetto parziale">perimetro completo dal 3.VI.2026</span>
+    </div>
+
+    <!-- =====================================================================
+         LA TRAVERSA DELLE CINQUE SCALE (criteri 1, 2, 3)
+         Sono le STESSE cinque della scheda titolo — la definizione condivisa
+         di US-037 (`SCALE_TEMPORALI` in shared/domain/serieTitolo.ts), non
+         una seconda copia con le stesse etichette. «Tutto lo storico» porta
+         la postilla «predefinita» perché è la scala all'apertura del
+         Riepilogo: è la sola che non ritagli nulla, quindi l'unica che non
+         possa nascondere un punto senza dirlo.
+         Qui è attiva «Ultimi 10 anni», e il bottone attivo porta l'ottone
+         del verdetto di copertura invece di un colore decorativo.
+         ===================================================================== -->
+    <div class="barra-scala">
+      <span class="et-scala">Scala temporale</span>
+      <div class="scala-temporale" role="group" aria-label="Scala temporale del grafico">
+        <button type="button">Ultimo mese</button>
+        <button type="button">Ultimo anno</button>
+        <button type="button">Ultimi 5 anni</button>
+        <button type="button" class="attiva parziale" aria-pressed="true">Ultimi 10 anni</button>
+        <button type="button">Tutto lo storico<span class="postilla-predefinita">predefinita</span></button>
+      </div>
+      <span class="finestra-attiva parziale">
+        Finestra: <b>13.VIII.2016 &rarr; 13.VIII.2026</b> &middot; 3.653 giorni &middot; 5 punti
+      </span>
+    </div>
+
+    <!-- ---------- Il tracciato ---------- -->
+    <div class="grafico-cornice">
+      <span class="cartellino-finestra">Valore complessivo &middot; ultimi 10 anni</span>
+
+      <svg class="tracciato" viewBox="0 0 960 336" role="img"
+           aria-label="Valore complessivo del portafoglio sulla finestra degli ultimi dieci anni, dal 13 agosto 2016 al 13 agosto 2026: 3.653 giorni civili chiesti. L'archivio ne copre 328, dal 19 settembre 2025: per i 3.325 giorni precedenti non esiste alcun dato, e l'asse resta lungo quanto l'orizzonte chiesto invece di accorciarsi fino al primo dato. Dentro i 328 giorni coperti il perimetro è incompleto per i primi 257: la copertura piena comincia il 3 giugno 2026, quando entrambi i titoli detenuti hanno un prezzo noto. I due verdetti sono indipendenti: la finestra è coperta in parte nel tempo e in parte nel perimetro, e nessuno dei due si deduce dall'altro.">
+
+        <defs>
+          <!-- Campitura del tratto a PERIMETRO incompleto: obliqua in ottone,
+               la stessa di US-019. -->
+          <pattern id="perimetroParziale" width="11" height="11" patternUnits="userSpaceOnUse"
+                   patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="11" stroke="#9c7d34" stroke-width="2.4" opacity=".2"/>
+          </pattern>
+          <!-- Campitura del tratto SENZA DATI IN ARCHIVIO: puntinata e in
+               seppia, deliberatamente DIVERSA dalla precedente. Le due
+               assenze non sono la stessa assenza, e un'unica campitura le
+               farebbe leggere come una sola. -->
+          <pattern id="fuoriArchivio" width="9" height="9" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.1" fill="#6e5a36" opacity=".28"/>
+          </pattern>
+        </defs>
+
+        <!-- ---------- Rigatura di lettura ---------- -->
+        <g stroke="#8a9bb0" stroke-width="1" opacity=".55">
+          <line x1="88" y1="96.5"  x2="884" y2="96.5"/>
+          <line x1="88" y1="149"   x2="884" y2="149"/>
+          <line x1="88" y1="201.5" x2="884" y2="201.5"/>
+        </g>
+
+        <!-- =====================================================================
+             DIMENSIONE I — IL TEMPO (criterio 5)
+             La scala chiesta è più lunga della storia disponibile. L'asse NON
+             si accorcia fino al primo dato: se lo facesse, i 328 giorni
+             d'archivio riempirebbero tutta la larghezza e la finestra
+             sembrerebbe coperta per intero. Resta invece lungo dieci anni, e
+             il tratto scoperto è campito e dichiarato.
+             ===================================================================== -->
+        <rect x="88" y="34" width="724.5" height="220" fill="url(#fuoriArchivio)"/>
+        <rect x="88" y="34" width="724.5" height="220" fill="none"
+              stroke="#6e5a36" stroke-width="1.2" stroke-dasharray="2 4" opacity=".75"/>
+        <g>
+          <rect x="150" y="118" width="446" height="52" fill="#f7efda" opacity=".95"
+                stroke="#6e5a36" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="160" y="136" font-family="'IM Fell English SC', serif" font-size="11"
+                letter-spacing="1.4" fill="#6e5a36">3.325 GIORNI FUORI DALL&rsquo;ARCHIVIO</text>
+          <text x="160" y="152" font-family="'Courier Prime', monospace" font-size="10.5"
+                fill="#6e5a36">i dati cominciano il 19.IX.2025 &mdash; PortfolIA conserva prezzi</text>
+          <text x="160" y="165" font-family="'Courier Prime', monospace" font-size="10.5"
+                fill="#6e5a36">solo da quando &egrave; in esercizio (ADR-008)</text>
+        </g>
+
+        <!-- ---------- Assi ---------- -->
+        <line x1="88" y1="34" x2="88" y2="254" stroke="#221c14" stroke-width="1.5"/>
+        <line x1="88" y1="254" x2="884" y2="254" stroke="#221c14" stroke-width="1.5"/>
+
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36" text-anchor="end">
+          <text x="80" y="47.9">20.000</text>
+          <text x="80" y="100.4">15.000</text>
+          <text x="80" y="152.9">10.000</text>
+          <text x="80" y="205.4">&nbsp;5.000</text>
+          <text x="80" y="257.9">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0</text>
+        </g>
+        <text x="88" y="22" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">VALORE COMPLESSIVO DEL PORTAFOGLIO &middot; EURO</text>
+
+        <!-- ---------- La verticale del primo dato d'archivio ---------- -->
+        <line x1="812.5" y1="34" x2="812.5" y2="254" stroke="#6e5a36" stroke-width="1.4"/>
+        <text x="808" y="46" text-anchor="end" font-family="'IM Fell English SC', serif" font-size="10"
+              letter-spacing="1.2" fill="#6e5a36">PRIMO DATO &middot; 19.IX.2025</text>
+
+        <!-- =====================================================================
+             DIMENSIONE II — IL PERIMETRO (criterio 6, ereditato da US-019)
+             Dentro i 328 giorni che l'archivio copre, per i primi 257 non ogni
+             titolo detenuto ha un prezzo noto. È una campitura DIVERSA, in
+             ottone, perché è un'assenza diversa: qui i dati ci sono, ma non
+             per tutti i titoli.
+             ===================================================================== -->
+        <rect x="812.5" y="34" width="56" height="220" fill="url(#perimetroParziale)"/>
+        <rect x="812.5" y="34" width="56" height="220" fill="none"
+              stroke="#9c7d34" stroke-width="1.2" stroke-dasharray="5 5" opacity=".8"/>
+        <line x1="868.5" y1="34" x2="868.5" y2="254" stroke="#9c7d34" stroke-width="1.6"/>
+
+        <!-- Il cartiglio del perimetro non sta dentro i 56 px della zona: ci
+             starebbe schiacciato, e una dichiarazione illeggibile è una
+             dichiarazione mancata. Sta a sinistra, con una cordicella. -->
+        <g>
+          <rect x="560" y="196" width="238" height="48" fill="#f7efda" opacity=".96"
+                stroke="#9c7d34" stroke-width="1" stroke-dasharray="4 4"/>
+          <text x="570" y="212" font-family="'IM Fell English SC', serif" font-size="10"
+                letter-spacing="1.2" fill="#9c7d34">257 GIORNI A PERIMETRO INCOMPLETO</text>
+          <text x="570" y="226" font-family="'Courier Prime', monospace" font-size="10"
+                fill="#6e5a36">3 date d&rsquo;evento su 5: 0, 0 e 1 titoli</text>
+          <text x="570" y="238" font-family="'Courier Prime', monospace" font-size="10"
+                fill="#6e5a36">valorizzati su 2 detenuti &mdash; nessuna curva</text>
+          <line x1="798" y1="212" x2="838" y2="180" stroke="#9c7d34" stroke-width="1"
+                stroke-dasharray="2 3" opacity=".85"/>
+        </g>
+
+        <!-- ---------- Verticale di «oggi» ---------- -->
+        <line x1="884" y1="34" x2="884" y2="254"
+              stroke="#6e5a36" stroke-width="1.2" stroke-dasharray="2 4"/>
+        <text x="880" y="22" text-anchor="end"
+              font-family="'IM Fell English SC', serif" font-size="10.5" letter-spacing="1.2"
+              fill="#6e5a36">OGGI &middot; 13.VIII.2026</text>
+
+        <!-- ---------- La curva, dove il perimetro è completo ---------- -->
+        <g stroke="#221c14" stroke-width="2.4" stroke-dasharray="7 6" stroke-linecap="round" fill="none">
+          <line x1="868.5" y1="79.3" x2="883.3" y2="52.2"/>
+        </g>
+        <g fill="#221c14">
+          <circle cx="868.5" cy="79.3" r="5"/>
+          <circle cx="883.3" cy="52.2" r="5"/>
+        </g>
+
+        <!-- I punti a perimetro incompleto: segni vuoti e barrati, mai uniti
+             alla curva (criterio 6 di US-019, qui semplicemente ritagliato). -->
+        <g>
+          <path d="M812.5,247 L819.2,254 L812.5,261 L805.8,254 Z" fill="none" stroke="#9e2b25" stroke-width="1.6"/>
+          <path d="M848.7,247 L855.4,254 L848.7,261 L842,254 Z" fill="none" stroke="#9e2b25" stroke-width="1.6"/>
+          <circle cx="863.7" cy="173.2" r="5" fill="none" stroke="#9e2b25" stroke-width="1.8"/>
+          <g stroke="#9e2b25" stroke-width="1.6">
+            <line x1="860.2" y1="169.7" x2="867.2" y2="176.7"/>
+            <line x1="867.2" y1="169.7" x2="860.2" y2="176.7"/>
+          </g>
+        </g>
+
+        <!-- Cartiglio del punto di oggi. -->
+        <g>
+          <rect x="612" y="58" width="242" height="40" fill="#f7efda" opacity=".95"
+                stroke="#221c14" stroke-width="1"/>
+          <text x="620" y="74" font-family="'IM Fell English SC', serif" font-size="10"
+                letter-spacing="1.2" fill="#221c14">10.VIII.2026 &middot; €&#8201;19.216,80</text>
+          <text x="620" y="89" font-family="'Courier Prime', monospace" font-size="10"
+                fill="#6e5a36">2 di 2 titoli valorizzati &middot; perimetro completo</text>
+          <line x1="854" y1="70" x2="880" y2="56" stroke="#221c14" stroke-width="1"
+                stroke-dasharray="2 3" opacity=".8"/>
+        </g>
+
+        <!-- ---------- La graffa dei 328 giorni realmente coperti ---------- -->
+        <g stroke="#6e5a36" stroke-width="1">
+          <line x1="812.5" y1="272" x2="812.5" y2="282"/>
+          <line x1="884"   y1="272" x2="884"   y2="282"/>
+          <line x1="812.5" y1="277" x2="884"   y2="277"/>
+        </g>
+        <text x="806" y="281" text-anchor="end" font-family="'Courier Prime', monospace"
+              font-size="10" fill="#6e5a36">328 giorni coperti dall&rsquo;archivio &rarr;</text>
+
+        <!-- ---------- Estremi dell'asse dei tempi ---------- -->
+        <g font-family="'Courier Prime', monospace" font-size="10.5" fill="#6e5a36">
+          <text x="88" y="304">13.VIII.2016</text>
+          <text x="884" y="304" text-anchor="end">oggi</text>
+        </g>
+        <text x="88" y="322" font-family="'IM Fell English SC', serif" font-size="10.5"
+              letter-spacing="1.4" fill="#6e5a36">GIORNI CIVILI &middot; ULTIMI 10 ANNI &middot; SCALA ANCORATA A ZERO</text>
+      </svg>
+    </div>
+
+    <p class="estremi-tracciato">
+      <span>Finestra chiesta: <b>13.VIII.2016 &rarr; 13.VIII.2026</b> &middot; 3.653 giorni civili</span>
+      <span>Punti d&rsquo;evento in finestra: <b>5</b> su 5 in archivio</span>
+      <span>Curva su <b>2</b> punti &mdash; quelli a perimetro completo</span>
+    </p>
+
+    <!-- =====================================================================
+         IL DOPPIO REGOLO — IL CUORE DI QUESTA SPEC (criteri 5 e 6)
+         Per un aggregato la copertura ha DUE dimensioni indipendenti, e
+         possono essere una piena e l'altra parziale. Un regolo solo — o un
+         verdetto solo, «copertura parziale» — non direbbe quale delle due
+         manca, e il rimedio è diverso: alla prima si rimedia scegliendo una
+         scala più stretta, alla seconda aggiornando i prezzi (US-035).
+         ===================================================================== -->
+    <div class="doppio-regolo">
+      <div class="testa-regoli">
+        <span>Copertura della finestra chiesta</span>
+        <span class="chiosa">due dimensioni, due verdetti &mdash; mai una media dei due</span>
+      </div>
+
+      <div class="regolo tempo">
+        <span class="et-dimensione">
+          <span class="ordinale">I</span>
+          Tempo
+        </span>
+        <div class="misura">
+          <span class="verdetto-regolo">
+            i dati cominciano il <b>19.IX.2025</b> &middot; 3.325 giorni civili scoperti su 3.653
+          </span>
+          <div class="barra-copertura">
+            <span class="coperto" style="width:9%"></span>
+            <span class="etichetta-scoperto">nessun dato prima del 19.IX.2025</span>
+            <span class="etichetta-coperto">328&nbsp;gg</span>
+          </div>
+          <p class="legenda-regolo">
+            La scala chiesta &mdash; <b>ultimi 10 anni</b> &mdash; &egrave; pi&ugrave; lunga della
+            storia disponibile, e l&rsquo;orizzonte <b>non si accorcia</b>: l&rsquo;asse resta lungo
+            dieci anni, cos&igrave; il tratto scoperto si vede invece di sparire. Denominatore:
+            i <b>3.653</b> giorni della finestra chiesta.
+          </p>
+        </div>
+      </div>
+
+      <div class="regolo perimetro">
+        <span class="et-dimensione">
+          <span class="ordinale">II</span>
+          Perimetro
+        </span>
+        <div class="misura">
+          <span class="verdetto-regolo">
+            perimetro completo dal <b>3.VI.2026</b> &middot; 257 giorni su 328 con almeno un titolo non valorizzato
+          </span>
+          <div class="barra-copertura">
+            <span class="coperto" style="width:21.6%"></span>
+            <span class="etichetta-scoperto">non ogni titolo detenuto ha un prezzo noto</span>
+            <span class="etichetta-coperto">71&nbsp;gg</span>
+          </div>
+          <p class="legenda-regolo">
+            Nei giorni che l&rsquo;archivio copre, quanti dei titoli <em>detenuti</em> erano
+            valorizzati: al 19.IX.2025 e al 4.III.2026 <b>nessuno</b>, al 12.V.2026 <b>1 su 2</b>,
+            dal 3.VI.2026 <b>2 su 2</b>. Denominatore: i <b>328</b> giorni coperti dall&rsquo;archivio
+            &mdash; fuori da quelli la domanda non si pone nemmeno.
+          </p>
+        </div>
+      </div>
+
+      <p class="sigillo-due-dimensioni">
+        <span class="graffa" aria-hidden="true">&#8214;</span>
+        <span>
+          I due verdetti <b>non si deducono l&rsquo;uno dall&rsquo;altro</b> e non si sommano in un
+          numero solo: il primo dice quanta parte dell&rsquo;orizzonte chiesto l&rsquo;archivio
+          possiede, il secondo quanti titoli detenuti erano valorizzati dove i dati ci sono. Il
+          secondo &egrave; misurato <em>dentro</em> il primo &mdash; ecco perch&eacute; i due regoli
+          portano denominatori diversi, scritti entrambi. E il rimedio &egrave; diverso: alla prima
+          dimensione si rimedia scegliendo una <b>scala pi&ugrave; stretta</b>, alla seconda
+          <b>aggiornando i prezzi</b> dei titoli che ne sono privi (US&#8209;035); quale titolo
+          manchi lo elenca US&#8209;016.
+        </span>
+      </p>
+    </div>
+
+    <!-- ---------- Che cosa cambiare scala NON fa ---------- -->
+    <p class="nota-sezione">
+      Cambiare scala &egrave; <em>ritagliare</em> la finestra, mai <em>infittire</em> l&rsquo;archivio:
+      la scelta non interroga la fonte, non aggiunge punti e non tocca il perimetro. Le cinque scale
+      sono le stesse della scheda titolo &mdash; la definizione condivisa gi&agrave; consegnata da
+      US&#8209;037, letta e non ricopiata: una sola idea di orizzonte in tutta l&rsquo;app.
+    </p>
+
+    <nav class="nav-mockup">
+      <span>US-020 &middot; </span>
+      <a href="index.html">scala pi&ugrave; lunga della storia (questa pagina)</a> &middot;
+      <a href="finestra-vuota.html">finestra senza punti</a> &middot;
+      <a href="due-dimensioni.html">i quattro incroci</a>
+    </nav>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; registro dei conti</span>
+    <span>US-020 &middot; FR-016 &middot; ADR-003</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

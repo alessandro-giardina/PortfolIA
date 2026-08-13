@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Finestra senza punti (US-020)</title>
+  <meta name="description" content="Mockup US-020: la scala «ultimo mese» su un portafoglio senza rilevazioni recenti dichiara «dato non disponibile» invece di mostrare una cornice vuota, e indica la scala più stretta che comprenda almeno un punto.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; riepilogo del portafoglio</p>
+      <h1>Conto <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">2 titoli iscritti &middot; ultima rilevazione il 3.VI.2026</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Titoli detenuti &nbsp;&nbsp;<b>2</b></div>
+      <div>Valore all&rsquo;ultimo punto &nbsp;<b>€&thinsp;16.636,00</b></div>
+      <div>Capitale versato &nbsp;<b>€&thinsp;13.216,00</b></div>
+      <div>Differenza &nbsp;<span class="totale-positivo">+€&thinsp;3.420,00</span></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="index.html" class="attiva">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="#" class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      Andamento del portafoglio
+      <span class="nota">criterio 4 &middot; ADR&#8209;003 &mdash; una finestra senza punti si dichiara, non si disegna vuota</span>
+    </div>
+
+    <div class="barra-perimetro" role="group" aria-label="Perimetro del grafico">
+      <span class="et-perimetro">Perimetro</span>
+      <span class="conteggio-titoli">
+        <b>2</b> titoli detenuti &middot; <b>2</b> valorizzati &middot; <b>4</b> date d&rsquo;evento in archivio
+        &middot; visibili in finestra <b>0</b>
+      </span>
+      <span class="verdetto assente">nessun punto in questa finestra</span>
+    </div>
+
+    <!-- ---------- La traversa, con la scala attiva in carminio ----------
+         Il bottone attivo porta il rosso del verdetto: è lo stesso segnale
+         che il riquadro qui sotto dichiara a parole, non una decorazione.
+         Nessun bottone viene disabilitato — un bottone spento non spiega
+         perché è spento. -->
+    <div class="barra-scala">
+      <span class="et-scala">Scala temporale</span>
+      <div class="scala-temporale" role="group" aria-label="Scala temporale del grafico">
+        <button type="button" class="attiva senza-dati" aria-pressed="true">Ultimo mese</button>
+        <button type="button">Ultimo anno</button>
+        <button type="button">Ultimi 5 anni</button>
+        <button type="button">Ultimi 10 anni</button>
+        <button type="button">Tutto lo storico<span class="postilla-predefinita">predefinita</span></button>
+      </div>
+      <span class="finestra-attiva assente">
+        Finestra: <b>13.VII.2026 &rarr; 13.VIII.2026</b> &middot; 31 giorni &middot; 0 punti
+      </span>
+    </div>
+
+    <!-- =====================================================================
+         AL POSTO DELLA CORNICE, LA DICHIARAZIONE (criterio 4)
+         Non una cornice vuota — si leggerebbe come un guasto — e nemmeno
+         l'ultimo valore noto portato dentro la finestra: sarebbe una cifra
+         timbrata a un istante in cui nessuno l'ha osservata, cioè
+         esattamente ciò che ADR-003 vieta.
+         ===================================================================== -->
+    <div class="dichiarazione-vuota">
+      <span class="cartellino-finestra">13.VII.2026 &rarr; 13.VIII.2026</span>
+
+      <p style="margin:0">
+        <span class="timbro-grande">Dato non disponibile</span>
+      </p>
+
+      <p class="riga-intervallo">
+        <span class="et-int">Intervallo richiesto &mdash; ultimo mese</span>
+        13.VII.2026 &nbsp;&rarr;&nbsp; 13.VIII.2026 &nbsp;&middot;&nbsp; 31 giorni civili
+      </p>
+
+      <p class="spiegazione">
+        In questa finestra il portafoglio non ha <b>alcuna data d&rsquo;evento</b>: n&eacute; carichi,
+        n&eacute; vendite, n&eacute; rilevazioni di prezzo per alcuno dei due titoli detenuti. Non
+        &egrave; un guasto della fonte n&eacute; un errore di lettura &mdash; &egrave; assenza di dati,
+        e come tale viene dichiarata.
+      </p>
+
+      <p class="dove-esiste">
+        <span class="et">Dove il dato esiste davvero</span>
+        <span>
+          il punto pi&ugrave; recente in archivio &egrave; del <b>3.VI.2026</b>
+          (€&thinsp;16.636,00, rilevazione, perimetro completo) &mdash; <b>fuori da questa
+          finestra</b>, 40 giorni prima del suo inizio.
+        </span>
+      </p>
+
+      <p class="invito-scala">
+        Per vedere un tracciato, torna a una scala pi&ugrave; ampia:
+        <span class="tasto-citato">Ultimo anno</span> comprende almeno un punto d&rsquo;archivio, e
+        <span class="tasto-citato">Tutto lo storico</span> apre la finestra completa &mdash; dal primo
+        punto del <b>19.IX.2025</b> a oggi.
+      </p>
+    </div>
+
+    <!-- =====================================================================
+         IL DOPPIO REGOLO QUANDO LA PRIMA DIMENSIONE È VUOTA
+         Qui sta la differenza fra il titolo e l'aggregato, e non è un
+         dettaglio di resa: senza un solo punto in finestra la seconda
+         dimensione NON è «parziale» né «piena» — è NON MISURABILE. Dichiarare
+         «perimetro parziale» affermerebbe di aver guardato dei titoli a delle
+         date che in questa finestra non esistono.
+         ===================================================================== -->
+    <div class="doppio-regolo">
+      <div class="testa-regoli">
+        <span>Copertura della finestra chiesta</span>
+        <span class="chiosa">la seconda dimensione si misura dentro la prima</span>
+      </div>
+
+      <div class="regolo tempo">
+        <span class="et-dimensione">
+          <span class="ordinale">I</span>
+          Tempo
+        </span>
+        <div class="misura">
+          <span class="verdetto-regolo">
+            <b>nessun punto</b> nella finestra &middot; 31 giorni civili chiesti, 0 coperti
+          </span>
+          <div class="barra-copertura">
+            <span class="coperto" style="width:0"></span>
+            <span class="etichetta-scoperto">nessuna data d&rsquo;evento fra il 13.VII e il 13.VIII.2026</span>
+          </div>
+          <p class="legenda-regolo">
+            L&rsquo;ultimo prezzo noto <b>non viene portato dentro</b> la finestra e non viene
+            prolungato fino a oggi: una retta piatta al suo livello affermerebbe un valore mai
+            osservato. Dove l&rsquo;archivio tace, il grafico tace con lui e lo dichiara (ADR&#8209;003).
+          </p>
+        </div>
+      </div>
+
+      <div class="regolo perimetro">
+        <span class="et-dimensione">
+          <span class="ordinale">II</span>
+          Perimetro
+        </span>
+        <div class="misura">
+          <span class="verdetto-regolo">
+            <b>non misurabile</b> in questa finestra &mdash; n&eacute; piena n&eacute; parziale
+          </span>
+          <div class="barra-copertura">
+            <span class="etichetta-scoperto">nessuna data su cui contare i titoli valorizzati</span>
+          </div>
+          <p class="legenda-regolo">
+            &laquo;Quanti titoli detenuti erano valorizzati&raquo; &egrave; una domanda che si pone
+            <em>a una data</em>: senza date in finestra non ha risposta, e inventarne una &mdash;
+            &laquo;parziale&raquo;, oppure &laquo;piena&raquo; perch&eacute; non risulta alcuna
+            eccezione &mdash; sarebbe un verdetto su un insieme che nessuno ha guardato. Fuori da
+            questa finestra il perimetro <b>&egrave;</b> completo dal 3.VI.2026: lo si legge
+            allargando la scala.
+          </p>
+        </div>
+      </div>
+
+      <p class="sigillo-due-dimensioni">
+        <span class="graffa" aria-hidden="true">&#8214;</span>
+        <span>
+          Le due dimensioni restano <b>due</b> anche qui, e proprio qui si vede perch&eacute;:
+          un verdetto unico dovrebbe scegliere fra &laquo;parziale&raquo; e &laquo;assente&raquo;
+          per due domande che hanno risposte diverse. La prima &egrave; <b>assente</b>; la seconda
+          non &egrave; assente, &egrave; <b>senza oggetto</b>.
+        </span>
+      </p>
+    </div>
+
+    <div class="avviso-rado senza-trascinamento">
+      <span>
+        Il valore del <b>3.VI.2026</b> resta dov&rsquo;&egrave;: PortfolIA non lo prolunga fino a
+        oggi, non lo ripete come ultimo valore noto e non traccia una retta piatta al suo livello.
+        Portarlo dentro una finestra che non lo contiene significherebbe affermare un valore
+        complessivo mai osservato.
+      </span>
+    </div>
+
+    <p class="nota-sezione">
+      Nessuna scala pu&ograve; produrre un punto che non esiste: cambiare finestra qui sopra
+      <em>ritaglia</em> l&rsquo;archivio e non lo <em>infittisce</em>. Ci&ograve; che pu&ograve;
+      aggiungere punti &egrave; un aggiornamento dei prezzi (US&#8209;035), non un bottone di questa
+      traversa.
+    </p>
+
+    <nav class="nav-mockup">
+      <span>US-020 &middot; </span>
+      <a href="index.html">scala pi&ugrave; lunga della storia</a> &middot;
+      <a href="finestra-vuota.html">finestra senza punti (questa pagina)</a> &middot;
+      <a href="due-dimensioni.html">i quattro incroci</a>
+    </nav>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; registro dei conti</span>
+    <span>US-020 &middot; FR-016 &middot; ADR-003</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

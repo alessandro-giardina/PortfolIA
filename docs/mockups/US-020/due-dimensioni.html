@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Le due dimensioni della copertura (US-020)</title>
+  <meta name="description" content="Mockup US-020: i quattro incroci fra copertura nel tempo e copertura del perimetro, più il caso in cui la finestra è vuota e la seconda dimensione resta senza oggetto. È la ragione per cui i verdetti sono due e restano leggibili separatamente.">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; nota di lettura</p>
+      <h1>Le due dimensioni della <span class="corsivo">copertura</span></h1>
+      <p class="sottotesto">perch&eacute; per un aggregato un verdetto solo non basta</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Dimensione I &nbsp;<b>tempo</b></div>
+      <div>Dimensione II &nbsp;<b>perimetro</b></div>
+      <div>Incroci possibili &nbsp;<b>4 + 1</b></div>
+      <div>Verdetti mostrati &nbsp;<b>2, separati</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="index.html" class="disabilitata">&larr; Riepilogo</a>
+    <a href="due-dimensioni.html" class="attiva">Nota di lettura</a>
+  </nav>
+
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      Due domande, non una
+      <span class="nota">criterio 6 &mdash; i due verdetti restano leggibili separatamente</span>
+    </div>
+
+    <p class="nota-sezione" style="margin-top:12px">
+      Sulla scheda titolo la copertura ha <b>una</b> dimensione: la finestra chiesta &egrave; coperta
+      dai dati d&rsquo;archivio, oppure no. Per un portafoglio le dimensioni sono <b>due e
+      indipendenti</b> &mdash; quanto la finestra &egrave; coperta <em>nel tempo</em>, e quanti
+      <em>titoli</em> erano valorizzati alle date che ci cadono dentro &mdash; ed &egrave; questa,
+      non il selettore, la ragione per cui US&#8209;020 non &egrave; una spec gratuita. La tabella
+      elenca i quattro incroci; nessuno dei due verdetti si deduce dall&rsquo;altro.
+    </p>
+
+    <div class="matrice-copertura">
+      <div class="cella intestazione" style="background:var(--verde-mastro)">
+        &nbsp;
+      </div>
+      <div class="cella intestazione">
+        Perimetro completo
+        <small>a ogni data in finestra, tutti i titoli detenuti hanno un prezzo noto</small>
+      </div>
+      <div class="cella intestazione">
+        Perimetro incompleto
+        <small>ad almeno una data, un titolo detenuto non ha alcun prezzo noto</small>
+      </div>
+
+      <div class="cella fianco">
+        Tempo pieno
+        <small>l&rsquo;archivio comincia prima dell&rsquo;inizio della finestra</small>
+      </div>
+      <div class="cella pieno-pieno">
+        <span class="esito">curva intera &middot; nessun avviso</span>
+        <span class="spiega-cella">
+          Il caso quieto: <b>copertura piena su tutta la finestra</b> in entrambe le dimensioni. Il
+          doppio regolo resta, con due barre piene: dichiarare la pienezza costa una riga e rende
+          leggibile il caso in cui non c&rsquo;&egrave;.
+        </span>
+      </div>
+      <div class="cella perimetro-solo">
+        <span class="esito">curva a tratti &middot; zone campite in ottone</span>
+        <span class="spiega-cella">
+          I dati coprono tutto l&rsquo;orizzonte chiesto, ma un titolo entrato a registro non &egrave;
+          mai stato rilevato. La curva esiste solo dove il perimetro &egrave; completo; altrove segni
+          vuoti e barrati. Rimedio: <b>aggiornare i prezzi</b> (US&#8209;035) &mdash; non cambiare
+          scala, che non aggiungerebbe un solo prezzo.
+        </span>
+      </div>
+
+      <div class="cella fianco">
+        Tempo parziale
+        <small>la scala chiesta &egrave; pi&ugrave; lunga della storia disponibile</small>
+      </div>
+      <div class="cella tempo-solo">
+        <span class="esito">curva intera, ma non da bordo a bordo</span>
+        <span class="spiega-cella">
+          Dove i dati esistono sono completi; prima non esistono affatto. L&rsquo;asse resta lungo
+          quanto l&rsquo;orizzonte chiesto e il tratto scoperto &egrave; campito: accorciarlo fino al
+          primo dato riempirebbe la larghezza e <b>lascerebbe intendere una copertura piena</b>.
+          Rimedio: una <b>scala pi&ugrave; stretta</b>.
+        </span>
+      </div>
+      <div class="cella entrambe">
+        <span class="esito">due campiture diverse, due verdetti</span>
+        <span class="spiega-cella">
+          Il caso di <a href="index.html">index.html</a>: dieci anni chiesti, 328 giorni
+          d&rsquo;archivio, e dentro quei 328 il perimetro si completa solo dal 3.VI.2026. Le due
+          campiture sono <b>deliberatamente diverse</b> (puntinata in seppia, obliqua in ottone):
+          un&rsquo;unica trama farebbe leggere due assenze diverse come una sola.
+        </span>
+      </div>
+    </div>
+
+    <!-- ---------- Il quinto caso, che non sta nella matrice ---------- -->
+    <div class="copertura-parziale" style="margin-top:18px">
+      <span class="et-copertura">Il quinto caso &middot; finestra senza punti</span>
+      Quando nella finestra non cade <b>alcuna</b> data d&rsquo;evento, la prima dimensione &egrave;
+      <b>assente</b> e la seconda non &egrave; n&eacute; piena n&eacute; parziale: &egrave;
+      <b>senza oggetto</b>. &laquo;Quanti titoli detenuti erano valorizzati&raquo; si domanda
+      <em>a una data</em>, e qui di date non ce ne sono. Dichiarare &laquo;perimetro piena&raquo;
+      perch&eacute; non risulta alcuna eccezione sarebbe vero solo vacuamente, e a schermo si
+      leggerebbe come una rassicurazione: il grafico direbbe &laquo;tutto a posto&raquo; sopra un
+      riquadro che non mostra nulla.
+      <span class="rimando-us016">
+        La resa di quel caso &egrave; in <a href="finestra-vuota.html">finestra-vuota.html</a>: al
+        posto della cornice, la dichiarazione &mdash; e l&rsquo;indicazione della scala pi&ugrave;
+        stretta che comprenda almeno un punto.
+      </span>
+    </div>
+
+    <!-- ---------- Perché non un solo verdetto ---------- -->
+    <div class="doppio-regolo" style="margin-top:20px">
+      <div class="testa-regoli">
+        <span>Che cosa si perderebbe con un verdetto solo</span>
+        <span class="chiosa">tre letture, tutte sbagliate in modo diverso</span>
+      </div>
+
+      <div class="regolo tempo">
+        <span class="et-dimensione">
+          <span class="ordinale">&times;</span>
+          Il minimo
+        </span>
+        <div class="misura">
+          <span class="verdetto-regolo">&laquo;copertura parziale&raquo; &mdash; e il lettore non sa <b>quale</b> delle due manca</span>
+          <p class="legenda-regolo">
+            &Egrave; la lettura pi&ugrave; tentante e la meno utile: i due rimedi sono opposti
+            &mdash; <b>una scala pi&ugrave; stretta</b> per il tempo, <b>un aggiornamento dei
+            prezzi</b> per il perimetro &mdash; e un verdetto solo non dice quale tentare.
+          </p>
+        </div>
+      </div>
+
+      <div class="regolo perimetro">
+        <span class="et-dimensione">
+          <span class="ordinale">&times;</span>
+          La media
+        </span>
+        <div class="misura">
+          <span class="verdetto-regolo">&laquo;copertura al 65&nbsp;%&raquo; &mdash; una cifra che non misura nulla</span>
+          <p class="legenda-regolo">
+            Le due dimensioni hanno <b>denominatori diversi</b> (i giorni della finestra chiesta;
+            i giorni che l&rsquo;archivio copre) e mediarle produce un numero che non corrisponde ad
+            alcun fatto. Una cifra falsa &egrave; peggio di due cifre scomode.
+          </p>
+        </div>
+      </div>
+
+      <div class="regolo tempo">
+        <span class="et-dimensione">
+          <span class="ordinale">&times;</span>
+          Il silenzio
+        </span>
+        <div class="misura">
+          <span class="verdetto-regolo">nessun verdetto, e l&rsquo;asse accorciato fino al primo dato</span>
+          <p class="legenda-regolo">
+            La curva riempirebbe la larghezza e sembrerebbe coprire dieci anni: &egrave; il difetto
+            che il criterio 5 nomina per esteso &mdash; <em>senza lasciar intendere una copertura
+            piena</em> &mdash; e il solo dei tre che non si vede a occhio.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <p class="nota-sezione">
+      Le cinque scale sono le stesse della scheda titolo, prese dalla definizione condivisa di
+      US&#8209;037 e non ricopiate. Ne segue anche l&rsquo;assenza del &laquo;giorno precedente&raquo;
+      che FR&#8209;016 elencava: su uno storico rado per costruzione (FR&#8209;018) un orizzonte di un
+      giorno dichiarerebbe &laquo;dato non disponibile&raquo; quasi sempre, e US&#8209;037 lo aveva
+      gi&agrave; escluso per il titolo.
+    </p>
+
+    <nav class="nav-mockup">
+      <span>US-020 &middot; </span>
+      <a href="index.html">scala pi&ugrave; lunga della storia</a> &middot;
+      <a href="finestra-vuota.html">finestra senza punti</a> &middot;
+      <a href="due-dimensioni.html">i quattro incroci (questa pagina)</a>
+    </nav>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; registro dei conti</span>
+    <span>US-020 &middot; FR-016 &middot; ADR-003</span>
+  </footer>
+
+</div>
+
+</body>
+</html>
