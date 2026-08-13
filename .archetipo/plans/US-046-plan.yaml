@@ -1,0 +1,136 @@
+schema: archetipo/plan/v2
+spec_code: US-046
+body: |
+  # US-046: Mostrare la denominazione del titolo nelle tabelle di «Carico titoli» — Piano di implementazione
+
+  **Generato da:** Team di Pianificazione ARchetipo
+  **Data:** 2026-08-13
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-005 — Visualizzazione dei titoli
+  **Priorità:** MEDIUM | **Punti:** 2
+
+  **User Story**
+  Come Giulia, investitrice prudente, voglio leggere la denominazione del titolo accanto al suo ISIN nelle due tabelle in fondo alla scheda «Carico titoli», in modo da riconoscere ciò che ho iscritto a conto senza dover decifrare un codice di dodici caratteri.
+
+  **Criteri di Accettazione**
+  - In «Titoli iscritti a conto» la colonna si intitola «Denominazione · ISIN» e mostra la denominazione sopra l'ISIN, con la stessa resa della tabella del Riepilogo
+  - Nel «Registro delle iscrizioni» la colonna fa altrettanto su **ogni** riga, carichi e scarichi indistintamente, senza raggruppare per ISIN e senza toccare l'ordinamento cronologico
+  - Quando l'anagrafica del titolo non è in archivio la cella mostra il solo ISIN — nessuna etichetta sostitutiva, nessun trattino — esattamente come fa il Riepilogo
+  - La denominazione è letta dai dati che la scheda carica già: la resa delle due tabelle non genera alcuna richiesta aggiuntiva al server né alla fonte esterna
+  - Un test E2E verifica intestazione e denominazione in entrambe le tabelle, su un titolo con anagrafica seminata e su un ISIN che ne è privo
+
+  ---
+
+  ## Soluzione Tecnica
+
+  La spec non introduce dati né endpoint: la cella giusta esiste già, scritta **due volte** in `client/src/pages/PortfolioDetailPage.tsx` — nella tabella di riepilogo (righe 972-993) e in «Posizioni chiuse» (righe 1156-1161) — e il nome è già in pagina, perché `fetchEnriched()` legge `GET /api/portfolios/:id/positions/enriched` all'apertura del portafoglio, incondizionatamente (effetto alle righe 232-240) e di nuovo dopo ogni carico, modifica, rimozione e scarico. Portare la stessa cella nelle due tabelle di «Carico titoli» significherebbe scriverla una terza e una quarta volta: la si estrae invece **una volta sola** e la si riusa in tutti e quattro i punti — è la sola forma in cui «la stessa resa del Riepilogo» resta vera anche al prossimo ritocco, invece di essere una somiglianza da mantenere a mano.
+
+  - **Un componente condiviso, non una seconda variante.** `client/src/components/CellaTitolo.tsx` rende `<span className="voce">` con la denominazione in `<strong>` quando c'è e l'ISIN in `<small>`, con gli stessi stili inline oggi ripetuti nel Riepilogo (`letterSpacing: .08em`, `opacity` legata alla presenza del nome); il resto viene già da `.mastro .voce` e `.mastro .voce small` in `ledger.css`, quindi **nessuna regola CSS nuova**. Il badge «↺ riaperta» di US-044 vive dentro quella cella: il componente lo accoglie come `children`, così la riga del Riepilogo resta identica a sé stessa.
+  - **Il nome si legge da `enrichedPositions`, con una mappa invece di una scansione.** Un `useMemo` `nomePerIsin: Map<string, string | null>` costruito da `enrichedPositions` serve entrambe le tabelle. La copertura è completa per costruzione: la vista arricchita aggrega **per ISIN** tutte le posizioni del portafoglio, comprese quelle a residuo zero (è la partizione `posizioniAperte`/`posizioniChiuse`), e uno scarico esiste solo su un ISIN che ha almeno un carico — quindi ogni riga del registro, carico o scarico, trova la sua voce. La stessa mappa sostituisce il `.find()` per ISIN dentro `titoliScaricabili` (riga 368), che è la stessa lettura fatta in forma quadratica.
+  - **Zero richieste in più, per costruzione e non per cautela.** Non si aggiunge alcuna `fetch`: la resa consuma uno stato che la pagina possiede già. Nell'istante fra il montaggio e la risposta della vista arricchita la mappa è vuota e le celle mostrano il solo ISIN — che è esattamente il comportamento richiesto dal terzo criterio, non un degrado da nascondere.
+  - **Tutte e tre le forme di riga del registro.** «Ogni riga» comprende la riga di carico (1826-1828), la riga di scarico (1706-1708) e la riga del modulo di modifica inline (1743-1745), che porta la stessa colonna. Ordinamento cronologico, raggruppamenti, `colSpan` dei `tfoot` e `data-testid` esistenti non vengono toccati: cambia l'intestazione e cambia il contenuto della prima colonna dei titoli, nulla d'altro.
+  - **Nessun mockup.** Non c'è pagina nuova, componente con layout proprio né sezione riorganizzata: cambia un'intestazione e la resa di una cella dentro tabelle esistenti, e il riferimento visivo è la cella già a schermo nel Riepilogo (già disegnata nei mockup di US-017, US-034, US-043 e US-044).
+
+  ---
+
+  ## Strategia di Test
+
+  Il progetto non ha test unitari lato client — Vitest copre `server/tests/` e il supporto e2e — e questa spec non aggiunge logica di dominio: la verifica è quindi **e2e**, più il controllo statico delle chiavi ISIN che la suite impone. Il rischio vero non è la cella nuova ma l'estrazione: quattro punti che oggi mostrano una cella corretta non devono cambiare di un pixel, e a dirlo sono gli e2e che già li coprono.
+
+  - **Regressione sull'estrazione:** gli scenari che leggono le due celle del Riepilogo (US-017, US-032, US-043, US-044) girano subito dopo TASK-01, prima di toccare «Carico titoli».
+  - **Regressione sulle due tabelle allineate:** US-011, US-012, US-013, US-042 e US-044 leggono `summary-<isin>`, `posizione-<id>` e `scarico-<id>`; le loro asserzioni sono `toContainText`/`toHaveText` su celle diverse dalla prima, ma la verifica integrale le esegue comunque.
+  - **Chiavi ISIN:** i due nuovi file di spec dichiarano le proprie chiavi in `e2e/support/titoli.ts` con il campo `file` del proprietario; `npm run check:chiavi` (in `npm run check` e nel `globalSetup`) è il controllo, non l'esortazione.
+  - **Nessuna richiesta aggiuntiva:** il quarto criterio è misurabile e va misurato — si contano le chiamate a `**/api/securities/**` e a `**/positions/enriched` mentre si passa sulla scheda «Carico titoli», con il titolo seminato fresco perché sia la guardia di buona cittadinanza a garantire il resto.
+
+  ### Test E2E — Simulazione utente
+
+  **Framework:** Playwright (`playwright.config.ts`, fixture `archivio` di `e2e/support/fixtures.ts`)
+  **Registrazione video:** solo lo scenario dimostrativo, salvato in `docs/test-results/US-046/` con `page.video().saveAs()` nell'`afterEach` dopo `page.close()`; gli altri scenari girano senza video
+
+  | Scenario | Flusso utente |
+  |---|---|
+  | Demo — denominazione in entrambe le tabelle | Semina l'anagrafica di `TITOLO_US_046`, crea un portafoglio con la fixture `archivio`, iscrive due carichi e uno scarico via API, apre `/portfolio/:id` sulla scheda «Carico titoli»: verifica che entrambe le tabelle si intitolino «Denominazione · ISIN» e che denominazione e ISIN compaiano nella riga aggregata e su **ogni** riga del registro, scarico compreso |
+  | Variante — ISIN privo di anagrafica | Rimuove `ISIN_SENZA_ANAGRAFICA_US_046` dalla cache, iscrive un carico su quell'ISIN e verifica che la cella mostri il solo codice: nessun `<strong>`, nessun trattino, nessuna etichetta sostitutiva — in entrambe le tabelle |
+  | Variante — nessuna richiesta aggiuntiva | Con `TITOLO_US_046_VARIANTI` seminato adesso, conta le richieste di pagina: zero verso `**/api/securities/**` e nessuna lettura di `**/positions/enriched` oltre quelle dell'apertura, passando da «Riepilogo» a «Carico titoli» e ritorno |
+
+  ---
+
+  _Piano generato con ARchetipo Planning — 2026-08-13_
+tasks:
+  - id: TASK-01
+    title: Estrae in un componente la cella «Denominazione · ISIN» già scritta due volte
+    description: Crea `client/src/components/CellaTitolo.tsx` con la resa oggi duplicata nel Riepilogo — denominazione in `<strong>` quando presente, ISIN in `<small>`, `opacity` legata alla presenza del nome — e uno slot `children` per il badge «↺ riaperta» di US-044. Sostituisce le due celle inline di `PortfolioDetailPage.tsx` (tabella di riepilogo e «Posizioni chiuse») senza cambiare nulla di ciò che è a schermo, e senza aggiungere regole a `ledger.css`.
+    type: Impl
+    status: TODO
+    body: Crea `client/src/components/CellaTitolo.tsx` con la resa oggi duplicata nel Riepilogo — denominazione in `<strong>` quando presente, ISIN in `<small>`, `opacity` legata alla presenza del nome — e uno slot `children` per il badge «↺ riaperta» di US-044. Sostituisce le due celle inline di `PortfolioDetailPage.tsx` (tabella di riepilogo e «Posizioni chiuse») senza cambiare nulla di ciò che è a schermo, e senza aggiungere regole a `ledger.css`.
+  - id: TASK-02
+    title: Prova che l'estrazione è invisibile al Riepilogo
+    description: Esegue gli e2e che già coprono quelle due celle — US-017, US-032, US-043, US-044 — per accertare che il refactoring non abbia cambiato intestazioni, testi o marcature. È il controllo che va fatto *prima* di toccare «Carico titoli», non dopo.
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: Esegue gli e2e che già coprono quelle due celle — US-017, US-032, US-043, US-044 — per accertare che il refactoring non abbia cambiato intestazioni, testi o marcature. È il controllo che va fatto *prima* di toccare «Carico titoli», non dopo.
+  - id: TASK-03
+    title: Espone la mappa ISIN → denominazione dai dati già in pagina
+    description: Aggiunge in `PortfolioDetailPage.tsx` un `useMemo` `nomePerIsin` costruito da `enrichedPositions`, che la pagina legge già all'apertura e dopo ogni iscrizione (righe a residuo zero comprese). La stessa mappa sostituisce il `.find()` per ISIN dentro `titoliScaricabili`. Nessuna `fetch` nuova.
+    type: Impl
+    status: TODO
+    body: Aggiunge in `PortfolioDetailPage.tsx` un `useMemo` `nomePerIsin` costruito da `enrichedPositions`, che la pagina legge già all'apertura e dopo ogni iscrizione (righe a residuo zero comprese). La stessa mappa sostituisce il `.find()` per ISIN dentro `titoliScaricabili`. Nessuna `fetch` nuova.
+  - id: TASK-04
+    title: Allinea la tabella «Titoli iscritti a conto»
+    description: 'Intestazione da «Titolo (ISIN)» a «Denominazione · ISIN» e cella resa con `CellaTitolo`, con il nome letto da `nomePerIsin`: solo ISIN quando il nome manca. Il `tfoot` e i `data-testid` `summary-<isin>` restano invariati.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+      - TASK-03
+    body: 'Intestazione da «Titolo (ISIN)» a «Denominazione · ISIN» e cella resa con `CellaTitolo`, con il nome letto da `nomePerIsin`: solo ISIN quando il nome manca. Il `tfoot` e i `data-testid` `summary-<isin>` restano invariati.'
+  - id: TASK-05
+    title: Allinea il «Registro delle iscrizioni» su tutte e tre le forme di riga
+    description: Stessa intestazione e stessa cella su riga di carico, riga di scarico e riga del modulo di modifica inline. Nessun raggruppamento per ISIN, nessuna modifica all'ordinamento cronologico né ai `colSpan` del `tfoot`.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+      - TASK-03
+    body: Stessa intestazione e stessa cella su riga di carico, riga di scarico e riga del modulo di modifica inline. Nessun raggruppamento per ISIN, nessuna modifica all'ordinamento cronologico né ai `colSpan` del `tfoot`.
+  - id: TASK-06
+    title: Registra in `titoli.ts` le chiavi ISIN dei due nuovi file di spec
+    description: 'Dichiara `TITOLO_US_046` (proprietario: il file demo), `TITOLO_US_046_VARIANTI` e `ISIN_SENZA_ANAGRAFICA_US_046` (proprietario: il file varianti) con il campo `file` e la nota sul perché ciascuna esiste, poi verifica con `npm run check:chiavi`. Nessuna chiave condivisa fra i due file.'
+    type: Test
+    status: TODO
+    body: 'Dichiara `TITOLO_US_046` (proprietario: il file demo), `TITOLO_US_046_VARIANTI` e `ISIN_SENZA_ANAGRAFICA_US_046` (proprietario: il file varianti) con il campo `file` e la nota sul perché ciascuna esiste, poi verifica con `npm run check:chiavi`. Nessuna chiave condivisa fra i due file.'
+  - id: TASK-07
+    title: Scrive l'e2e dimostrativo con video
+    description: '`e2e/US-046__denominazione-carico-titoli.spec.ts`: semina `TITOLO_US_046`, crea il portafoglio con la fixture `archivio`, iscrive due carichi e uno scarico, apre «Carico titoli» e verifica intestazione, denominazione e ISIN nella riga aggregata e su ogni riga del registro. Salva il video in `docs/test-results/US-046/` con `page.video().saveAs()` dopo `page.close()`.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-04
+      - TASK-05
+      - TASK-06
+    body: '`e2e/US-046__denominazione-carico-titoli.spec.ts`: semina `TITOLO_US_046`, crea il portafoglio con la fixture `archivio`, iscrive due carichi e uno scarico, apre «Carico titoli» e verifica intestazione, denominazione e ISIN nella riga aggregata e su ogni riga del registro. Salva il video in `docs/test-results/US-046/` con `page.video().saveAs()` dopo `page.close()`.'
+  - id: TASK-08
+    title: 'Scrive gli e2e delle varianti: assenza di anagrafica e nessuna richiesta in più'
+    description: '`e2e/US-046__denominazione-varianti.spec.ts`: primo scenario, `ISIN_SENZA_ANAGRAFICA_US_046` rimosso dalla cache → la cella mostra il solo codice, senza `<strong>`, trattini o etichette sostitutive, in entrambe le tabelle; secondo scenario, con `TITOLO_US_046_VARIANTI` seminato adesso, conta le richieste di pagina e verifica zero chiamate a `**/api/securities/**` e nessuna lettura aggiuntiva di `**/positions/enriched` passando fra le schede.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-04
+      - TASK-05
+      - TASK-06
+    body: '`e2e/US-046__denominazione-varianti.spec.ts`: primo scenario, `ISIN_SENZA_ANAGRAFICA_US_046` rimosso dalla cache → la cella mostra il solo codice, senza `<strong>`, trattini o etichette sostitutive, in entrambe le tabelle; secondo scenario, con `TITOLO_US_046_VARIANTI` seminato adesso, conta le richieste di pagina e verifica zero chiamate a `**/api/securities/**` e nessuna lettura aggiuntiva di `**/positions/enriched` passando fra le schede.'
+  - id: TASK-09
+    title: Verifica integrale
+    description: '`npm run check` (lint, typecheck, unit, chiavi) e la suite Playwright sui nuovi file e sui vicini che leggono le due tabelle — US-011, US-012, US-013, US-042, US-044 — per escludere regressioni.'
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-07
+      - TASK-08
+    body: '`npm run check` (lint, typecheck, unit, chiavi) e la suite Playwright sui nuovi file e sui vicini che leggono le due tabelle — US-011, US-012, US-013, US-042, US-044 — per escludere regressioni.'
