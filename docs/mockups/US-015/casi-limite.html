@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — Scomposizione non disponibile e perimetro parziale (US-015)</title>
+  <meta name="description" content="Mockup US-015, casi limite: una finestra con meno di due punti dichiara «dato non disponibile» invece di zero; una finestra in cui non tutti i titoli detenuti sono valorizzati dichiara la variazione parziale e nomina il perimetro su cui è calcolata.">
+  <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="metriche.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; riepilogo del portafoglio</p>
+      <h1>Conto <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">i due stati in cui la scomposizione <span class="corsivo">non</span> si scrive per intero</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Titoli detenuti &nbsp;&nbsp;<b>3</b></div>
+      <div>Valore attuale totale &nbsp;<b class="parziale-cifra">€&thinsp;26.000,00</b></div>
+      <div>Valorizzati &nbsp;<b>2</b> su 3</div>
+      <div>P&amp;L totale &nbsp;<span class="totale-positivo">+€&thinsp;3.600,00</span></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="index.html" class="attiva">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="#" class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- =====================================================================
+         CASO I — MENO DI DUE PUNTI IN FINESTRA (criterio 5)
+         La stessa soglia già in uso per il titolo (US-038): per misurare un
+         movimento servono due capi, uno da cui partire e uno a cui arrivare.
+         Sotto la soglia si scrive un timbro, MAI una cifra: uno zero
+         affermerebbe che il portafoglio non si è mosso, che è cosa diversa
+         dal non saperlo (ADR-003).
+         ===================================================================== -->
+    <div class="sezione-titolo" style="margin-top:6px">
+      Caso I &mdash; una finestra con meno di due punti
+      <span class="nota">criterio 5 &middot; stessa soglia del titolo &middot; mai zero</span>
+    </div>
+
+    <div class="barra-scala">
+      <span class="et-scala">Scala temporale</span>
+      <div class="scala-temporale" role="group" aria-label="Scala temporale del grafico">
+        <button type="button" class="attiva senza-dati" aria-pressed="true">Ultimo mese</button>
+        <button type="button">Ultimo anno</button>
+        <button type="button">Ultimi 5 anni</button>
+        <button type="button">Ultimi 10 anni</button>
+        <button type="button">Tutto lo storico<span class="postilla-predefinita">predefinita</span></button>
+      </div>
+      <span class="finestra-attiva assente">
+        Finestra: <b>13.VII.2026 &rarr; 13.VIII.2026</b> &middot; 31 giorni &middot; 1 punto
+      </span>
+    </div>
+
+    <div class="stanga assente">
+      <div class="capo-stanga">
+        <h2>Che cosa &egrave; successo in questa finestra</h2>
+        <span class="rimando">nessuna delle tre cifre &egrave; affermabile</span>
+      </div>
+
+      <div style="padding:14px 16px 0">
+        <span class="timbro-scomposizione">Dato non disponibile</span>
+      </div>
+
+      <div class="perche-assente-scomposizione">
+        <span class="et-perche">Perch&eacute; il dato non c&rsquo;&egrave;</span>
+        Una variazione &egrave; una differenza fra <b>due</b> capi: uno da cui partire e uno a cui
+        arrivare. In questa finestra l&rsquo;archivio possiede un solo punto, e da un capo solo non si
+        misura alcun movimento.
+        <ul>
+          <li>
+            Punti compresi nella finestra: <b>1</b> &mdash; quello del <b>2.VIII.2026</b>,
+            &euro;&thinsp;26.340,00. Ne servono almeno <b>2</b>: &egrave; la stessa soglia gi&agrave;
+            in uso per la variazione di periodo del singolo titolo (US&#8209;038), letta dalla stessa
+            costante e non riscritta qui con lo stesso numero.
+          </li>
+          <li>
+            Nessuna cifra viene scritta, <b>nemmeno zero</b>. &laquo;&euro;&thinsp;0,00&raquo;
+            affermerebbe che il portafoglio non si &egrave; mosso e che non &egrave; stato versato
+            nulla: due affermazioni, entrambe diverse dal non saperlo (ADR&#8209;003).
+          </li>
+          <li>
+            Nemmeno il <b>capitale netto versato</b> si scrive da solo. Sarebbe pure calcolabile
+            &mdash; i carichi e le vendite della finestra sono noti anche con un punto solo &mdash;
+            ma esporlo accanto a due caselle vuote inviterebbe a leggerlo come una variazione, cio&egrave;
+            esattamente lo scambio che questa spec esiste per impedire. Le tre cifre stanno o cadono
+            insieme, perch&eacute; sono un&rsquo;identit&agrave; sola.
+          </li>
+        </ul>
+      </div>
+
+      <div class="sigillo-non-pl">
+        <span class="glifo" aria-hidden="true">&ne;</span>
+        <p>
+          L&rsquo;assenza riguarda la <b>finestra</b>, non il conto. Il P&amp;L complessivo &egrave;
+          calcolato sui carichi e sul prezzo corrente, non su un intervallo, e resta scritto per
+          intero anche qui: <em>non si oscura</em> perch&eacute; una scala &egrave; troppo stretta.
+          Il rimedio &egrave; una scala pi&ugrave; ampia &mdash; <b>ultimo anno</b> ne comprende 7 &mdash;
+          oppure un aggiornamento dei prezzi (US&#8209;035), che aggiunge punti d&rsquo;archivio.
+        </p>
+        <span class="pl-congelato">
+          <span class="et">P&amp;L totale &middot; US-043</span>
+          <span class="cifra">+€&thinsp;3.600,00</span>
+          <span class="fisso">invariato, e leggibile</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         CASO II — PERIMETRO PARZIALE (criterio 6)
+         Non tutti i titoli detenuti sono valorizzati nella finestra. La
+         variazione si calcola allora su un perimetro RIDOTTO, e va detto su
+         quale: nome per nome. La sottigliezza che il piano deve tenere è che
+         il titolo escluso esce da ENTRAMBI i lati dell'identità — dal valore
+         e dai flussi. Se il suo carico contasse fra i versamenti mentre il
+         suo valore non entra nella somma, il movimento di mercato ne
+         assorbirebbe l'intero importo con il segno sbagliato: una perdita
+         inventata di 4.000 euro.
+         ===================================================================== -->
+    <div class="sezione-titolo">
+      Caso II &mdash; non tutti i titoli detenuti sono valorizzati
+      <span class="nota">criterio 6 &middot; variazione parziale &middot; il perimetro si nomina</span>
+    </div>
+
+    <div class="barra-perimetro" role="group" aria-label="Perimetro del grafico">
+      <span class="et-perimetro">Perimetro</span>
+      <span class="conteggio-titoli">
+        <b>3</b> titoli detenuti &middot; <b>2</b> valorizzati &middot; <b>1</b> senza alcun prezzo noto
+        &middot; <b>7</b> date d&rsquo;evento in finestra
+      </span>
+      <span class="verdetto parziale">copertura parziale su tutta la finestra</span>
+    </div>
+
+    <div class="stanga">
+      <div class="capo-stanga">
+        <h2>Che cosa &egrave; successo in questa finestra &mdash; <span class="corsivo">parziale</span></h2>
+        <span class="rimando">calcolata su 2 dei 3 titoli detenuti</span>
+      </div>
+
+      <div class="equazione">
+        <div class="voce-scomposizione variazione">
+          <span class="et-voce">Variazione del valore &mdash; parziale</span>
+          <span class="cifra-scomposizione neutra"><span class="euro">€</span>+6.000,00</span>
+          <span class="verdetto-voce">su 2 titoli di 3</span>
+          <span class="chiosa-voce">
+            Fra il primo e l&rsquo;ultimo punto della finestra, sui <b>soli titoli valorizzati</b>.
+            Non &egrave; la variazione del portafoglio: &egrave; la variazione del perimetro nominato
+            qui sotto.
+          </span>
+        </div>
+
+        <div class="operatore uguale" aria-hidden="true">=</div>
+
+        <div class="voce-scomposizione versato">
+          <span class="et-voce">Capitale netto versato &mdash; parziale</span>
+          <span class="cifra-scomposizione neutra"><span class="euro">€</span>+5.000,00</span>
+          <span class="verdetto-voce">1 carico &middot; sullo stesso perimetro</span>
+          <span class="chiosa-voce">
+            I &euro;&thinsp;4.000,00 caricati sul titolo escluso <b>non</b> compaiono qui: sono usciti
+            da entrambi i lati del conto insieme al loro valore.
+          </span>
+        </div>
+
+        <div class="operatore" aria-hidden="true">+</div>
+
+        <div class="voce-scomposizione mercato">
+          <span class="et-voce">Movimento di mercato &mdash; parziale</span>
+          <span class="cifra-scomposizione guadagno"><span class="euro">€</span>+1.000,00</span>
+          <span class="percento-scomposizione guadagno">+4,00&nbsp;%</span>
+          <span class="chiosa-voce">
+            Sul perimetro dichiarato, non sul portafoglio. Il titolo escluso pu&ograve; essere salito o
+            sceso: l&rsquo;archivio non lo sa, e la cifra non lo finge.
+          </span>
+        </div>
+      </div>
+
+      <!-- ---------- Il perimetro, nome per nome ---------- -->
+      <div class="perimetro-scomposizione">
+        <span class="et-perimetro-scomp">Su che cosa &egrave; calcolata &mdash; il perimetro della scomposizione</span>
+        <b>2</b> dei <b>3</b> titoli detenuti nella finestra. Un titolo &egrave; nel perimetro quando ha
+        un prezzo noto a <em>ogni</em> data in cui risulta detenuto: basta un punto scoperto perch&eacute;
+        ne esca &mdash; e quando esce, esce <b>da entrambi i lati dell&rsquo;identit&agrave;</b>, valore e
+        flussi insieme. Tenerne il carico fra i versamenti mentre il suo valore resta fuori dalla somma
+        farebbe assorbire quei &euro;&thinsp;4.000,00 al movimento di mercato, col segno rovesciato:
+        una perdita inventata, non un dato parziale.
+        <ul class="elenco-esclusi">
+          <li>
+            <b>Escluso</b> &middot; Amundi Msci Emerging Markets
+            <span class="isin">&mdash; LU0908500753 &middot; nessuna rilevazione in archivio</span>
+          </li>
+          <li>
+            Compresi &middot; Ishares Core Msci World
+            <span class="isin">IE00B4L5Y983</span> &nbsp;&middot;&nbsp; Vanguard Ftse All-World
+            <span class="isin">IE00BK5BQT80</span>
+          </li>
+        </ul>
+        <span class="rimando-us016" style="display:block;margin-top:8px">
+          Quale titolo manca, da quando l&rsquo;archivio lo copre e come rimediare &egrave;
+          l&rsquo;elenco titolo per titolo di US&#8209;016; il prezzo si aggiorna da US&#8209;035.
+        </span>
+      </div>
+
+      <p class="base-rapporto">
+        <span class="et-base">Base della percentuale &mdash; sullo stesso perimetro</span>
+        <span class="conto">+4,00&thinsp;% = &euro;&thinsp;1.000,00 &divide; &euro;&thinsp;25.000,00</span>,
+        dove &euro;&thinsp;25.000,00 &egrave; il capitale esposto <b>dei due titoli compresi</b>: valore
+        iniziale &euro;&thinsp;20.000,00 + versato &euro;&thinsp;5.000,00. Numeratore e denominatore
+        vivono sullo stesso perimetro &mdash; un numeratore parziale su una base intera sarebbe una
+        cifra falsa, ed &egrave; la stessa disciplina che il quadro del risultato applica alla propria
+        percentuale.
+      </p>
+
+      <div class="sigillo-non-pl">
+        <span class="glifo" aria-hidden="true">&ne;</span>
+        <p>
+          Il P&amp;L complessivo qui sopra ha un <b>perimetro suo</b>, e i due non vanno confusi: la
+          scomposizione esclude un titolo perch&eacute; non ha prezzo <em>in questa finestra</em>, il
+          quadro del risultato lo esclude dal solo <em>latente</em> mentre ne tiene il realizzato. Due
+          parzialit&agrave; diverse, dichiarate ciascuna dove nasce, mai una media delle due.
+        </p>
+        <span class="pl-congelato">
+          <span class="et">P&amp;L totale &middot; US-043 &mdash; parziale</span>
+          <span class="cifra">+€&thinsp;3.600,00</span>
+          <span class="fisso">non ricalcolato qui</span>
+        </span>
+      </div>
+    </div>
+
+    <p class="nota-sezione">
+      I due casi non sono la stessa assenza, e non si rendono allo stesso modo. Nel <b>primo</b> manca
+      l&rsquo;intervallo: nessuna cifra, un timbro, e il rimedio &egrave; una scala pi&ugrave; ampia. Nel
+      <b>secondo</b> l&rsquo;intervallo c&rsquo;&egrave; e le cifre pure, ma valgono su meno titoli di
+      quelli detenuti: si scrivono, si dichiarano parziali, e il rimedio &egrave; aggiornare il prezzo
+      che manca. Un&rsquo;unica resa per entrambi farebbe leggere un dato che c&rsquo;&egrave; come un
+      dato che non c&rsquo;&egrave;, o peggio il contrario.
+    </p>
+
+    <nav class="nav-mockup">
+      <span>US-015 &middot; </span>
+      <a href="index.html">la scomposizione</a> &middot;
+      <a href="casi-limite.html">assenza dichiarata e perimetro parziale (questa pagina)</a>
+    </nav>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; registro dei conti</span>
+    <span>US-015 &middot; FR-011 &middot; FR-012 &middot; ADR-003</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

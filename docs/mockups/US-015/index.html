@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortfolIA — P&L del portafoglio accanto al suo grafico (US-015)</title>
+  <meta name="description" content="Mockup US-015: sotto il grafico del portafoglio la variazione del valore nella finestra scelta, scomposta in capitale netto versato e movimento di mercato. Il P&L complessivo resta quello del quadro del risultato (US-043) e non viene ricalcolato.">
+  <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="metriche.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <!-- TESTATA -->
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; riepilogo del portafoglio</p>
+      <h1>Conto <span class="corsivo">Lungo Periodo</span></h1>
+      <p class="sottotesto">2 titoli iscritti &middot; aperto il 19.IX.2024</p>
+    </div>
+    <div class="colonna-registro">
+      <div>Titoli detenuti &nbsp;&nbsp;<b>2</b></div>
+      <div>Valore attuale totale &nbsp;<b>€&thinsp;26.000,00</b></div>
+      <div>Capitale versato &nbsp;<b>€&thinsp;22.400,00</b></div>
+      <div>Differenza &nbsp;<span class="totale-positivo">+€&thinsp;3.600,00</span></div>
+    </div>
+  </header>
+
+  <!-- LINGUETTE -->
+  <nav class="linguette">
+    <a href="#" class="disabilitata">&larr; Portafogli</a>
+    <a href="index.html" class="attiva">Riepilogo</a>
+    <a href="#" class="disabilitata">Carico titoli</a>
+    <a href="#" class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <!-- CORPO -->
+  <main class="corpo">
+
+    <div class="sezione-titolo" style="margin-top:6px">
+      Andamento del portafoglio
+      <span class="nota">FR&#8209;011 &middot; FR&#8209;012 &middot; un versamento non &egrave; un guadagno</span>
+    </div>
+
+    <!-- ---------- Le due traverse di US-019 / US-020, invariate ---------- -->
+    <div class="barra-perimetro" role="group" aria-label="Perimetro del grafico">
+      <span class="et-perimetro">Perimetro</span>
+      <span class="conteggio-titoli">
+        <b>2</b> titoli detenuti &middot; <b>2</b> valorizzati &middot; <b>9</b> date d&rsquo;evento in
+        archivio &middot; visibili in finestra <b>7</b>
+      </span>
+      <span class="verdetto">copertura piena su tutta la finestra</span>
+    </div>
+
+    <div class="barra-scala">
+      <span class="et-scala">Scala temporale</span>
+      <div class="scala-temporale" role="group" aria-label="Scala temporale del grafico">
+        <button type="button">Ultimo mese</button>
+        <button type="button" class="attiva" aria-pressed="true">Ultimo anno</button>
+        <button type="button">Ultimi 5 anni</button>
+        <button type="button">Ultimi 10 anni</button>
+        <button type="button">Tutto lo storico<span class="postilla-predefinita">predefinita</span></button>
+      </div>
+      <span class="finestra-attiva">
+        Finestra: <b>13.VIII.2025 &rarr; 13.VIII.2026</b> &middot; 365 giorni &middot; 7 punti
+      </span>
+    </div>
+
+    <!-- ---------- Il tracciato (schematico: il grafico è già US-019/US-020) ---------- -->
+    <div class="grafico-cornice">
+      <span class="cartellino-finestra">Valore complessivo &middot; ultimo anno</span>
+      <svg class="tracciato" viewBox="0 0 1180 300" role="img"
+           aria-label="Valore complessivo del portafoglio dall'14 agosto 2025 al 10 agosto 2026: da 20.000 a 26.000 euro, con un carico da 5.000 euro il 12 febbraio 2026.">
+        <g stroke="rgba(138,155,176,.5)" stroke-width="1">
+          <line x1="90" y1="60"  x2="1120" y2="60"/>
+          <line x1="90" y1="120" x2="1120" y2="120"/>
+          <line x1="90" y1="180" x2="1120" y2="180"/>
+        </g>
+        <g font-family="'Courier Prime', monospace" font-size="12" fill="#6e5a36" text-anchor="end">
+          <text x="82" y="44">€ 28.000</text>
+          <text x="82" y="64">€ 26.000</text>
+          <text x="82" y="124">€ 24.000</text>
+          <text x="82" y="184">€ 22.000</text>
+          <text x="82" y="244">€ 20.000</text>
+        </g>
+        <!-- la curva: 20.000 → 21.100 → [carico +5.000] → 26.000 -->
+        <polyline points="120,240 300,224 470,232 640,196" fill="none" stroke="#1d2b40" stroke-width="2.2"/>
+        <polyline points="640,196 640,46 640,46" fill="none" stroke="#9c7d34" stroke-width="2.2" stroke-dasharray="5 4"/>
+        <polyline points="640,46 810,72 980,58 1100,60" fill="none" stroke="#1d2b40" stroke-width="2.2"/>
+        <!-- il gradino del carico, campito d'ottone: denaro entrato, non performance -->
+        <rect x="628" y="46" width="24" height="150"
+              fill="url(#versato)" stroke="#9c7d34" stroke-width="1"/>
+        <defs>
+          <pattern id="versato" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="#9c7d34" stroke-width="3"/>
+          </pattern>
+        </defs>
+        <g fill="#1d2b40">
+          <circle cx="120" cy="240" r="5"/>
+          <circle cx="300" cy="224" r="5"/>
+          <circle cx="470" cy="232" r="5"/>
+          <circle cx="810" cy="72" r="5"/>
+          <circle cx="980" cy="58" r="5"/>
+          <circle cx="1100" cy="60" r="5"/>
+        </g>
+        <path d="M634,190 l6,-6 l6,6 l-6,6 Z" fill="#9c7d34" stroke="#221c14" stroke-width="1"/>
+        <g font-family="'Courier Prime', monospace" font-size="12" fill="#6e5a36">
+          <text x="120" y="268" text-anchor="start">14.VIII.2025</text>
+          <text x="600" y="268">12.II.2026 &middot; carico € 5.000,00</text>
+          <text x="1100" y="268" text-anchor="end">oggi</text>
+        </g>
+        <g font-family="'Courier Prime', monospace" font-size="12.5" fill="#221c14">
+          <text x="130" y="232">€ 20.000,00</text>
+          <text x="1010" y="48" text-anchor="end">€ 26.000,00</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- =====================================================================
+         US-015 — LA STANGA A TRE PESI (criteri 1, 2, 3)
+         La differenza fra il primo e l'ultimo punto della finestra NON è
+         tutta performance: dentro la finestra può cadere un carico o una
+         vendita. Dichiararla come «variazione» senza scomporla scriverebbe a
+         schermo un rendimento falso — ed è l'unica ragione per cui questa
+         spec esiste, dato che il titolo singolo non aveva questo problema.
+         Gli operatori `=` e `+` sono incisi fra le caselle: l'identità si
+         legge nella disposizione, non va presa sulla parola.
+         ===================================================================== -->
+    <div class="stanga">
+      <div class="capo-stanga">
+        <h2>Che cosa &egrave; successo in questa finestra</h2>
+        <span class="rimando">variazione del valore = capitale netto versato + movimento di mercato</span>
+      </div>
+
+      <div class="equazione">
+        <div class="voce-scomposizione variazione">
+          <span class="et-voce">Variazione del valore</span>
+          <span class="cifra-scomposizione neutra"><span class="euro">€</span>+6.000,00</span>
+          <span class="verdetto-voce">dal 14.VIII.2025 al 10.VIII.2026</span>
+          <span class="chiosa-voce">
+            Quanto &egrave; cambiato il <b>valore complessivo</b> fra il primo e l&rsquo;ultimo punto
+            della finestra: da &euro;&thinsp;20.000,00 a &euro;&thinsp;26.000,00. Da sola non dice
+            <em>perch&eacute;</em> &mdash; ed &egrave; per questo che non compare mai da sola.
+          </span>
+        </div>
+
+        <div class="operatore uguale" aria-hidden="true">=</div>
+
+        <div class="voce-scomposizione versato">
+          <span class="et-voce">Capitale netto versato</span>
+          <span class="cifra-scomposizione neutra"><span class="euro">€</span>+5.000,00</span>
+          <span class="verdetto-voce">1 carico &middot; nessuna vendita</span>
+          <span class="chiosa-voce">
+            Denaro <b>entrato</b> nel portafoglio dentro la finestra, al netto di quello uscito con le
+            vendite: carichi &euro;&thinsp;5.000,00 &minus; vendite &euro;&thinsp;0,00. Non &egrave;
+            un guadagno &mdash; &egrave; un bonifico.
+          </span>
+        </div>
+
+        <div class="operatore" aria-hidden="true">+</div>
+
+        <div class="voce-scomposizione mercato">
+          <span class="et-voce">Movimento di mercato</span>
+          <span class="cifra-scomposizione guadagno"><span class="euro">€</span>+1.000,00</span>
+          <span class="percento-scomposizione guadagno">+4,00&nbsp;%</span>
+          <span class="chiosa-voce">
+            La sola parte che il <b>mercato</b> ha prodotto: ci&ograve; che resta della variazione
+            una volta tolto il denaro versato. &Egrave; questa la cifra da leggere come rendimento
+            del periodo, non quella a sinistra.
+          </span>
+        </div>
+      </div>
+
+      <!-- ---------- Il regolo: 5.000 dei 6.000 sono un bonifico ---------- -->
+      <div class="regolo-scomposizione">
+        <div class="testa-regolo">
+          <span>Come si divide la variazione di &euro;&thinsp;6.000,00</span>
+          <span>83&thinsp;% denaro versato &middot; 17&thinsp;% mercato</span>
+        </div>
+        <div class="barra-scomposizione" role="img"
+             aria-label="Della variazione di 6.000 euro, 5.000 sono capitale versato e 1.000 movimento di mercato.">
+          <span class="quota versato" style="width:83.33%">capitale versato &nbsp;€ 5.000,00</span>
+          <span class="quota mercato" style="width:16.67%">mercato &nbsp;€ 1.000,00</span>
+        </div>
+        <p class="legenda-regolo">
+          <span class="campione versato" aria-hidden="true"></span> campito &mdash; denaro entrato o
+          uscito, <b>mai</b> performance &nbsp;&middot;&nbsp;
+          <span class="campione mercato" aria-hidden="true"></span> pieno &mdash; movimento del
+          mercato, la sola parte che misura un rendimento. Un portafoglio pu&ograve; salire di
+          &euro;&thinsp;6.000 senza aver guadagnato un centesimo: basta versarceli.
+        </p>
+      </div>
+
+      <!-- ---------- La base del rapporto, scritta con i suoi addendi (criterio 3) ---------- -->
+      <p class="base-rapporto">
+        <span class="et-base">Base della percentuale &mdash; dichiarata, non sottintesa</span>
+        <span class="conto">+4,00&thinsp;% = &euro;&thinsp;1.000,00 &divide; &euro;&thinsp;25.000,00</span>,
+        dove la base &egrave; il <b>capitale esposto nella finestra</b>: valore iniziale
+        &euro;&thinsp;20.000,00 <b>+</b> capitale netto versato &euro;&thinsp;5.000,00. Non il solo
+        valore iniziale: versare denaro a met&agrave; periodo gonfierebbe la percentuale senza che il
+        mercato abbia fatto nulla. Non &egrave; un rendimento <em>ponderato per il tempo</em> &mdash;
+        il carico del 12.II.2026 &egrave; rimasto esposto meno di met&agrave; finestra, e questa base
+        non lo sa: &egrave; la ragione per cui il denominatore &egrave; scritto e non lasciato
+        indovinare.
+      </p>
+
+      <!-- ---------- Il sigillo: questo non è il tuo P&L (criterio 4) ---------- -->
+      <div class="sigillo-non-pl">
+        <span class="glifo" aria-hidden="true">&ne;</span>
+        <p>
+          Nessuna di queste tre cifre &egrave; il tuo <b>P&amp;L complessivo</b>. Dipendono tutte e
+          tre dalla finestra: cambia scala e cambiano. Il P&amp;L complessivo &mdash; realizzato pi&ugrave;
+          latente &mdash; sta nel <em>quadro del risultato</em> qui sopra, non dipende
+          dall&rsquo;orizzonte e <b>non viene ricalcolato qui</b>: due letture dello stesso fatto non
+          possono divergere, e per non divergere devono essere una sola.
+        </p>
+        <span class="pl-congelato">
+          <span class="et">P&amp;L totale &middot; US-043</span>
+          <span class="cifra">+€&thinsp;3.600,00</span>
+          <span class="fisso">identico su tutte e cinque le scale</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- ---------- La prova del criterio 4: cambiando scala ---------- -->
+    <div class="sezione-titolo">
+      Le stesse tre cifre su un&rsquo;altra scala
+      <span class="nota">criterio 4 &middot; le tre si aggiornano, il P&amp;L complessivo no</span>
+    </div>
+
+    <div class="trittico-casi">
+      <div class="caso-limite">
+        <p class="premessa">
+          <span class="numero-caso">I</span> Scala <b>ultimo mese</b> &mdash; 13.VII &rarr; 13.VIII.2026.
+          Nessun carico e nessuna vendita cadono dentro.
+        </p>
+        <div class="corpo-caso">
+          <div class="equazione" style="padding:0">
+            <div class="voce-scomposizione variazione">
+              <span class="et-voce">Variazione</span>
+              <span class="cifra-scomposizione neutra" style="font-size:23px"><span class="euro">€</span>&minus;340,00</span>
+            </div>
+            <div class="operatore uguale" aria-hidden="true">=</div>
+            <div class="voce-scomposizione versato">
+              <span class="et-voce">Versato</span>
+              <span class="cifra-scomposizione neutra" style="font-size:23px"><span class="euro">€</span>0,00</span>
+            </div>
+            <div class="operatore" aria-hidden="true">+</div>
+            <div class="voce-scomposizione mercato in-perdita">
+              <span class="et-voce">Mercato</span>
+              <span class="cifra-scomposizione perdita" style="font-size:23px"><span class="euro">€</span>&minus;340,00</span>
+              <span class="percento-scomposizione perdita">&minus;1,29&nbsp;%</span>
+            </div>
+          </div>
+          <p class="base-rapporto" style="margin:12px 0 0">
+            <span class="et-base">Base</span>
+            <span class="conto">&euro;&thinsp;26.340,00</span> = valore iniziale + &euro;&thinsp;0,00 versati.
+            Senza flussi la base torna a essere il solo valore iniziale, e lo zero del versato &egrave;
+            uno zero <b>misurato</b>: nessun carico e nessuna vendita, non &laquo;non lo so&raquo;.
+          </p>
+        </div>
+      </div>
+
+      <div class="caso-limite">
+        <p class="premessa">
+          <span class="numero-caso">II</span> Scala <b>tutto lo storico</b> &mdash; 19.IX.2024 &rarr; oggi.
+          Due carichi e una vendita dentro la finestra.
+        </p>
+        <div class="corpo-caso">
+          <div class="equazione" style="padding:0">
+            <div class="voce-scomposizione variazione">
+              <span class="et-voce">Variazione</span>
+              <span class="cifra-scomposizione neutra" style="font-size:23px"><span class="euro">€</span>+26.000,00</span>
+            </div>
+            <div class="operatore uguale" aria-hidden="true">=</div>
+            <div class="voce-scomposizione versato">
+              <span class="et-voce">Versato</span>
+              <span class="cifra-scomposizione neutra" style="font-size:23px"><span class="euro">€</span>+22.400,00</span>
+            </div>
+            <div class="operatore" aria-hidden="true">+</div>
+            <div class="voce-scomposizione mercato">
+              <span class="et-voce">Mercato</span>
+              <span class="cifra-scomposizione guadagno" style="font-size:23px"><span class="euro">€</span>+3.600,00</span>
+              <span class="percento-scomposizione guadagno">+16,07&nbsp;%</span>
+            </div>
+          </div>
+          <p class="base-rapporto" style="margin:12px 0 0">
+            <span class="et-base">Il caso che chiude il cerchio</span>
+            Su <b>tutto lo storico</b> il portafoglio parte da zero, quindi il versato &egrave; tutto il
+            capitale e il movimento di mercato coincide &mdash; qui, e solo qui &mdash; con il P&amp;L
+            complessivo di US&#8209;043: <b>+€&thinsp;3.600,00</b>. Coincide perch&eacute; la finestra
+            contiene l&rsquo;intera vita del conto, non perch&eacute; sia la stessa cifra: su ogni altra
+            scala i due numeri divergono, ed &egrave; giusto che divergano.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <p class="nota-sezione">
+      Le tre cifre si ricavano dai <b>soli fatti gi&agrave; in archivio</b> &mdash; i punti della serie
+      che il grafico disegna, i carichi e le vendite che cadono nella finestra: nessuna richiesta di
+      rete, nessuna stima. Cambiare scala &egrave; <em>ritagliare</em>, e ritagliare cambia tutte e tre
+      le cifre insieme, mai una sola: sono la stessa identit&agrave; misurata su un altro intervallo.
+    </p>
+
+    <nav class="nav-mockup">
+      <span>US-015 &middot; </span>
+      <a href="index.html">la scomposizione (questa pagina)</a> &middot;
+      <a href="casi-limite.html">assenza dichiarata e perimetro parziale</a>
+    </nav>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; registro dei conti</span>
+    <span>US-015 &middot; FR-011 &middot; FR-012 &middot; ADR-003</span>
+  </footer>
+
+</div>
+
+</body>
+</html>
