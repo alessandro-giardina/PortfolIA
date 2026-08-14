@@ -4,7 +4,10 @@
 
 - **Node.js 20 LTS** (`node --version` should show `v20.x`)
 - `npm` 10+ (bundled with Node 20)
+- **Build di `shared`** (`npm run build --workspace=shared`): `@portfolia/shared` è esposto dalla sua `dist/`, che è gitignorata, e sia server sia client ne importano funzioni usate a runtime. Su un clone fresco, senza questo passo `npm run dev` non parte.
 - **Chromium per Playwright** (`npx playwright install chromium`): la fonte di backup MorningStar è raggiungibile solo via browser headless (US-024). Installa il binario una volta dopo `npm install`.
+
+Su una macchina nuova i tre passi sono racchiusi in `npm run setup` (`npm ci` + build di `shared` + Chromium). Per l'installazione come applicazione — non come ambiente di sviluppo — vedi [README.md](README.md).
 
 ## Fonte di backup MorningStar (US-024)
 
@@ -96,7 +99,7 @@ Note also that `launchOptions` (e.g. `slowMo`) cannot be scoped to a `describe` 
 npm run check
 ```
 
-Runs lint → typecheck → unit tests in sequence. All three must pass for CI to be green.
+Runs, in sequence: `lint` → `typecheck` → `typecheck:e2e` → `check:chiavi` (registro delle chiavi E2E) → `test:e2e-support` (Vitest su `e2e/`) → `test` (Vitest su `server/`). Tutti devono passare perché la CI sia verde.
 
 ## Project structure
 
@@ -122,9 +125,12 @@ portfolIA/
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Start app (backend + frontend) |
+| `npm run setup` | Fresh-machine install: `npm ci` + build di `shared` + Chromium |
+| `npm run dev` | Start app in sviluppo (backend + frontend, con watch) |
+| `npm run build` | Build di `shared` + bundle di produzione del client |
+| `npm start` | Start app per l'uso (server senza watch + `vite preview` su 4173) |
 | `npm run lint` | ESLint on all TS sources |
 | `npm run typecheck` | TypeScript project references build |
 | `npm run test` | Vitest unit/integration tests |
-| `npm run check` | lint + typecheck + test |
+| `npm run check` | lint + typecheck (src + e2e) + registro chiavi + test e2e-support + test |
 | `npx playwright test` | Playwright E2E smoke test |

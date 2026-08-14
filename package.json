@@ -3,12 +3,18 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "workspaces": [
     "client",
     "server",
     "shared"
   ],
   "scripts": {
+    "setup": "npm ci && npm run build --workspace=shared && npx playwright install chromium",
+    "build": "npm run build --workspace=shared && npm run build --workspace=client",
+    "start": "concurrently \"npm run start --workspace=server\" \"npm run preview --workspace=client\"",
     "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
     "typecheck": "tsc --build",
     "typecheck:e2e": "tsc --noEmit -p e2e",
