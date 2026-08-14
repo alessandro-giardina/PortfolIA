@@ -6,96 +6,108 @@ tasks:
     title: Portare il prezzo di vendita dentro la serie del portafoglio
     description: 'In shared/domain/serieValorePortafoglio.ts introdurre VenditaFlusso = Pick<Sale, ''saleDate'' | ''quantity'' | ''salePrice''> e farlo adottare a TitoloPortafoglio.sales; in shared/types/index.ts farlo adottare a PortfolioSeriesEntry.sales; in server/src/api/positions.ts (~riga 550) mappare anche salePrice nella rotta GET /api/portfolios/:id/series. VenditaValore resta intatta: quantitaDetenutaA continua ad accettarla e il tipo piu'' largo le e'' assegnabile. Senza questo campo il denaro uscito dal portafoglio non e'' calcolabile e il capitale netto versato sarebbe solo la meta'' del conto.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'In shared/domain/serieValorePortafoglio.ts introdurre VenditaFlusso = Pick<Sale, ''saleDate'' | ''quantity'' | ''salePrice''> e farlo adottare a TitoloPortafoglio.sales; in shared/types/index.ts farlo adottare a PortfolioSeriesEntry.sales; in server/src/api/positions.ts (~riga 550) mappare anche salePrice nella rotta GET /api/portfolios/:id/series. VenditaValore resta intatta: quantitaDetenutaA continua ad accettarla e il tipo piu'' largo le e'' assegnabile. Senza questo campo il denaro uscito dal portafoglio non e'' calcolabile e il capitale netto versato sarebbe solo la meta'' del conto.'
+    ref: TASK-01
   - id: TASK-02
     title: Verificare che la rotta della serie restituisca il prezzo di vendita
     description: 'Estendere server/tests/api.portfolios.serie.test.ts con un portafoglio che ha almeno una vendita registrata: la risposta di GET /api/portfolios/:id/series porta salePrice per ciascuna vendita, con il valore iscritto a registro. I test esistenti della rotta devono restare verdi: il campo si aggiunge, nessuno cambia.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Estendere server/tests/api.portfolios.serie.test.ts con un portafoglio che ha almeno una vendita registrata: la risposta di GET /api/portfolios/:id/series porta salePrice per ciascuna vendita, con il valore iscritto a registro. I test esistenti della rotta devono restare verdi: il campo si aggiunge, nessuno cambia.'
+    ref: TASK-02
   - id: TASK-03
     title: Definire il perimetro e la scomposizione della finestra
     description: 'Nuovo modulo shared/domain/metrichePortafoglio.ts con calcolaScomposizioneFinestra({ punti, titoli }), funzione pura sui punti gia'' ritagliati. Primo passo, il perimetro: un ISIN vi appartiene quando ha un prezzo noto a ogni punto della finestra in cui risulta detenuto (si legge dai contributi che PuntoPortafoglio gia'' porta). Secondo passo, le cifre, tutte ristrette al perimetro: valore iniziale e finale come somma dei contributi dei soli ISIN compresi (mai valoreTotale, che somma tutti i valorizzati), variazione = finale - iniziale, capitale netto versato = carichi meno vendite valutati in cassa (loadPrice x quantity, salePrice x quantity) nell''intervallo semiaperto (primo capo, ultimo capo], movimento di mercato = variazione - versato per costruzione. Esito come unione discriminata: { stato: ''disponibile'', ... } oppure { stato: ''non-disponibile'', ragione: ''punti-insufficienti'' | ''perimetro-vuoto'', ... }. La soglia si importa da RILEVAZIONI_MINIME_VARIAZIONE di metricheTitolo.ts, mai riscritta. Riesportare il modulo da shared/types/index.ts.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'Nuovo modulo shared/domain/metrichePortafoglio.ts con calcolaScomposizioneFinestra({ punti, titoli }), funzione pura sui punti gia'' ritagliati. Primo passo, il perimetro: un ISIN vi appartiene quando ha un prezzo noto a ogni punto della finestra in cui risulta detenuto (si legge dai contributi che PuntoPortafoglio gia'' porta). Secondo passo, le cifre, tutte ristrette al perimetro: valore iniziale e finale come somma dei contributi dei soli ISIN compresi (mai valoreTotale, che somma tutti i valorizzati), variazione = finale - iniziale, capitale netto versato = carichi meno vendite valutati in cassa (loadPrice x quantity, salePrice x quantity) nell''intervallo semiaperto (primo capo, ultimo capo], movimento di mercato = variazione - versato per costruzione. Esito come unione discriminata: { stato: ''disponibile'', ... } oppure { stato: ''non-disponibile'', ragione: ''punti-insufficienti'' | ''perimetro-vuoto'', ... }. La soglia si importa da RILEVAZIONI_MINIME_VARIAZIONE di metricheTitolo.ts, mai riscritta. Riesportare il modulo da shared/types/index.ts.'
+    ref: TASK-03
   - id: TASK-04
     title: Provare l'identita' con un carico e una vendita nella finestra
     description: 'Test unitari in server/tests/metrichePortafoglio.test.ts: con un carico e una vendita entrambi dentro la finestra vale variazione = versato + mercato al centesimo (e'' il caso che il criterio 7 nomina); con una vendita maggiore del carico il versato e'' negativo e l''identita'' regge; senza alcun flusso il mercato coincide con la variazione e il versato e'' uno zero misurato, non un''assenza. Un test separato sui capi: un carico datato esattamente al primo capo NON entra fra i flussi — e'' gia'' dentro il valore di quel punto, contarlo lo conterebbe due volte — mentre uno datato all''ultimo capo entra. E'' il difetto piu'' facile da introdurre e il piu'' difficile da vedere a occhio.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: 'Test unitari in server/tests/metrichePortafoglio.test.ts: con un carico e una vendita entrambi dentro la finestra vale variazione = versato + mercato al centesimo (e'' il caso che il criterio 7 nomina); con una vendita maggiore del carico il versato e'' negativo e l''identita'' regge; senza alcun flusso il mercato coincide con la variazione e il versato e'' uno zero misurato, non un''assenza. Un test separato sui capi: un carico datato esattamente al primo capo NON entra fra i flussi — e'' gia'' dentro il valore di quel punto, contarlo lo conterebbe due volte — mentre uno datato all''ultimo capo entra. E'' il difetto piu'' facile da introdurre e il piu'' difficile da vedere a occhio.'
+    ref: TASK-04
   - id: TASK-05
     title: Provare la soglia, il perimetro parziale e la base del rapporto
     description: 'Ancora in server/tests/metrichePortafoglio.test.ts. Soglia (criterio 5): zero o un punto in finestra danno non-disponibile con il conteggio dei punti compresi e nessuna cifra, nemmeno zero; il test legge RILEVAZIONI_MINIME_VARIAZIONE invece di riscrivere 2. Perimetro (criterio 6): un titolo detenuto e mai valorizzato viene escluso e il suo carico non compare fra i versamenti — se vi comparisse, il movimento di mercato ne assorbirebbe l''importo col segno rovesciato, una perdita inventata con l''identita'' formalmente verde; il verdetto e'' parziale e il titolo e'' nominato; un titolo comprato dentro la finestra e regolarmente rilevato resta invece compreso; perimetro vuoto da'' non-disponibile con ragione distinta dalla soglia. Percentuale (criterio 3): base = valore iniziale + versato, esposta nell''esito con i suoi addendi; null e mai Infinity su base non positiva; variazione nulla da'' 0,00 % disponibile, perche'' lo zero misurato non e'' l''assenza.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: 'Ancora in server/tests/metrichePortafoglio.test.ts. Soglia (criterio 5): zero o un punto in finestra danno non-disponibile con il conteggio dei punti compresi e nessuna cifra, nemmeno zero; il test legge RILEVAZIONI_MINIME_VARIAZIONE invece di riscrivere 2. Perimetro (criterio 6): un titolo detenuto e mai valorizzato viene escluso e il suo carico non compare fra i versamenti — se vi comparisse, il movimento di mercato ne assorbirebbe l''importo col segno rovesciato, una perdita inventata con l''identita'' formalmente verde; il verdetto e'' parziale e il titolo e'' nominato; un titolo comprato dentro la finestra e regolarmente rilevato resta invece compreso; perimetro vuoto da'' non-disponibile con ragione distinta dalla soglia. Percentuale (criterio 3): base = valore iniziale + versato, esposta nell''esito con i suoi addendi; null e mai Infinity su base non positiva; variazione nulla da'' 0,00 % disponibile, perche'' lo zero misurato non e'' l''assenza.'
+    ref: TASK-05
   - id: TASK-06
     title: Aprire in GraficoPortafoglio la cucitura sotto il grafico
     description: 'In client/src/components/GraficoPortafoglio.tsx aggiungere ContestoSottoIlGraficoPortafoglio { punti, finestra, scala, copertura } e la prop sottoIlGrafico?: (contesto) => ReactNode, gemella di quella che GraficoTitolo gia'' espone per US-038. Invocarla in tre dei quattro rami d''uscita: nessun prezzo noto (~riga 528), finestra senza punti (~riga 767) e il tracciato. Non nel ramo del perimetro vuoto (~riga 507): senza un solo titolo iscritto non esistono ne'' finestra ne'' perimetro da scomporre, e il grafico lo dichiara gia''. Dimenticare uno dei tre farebbe sparire la sezione proprio nelle finestre in cui i criteri 5 e 6 vogliono vederla, e nessun criterio parla di quei rami.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: 'In client/src/components/GraficoPortafoglio.tsx aggiungere ContestoSottoIlGraficoPortafoglio { punti, finestra, scala, copertura } e la prop sottoIlGrafico?: (contesto) => ReactNode, gemella di quella che GraficoTitolo gia'' espone per US-038. Invocarla in tre dei quattro rami d''uscita: nessun prezzo noto (~riga 528), finestra senza punti (~riga 767) e il tracciato. Non nel ramo del perimetro vuoto (~riga 507): senza un solo titolo iscritto non esistono ne'' finestra ne'' perimetro da scomporre, e il grafico lo dichiara gia''. Dimenticare uno dei tre farebbe sparire la sezione proprio nelle finestre in cui i criteri 5 e 6 vogliono vederla, e nessun criterio parla di quei rami.'
+    ref: TASK-06
   - id: TASK-07
     title: Disegnare la stanga a tre pesi
     description: 'Nuovo componente client/src/components/MetrichePortafoglio.tsx sui mockup docs/mockups/US-015/: l''equazione con gli operatori = e + incisi fra le tre voci (variazione del valore, capitale netto versato, movimento di mercato), il regolo che divide la variazione nei due addendi (campitura d''ottone per il denaro versato, pieno per il mercato), la base della percentuale scritta per esteso con i suoi addendi e il limite dichiarato (non e'' un rendimento ponderato per il tempo), il riquadro del perimetro quando la scomposizione e'' parziale, il timbro senza alcuna cifra quando non e'' disponibile. Il sigillo finale cita il P&L complessivo di US-043 per contrasto e non lo ricalcola: la cifra arriva dalle stesse enrichedPositions del quadro. Attributi: metriche-portafoglio con data-scala e data-stato, variazione-valore, capitale-netto, movimento-mercato con i figli -valore e -percentuale, base-rapporto, regolo-scomposizione, scomposizione-non-disponibile, perimetro-scomposizione, rimando-quadro-risultato.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
       - TASK-06
     body: 'Nuovo componente client/src/components/MetrichePortafoglio.tsx sui mockup docs/mockups/US-015/: l''equazione con gli operatori = e + incisi fra le tre voci (variazione del valore, capitale netto versato, movimento di mercato), il regolo che divide la variazione nei due addendi (campitura d''ottone per il denaro versato, pieno per il mercato), la base della percentuale scritta per esteso con i suoi addendi e il limite dichiarato (non e'' un rendimento ponderato per il tempo), il riquadro del perimetro quando la scomposizione e'' parziale, il timbro senza alcuna cifra quando non e'' disponibile. Il sigillo finale cita il P&L complessivo di US-043 per contrasto e non lo ricalcola: la cifra arriva dalle stesse enrichedPositions del quadro. Attributi: metriche-portafoglio con data-scala e data-stato, variazione-valore, capitale-netto, movimento-mercato con i figli -valore e -percentuale, base-rapporto, regolo-scomposizione, scomposizione-non-disponibile, perimetro-scomposizione, rimando-quadro-risultato.'
+    ref: TASK-07
   - id: TASK-08
     title: Portare in ledger.css la sezione della scomposizione
     description: 'Aggiungere in coda a client/src/ledger.css la sezione US-015 traducendo docs/mockups/US-015/metriche.css: .stanga con .equazione/.voce-scomposizione/.operatore, .regolo-scomposizione con .barra-scomposizione, .base-rapporto, .sigillo-non-pl, .timbro-scomposizione, .perche-assente-scomposizione, .perimetro-scomposizione, piu'' la soglia responsive a 1100px. Nessuna regola preesistente va riscritta: le variabili di colore e i caratteri sono gia'' quelli del registro, e il codice colore va rispettato alla lettera perche'' porta significato — ottone campito per i flussi di cassa, verde/carminio pieno per il mercato, inchiostro per la somma.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-07
     body: 'Aggiungere in coda a client/src/ledger.css la sezione US-015 traducendo docs/mockups/US-015/metriche.css: .stanga con .equazione/.voce-scomposizione/.operatore, .regolo-scomposizione con .barra-scomposizione, .base-rapporto, .sigillo-non-pl, .timbro-scomposizione, .perche-assente-scomposizione, .perimetro-scomposizione, piu'' la soglia responsive a 1100px. Nessuna regola preesistente va riscritta: le variabili di colore e i caratteri sono gia'' quelli del registro, e il codice colore va rispettato alla lettera perche'' porta significato — ottone campito per i flussi di cassa, verde/carminio pieno per il mercato, inchiostro per la somma.'
+    ref: TASK-08
   - id: TASK-09
     title: Cucire la sezione nel Riepilogo
     description: 'In client/src/pages/PortfolioDetailPage.tsx passare a GraficoPortafoglio la render prop sottoIlGrafico che rende <MetrichePortafoglio {...contesto} titoli={series} enrichedPositions={enrichedPositions} />. QuadroRisultato resta invariato e sopra il grafico: e'' l''unica lettura del P&L complessivo, e questa spec non ne aggiunge una seconda. Nessuna nuova richiesta di rete: series ed enrichedPositions sono gia'' in mano alla pagina.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-07
       - TASK-08
     body: 'In client/src/pages/PortfolioDetailPage.tsx passare a GraficoPortafoglio la render prop sottoIlGrafico che rende <MetrichePortafoglio {...contesto} titoli={series} enrichedPositions={enrichedPositions} />. QuadroRisultato resta invariato e sopra il grafico: e'' l''unica lettura del P&L complessivo, e questa spec non ne aggiunge una seconda. Nessuna nuova richiesta di rete: series ed enrichedPositions sono gia'' in mano alla pagina.'
+    ref: TASK-09
   - id: TASK-10
     title: Dimostrare che un versamento non e' un guadagno
     description: 'Nuovo e2e/US-015__metriche-portafoglio.spec.ts (demo, con video in docs/test-results/US-015/ via page.video().saveAs() dopo page.close()). Riservare in e2e/support/titoli.ts le chiavi di questo file, con il campo file compilato. Scenario: portafoglio con un carico da 5.000 EUR caduto dentro la finestra ''ultimo anno'' e valore da 20.000 a 26.000 EUR; sotto il grafico compaiono le tre cifre etichettate con il regolo e la base scritta per esteso. Secondo scenario nello stesso file: cambiando scala le tre cifre si aggiornano mentre le stringhe del quadro del risultato — realizzato, latente e totale — restano identiche (criterio 4). Seminare i titoli con fetched_at di adesso e le osservazioni con seminaOsservazioni, che sostituisce lo storico; la pulizia sta nella fixture archivio, mai in un finally.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-09
     body: 'Nuovo e2e/US-015__metriche-portafoglio.spec.ts (demo, con video in docs/test-results/US-015/ via page.video().saveAs() dopo page.close()). Riservare in e2e/support/titoli.ts le chiavi di questo file, con il campo file compilato. Scenario: portafoglio con un carico da 5.000 EUR caduto dentro la finestra ''ultimo anno'' e valore da 20.000 a 26.000 EUR; sotto il grafico compaiono le tre cifre etichettate con il regolo e la base scritta per esteso. Secondo scenario nello stesso file: cambiando scala le tre cifre si aggiornano mentre le stringhe del quadro del risultato — realizzato, latente e totale — restano identiche (criterio 4). Seminare i titoli con fetched_at di adesso e le osservazioni con seminaOsservazioni, che sostituisce lo storico; la pulizia sta nella fixture archivio, mai in un finally.'
+    ref: TASK-10
   - id: TASK-11
     title: Provare a schermo l'assenza dichiarata e il perimetro parziale
     description: 'Nuovo e2e/US-015__metriche-portafoglio-varianti.spec.ts con le proprie chiavi riservate in titoli.ts (mai quelle del file demo). Due scenari: una scala che comprende un solo punto porta il timbro ''Dato non disponibile'' e nessun numero — ne'' variazione, ne'' versato, ne'' mercato — con la spiegazione di quanti punti servono; un titolo detenuto e mai rilevato rende le tre cifre parziali, fa comparire il riquadro del perimetro con il titolo escluso nominato e tiene il suo carico fuori dai versamenti. Nessun video su questo file.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-09
     body: 'Nuovo e2e/US-015__metriche-portafoglio-varianti.spec.ts con le proprie chiavi riservate in titoli.ts (mai quelle del file demo). Due scenari: una scala che comprende un solo punto porta il timbro ''Dato non disponibile'' e nessun numero — ne'' variazione, ne'' versato, ne'' mercato — con la spiegazione di quanti punti servono; un titolo detenuto e mai rilevato rende le tre cifre parziali, fa comparire il riquadro del perimetro con il titolo escluso nominato e tiene il suo carico fuori dai versamenti. Nessun video su questo file.'
+    ref: TASK-11
   - id: TASK-12
     title: Chiudere con la verifica completa
     description: 'Eseguire npm run check (lint, typecheck, unit) e npx playwright test, piu'' npm run check:chiavi che il globalSetup rieseguirebbe comunque. Ricordare che @portfolia/shared si risolve su shared/dist: senza tsc --build alla radice il client non vede il nuovo modulo di dominio, e l''errore si presenta come un import mancante invece che come una build da rifare.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-10
       - TASK-11
     body: 'Eseguire npm run check (lint, typecheck, unit) e npx playwright test, piu'' npm run check:chiavi che il globalSetup rieseguirebbe comunque. Ricordare che @portfolia/shared si risolve su shared/dist: senza tsc --build alla radice il client non vede il nuovo modulo di dominio, e l''errore si presenta come un import mancante invece che come una build da rifare.'
+    ref: TASK-12

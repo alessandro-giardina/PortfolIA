@@ -1,7 +1,8 @@
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo, useState, type ReactNode } from 'react';
 import type {
   Copertura,
   CoperturaPerimetro,
+  FinestraTemporale,
   OriginePunto,
   PrezzoNoto,
   PuntoPortafoglio,
@@ -33,6 +34,26 @@ import {
 } from './graficoTela.js';
 
 /**
+ * Il contesto che il grafico del portafoglio consegna a chi disegna sotto il
+ * tracciato (US-015), gemello di `ContestoSottoIlGrafico` che `GraficoTitolo`
+ * espone per US-038.
+ *
+ * Vive qui e non nel componente che lo consuma perché è il contratto di una
+ * prop *di questo* componente: dichiararlo altrove farebbe importare al
+ * grafico il modulo che doveva restare libero di ignorare.
+ */
+export interface ContestoSottoIlGraficoPortafoglio {
+  /** I punti **già ritagliati** sulla finestra: `ritagliaSerie(...).punti`. */
+  punti: readonly PuntoPortafoglio[];
+  /** La finestra della scala scelta. */
+  finestra: FinestraTemporale;
+  /** La scala attualmente scelta dall'utente. */
+  scala: ScalaTemporale;
+  /** Quanto la finestra è coperta dai dati d'archivio (prima dimensione: il tempo). */
+  copertura: Copertura;
+}
+
+/**
  * Props del grafico del valore complessivo del portafoglio (US-019, FR-015, ADR-010).
  *
  * Come `GraficoTitolo`, **nessuna richiesta di rete** parte da qui: `titoli`
@@ -56,6 +77,18 @@ export interface GraficoPortafoglioProps {
    * invece di dipendere dall'orologio della macchina.
    */
   now?: number | Date;
+  /**
+   * Che cosa disegnare **sotto il tracciato**, dentro la stessa sezione
+   * (US-015). Gemella della prop che `GraficoTitolo` espone per US-038.
+   *
+   * Invocata in **tre** dei quattro rami d'uscita — nessun prezzo noto,
+   * finestra senza punti, il tracciato — ma non nel ramo del perimetro vuoto
+   * (nessun titolo iscritto): senza un solo titolo non esistono né finestra
+   * né perimetro da scomporre, e il grafico lo dichiara già. Dimenticarne uno
+   * degli altri tre farebbe sparire la sezione proprio nelle finestre in cui i
+   * criteri 5 e 6 di US-015 vogliono vederla.
+   */
+  sottoIlGrafico?: (contesto: ContestoSottoIlGraficoPortafoglio) => ReactNode;
 }
 
 /** Quanti pixel di tela deve essere larga una campitura perché ci stia dentro una scritta. */
@@ -455,6 +488,7 @@ export default function GraficoPortafoglio({
   titoli,
   simboloValuta = '€',
   now,
+  sottoIlGrafico,
 }: GraficoPortafoglioProps) {
   const radiceId = useId().replace(/[^a-zA-Z0-9]/g, '');
   const idCampitura = `campitura-portafoglio-${radiceId}`;
@@ -518,6 +552,30 @@ export default function GraficoPortafoglio({
     );
   }
 
+  // ─── La finestra della scala scelta (US-020) ───────────────────────────────
+  // Cambiare scala è **filtrare un array già in memoria**: non parte alcuna
+  // richiesta, non si aggiunge alcun punto e non si infittisce nulla. In questo
+  // file non esiste codice che possa contattare la rete, ed è la ragione per cui
+  // il criterio «il grafico si aggiorna» si soddisfa senza tornare al server.
+  //
+  // Calcolata qui — prima dei rami 2 e 3, non dopo come in US-020 — perché la
+  // render prop `sottoIlGrafico` (US-015) ne ha bisogno anche in quei due rami:
+  // il P&L non dipende dalla copertura, e dimenticarne il contesto in uno dei
+  // due lo farebbe sparire proprio nelle finestre in cui i criteri 5 e 6 di
+  // US-015 vogliono vederlo.
+  const definizione = definizioneScala(scalaScelta);
+  const finestra = calcolaFinestra({ scala: scalaScelta, punti: puntiCompleti, now: istanteOra });
+  const ritaglio = ritagliaSerie({ punti: puntiCompleti, finestra });
+  const punti: PuntoPortafoglio[] = ritaglio.punti;
+
+  /** Il contesto che la render prop riceve, uguale nei tre rami che la invocano. */
+  const contestoSotto: ContestoSottoIlGraficoPortafoglio = {
+    punti,
+    finestra,
+    scala: scalaScelta,
+    copertura: ritaglio.copertura,
+  };
+
   // ─── Ramo 2: titoli detenuti, ma nessun prezzo noto per nessuno di essi ───
   // «Una quantità che non esiste non è pari a zero», e qui è il fattore
   // opposto a mancare: le quantità ci sono (i carichi sono iscritti), ma
@@ -567,19 +625,14 @@ export default function GraficoPortafoglio({
             n&eacute; lo chiede alla fonte per conto proprio.
           </p>
         </div>
+
+        {/* Le metriche compaiono anche qui (US-015): il P&L non dipende dalla
+            copertura, e farlo sparire dove il prezzo manca lo toglierebbe
+            proprio a chi sta cercando di capire se ha perso denaro. */}
+        {sottoIlGrafico?.(contestoSotto)}
       </div>
     );
   }
-
-  // ─── La finestra della scala scelta (US-020) ───────────────────────────────
-  // Cambiare scala è **filtrare un array già in memoria**: non parte alcuna
-  // richiesta, non si aggiunge alcun punto e non si infittisce nulla. In questo
-  // file non esiste codice che possa contattare la rete, ed è la ragione per cui
-  // il criterio «il grafico si aggiorna» si soddisfa senza tornare al server.
-  const definizione = definizioneScala(scalaScelta);
-  const finestra = calcolaFinestra({ scala: scalaScelta, punti: puntiCompleti, now: istanteOra });
-  const ritaglio = ritagliaSerie({ punti: puntiCompleti, finestra });
-  const punti: PuntoPortafoglio[] = ritaglio.punti;
 
   /**
    * La copertura del perimetro **relativa a questa finestra**, non quella
@@ -839,6 +892,10 @@ export default function GraficoPortafoglio({
           perimetro={misuraPerimetro}
           etichettaScala={definizione.etichetta}
         />
+
+        {/* Stessa ragione del ramo 2: la finestra è priva di punti, ma il
+            P&L del portafoglio (US-015) non lo è. */}
+        {sottoIlGrafico?.(contestoSotto)}
 
         <div className="avviso-rado senza-trascinamento" data-testid="avviso-grafico-portafoglio">
           <span>
@@ -1490,6 +1547,11 @@ export default function GraficoPortafoglio({
         perimetro={misuraPerimetro}
         etichettaScala={definizione.etichetta}
       />
+
+      {/* Il tracciato: il terzo e ultimo dei tre rami che invocano la render
+          prop (US-015). Qui il P&L si scompone su tutti e cinque i tipi di
+          copertura possibili, non solo sul caso pieno. */}
+      {sottoIlGrafico?.(contestoSotto)}
 
       {fascePerimetro.length > 0 && (
         <p className="didascalia-perimetro" data-testid="didascalia-perimetro">

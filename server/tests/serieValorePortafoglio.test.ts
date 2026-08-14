@@ -31,7 +31,7 @@ import {
   type ScalaTemporale,
   type TitoloPortafoglio,
   type CaricoValore,
-  type VenditaValore,
+  type VenditaFlusso,
   type RilevazioneSerie,
 } from '@portfolia/shared';
 
@@ -42,8 +42,12 @@ const carico = (loadDate: string, quantity: number, loadPrice = 0): CaricoValore
   quantity,
 });
 
-/** Una vendita, ridotta ai due campi che questo modulo legge. */
-const vendita = (saleDate: string, quantity: number): VenditaValore => ({ saleDate, quantity });
+/** Una vendita. `salePrice` di default a 0: questi test non lo osservano. */
+const vendita = (saleDate: string, quantity: number, salePrice = 0): VenditaFlusso => ({
+  saleDate,
+  quantity,
+  salePrice,
+});
 
 /**
  * Una rilevazione. `observedAt` è in unix **secondi**, come in archivio e come

@@ -51,8 +51,24 @@ import type { Copertura, OriginePunto, PuntoSerie, RilevazioneSerie } from './se
 // data civile (`istanteDataCivile`) e quella della quantità detenuta
 // (`quantitaDetenutaA`, US-045) vivono già altrove e non si riscrivono qui.
 import { istanteDataCivile } from './serieTitolo.js';
-import type { CaricoValore, VenditaValore } from './serieValore.js';
+import type { CaricoValore } from './serieValore.js';
 import { quantitaDetenutaA } from './serieValore.js';
+// `import type` su `types/index.ts`: quel modulo riesporta questo file con
+// `export *`, quindi un import a runtime chiuderebbe un ciclo. Stessa tecnica
+// già in uso in `serieValore.ts` per lo stesso `Sale`.
+import type { Sale } from '../types/index.js';
+
+/**
+ * La vendita, ridotta ai tre campi che la scomposizione del P&L del
+ * portafoglio legge (US-015): `VenditaValore` più `salePrice`, perché senza il
+ * prezzo di vendita il denaro **uscito** dal portafoglio con una vendita non è
+ * calcolabile — il capitale netto versato sarebbe solo metà del conto.
+ *
+ * `VenditaValore` resta il tipo più stretto: `quantitaDetenutaA` continua ad
+ * accettarlo, e ogni `VenditaFlusso` gli è assegnabile per costruzione (un
+ * `Pick` più largo soddisfa quello più stretto).
+ */
+export type VenditaFlusso = Pick<Sale, 'saleDate' | 'quantity' | 'salePrice'>;
 
 // ─── Il perimetro: un titolo nel portafoglio ─────────────────────────────────
 
@@ -71,7 +87,7 @@ export interface TitoloPortafoglio {
   /** I carichi di questo ISIN nel portafoglio. */
   loads: readonly CaricoValore[];
   /** Le vendite di questo ISIN nel portafoglio. */
-  sales: readonly VenditaValore[];
+  sales: readonly VenditaFlusso[];
   /**
    * Le rilevazioni di prezzo dell'ISIN. L'ordine non è rilevante per questo
    * modulo: `prezzoNotoA` le scandisce tutte e ne trova il massimo istante non

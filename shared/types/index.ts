@@ -32,7 +32,8 @@ export * from '../domain/lottiLifo.js';
 // `import type` e non un import a runtime: eviterebbe un ciclo con questo file
 // (che i due moduli riesportano con `export *`), ed è comunque l'unica cosa che
 // serve qui — i due tipi sotto sono ritagli di `Position`/`Sale`/`PriceObservation`.
-import type { CaricoValore, VenditaValore } from '../domain/serieValore.js';
+import type { CaricoValore } from '../domain/serieValore.js';
+import type { VenditaFlusso } from '../domain/serieValorePortafoglio.js';
 import type { RilevazioneSerie } from '../domain/serieTitolo.js';
 
 export interface HealthResponse {
@@ -514,8 +515,8 @@ export interface PortfolioSeriesEntry {
   name: string | null;
   /** I carichi di questo ISIN nel portafoglio, ridotti ai campi che la serie del valore usa. */
   loads: CaricoValore[];
-  /** Le vendite di questo ISIN nel portafoglio, ridotte ai campi che la serie del valore usa. */
-  sales: VenditaValore[];
+  /** Le vendite di questo ISIN nel portafoglio, ridotte ai campi che serie e P&L leggono. */
+  sales: VenditaFlusso[];
   /**
    * Le rilevazioni di prezzo dell'ISIN, ordinate per data di rilevazione
    * **crescente** — l'ordine che `componiSerieTitolo` fonde con i carichi, e
@@ -532,3 +533,11 @@ export interface PortfolioSeriesEntry {
  * usato dal server per `PortfolioSeriesEntry`.
  */
 export * from '../domain/serieValorePortafoglio.js';
+
+/**
+ * La scomposizione della variazione del portafoglio nella finestra scelta
+ * (US-015, TASK-03) si affaccia da qui per la stessa ragione dei moduli
+ * fratelli: il componente che la mostra deve leggerne i tipi dallo stesso
+ * nome usato dal dominio condiviso.
+ */
+export * from '../domain/metrichePortafoglio.js';

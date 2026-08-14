@@ -211,10 +211,32 @@ describe('GET /api/portfolios/:id/series', () => {
     const entry = entries[0];
     expect(entry.isin).toBe(isin);
     expect(entry.loads).toEqual([{ loadDate: '2024-01-10', loadPrice: 89.0, quantity: 40 }]);
-    expect(entry.sales).toEqual([{ saleDate: '2026-02-01', quantity: 10 }]);
+    expect(entry.sales).toEqual([{ saleDate: '2026-02-01', quantity: 10, salePrice: 95.0 }]);
     expect(entry.priceHistory).toEqual([
       { price: 90.0, observedAt: 1_700_000_000 },
       { price: 91.5, observedAt: 1_701_000_000 },
+    ]);
+  });
+
+  // -------------------------------------------------------------------------
+  // US-015 (TASK-02): salePrice per ciascuna vendita, come iscritto a registro.
+  // -------------------------------------------------------------------------
+
+  it('più vendite sullo stesso ISIN — ciascuna porta il proprio salePrice, così com\'è a registro', async () => {
+    const app = await buildApp();
+    const portfolioId = await createPortfolio(app, 'Portfolio SalepPrice Serie');
+    const isin = 'IE00B4L5Y983';
+
+    await addPosition(app, portfolioId, isin, '2024-01-10', 89.0, 40);
+    await vendi(app, portfolioId, isin, '2026-02-01', 95.0, 10);
+    await vendi(app, portfolioId, isin, '2026-05-01', 102.75, 5);
+
+    const res = await getSerie(app, portfolioId);
+    const [entry] = res.json<PortfolioSeriesEntry[]>();
+
+    expect(entry.sales).toEqual([
+      { saleDate: '2026-02-01', quantity: 10, salePrice: 95.0 },
+      { saleDate: '2026-05-01', quantity: 5, salePrice: 102.75 },
     ]);
   });
 
@@ -251,12 +273,12 @@ describe('GET /api/portfolios/:id/series', () => {
 
     const entryB = entries[0];
     expect(entryB.loads).toEqual([{ loadDate: '2023-05-05', loadPrice: 115.2, quantity: 20 }]);
-    expect(entryB.sales).toEqual([{ saleDate: '2026-03-01', quantity: 5 }]);
+    expect(entryB.sales).toEqual([{ saleDate: '2026-03-01', quantity: 5, salePrice: 120.0 }]);
     expect(entryB.priceHistory).toEqual([{ price: 116.0, observedAt: 1_700_500_000 }]);
 
     const entryA = entries[1];
     expect(entryA.loads).toEqual([{ loadDate: '2024-01-10', loadPrice: 89.0, quantity: 40 }]);
-    expect(entryA.sales).toEqual([{ saleDate: '2026-02-01', quantity: 10 }]);
+    expect(entryA.sales).toEqual([{ saleDate: '2026-02-01', quantity: 10, salePrice: 95.0 }]);
     expect(entryA.priceHistory).toEqual([
       { price: 90.0, observedAt: 1_700_000_000 },
       { price: 91.5, observedAt: 1_701_000_000 },
@@ -345,7 +367,7 @@ describe('GET /api/portfolios/:id/series', () => {
         { loadDate: '2025-02-07', loadPrice: 11.5, quantity: 400 },
       ]),
     );
-    expect(entry.sales).toEqual([{ saleDate: '2026-06-03', quantity: 400 }]);
+    expect(entry.sales).toEqual([{ saleDate: '2026-06-03', quantity: 400, salePrice: 12.5 }]);
   });
 
   // -------------------------------------------------------------------------

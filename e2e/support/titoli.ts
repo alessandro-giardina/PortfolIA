@@ -1849,6 +1849,93 @@ export const ISIN_MAI_RILEVATO_US_020: ChiaveRiservata = {
 };
 
 /**
+ * Riservato a `US-015__metriche-portafoglio.spec.ts` (lo scenario dimostrativo).
+ *
+ * È lo scenario del campo *Dimostra*: un solo carico dentro la finestra
+ * «ultimo anno», con il valore complessivo passato da 20.000 a 26.000 euro. La
+ * scala predefinita («tutto lo storico») comprende in più il carico
+ * originario, anteriore alla finestra, così che passare a «ultimo anno»
+ * ritagli davvero qualcosa invece di mostrare la stessa storia.
+ *
+ * `price` coincide con l'ultima rilevazione seminata dallo scenario (il capo
+ * destro della finestra): la scheda dichiara quella cifra come prezzo
+ * attuale, e nel quadro del risultato entra nello stesso calcolo del P&L
+ * complessivo che il sigillo cita — una divergenza fra le due non farebbe
+ * fallire nulla ma mostrerebbe un dato falso proprio nel filmato della spec.
+ *
+ * Il titolo va seminato con `fetched_at` di **adesso** (il default di
+ * `seminaTitolo`): è la guardia di buona cittadinanza a impedire un recupero
+ * reale, che registrerebbe un'osservazione a oggi e sposterebbe l'ultimo
+ * punto della finestra sotto i piedi del test.
+ */
+export const TITOLO_US_015: TitoloSeminabile = {
+  isin: 'IE00BFY0GW35',
+  file: 'US-015__metriche-portafoglio.spec.ts',
+  campi: {
+    name: 'Ishares Core Msci Emu Ucits Etf Eur Acc',
+    price: 130.0,
+    ticker: 'IMEU',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,12%',
+    currency: 'EUR',
+    issuer: 'ISHARES III PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-015__metriche-portafoglio-varianti.spec.ts`.
+ *
+ * Regge entrambi gli scenari di variante sullo stesso ISIN — una scala che
+ * comprende un solo punto, e il titolo valorizzato del caso a perimetro
+ * parziale — perché girano in serie dentro il file (`fullyParallel: false`) e
+ * ciascuno si ricostruisce la premessa con `seminaOsservazioni`, che
+ * *sostituisce* lo storico.
+ *
+ * Il seme porta `fetched_at` di **adesso** per la stessa ragione di
+ * `TITOLO_US_037_VARIANTI`: un recupero reale registrerebbe un'osservazione a
+ * oggi che da sola riempirebbe «ultimo mese» e smonterebbe in silenzio il
+ * caso della soglia.
+ */
+export const TITOLO_US_015_VARIANTI: TitoloSeminabile = {
+  isin: 'IE00BFY0GW43',
+  file: 'US-015__metriche-portafoglio-varianti.spec.ts',
+  campi: {
+    name: 'Xtrackers Msci Emu Ucits Etf 1c',
+    price: 45.6,
+    ticker: 'XMEM',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,15%',
+    currency: 'EUR',
+    issuer: 'XTRACKERS IE PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-015__metriche-portafoglio-varianti.spec.ts`: il titolo
+ * **detenuto e mai rilevato** dello scenario a perimetro parziale (criterio
+ * 6) — tiene la scomposizione parziale ed esce da entrambi i lati
+ * dell'identità: il suo valore non entra nella somma, il suo carico non entra
+ * fra i versamenti.
+ *
+ * Non basta ometterne le rilevazioni: finché una riga di `securities` esiste,
+ * il backfill d'avvio (US-009) ne genera un'osservazione dal prezzo in cache
+ * e il titolo risulterebbe valorizzato — stessa nota già registrata su
+ * `ISIN_MAI_RILEVATO_US_020`. Non entra in `ISIN_CON_OSSERVAZIONI_E2E`: non
+ * viene mai seminato in `securities`, quindi non c'è alcuna riga da cui il
+ * backfill possa partire.
+ */
+export const ISIN_MAI_RILEVATO_US_015: ChiaveRiservata = {
+  isin: 'LU1955812661',
+  file: 'US-015__metriche-portafoglio-varianti.spec.ts',
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *
@@ -1922,4 +2009,11 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   TITOLO_US_020.isin,
   TITOLO_US_020_SECONDO.isin,
   TITOLO_US_020_VARIANTI.isin,
+  // I due titoli di US-015: il demo semina rilevazioni esplicite, quello
+  // delle varianti le sostituisce a ogni scenario. ISIN_MAI_RILEVATO_US_015
+  // non entra, per la stessa ragione di ISIN_MAI_RILEVATO_US_020: non viene
+  // mai seminato in `securities`, quindi il backfill d'avvio non ha da dove
+  // partire.
+  TITOLO_US_015.isin,
+  TITOLO_US_015_VARIANTI.isin,
 ];

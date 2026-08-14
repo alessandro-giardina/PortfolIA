@@ -8,6 +8,7 @@ import AggiornaObsoleti from '../components/AggiornaObsoleti.js';
 import ModuloScarico, { type TitoloScaricabile } from '../components/ModuloScarico.js';
 import QuadroRisultato from '../components/QuadroRisultato.js';
 import GraficoPortafoglio from '../components/GraficoPortafoglio.js';
+import MetrichePortafoglio from '../components/MetrichePortafoglio.js';
 import CellaTitolo from '../components/CellaTitolo.js';
 
 /** Formatta una data ISO-8601 (YYYY-MM-DD) in stile registro (es. "15.III.2026"). */
@@ -921,7 +922,22 @@ export default function PortfolioDetailPage() {
                     // Portafoglio senza titoli: `series` è `[]` e
                     // `GraficoPortafoglio` ha già un ramo dedicato che si
                     // degrada a testo invece di disegnare un riquadro vuoto.
-                    <GraficoPortafoglio titoli={series} />
+                    <GraficoPortafoglio
+                      titoli={series}
+                      sottoIlGrafico={(contesto) => (
+                        // US-015: la scomposizione della variazione, sotto il
+                        // grafico. `titoli` è la stessa `series` già in mano
+                        // alla pagina — nessuna nuova richiesta di rete —
+                        // ed `enrichedPositions` è la stessa del quadro del
+                        // risultato qui sopra: il sigillo cita il suo P&L
+                        // complessivo senza ricalcolarlo.
+                        <MetrichePortafoglio
+                          {...contesto}
+                          titoli={series}
+                          enrichedPositions={enrichedPositions}
+                        />
+                      )}
+                    />
                   )}
                   {/*
                     Il riquadro di conteggio di US-034 e il comando di

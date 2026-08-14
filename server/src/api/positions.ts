@@ -547,7 +547,7 @@ export async function positionsRoutes(
       isin,
       name: anagrafiche.get(isin)?.name ?? null,
       loads: registro.carichi.map(({ loadDate, loadPrice, quantity }) => ({ loadDate, loadPrice, quantity })),
-      sales: registro.vendite.map(({ saleDate, quantity }) => ({ saleDate, quantity })),
+      sales: registro.vendite.map(({ saleDate, quantity, salePrice }) => ({ saleDate, quantity, salePrice })),
       priceHistory: storicoPerIsin.get(isin) ?? [],
     }));
 
