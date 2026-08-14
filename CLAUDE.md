@@ -129,6 +129,7 @@ portfolIA/
 | `npm run dev` | Start app in sviluppo (backend + frontend, con watch) |
 | `npm run build` | Build di `shared` + bundle di produzione del client |
 | `npm start` | Start app per l'uso (server senza watch + `vite preview` su 4173) |
+| `npm run launcher` | Genera `/Applications/PortfolIA.app`, l'icona di avvio per macOS |
 | `npm run lint` | ESLint on all TS sources |
 | `npm run typecheck` | TypeScript project references build |
 | `npm run test` | Vitest unit/integration tests |

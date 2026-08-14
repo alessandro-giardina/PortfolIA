@@ -11,6 +11,15 @@ export default tseslint.config(
     },
   },
   {
+    // Script di utilità eseguiti direttamente da Node: `no-undef` resta acceso
+    // (typescript-eslint lo spegne solo per i .ts), quindi vanno dichiarate le
+    // globali di Node che usano.
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: { process: 'readonly', console: 'readonly' },
+    },
+  },
+  {
     ignores: [
       '**/node_modules/**',
       '**/dist/**',

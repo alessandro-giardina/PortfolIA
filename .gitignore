@@ -17,6 +17,11 @@ data/
 # spec, riesegui `npx playwright test` e apri il file sotto docs/test-results/.
 docs/test-results/
 
+# Launcher macOS generato da `npm run launcher`: incide al proprio interno i
+# percorsi assoluti di questa macchina, quindi è un artefatto locale e non un
+# file di progetto. Va rigenerato, non condiviso.
+PortfolIA.app/
+
 # ARchetipo: stato transitorio di una sessione di autopilot. È il diario di una
 # esecuzione, non un artefatto di progetto, e finirebbe altrimenti nel commit
 # della spec in lavorazione.

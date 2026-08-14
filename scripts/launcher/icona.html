@@ -1,0 +1,64 @@
+<!doctype html>
+<!--
+  Sorgente dell'icona di PortfolIA. Viene resa a 1024x1024 su sfondo
+  trasparente da genera-icona.mjs e trasformata in .icns da crea-launcher.sh.
+  Il riquadro occupa 824x824 centrati, come vuole il template icone di macOS:
+  a pieno formato l'icona apparirebbe più grande di quelle di sistema.
+-->
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; padding: 0; background: transparent; }
+      svg { display: block; }
+    </style>
+  </head>
+  <body>
+    <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1B3357" />
+          <stop offset="55%" stop-color="#122443" />
+          <stop offset="100%" stop-color="#0C1830" />
+        </linearGradient>
+        <linearGradient id="lucido" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.14" />
+          <stop offset="45%" stop-color="#FFFFFF" stop-opacity="0.02" />
+          <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id="linea" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stop-color="#34D399" />
+          <stop offset="100%" stop-color="#7DF3C0" />
+        </linearGradient>
+        <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#34D399" stop-opacity="0.34" />
+          <stop offset="100%" stop-color="#34D399" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+
+      <!-- riquadro -->
+      <rect x="100" y="100" width="824" height="824" rx="185" ry="185" fill="url(#tile)" />
+      <rect x="100" y="100" width="824" height="824" rx="185" ry="185" fill="url(#lucido)" />
+
+      <!-- area sotto la curva -->
+      <path
+        d="M 214 686 L 334 596 L 454 638 L 574 452 L 694 498 L 812 306 L 812 792 L 214 792 Z"
+        fill="url(#area)"
+      />
+
+      <!-- andamento -->
+      <path
+        d="M 214 686 L 334 596 L 454 638 L 574 452 L 694 498 L 812 306"
+        fill="none"
+        stroke="url(#linea)"
+        stroke-width="52"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+
+      <!-- ultimo rilevamento -->
+      <circle cx="812" cy="306" r="46" fill="#0C1830" />
+      <circle cx="812" cy="306" r="46" fill="none" stroke="#7DF3C0" stroke-width="26" />
+    </svg>
+  </body>
+</html>
