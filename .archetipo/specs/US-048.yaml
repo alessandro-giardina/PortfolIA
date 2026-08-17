@@ -1,0 +1,42 @@
+schema: archetipo/spec/v2
+code: US-048
+title: Registrare uno scarico con quantità frazionaria
+epic:
+  code: EP-008
+  title: Vendite e posizioni chiuse
+priority: HIGH
+points: 5
+status: TODO
+scope: MVP
+body: |-
+  #### US-048: Registrare uno scarico con quantità frazionaria
+
+  **Epic:** EP-008 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Giulia, investitrice prudente,
+  voglio vendere la quantità esatta di quote che ho dismesso, decimali compresi, fino a chiudere del tutto la posizione,
+  in modo che il residuo a registro sia quello vero e non un avanzo che nessuna vendita riesce a estinguere (FR-022).
+
+  **Nota di scopo**
+  Lo scarico ripete i vincoli del carico — colonna `integer` sulle vendite, `Number.isInteger` nel server, `parseInt` nel modulo — ma ne aggiunge uno che gli è proprio: la posizione chiusa è riconosciuta con un confronto esatto `totalQuantity === 0`, e su quantità frazionarie l'aritmetica in virgola mobile può lasciare un residuo di 10⁻¹⁶ dopo una vendita totale. Una posizione svuotata continuerebbe a comparire fra i titoli posseduti, con un P&L latente su un nulla. Lo stesso vale al contrario per FR-024: il rifiuto di una vendita eccedente non deve scattare per un errore di rappresentazione su una vendita in realtà capiente.
+
+  **Convenzione**
+  Vale la stessa dei carichi: numero positivo con al più **6 decimali**, virgola o punto in ingresso, resa it-IT con i soli decimali presenti.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, un titolo con due carichi da 12,345 e 7,5 quote accetta una vendita di 5,005 quote — residuo 14,84, con il lotto più recente consumato in parte (2,495 quote su 7,5) — e una vendita successiva delle 14,84 quote restanti lo porta fra le **posizioni chiuse**, con residuo zero e P&L latente 0, non «0,000000».
+
+  **Criteri di Accettazione**
+  - [ ] Il modulo di scarico accetta una quantità venduta con decimali, digitata con la virgola o con il punto
+  - [ ] Client e server rifiutano entrambi, nominando il limite, una quantità nulla, negativa, non numerica o con più di sei decimali
+  - [ ] La vendita dell'intera quantità frazionaria detenuta porta il residuo **esattamente** a zero: il titolo esce dai posseduti, compare fra le posizioni chiuse e il suo P&L latente è 0 — nessun residuo dovuto alla virgola mobile
+  - [ ] FR-024 resta vero sui decimali in entrambe le direzioni: una vendita che eccede il disponibile anche di una sola quota millesimale è rifiutata, e una vendita capiente non è mai rifiutata per un errore di rappresentazione
+  - [ ] L'attribuzione LIFO su quantità frazionarie restituisce quantità residua e costo attribuito corretti per ogni lotto, coperta da test puri sul caso «un lotto consumato per intero e il precedente in parte»
+  - [ ] Ogni punto che mostra una quantità venduta o residua la rende in it-IT con i soli decimali presenti: «Registro delle iscrizioni», residuo dopo lo scarico, l'avviso «consumato in parte (X quote su Y)» e le posizioni chiuse
+  - [ ] Le vendite già in archivio con quantità intera restano invariate in valore dopo la migrazione dell'archivio
+  - [ ] Test E2E su due scenari: uno scarico parziale frazionario e uno scarico totale frazionario che chiude la posizione
+history:
+  - status: TODO
+    at: "2026-08-17T14:53:18Z"

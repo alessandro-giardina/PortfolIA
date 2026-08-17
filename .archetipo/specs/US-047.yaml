@@ -1,0 +1,41 @@
+schema: archetipo/spec/v2
+code: US-047
+title: Iscrivere un carico con quantità frazionaria
+epic:
+  code: EP-003
+  title: Gestione delle posizioni
+priority: HIGH
+points: 3
+status: TODO
+scope: MVP
+body: |-
+  #### US-047: Iscrivere un carico con quantità frazionaria
+
+  **Epic:** EP-003 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Giulia, investitrice prudente,
+  voglio iscrivere a conto la quantità esatta di quote che il rendiconto mi attribuisce, decimali compresi,
+  in modo che il controvalore del mio fondo sia quello vero e non il risultato di un arrotondamento che ho dovuto fare io (FR-007).
+
+  **Nota di scopo**
+  Un fondo non si compra a quote intere: si versa un importo e si ricevono 12,345 quote. Oggi l'app lo rende impossibile in tre punti — la colonna `quantity` dei carichi è dichiarata `integer`, il server rifiuta con `Number.isInteger`, il modulo di carico legge il campo con `parseInt`. Il dominio condiviso invece è già pronto: `quantitaDetenutaA` e l'attribuzione LIFO trattano `quantity` come un `number` e chiedono soltanto che sia finito. Questa spec rimuove i tre vincoli sul percorso del carico e mette in ordine la resa a schermo; lo scarico è il fatto gemello e vive per conto suo.
+
+  **Convenzione**
+  La quantità è un numero positivo con al più **6 decimali** — abbastanza per le quote dei fondi (tipicamente 3) e per gli ETF frazionari. In ingresso si accetta indifferentemente la virgola o il punto come separatore; a schermo la quantità è resa in formato it-IT con i soli decimali che ha, non con sei zeri.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, un carico di **12,345** quote a 8,20 € si iscrive a registro con quella quantità, mostra un controvalore di 101,23 € e resta 12,345 dopo il ricaricamento della pagina; un secondo carico di 7,5 quote produce il prezzo medio ponderato sulle 19,845 quote complessive.
+
+  **Criteri di Accettazione**
+  - [ ] Il modulo di carico accetta una quantità con decimali, digitata con la virgola o con il punto, e la iscrive senza arrotondarla a intero
+  - [ ] La rettifica di un carico esistente accetta le stesse quantità con le stesse regole
+  - [ ] Client e server rifiutano entrambi, con un messaggio che nomina il limite, una quantità nulla, negativa, non numerica o con più di sei decimali: il controllo lato client non è l'unica difesa
+  - [ ] I carichi già in archivio con quantità intera restano invariati in valore e leggibili dopo la migrazione dell'archivio
+  - [ ] Ogni punto che mostra una quantità di carico la rende in it-IT con i soli decimali presenti — «12,345» e «10», mai «10,000000»: tabella del Riepilogo, «Titoli iscritti a conto», «Registro delle iscrizioni»
+  - [ ] Controvalore di carico, prezzo medio ponderato (FR-008) e valore attuale del portafoglio (FR-010) restano corretti su quantità frazionarie, coperti da test puri
+  - [ ] Un test E2E iscrive un carico frazionario e ne verifica quantità e controvalore a schermo
+history:
+  - status: TODO
+    at: "2026-08-17T14:53:18Z"
