@@ -87,8 +87,8 @@ async function buildApp() {
 
       // Validazione quantity
       const quantity = body.quantity;
-      if (typeof quantity !== 'number' || !Number.isInteger(quantity) || quantity <= 0) {
-        return reply.status(400).send({ error: 'La quantità deve essere un intero positivo.' });
+      if (typeof quantity !== 'number' || !Number.isFinite(quantity) || quantity <= 0 || Math.round(quantity * 1e6) / 1e6 !== quantity) {
+        return reply.status(400).send({ error: 'La quantità deve essere un numero positivo con al più sei decimali.' });
       }
 
       const row = db
@@ -313,7 +313,7 @@ describe('POST /api/portfolios/:id/positions', () => {
     expect(res.json<{ error: string }>().error).toMatch(/quantit/i);
   });
 
-  it('400 quantity non intera (decimale)', async () => {
+  it('201 quantity frazionaria entro 6 decimali', async () => {
     const app = await buildApp();
     const portfolioRes = await app.inject({
       method: 'POST',
@@ -327,8 +327,79 @@ describe('POST /api/portfolios/:id/positions', () => {
       url: `/api/portfolios/${id}/positions`,
       payload: { isin: 'IE00B4L5Y983', load_date: '2026-03-15', load_price: 89.42, quantity: 2.5 },
     });
+    expect(res.statusCode).toBe(201);
+  });
+
+  it('400 quantity con più di 6 decimali', async () => {
+    const app = await buildApp();
+    const portfolioRes = await app.inject({
+      method: 'POST',
+      url: '/api/portfolios',
+      payload: { name: 'Portfolio Qty Troppi Dec' },
+    });
+    const { id } = portfolioRes.json<{ id: number }>();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/portfolios/${id}/positions`,
+      payload: { isin: 'IE00B4L5Y983', load_date: '2026-03-15', load_price: 89.42, quantity: 12.3456789 },
+    });
     expect(res.statusCode).toBe(400);
-    expect(res.json<{ error: string }>().error).toMatch(/quantit/i);
+    expect(res.json<{ error: string }>().error).toMatch(/sei decimali/i);
+  });
+
+  it('201 quantity frazionaria 12.345', async () => {
+    const app = await buildApp();
+    const portfolioRes = await app.inject({
+      method: 'POST',
+      url: '/api/portfolios',
+      payload: { name: 'Portfolio Qty 12345' },
+    });
+    const { id } = portfolioRes.json<{ id: number }>();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/portfolios/${id}/positions`,
+      payload: { isin: 'IE00B4L5Y983', load_date: '2026-03-15', load_price: 8.20, quantity: 12.345 },
+    });
+    expect(res.statusCode).toBe(201);
+    expect(res.json<{ quantity: number }>().quantity).toBe(12.345);
+  });
+
+  it('400 quantity negativa', async () => {
+    const app = await buildApp();
+    const portfolioRes = await app.inject({
+      method: 'POST',
+      url: '/api/portfolios',
+      payload: { name: 'Portfolio Qty Neg' },
+    });
+    const { id } = portfolioRes.json<{ id: number }>();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/portfolios/${id}/positions`,
+      payload: { isin: 'IE00B4L5Y983', load_date: '2026-03-15', load_price: 89.42, quantity: -1.5 },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json<{ error: string }>().error).toMatch(/quantità/i);
+  });
+
+  it('400 quantity stringa', async () => {
+    const app = await buildApp();
+    const portfolioRes = await app.inject({
+      method: 'POST',
+      url: '/api/portfolios',
+      payload: { name: 'Portfolio Qty Str' },
+    });
+    const { id } = portfolioRes.json<{ id: number }>();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/portfolios/${id}/positions`,
+      payload: { isin: 'IE00B4L5Y983', load_date: '2026-03-15', load_price: 89.42, quantity: 'abc' },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json<{ error: string }>().error).toMatch(/quantità/i);
   });
 
   it('ISIN è normalizzato prima del salvataggio (lowercase → uppercase)', async () => {

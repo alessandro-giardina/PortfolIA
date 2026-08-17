@@ -77,21 +77,17 @@ body: |-
 
   | Dove | Attuale | Dopo |
   |---|---|---|
-  | Riepilogo: `ep.totalQuantity.toLocaleString('it-IT')` (riga ~1031) | `toLocaleString('it-IT')` (max 3 decimali di default) | `quantita(ep.totalQuantity)` |
-  | Riepilogo: `ep.soldQuantity.toLocaleString('it-IT')` (riga ~1197) | idem | `quantita(ep.soldQuantity)` |
-  | Titoli iscritti a conto: `summary.totalQuantity` (riga ~1661) | numero grezzo, nessun formato | `quantita(summary.totalQuantity)` |
-  | Registro: `pos.quantity` (riga ~1871) | numero grezzo | `quantita(pos.quantity)` |
-  | Registro: `vendita.quantity` (riga ~1751) | numero grezzo | `quantita(vendita.quantity)` |
-  | Registro: `residuo` (riga ~1873) | numero grezzo | `quantita(residuo)` |
-  | Registro: controvalore `pos.loadPrice * pos.quantity` (riga ~1872) | `toLocaleString` 2 decimali | resta `importo()` (già corretto) |
-  | Riquadro residuo post-vendita: `totalQuantity`, `loadedQuantity`, `soldQuantity` (righe ~1564-1568) | `toLocaleString('it-IT')` | `quantita()` |
-  | SchedaTitolo: `detail.totalQuantity.toLocaleString('it-IT')` (riga ~321) | `toLocaleString('it-IT')` | `quantita(detail.totalQuantity)` |
-  | SchedaTitolo: `carico.quantity.toLocaleString('it-IT')` (riga ~545) | `toLocaleString('it-IT')` | `quantita(carico.quantity)` |
-  | Messaggio consumo parziale in `PortfolioDetailPage.tsx` (riga ~1775) | stringa con `pos.quantity - residuo` e `pos.quantity` grezzi | formattarli con `quantita()` |
+  | Riepilogo: `ep.totalQuantity.toLocaleString('it-IT')` | `toLocaleString('it-IT')` | `quantita(ep.totalQuantity)` |
+  | Titoli iscritti a conto: `summary.totalQuantity` | numero grezzo | `quantita(summary.totalQuantity)` |
+  | Registro: `pos.quantity` | numero grezzo | `quantita(pos.quantity)` |
+  | Registro: `vendita.quantity` | numero grezzo | `quantita(vendita.quantity)` |
+  | Registro: controvalore `pos.loadPrice * pos.quantity` | `toLocaleString` 2 decimali | resta `importo()` (già corretto) |
+  | SchedaTitolo: `detail.totalQuantity.toLocaleString('it-IT')` | `toLocaleString('it-IT')` | `quantita(detail.totalQuantity)` |
+  | SchedaTitolo: `carico.quantity.toLocaleString('it-IT')` | `toLocaleString('it-IT')` | `quantita(carico.quantity)` |
 
-  **Funzione `conteggio` in `MetricheTitolo.tsx` e `GraficoTitolo.tsx`:** La funzione `conteggio()` (esportata da `MetricheTitolo.tsx`, usata in `GraficoTitolo.tsx`) usa `toLocaleString('it-IT')` che tronca a 3 decimali di default. Va aggiornata a `{ maximumFractionDigits: 6 }`. È usata anche per conteggi interi (giorni, rilevazioni) che non sono impattati dal cambio.
+  **Funzione `conteggio` in `MetricheTitolo.tsx`:** Aggiornata a `{ maximumFractionDigits: 6 }`.
 
-  **Funzione `quote` in `lottiLifo.ts`:** La funzione `quote()` privata nel modulo LIFO formatta quantità nei messaggi di errore di `verificaVendita`. Anche questa usa `toLocaleString('it-IT')` senza opzioni. Si aggiorna a `{ maximumFractionDigits: 6 }` per coerenza — anche se le vendite frazionarie non sono questa spec, la funzione formatta le *giacenze* che derivano da carichi che ora possono essere frazionari.
+  **Funzione `quote` in `lottiLifo.ts`:** Aggiornata a `{ maximumFractionDigits: 6 }`.
 
   ---
 
@@ -101,24 +97,12 @@ body: |-
 
   ### Test puri del dominio (Vitest)
 
-  - **`lottiLifo.test.ts`:** Nuovi casi con quantità frazionarie:
-    - `rigiocaRegistro` con un carico di 12,345 quote: `quantitaResidua` e `costoResiduo` corretti.
-    - `residuoPerIsin` con due carichi frazionari (12,345 + 7,5 = 19,845 residue): media ponderata calcolata correttamente.
-    - Verificare che la vendita intera su carico frazionario funzioni (LIFO non assume interi).
+  - **`lottiLifo.test.ts`:** Nuovi casi con quantità frazionarie: `rigiocaRegistro` con carico di 12,345 quote, `residuoPerIsin` con due carichi frazionari (12,345 + 7,5 = 19,845), vendita intera su carico frazionario.
 
   ### Test di integrazione server (Vitest)
 
-  - **`api.positions.test.ts`:** Nuovi casi per POST:
-    - Accettazione: `quantity: 12.345` → 201 con la quantità conservata.
-    - Accettazione: `quantity: 7.5` → 201.
-    - Rifiuto: `quantity: 12.3456789` (più di 6 decimali) → 400 con messaggio che nomina il limite.
-    - Rifiuto: `quantity: 0` → 400.
-    - Rifiuto: `quantity: -1.5` → 400.
-    - I casi interi preesistenti restano verdi.
-
-  - **`api.positions.edit.test.ts`:** Nuovi casi per PATCH:
-    - Accettazione: `quantity: 12.345` → 200.
-    - Rifiuto: `quantity: 1.1234567` (7 decimali) → 400.
+  - **`api.positions.test.ts`:** Casi POST per accettazione frazionaria e rifiuto a 7+ decimali.
+  - **`api.positions.edit.test.ts`:** Casi PATCH per accettazione e rifiuto frazionario.
 
   ### Test E2E — Simulazione utente
 
@@ -127,9 +111,15 @@ body: |-
 
   | Scenario | Flusso utente |
   |---|---|
-  | Carico frazionario con verifica controvalore | L'utente crea un portafoglio, iscrive un carico di 12,345 quote a 8,20 €, verifica che la quantità a schermo sia «12,345» e il controvalore «101,23 €»; ricarica la pagina e verifica la persistenza; aggiunge un secondo carico di 7,5 quote, verifica il totale di 19,845 e il prezzo medio ponderato. |
-  | Validazione client quantità errate | L'utente tenta di iscrivere una quantità con 7 decimali, verifica il messaggio di errore client; tenta con 0, verifica l'errore; tenta con una stringa non numerica, verifica l'errore. |
-  | Rettifica carico con quantità frazionaria | L'utente modifica un carico esistente portando la quantità da un intero a 5,25, verifica che la modifica sia salvata e il riepilogo aggiornato. |
+  | Carico frazionario con verifica controvalore | L'utente crea un portafoglio, iscrive un carico di 12,345 quote a 8,20 €, verifica quantità e controvalore, ricarica e verifica persistenza, aggiunge 7,5 quote e verifica il totale 19,845. |
+  | Validazione client quantità errate | Tenta 7+ decimali, 0, testo non numerico. |
+  | Rettifica carico con quantità frazionaria | Modifica un carico portando la quantità a 5,25. |
+
+  ---
+
+  ## Rework
+
+  Il feedback di review ha rimandato la spec come «implementazione incompleta» (solo TASK-01 DONE su 7). L'indagine post-rework rivela che il commit congiunto `f14c9a1` (US-047 + US-048) ha già implementato i task 02–06 nel codice reale: validazione server, parsing client, formatter `quantita()`, test LIFO frazionari, test PATCH. Un difetto rimane: il mock server inline di `api.positions.test.ts` (riga 90) usa ancora `Number.isInteger`, e il test `'400 quantity non intera (decimale)'` (riga 316) afferma che `quantity: 2.5` venga rifiutato — il che è falso sul server vero. Il test passa solo perché il mock è rimasto stale. Il TASK-08 corregge questo difetto. Il TASK-07 (E2E) non è mai stato scritto ed è il secondo intervento genuinamente mancante.
 
   ---
 
@@ -146,7 +136,7 @@ tasks:
     title: 'Server: validazione quantità frazionaria in POST e PATCH posizioni'
     description: 'In `server/src/api/positions.ts`, sostituire la guardia `!Number.isInteger(quantity) || quantity <= 0` (righe 239 e 626) con: `typeof quantity !== ''number'' || !Number.isFinite(quantity) || quantity <= 0 || Math.round(quantity * 1e6) / 1e6 !== quantity`. Il messaggio di errore diventa: `''La quantità deve essere un numero positivo con al più sei decimali.''`. Applicare a entrambe le rotte POST e PATCH.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: 'In `server/src/api/positions.ts`, sostituire la guardia `!Number.isInteger(quantity) || quantity <= 0` (righe 239 e 626) con: `typeof quantity !== ''number'' || !Number.isFinite(quantity) || quantity <= 0 || Math.round(quantity * 1e6) / 1e6 !== quantity`. Il messaggio di errore diventa: `''La quantità deve essere un numero positivo con al più sei decimali.''`. Applicare a entrambe le rotte POST e PATCH.'
@@ -155,46 +145,55 @@ tasks:
     title: 'Test server: quantità frazionarie in POST e PATCH'
     description: 'In `server/tests/api.positions.test.ts` e `server/tests/api.positions.edit.test.ts`, aggiungere casi: accettazione di 12.345 e 7.5, rifiuto di 12.3456789 (7+ decimali), rifiuto di 0, rifiuto di -1.5, rifiuto di NaN/stringa. Verificare che il messaggio di errore nomini il limite dei 6 decimali. I casi interi preesistenti devono restare verdi.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
     body: 'In `server/tests/api.positions.test.ts` e `server/tests/api.positions.edit.test.ts`, aggiungere casi: accettazione di 12.345 e 7.5, rifiuto di 12.3456789 (7+ decimali), rifiuto di 0, rifiuto di -1.5, rifiuto di NaN/stringa. Verificare che il messaggio di errore nomini il limite dei 6 decimali. I casi interi preesistenti devono restare verdi.'
     ref: TASK-03
   - id: TASK-04
     title: 'Client: form di carico e modifica — input decimale con comma/punto'
-    description: 'In `client/src/pages/PortfolioDetailPage.tsx`: (1) Cambiare l''input quantità da `type="number" min="1" step="1"` a `type="text" inputMode="decimal"` con placeholder `"es. 12,345"`, sia nel form di creazione (riga ~1471) sia nel form inline di modifica (riga ~1810). (2) La sotto-etichetta diventa `"numero positivo, al più 6 decimali"`. (3) In `validateForm` e `handleEditSubmit`, sostituire `parseInt` con: normalizzazione virgola→punto, `parseFloat`, controllo `isNaN || <= 0 || più di 6 decimali`. (4) In `handleCarico`, il payload usa `parseFloat(normalizzato)` anziché `parseInt`. (5) Aggiornare il messaggio di errore per nominare il limite.'
+    description: 'In `client/src/pages/PortfolioDetailPage.tsx`: (1) Cambiare l''input quantità da `type="number" min="1" step="1"` a `type="text" inputMode="decimal"` con placeholder `"es. 12,345"`, sia nel form di creazione sia nel form inline di modifica. (2) La sotto-etichetta diventa `"numero positivo, al più 6 decimali"`. (3) In `validateForm` e `handleEditSubmit`, sostituire `parseInt` con: normalizzazione virgola→punto, `parseFloat`, controllo `isNaN || <= 0 || più di 6 decimali`. (4) In `handleCarico`, il payload usa `parseFloat(normalizzato)` anziché `parseInt`. (5) Aggiornare il messaggio di errore per nominare il limite.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
-    body: 'In `client/src/pages/PortfolioDetailPage.tsx`: (1) Cambiare l''input quantità da `type="number" min="1" step="1"` a `type="text" inputMode="decimal"` con placeholder `"es. 12,345"`, sia nel form di creazione (riga ~1471) sia nel form inline di modifica (riga ~1810). (2) La sotto-etichetta diventa `"numero positivo, al più 6 decimali"`. (3) In `validateForm` e `handleEditSubmit`, sostituire `parseInt` con: normalizzazione virgola→punto, `parseFloat`, controllo `isNaN || <= 0 || più di 6 decimali`. (4) In `handleCarico`, il payload usa `parseFloat(normalizzato)` anziché `parseInt`. (5) Aggiornare il messaggio di errore per nominare il limite.'
+    body: 'In `client/src/pages/PortfolioDetailPage.tsx`: (1) Cambiare l''input quantità da `type="number" min="1" step="1"` a `type="text" inputMode="decimal"` con placeholder `"es. 12,345"`, sia nel form di creazione sia nel form inline di modifica. (2) La sotto-etichetta diventa `"numero positivo, al più 6 decimali"`. (3) In `validateForm` e `handleEditSubmit`, sostituire `parseInt` con: normalizzazione virgola→punto, `parseFloat`, controllo `isNaN || <= 0 || più di 6 decimali`. (4) In `handleCarico`, il payload usa `parseFloat(normalizzato)` anziché `parseInt`. (5) Aggiornare il messaggio di errore per nominare il limite.'
     ref: TASK-04
   - id: TASK-05
     title: Formatter quantita() e resa a schermo in tutti i punti di visualizzazione
-    description: 'In `client/src/components/Foglio.tsx`, aggiungere `export function quantita(valore: number): string { return valore.toLocaleString(''it-IT'', { maximumFractionDigits: 6 }); }`. Applicarlo in tutti i punti elencati nella soluzione tecnica: PortfolioDetailPage.tsx (Riepilogo, Titoli iscritti, Registro, riquadro residuo), SchedaTitolo.tsx (quantità e carichi). Aggiornare `conteggio()` in MetricheTitolo.tsx a `{ maximumFractionDigits: 6 }`. Aggiornare `quote()` in `shared/domain/lottiLifo.ts` a `{ maximumFractionDigits: 6 }`. Il messaggio di consumo parziale nel Registro (riga ~1775) deve formattare le quantità con `quantita()`.'
+    description: 'In `client/src/components/Foglio.tsx`, aggiungere `export function quantita(valore: number): string { return valore.toLocaleString(''it-IT'', { maximumFractionDigits: 6 }); }`. Applicarlo in tutti i punti elencati nella soluzione tecnica. Aggiornare `conteggio()` in MetricheTitolo.tsx a `{ maximumFractionDigits: 6 }`. Aggiornare `quote()` in `shared/domain/lottiLifo.ts` a `{ maximumFractionDigits: 6 }`.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
-    body: 'In `client/src/components/Foglio.tsx`, aggiungere `export function quantita(valore: number): string { return valore.toLocaleString(''it-IT'', { maximumFractionDigits: 6 }); }`. Applicarlo in tutti i punti elencati nella soluzione tecnica: PortfolioDetailPage.tsx (Riepilogo, Titoli iscritti, Registro, riquadro residuo), SchedaTitolo.tsx (quantità e carichi). Aggiornare `conteggio()` in MetricheTitolo.tsx a `{ maximumFractionDigits: 6 }`. Aggiornare `quote()` in `shared/domain/lottiLifo.ts` a `{ maximumFractionDigits: 6 }`. Il messaggio di consumo parziale nel Registro (riga ~1775) deve formattare le quantità con `quantita()`.'
+    body: 'In `client/src/components/Foglio.tsx`, aggiungere `export function quantita(valore: number): string { return valore.toLocaleString(''it-IT'', { maximumFractionDigits: 6 }); }`. Applicarlo in tutti i punti elencati nella soluzione tecnica. Aggiornare `conteggio()` in MetricheTitolo.tsx a `{ maximumFractionDigits: 6 }`. Aggiornare `quote()` in `shared/domain/lottiLifo.ts` a `{ maximumFractionDigits: 6 }`.'
     ref: TASK-05
   - id: TASK-06
     title: 'Test puri: LIFO e residuo su quantità frazionarie'
-    description: 'In `server/tests/lottiLifo.test.ts`, aggiungere casi: (1) `rigiocaRegistro` con carico di 12.345 quote — verificare `quantitaResidua`, `costoResiduo`. (2) `residuoPerIsin` con due carichi frazionari (12.345 + 7.5) — verificare `totalQuantity` = 19.845, media ponderata e controvalore corretti. (3) Vendita intera su carico frazionario — LIFO non assume interi. Le funzioni già funzionano con float; i test lo dimostrano.'
+    description: 'In `server/tests/lottiLifo.test.ts`, aggiungere casi: (1) `rigiocaRegistro` con carico di 12.345 quote — verificare `quantitaResidua`, `costoResiduo`. (2) `residuoPerIsin` con due carichi frazionari (12.345 + 7.5) — verificare `totalQuantity` = 19.845, media ponderata e controvalore corretti. (3) Vendita intera su carico frazionario — LIFO non assume interi.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-05
-    body: 'In `server/tests/lottiLifo.test.ts`, aggiungere casi: (1) `rigiocaRegistro` con carico di 12.345 quote — verificare `quantitaResidua`, `costoResiduo`. (2) `residuoPerIsin` con due carichi frazionari (12.345 + 7.5) — verificare `totalQuantity` = 19.845, media ponderata e controvalore corretti. (3) Vendita intera su carico frazionario — LIFO non assume interi. Le funzioni già funzionano con float; i test lo dimostrano.'
+    body: 'In `server/tests/lottiLifo.test.ts`, aggiungere casi: (1) `rigiocaRegistro` con carico di 12.345 quote — verificare `quantitaResidua`, `costoResiduo`. (2) `residuoPerIsin` con due carichi frazionari (12.345 + 7.5) — verificare `totalQuantity` = 19.845, media ponderata e controvalore corretti. (3) Vendita intera su carico frazionario — LIFO non assume interi.'
     ref: TASK-06
   - id: TASK-07
     title: 'E2E: carico frazionario, controvalore e persistenza'
     description: 'Nuovo file `e2e/US-047__carico-frazionario.spec.ts`. Registra la chiave ISIN in `e2e/support/titoli.ts`. Scenario demo: crea portafoglio via fixture, semina un ISIN, iscrive un carico di 12,345 quote a 8,20 €, verifica quantità «12,345» e controvalore «101,23» a schermo nel Registro e in Titoli iscritti, ricarica la pagina e riaccerti la persistenza, aggiunge 7,5 quote e verifica il totale 19,845. Scenario validazione: tenta 7+ decimali, 0, testo non numerico, verifica messaggi di errore. Scenario modifica: modifica un carico esistente portando la quantità a 5,25, verifica salvataggio. Video registrato per il demo scenario in `docs/test-results/US-047/`.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
       - TASK-04
       - TASK-05
     body: 'Nuovo file `e2e/US-047__carico-frazionario.spec.ts`. Registra la chiave ISIN in `e2e/support/titoli.ts`. Scenario demo: crea portafoglio via fixture, semina un ISIN, iscrive un carico di 12,345 quote a 8,20 €, verifica quantità «12,345» e controvalore «101,23» a schermo nel Registro e in Titoli iscritti, ricarica la pagina e riaccerti la persistenza, aggiunge 7,5 quote e verifica il totale 19,845. Scenario validazione: tenta 7+ decimali, 0, testo non numerico, verifica messaggi di errore. Scenario modifica: modifica un carico esistente portando la quantità a 5,25, verifica salvataggio. Video registrato per il demo scenario in `docs/test-results/US-047/`.'
     ref: TASK-07
+  - id: TASK-08
+    title: 'Fix: allineare il mock server di api.positions.test.ts alla validazione frazionaria'
+    description: 'Il mock Fastify inline di `server/tests/api.positions.test.ts` (riga 90) usa ancora `Number.isInteger(quantity)` e il test `''400 quantity non intera (decimale)''` (riga 316) afferma che `quantity: 2.5` venga rifiutato — il che è falso sul server reale, che lo accetta dal commit f14c9a1. Il test passa solo perché il mock è stale. Correggere: (1) nella funzione `buildApp()`, sostituire la guardia del mock a riga 90 con la stessa validazione frazionaria del server reale (`!Number.isFinite || <= 0 || Math.round * 1e6`), (2) il messaggio di errore del mock deve diventare `''La quantità deve essere un numero positivo con al più sei decimali.''`, (3) rinominare il test a riga 316 in `''201 quantity frazionaria entro 6 decimali''` e farlo accettare `quantity: 2.5` → 201, (4) aggiungere un nuovo test `''400 quantity con più di 6 decimali''` che manda `quantity: 12.3456789` → 400 e verifica il messaggio.'
+    type: Fix
+    status: DONE
+    dependencies:
+      - TASK-02
+    body: 'Il mock Fastify inline di `server/tests/api.positions.test.ts` (riga 90) usa ancora `Number.isInteger(quantity)` e il test `''400 quantity non intera (decimale)''` (riga 316) afferma che `quantity: 2.5` venga rifiutato — il che è falso sul server reale, che lo accetta dal commit f14c9a1. Il test passa solo perché il mock è stale. Correggere: (1) nella funzione `buildApp()`, sostituire la guardia del mock a riga 90 con la stessa validazione frazionaria del server reale (`!Number.isFinite || <= 0 || Math.round * 1e6`), (2) il messaggio di errore del mock deve diventare `''La quantità deve essere un numero positivo con al più sei decimali.''`, (3) rinominare il test a riga 316 in `''201 quantity frazionaria entro 6 decimali''` e farlo accettare `quantity: 2.5` → 201, (4) aggiungere un nuovo test `''400 quantity con più di 6 decimali''` che manda `quantity: 12.3456789` → 400 e verifica il messaggio.'
+    ref: TASK-08

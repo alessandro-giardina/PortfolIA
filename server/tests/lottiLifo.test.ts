@@ -754,3 +754,51 @@ describe('residuoPerIsin — invariante del criterio 5: la base della percentual
     expect(dopo.totalLoadCost).toBeCloseTo(prima.totalLoadCost, 8);
   });
 });
+
+// ─── Quantità frazionarie — lato carico (US-047) ────────────────────────────
+// 12,345 quote a € 10 + 7,5 quote a € 15 = 19,845 quote,
+// controvalore caricato € 235,95.
+describe('quantità frazionarie — carico', () => {
+  const CARICO_F1 = carico(20, '2024-01-15', 12.345, 10);
+  const CARICO_F2 = carico(21, '2024-06-01', 7.5, 15);
+  const CARICHI_F = [CARICO_F1, CARICO_F2];
+
+  it('rigiocaRegistro: carico singolo frazionario preserva quantitaResidua e costoResiduo', () => {
+    const registro = rigiocaRegistro({ carichi: [CARICO_F1], vendite: [] });
+
+    expect(registro.quantitaResidua).toBe(12.345);
+    expect(registro.costoResiduo).toBeCloseTo(12.345 * 10, 8);
+    expect(registro.quantitaCaricata).toBe(12.345);
+    expect(registro.quantitaVenduta).toBe(0);
+  });
+
+  it('residuoPerIsin: due carichi frazionari (12,345 + 7,5) → totalQuantity, media ponderata, controvalore', () => {
+    const residuo = residuoPerIsin({ carichi: CARICHI_F, vendite: [], currentPrice: 20 });
+
+    expect(residuo.totalQuantity).toBe(19.845);
+    expect(residuo.loadedQuantity).toBe(19.845);
+    expect(residuo.soldQuantity).toBe(0);
+
+    const costoAtteso = 12.345 * 10 + 7.5 * 15;
+    const mediaPonderataAttesa = costoAtteso / 19.845;
+    expect(residuo.avgLoadPrice).toBeCloseTo(mediaPonderataAttesa, 8);
+    expect(residuo.totalLoadValue).toBeCloseTo(costoAtteso, 8);
+    expect(residuo.currentValue).toBeCloseTo(20 * 19.845, 8);
+  });
+
+  it('vendita intera su carico frazionario: LIFO non assume interi', () => {
+    const registro = rigiocaRegistro({
+      carichi: CARICHI_F,
+      vendite: [vendita(200, '2025-03-01', 7.5, 18)],
+    });
+
+    const lotto2 = registro.lotti.find((l) => l.caricoId === 21)!;
+    expect(lotto2.quantitaResidua).toBe(0);
+    expect(lotto2.quantitaConsumata).toBe(7.5);
+
+    const lotto1 = registro.lotti.find((l) => l.caricoId === 20)!;
+    expect(lotto1.quantitaResidua).toBe(12.345);
+
+    expect(registro.quantitaResidua).toBe(12.345);
+  });
+});

@@ -6,7 +6,7 @@ epic:
   title: Gestione delle posizioni
 priority: HIGH
 points: 3
-status: TODO
+status: REVIEW
 scope: MVP
 body: |
   #### US-047: Iscrivere un carico con quantità frazionaria
@@ -42,7 +42,6 @@ body: |
   <!-- Added by request-changes. archetipo-plan converts each item into a Fix task. -->
 
   - Implementazione incompleta: solo TASK-01 (migrazione schema) è DONE. I task 02–07 — validazione server, validazione client, formatter di resa, test unitari LIFO, test E2E — sono ancora TODO. La spec non è pronta per l'accettazione; va completata con /archetipo-implement US-047.
-rework: true
 history:
   - status: TODO
     at: "2026-08-17T14:53:18Z"
@@ -54,3 +53,9 @@ history:
     at: "2026-08-17T15:19:55Z"
   - status: TODO
     at: "2026-08-17T20:43:04Z"
+  - status: PLANNED
+    at: "2026-08-17T20:48:31Z"
+  - status: IN PROGRESS
+    at: "2026-08-17T20:50:20Z"
+  - status: REVIEW
+    at: "2026-08-17T21:00:15Z"

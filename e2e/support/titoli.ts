@@ -1956,6 +1956,26 @@ export const TITOLO_US_048: TitoloSeminabile = {
 };
 
 /**
+ * Riservato a `US-047__carico-frazionario.spec.ts`: il titolo su cui si dimostra
+ * che un carico con quantità frazionaria si iscrive correttamente, mantiene il
+ * controvalore e persiste dopo il ricaricamento.
+ */
+export const TITOLO_US_047: TitoloSeminabile = {
+  isin: 'LU2572257124',
+  file: 'US-047__carico-frazionario.spec.ts',
+  campi: {
+    name: 'Amundi Prime Global Ucits Etf Dr',
+    price: 8.2,
+    ticker: 'PRWG',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,05%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+  },
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *
@@ -2039,4 +2059,7 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   // Il titolo di US-048: il seme in cache basta al backfill d'avvio per crearne
   // un'osservazione.
   TITOLO_US_048.isin,
+  // Il titolo di US-047: il seme in cache basta al backfill d'avvio per crearne
+  // un'osservazione.
+  TITOLO_US_047.isin,
 ];
