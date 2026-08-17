@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-048 · Posizioni chiuse con quantita frazionarie</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Posizioni chiuse &middot; residuo zero con quantit&agrave; frazionarie</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- ══ Riepilogo — il titolo non compare piu fra i posseduti ══ -->
+    <div class="sezione-titolo">
+      Riepilogo del portafoglio
+      <span class="nota">IE00BK5BQT80 non &egrave; pi&ugrave; qui: &egrave; fra le posizioni chiuse</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Denominazione &middot; ISIN</th>
+            <th>Quantit&agrave;</th>
+            <th>Medio carico</th>
+            <th>Prezzo attuale</th>
+            <th>P&amp;L latente</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="voce">
+                iShares Core MSCI World UCITS ETF USD (Acc)
+                <small>IE00B4L5Y983</small>
+              </span>
+            </td>
+            <td class="cifra"><b>100</b></td>
+            <td class="cifra euro">85,4500</td>
+            <td class="cifra euro">89,1200</td>
+            <td class="cifra guadagno">+367,00</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="voce">
+                Amundi MSCI Emerging Markets UCITS ETF Acc
+                <small>LU1681045370</small>
+              </span>
+            </td>
+            <td class="cifra"><b>3,14159</b></td>
+            <td class="cifra euro">22,8000</td>
+            <td class="cifra euro">23,4500</td>
+            <td class="cifra guadagno">+2,04</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">P&amp;L latente totale</td>
+            <td class="cifra guadagno">+369,04</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="postilla">
+      Vanguard FTSE All-World (IE00BK5BQT80) &egrave; scomparso dalla tabella dei posseduti:
+      la sua <code>totalQuantity</code> &egrave; esattamente <b>0</b> grazie a <code>round6</code>,
+      e il criterio <code>totalQuantity === 0</code> lo sposta qui sotto.
+    </div>
+
+    <!-- ══ Posizioni chiuse ══ -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Posizioni chiuse
+      <span class="nota">FR-026, FR-013 &middot; titoli venduti per intero, fuori dai posseduti, dentro il risultato</span>
+    </div>
+
+    <div class="blocco-chiuse">
+      <div class="fascia-colore"></div>
+      <div class="capo">
+        <span class="timbro">Sola consultazione</span>
+        <span class="nota-capo">
+          quantit&agrave; residua 0 su ciascuna riga: nulla da vendere n&eacute; da rettificare, solo da leggere
+        </span>
+      </div>
+
+      <div class="tabella-scroll">
+        <table class="mastro">
+          <thead>
+            <tr>
+              <th>Denominazione &middot; ISIN</th>
+              <th>Chiusa il</th>
+              <th>Quantit&agrave; venduta</th>
+              <th>Incasso</th>
+              <th>P&amp;L realizzato</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <span class="voce">
+                  Vanguard FTSE All-World UCITS ETF (USD) Acc
+                  <small>IE00BK5BQT80</small>
+                </span>
+              </td>
+              <td class="cifra">19.VIII.2026</td>
+              <!-- quantita(19.845) => "19,845" — non toLocaleString default -->
+              <td class="cifra"><b>19,845</b></td>
+              <td class="cifra euro">169,91</td>
+              <td class="cifra guadagno">+8,68</td>
+            </tr>
+            <tr>
+              <td>
+                <span class="voce">
+                  Enel S.p.A.
+                  <small>IT0003128367</small>
+                </span>
+              </td>
+              <td class="cifra">02.VII.2026</td>
+              <!-- quantita(400) => "400" — intero resta intero -->
+              <td class="cifra"><b>400</b></td>
+              <td class="cifra euro">2.640,00</td>
+              <td class="cifra perdita">&minus;160,00</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Totale posizioni chiuse (2)</td>
+              <td class="cifra euro">2.809,91</td>
+              <td class="cifra perdita">&minus;151,32</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="postilla">
+      La quantit&agrave; venduta usa <code>quantita()</code>: &laquo;19,845&raquo; e non il default di <code>toLocaleString('it-IT')</code>,
+      che potrebbe mostrare al massimo 3 decimali per un numero come 19,8456.
+      Il P&amp;L latente di una posizione chiusa &egrave; 0 &mdash; e non &laquo;0,000000&raquo; o &laquo;0,000000000000002&raquo;.
+    </div>
+
+    <!-- ══ Avviso di successo con quantita formattata ══ -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Avviso di successo dopo lo scarico totale
+      <span class="nota">la quantit&agrave; venduta &egrave; formattata, non grezza</span>
+    </div>
+
+    <div class="avviso-successo">
+      <span class="timbro-ok">Iscritto</span>
+      <p>
+        Scarico di <b>14,84</b> quote <b>IE00BK5BQT80</b> del <b>19.VIII.2026</b> a
+        <b>&euro;&nbsp;8,6000</b> iscritto nel registro.
+        Il titolo &egrave; ora fra le <b>posizioni chiuse</b>, con residuo zero.
+      </p>
+    </div>
+
+    <div class="confronto-resa">
+      <div class="lato">
+        <h4>Prima &mdash; senza quantita()</h4>
+        <div class="esempio"><s>14.84</s></div>
+        <div class="spiegazione">Numero grezzo nell'avviso: <code>ultimaVendita.quantity</code></div>
+        <div class="esempio" style="margin-top: 12px"><s>19.845</s></div>
+        <div class="spiegazione">Posizioni chiuse: <code>ep.soldQuantity.toLocaleString('it-IT')</code></div>
+      </div>
+      <div class="lato">
+        <h4>Dopo &mdash; con quantita()</h4>
+        <div class="esempio"><b>14,84</b></div>
+        <div class="spiegazione"><code>quantita(ultimaVendita.quantity)</code> &mdash; virgola, 2 decimali</div>
+        <div class="esempio" style="margin-top: 12px"><b>19,845</b></div>
+        <div class="spiegazione"><code>quantita(ep.soldQuantity)</code> &mdash; virgola, 3 decimali</div>
+      </div>
+    </div>
+
+    <!-- ══ Schema riassuntivo degli interventi ══ -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Mappa degli interventi &middot; US-048
+      <span class="nota">dove si agisce e perch&eacute;</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Dove</th>
+            <th>Intervento</th>
+            <th>Effetto visibile</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="voce">sales.quantity<br><small>schema.ts</small></td>
+            <td>integer &rarr; real</td>
+            <td>Archivio accetta decimali nelle vendite</td>
+          </tr>
+          <tr>
+            <td class="voce">rigiocaRegistro<br><small>lottiLifo.ts</small></td>
+            <td>round6 sulle sottrazioni</td>
+            <td>Residuo esatto a zero dopo vendita totale</td>
+          </tr>
+          <tr>
+            <td class="voce">POST /sales<br><small>sales.ts</small></td>
+            <td>Guardia: &le; 6 decimali</td>
+            <td>Rifiuto 400 per 7+ decimali</td>
+          </tr>
+          <tr>
+            <td class="voce">ModuloScarico<br><small>ModuloScarico.tsx</small></td>
+            <td>type="text" + validazione</td>
+            <td>Input decimale con virgola o punto</td>
+          </tr>
+          <tr>
+            <td class="voce">Residuo nel modulo<br><small>ModuloScarico.tsx</small></td>
+            <td>{scelto.residuo} &rarr; quantita()</td>
+            <td>&laquo;14,84&raquo; e non &laquo;14.84&raquo;</td>
+          </tr>
+          <tr>
+            <td class="voce">Avviso successo<br><small>PortfolioDetailPage.tsx</small></td>
+            <td>quantity &rarr; quantita()</td>
+            <td>&laquo;5,005&raquo; e non &laquo;5.005&raquo;</td>
+          </tr>
+          <tr>
+            <td class="voce">Posizioni chiuse<br><small>PortfolioDetailPage.tsx</small></td>
+            <td>toLocaleString &rarr; quantita()</td>
+            <td>&laquo;19,845&raquo; coerente con il registro</td>
+          </tr>
+          <tr>
+            <td class="voce">Impedimento server<br><small>positions.ts</small></td>
+            <td>Formattazione con formatQuote</td>
+            <td>&laquo;2,495 su 7,5&raquo; e non &laquo;2.495000...01&raquo;</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; Deposito Titoli</span>
+    <span>US-048 &middot; Posizioni chiuse &middot; residuo zero</span>
+  </footer>
+
+  <div class="nav-mockup">
+    Mockup &mdash;
+    <a href="index.html">Modulo e validazione</a>
+    <a href="flusso-lifo.html">Flusso LIFO e round6</a>
+  </div>
+
+</div>
+
+</body>
+</html>

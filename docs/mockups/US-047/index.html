@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-047 · Carico con quantita frazionaria</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Carico titoli &middot; quantit&agrave; frazionarie accettate</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#" class="attiva">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- ====== Esito: il carico frazionario appena iscritto ====== -->
+    <div class="avviso-successo">
+      <span class="timbro-ok">Iscritto</span>
+      <p>
+        Carico di <b>12,345</b> quote <b>IE00BK5BQT80</b> del <b>15.VIII.2026</b> a
+        <b>&euro;&nbsp;8,2000</b> iscritto nel registro.
+        Controvalore: <b>&euro;&nbsp;101,23</b>.
+      </p>
+    </div>
+
+    <!-- ====== Il modulo di carico — DOPO ====== -->
+    <div class="sezione-titolo">
+      Carico titoli &middot; iscrizione di un acquisto
+      <span class="nota">FR-007 &middot; quantit&agrave; frazionaria, virgola o punto</span>
+    </div>
+
+    <div class="riquadro-modulo">
+      <div class="intestazione-modulo">
+        <span>Modulo di carico titolo</span>
+        <span class="num-modulo">MOD/CAR-001 &middot; rev. II &mdash; quote frazionarie</span>
+      </div>
+      <div class="corpo-modulo">
+        <form onsubmit="return false">
+
+          <!-- ISIN -->
+          <div class="riga-modulo">
+            <label for="carico-isin">
+              Codice ISIN
+              <span class="sotto-etichetta">12 caratteri alfanumerici</span>
+            </label>
+            <div class="campo">
+              <span class="unita">ISIN</span>
+              <input id="carico-isin" type="text" placeholder="es. IE00BK5BQT80" value="IE00BK5BQT80" disabled>
+            </div>
+          </div>
+
+          <!-- Data di carico -->
+          <div class="riga-modulo">
+            <label for="carico-data">
+              Data di carico
+              <span class="sotto-etichetta">AAAA-MM-GG</span>
+            </label>
+            <div class="campo">
+              <input id="carico-data" type="date" value="2026-08-15" disabled>
+            </div>
+          </div>
+
+          <!-- Prezzo -->
+          <div class="riga-modulo">
+            <label for="carico-prezzo">
+              Prezzo unitario
+              <span class="sotto-etichetta">prezzo per singola quota</span>
+            </label>
+            <div class="campo">
+              <span class="unita">&euro;</span>
+              <input id="carico-prezzo" type="text" inputmode="decimal" placeholder="0,0000" value="8,2000" disabled>
+            </div>
+          </div>
+
+          <!-- Quantita — il campo cambiato dalla spec -->
+          <div class="riga-modulo">
+            <label for="carico-quantita">
+              Quantit&agrave;
+              <span class="sotto-etichetta">numero positivo, al pi&ugrave; 6 decimali</span>
+            </label>
+            <div class="campo">
+              <span class="unita">QT&Agrave;</span>
+              <input
+                id="carico-quantita"
+                type="text"
+                inputmode="decimal"
+                placeholder="es. 12,345"
+                value="7,5"
+              >
+            </div>
+          </div>
+
+        </form>
+
+        <p class="nota-contabile">
+          Il controvalore di carico sar&agrave; calcolato automaticamente come prodotto di prezzo &times; quantit&agrave;
+          e iscritto nel registro al momento del salvataggio.
+        </p>
+
+        <div class="bottoni">
+          <button type="submit" class="bottone">Iscrive nel registro</button>
+          <a href="#" class="bottone secondario">Annulla</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Correzione evidenziata: prima / dopo -->
+    <div class="postilla">
+      <strong>Correzione US-047.</strong>
+      Il campo Quantit&agrave; era <code>type="number" min="1" step="1"</code> &mdash;
+      ora &egrave; <code>type="text" inputmode="decimal"</code> con normalizzazione virgola/punto.
+      La sotto-etichetta &laquo;numero intero di quote&raquo; diventa &laquo;numero positivo, al pi&ugrave; 6 decimali&raquo;.
+    </div>
+
+    <!-- ====== Validazione: i tre casi di rifiuto ====== -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Validazione del campo quantit&agrave;
+      <span class="nota">tre scenari di rifiuto client-side</span>
+    </div>
+
+    <!-- Errore: troppi decimali -->
+    <div class="riquadro-modulo" style="margin-bottom: 18px;">
+      <div class="intestazione-modulo">
+        <span>Modulo di carico titolo</span>
+        <span class="num-modulo">Scenario: 7+ decimali</span>
+      </div>
+      <div class="corpo-modulo">
+        <div class="riga-modulo con-errore">
+          <label for="err-decimali">
+            Quantit&agrave;
+            <span class="sotto-etichetta">numero positivo, al pi&ugrave; 6 decimali</span>
+          </label>
+          <div class="campo con-errore">
+            <span class="unita">QT&Agrave;</span>
+            <input id="err-decimali" type="text" inputmode="decimal" value="12,3456789">
+            <span class="errore-campo visibile">La quantit&agrave; deve essere un numero positivo con al pi&ugrave; sei decimali.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Errore: quantita zero -->
+    <div class="riquadro-modulo" style="margin-bottom: 18px;">
+      <div class="intestazione-modulo">
+        <span>Modulo di carico titolo</span>
+        <span class="num-modulo">Scenario: zero</span>
+      </div>
+      <div class="corpo-modulo">
+        <div class="riga-modulo con-errore">
+          <label for="err-zero">
+            Quantit&agrave;
+            <span class="sotto-etichetta">numero positivo, al pi&ugrave; 6 decimali</span>
+          </label>
+          <div class="campo con-errore">
+            <span class="unita">QT&Agrave;</span>
+            <input id="err-zero" type="text" inputmode="decimal" value="0">
+            <span class="errore-campo visibile">La quantit&agrave; deve essere un numero positivo con al pi&ugrave; sei decimali.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Errore: non numerico -->
+    <div class="riquadro-modulo">
+      <div class="intestazione-modulo">
+        <span>Modulo di carico titolo</span>
+        <span class="num-modulo">Scenario: testo non numerico</span>
+      </div>
+      <div class="corpo-modulo">
+        <div class="riga-modulo con-errore">
+          <label for="err-testo">
+            Quantit&agrave;
+            <span class="sotto-etichetta">numero positivo, al pi&ugrave; 6 decimali</span>
+          </label>
+          <div class="campo con-errore">
+            <span class="unita">QT&Agrave;</span>
+            <input id="err-testo" type="text" inputmode="decimal" value="abc">
+            <span class="errore-campo visibile">La quantit&agrave; deve essere un numero positivo con al pi&ugrave; sei decimali.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Resa a schermo: formatter quantita() ====== -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Resa a schermo &middot; formatter <code>quantita()</code>
+      <span class="nota">i soli decimali presenti, formato it-IT</span>
+    </div>
+
+    <div class="confronto-resa">
+      <div class="lato">
+        <h4>Prima &mdash; senza formatter</h4>
+        <div class="esempio"><s>12.345</s></div>
+        <div class="spiegazione">Numero grezzo, punto come separatore, nessuna formattazione locale</div>
+        <div class="esempio" style="margin-top: 12px"><s>10</s></div>
+        <div class="spiegazione">Intero senza separatore delle migliaia</div>
+        <div class="esempio" style="margin-top: 12px"><s>10,000000</s></div>
+        <div class="spiegazione">Con toLocaleString senza opzioni: 6 zeri in coda</div>
+      </div>
+      <div class="lato">
+        <h4>Dopo &mdash; quantita()</h4>
+        <div class="esempio"><b>12,345</b></div>
+        <div class="spiegazione">Virgola decimale it-IT, solo i 3 decimali che ha</div>
+        <div class="esempio" style="margin-top: 12px"><b>10</b></div>
+        <div class="spiegazione">L'intero resta intero &mdash; nessuno zero aggiunto</div>
+        <div class="esempio" style="margin-top: 12px"><b>10</b></div>
+        <div class="spiegazione">Trailing zeroes omessi da toLocaleString</div>
+      </div>
+    </div>
+
+    <div class="postilla">
+      <code>quantita(v) = v.toLocaleString('it-IT', { maximumFractionDigits: 6 })</code><br>
+      Applicato in: Riepilogo, Titoli iscritti a conto, Registro delle iscrizioni, Scheda titolo.
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; Deposito Titoli</span>
+    <span>US-047 &middot; Carico frazionario &middot; Modulo e validazione</span>
+  </footer>
+
+  <div class="nav-mockup">
+    Mockup &mdash;
+    <a href="registro.html">Registro &amp; Riepilogo</a>
+    <a href="rettifica.html">Rettifica inline</a>
+  </div>
+
+</div>
+
+</body>
+</html>

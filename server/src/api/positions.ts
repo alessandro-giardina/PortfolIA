@@ -166,7 +166,8 @@ function ragioneCaricoImmodificabile(
   const scarichi = registro.vendite
     .filter((v) => v.attribuzioni.some((a) => a.caricoId === carico.id))
     .map((v) => v.saleDate);
-  const misura = lotto.quantitaResidua === 0 ? 'per intero' : `in parte (${lotto.quantitaConsumata} quote su ${lotto.quantita})`;
+  const fmtQ = (n: number) => n.toLocaleString('it-IT', { maximumFractionDigits: 6 });
+  const misura = lotto.quantitaResidua === 0 ? 'per intero' : `in parte (${fmtQ(lotto.quantitaConsumata)} quote su ${fmtQ(lotto.quantita)})`;
   const daChi = scarichi.length === 1 ? `dalla vendita del ${scarichi[0]}` : `dalle vendite del ${scarichi.join(' e del ')}`;
 
   return (
@@ -236,8 +237,8 @@ export async function positionsRoutes(
 
     // Validazione quantity
     const quantity = body.quantity;
-    if (typeof quantity !== 'number' || !Number.isInteger(quantity) || quantity <= 0) {
-      return reply.status(400).send({ error: 'La quantità deve essere un intero positivo.' });
+    if (typeof quantity !== 'number' || !Number.isFinite(quantity) || quantity <= 0 || Math.round(quantity * 1e6) / 1e6 !== quantity) {
+      return reply.status(400).send({ error: 'La quantità deve essere un numero positivo con al più sei decimali.' });
     }
 
     const row = db
@@ -624,8 +625,8 @@ export async function positionsRoutes(
 
     if ('quantity' in body) {
       const quantity = body.quantity;
-      if (typeof quantity !== 'number' || !Number.isInteger(quantity) || quantity <= 0) {
-        return reply.status(400).send({ error: 'La quantità deve essere un intero positivo.' });
+      if (typeof quantity !== 'number' || !Number.isFinite(quantity) || quantity <= 0 || Math.round(quantity * 1e6) / 1e6 !== quantity) {
+        return reply.status(400).send({ error: 'La quantità deve essere un numero positivo con al più sei decimali.' });
       }
       updates.quantity = quantity;
     }

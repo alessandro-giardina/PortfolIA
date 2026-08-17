@@ -250,15 +250,29 @@ describe('PATCH /api/portfolios/:portfolioId/positions/:positionId', () => {
     expect(res.json<{ error: string }>().error).toMatch(/prezzo/i);
   });
 
-  it('400 quantity decimale', async () => {
+  it('200 quantity frazionaria entro 6 decimali', async () => {
     const app = await buildApp();
-    const pid = await createPortfolio(app, 'Test PATCH qty dec');
+    const pid = await createPortfolio(app, 'Test PATCH qty dec ok');
     const pos = await createPosition(app, pid);
 
     const res = await app.inject({
       method: 'PATCH',
       url: `/api/portfolios/${pid}/positions/${pos.id}`,
       payload: { quantity: 10.5 },
+    });
+
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('400 quantity con più di 6 decimali', async () => {
+    const app = await buildApp();
+    const pid = await createPortfolio(app, 'Test PATCH qty dec ko');
+    const pos = await createPosition(app, pid);
+
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/api/portfolios/${pid}/positions/${pos.id}`,
+      payload: { quantity: 10.1234567 },
     });
 
     expect(res.statusCode).toBe(400);

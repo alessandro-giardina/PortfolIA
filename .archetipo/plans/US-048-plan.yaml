@@ -1,0 +1,248 @@
+schema: archetipo/plan/v2
+spec_code: US-048
+body: |-
+  # US-048: Registrare uno scarico con quantità frazionaria — Piano di implementazione
+
+  **Generato da:** Team di Pianificazione ARchetipo
+  **Data:** 2026-08-17
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-008 — Vendite e posizioni chiuse
+  **Priorità:** HIGH | **Punti:** 5
+
+  **User Story**
+  Come Giulia, investitrice prudente,
+  voglio vendere la quantità esatta di quote che ho dismesso, decimali compresi, fino a chiudere del tutto la posizione,
+  in modo che il residuo a registro sia quello vero e non un avanzo che nessuna vendita riesce a estinguere (FR-022).
+
+  **Criteri di Accettazione**
+  - [ ] Il modulo di scarico accetta una quantità venduta con decimali, digitata con la virgola o con il punto
+  - [ ] Client e server rifiutano entrambi, nominando il limite, una quantità nulla, negativa, non numerica o con più di sei decimali
+  - [ ] La vendita dell'intera quantità frazionaria detenuta porta il residuo **esattamente** a zero: il titolo esce dai posseduti, compare fra le posizioni chiuse e il suo P&L latente è 0 — nessun residuo dovuto alla virgola mobile
+  - [ ] FR-024 resta vero sui decimali in entrambe le direzioni: una vendita che eccede il disponibile anche di una sola quota millesimale è rifiutata, e una vendita capiente non è mai rifiutata per un errore di rappresentazione
+  - [ ] L'attribuzione LIFO su quantità frazionarie restituisce quantità residua e costo attribuito corretti per ogni lotto, coperta da test puri sul caso «un lotto consumato per intero e il precedente in parte»
+  - [ ] Ogni punto che mostra una quantità venduta o residua la rende in it-IT con i soli decimali presenti: «Registro delle iscrizioni», residuo dopo lo scarico, l'avviso «consumato in parte (X quote su Y)» e le posizioni chiuse
+  - [ ] Le vendite già in archivio con quantità intera restano invariate in valore dopo la migrazione dell'archivio
+  - [ ] Test E2E su due scenari: uno scarico parziale frazionario e uno scarico totale frazionario che chiude la posizione
+
+  ---
+
+  ## Soluzione Tecnica
+
+  L'intervento si articola in due direzioni: (a) replicare il pattern di US-047 sullo scarico — schema, validazione server, parsing client, resa a schermo — e (b) risolvere il problema specifico dello scarico che non esiste nel carico: il residuo di virgola mobile dopo una vendita totale frazionaria.
+
+  ### 1. Migrazione dello schema (`sales.quantity` da `integer` a `real`)
+
+  - In `server/src/db/schema.ts`, la colonna `quantity` della tabella `sales` (riga 96) passa da `integer('quantity')` a `real('quantity')`. Con US-047 già fatto, `positions.quantity` è già `real`.
+  - SQLite non supporta `ALTER COLUMN`: Drizzle-kit genera la sequenza standard *create temp → copy → drop → rename* che preserva dati, indici e FK. I valori interi già in archivio passano a `real` senza perdita.
+  - La migrazione si genera con `npx drizzle-kit generate` e viene applicata automaticamente al prossimo avvio da `runMigrations()`.
+
+  ### 2. Robustezza virgola mobile in `rigiocaRegistro` (`shared/domain/lottiLifo.ts`)
+
+  È il cuore di questa spec e ciò che la distingue da US-047. Il problema:
+
+  ```
+  // Carico 1: 12,345 quote.  Carico 2: 7,5 quote.
+  // Vendita 1: 5,005 quote. LIFO prende da carico 2: 7,5 − 5,005 = 2,495 (residuo).
+  // Vendita 2: 14,84 quote. LIFO prende 2,495 dal carico 2, poi 12,345 dal carico 1.
+  // Ma: 14,84 − 2,495 = 12,344999999999999 in IEEE 754, non 12,345.
+  // Quindi: 12,345 − 12,344999999999999 = 1,77635684e-15, non 0.
+  // La posizione non risulta chiusa.
+  ```
+
+  **Soluzione: arrotondamento a 6 decimali alla sorgente.** Si aggiunge una funzione `round6` in `lottiLifo.ts` e la si applica nei due punti in cui `rigiocaRegistro` esegue una sottrazione di quantità:
+
+  ```ts
+  /** Arrotonda a 6 decimali: il limite di precisione delle quantità (US-048). */
+  function round6(v: number): number {
+    return Math.round(v * 1e6) / 1e6;
+  }
+  ```
+
+  Punti di applicazione in `rigiocaRegistro`:
+  - riga 237: `residuo.set(carico.id, round6(disponibile - presa));`
+  - riga 238: `daCoprire = round6(daCoprire - presa);`
+
+  Perché è corretto:
+  - Il vincolo di business è «al più 6 decimali»: arrotondare a 6 decimali dopo ogni sottrazione preserva la semantica.
+  - Su quantità intere (tutti i dati preesistenti), `round6` è un no-op: un intero arrotondato a 6 decimali resta esattamente se stesso in IEEE 754.
+  - Tutti i confronti a valle (`totalQuantity === 0`, `totalQuantity > 0`, `quantita > disponibileTotale`) funzionano senza modifiche, perché i residui da cui sono calcolati sono già puliti.
+
+  Alternative scartate:
+  - **Epsilon ai siti di confronto** (`Math.abs(x) < 1e-9` al posto di `=== 0`): i confronti sono in 8+ punti del codice (client e server), e ogni nuovo confronto dovrebbe ricordarsi dell'epsilon. Fragile.
+  - **Aritmetica in interi** (moltiplicare per 1e6): invasivo, richiede conversione a ogni I/O.
+
+  ### 3. Validazione server (POST `/api/portfolios/:id/sales`)
+
+  In `server/src/api/sales.ts` riga 83, la guardia `!Number.isInteger(quantity) || quantity <= 0` diventa:
+
+  ```ts
+  typeof quantity !== 'number' || !Number.isFinite(quantity) || quantity <= 0 || Math.round(quantity * 1e6) / 1e6 !== quantity
+  ```
+
+  Il messaggio di errore cambia da `'La quantità venduta deve essere un intero positivo.'` a `'La quantità venduta deve essere un numero positivo con al più sei decimali.'`.
+
+  ### 4. Parsing e validazione client (`ModuloScarico.tsx`)
+
+  **Input:** L'`<input type="number" min="1" step="1">` (riga 248) diventa `type="text" inputMode="decimal"` con placeholder `"es. 5,005"` — lo stesso pattern di US-047 nel carico.
+
+  **Sotto-etichetta:** da `"numero intero di quote"` (riga 240) a `"numero positivo, al più 6 decimali"`.
+
+  **Validazione (`validaForma`, riga 101):** `parseInt(quantity, 10)` diventa:
+  1. Normalizzazione virgola → punto.
+  2. `parseFloat`.
+  3. Controllo: `isNaN`, `<= 0`, più di 6 decimali.
+  4. Messaggio di errore aggiornato.
+
+  **Invio (`iscrivi`, riga 120):** `parseInt(quantity, 10)` diventa `parseFloat(normalizzato)` nel payload.
+
+  ### 5. Resa a schermo delle quantità vendute e residue
+
+  I punti da aggiornare sono meno numerosi di US-047 perché la maggior parte delle quantità a schermo è già stata convertita a `quantita()` dal carico frazionario. Restano:
+
+  | Dove | Attuale | Dopo |
+  |---|---|---|
+  | `ModuloScarico.tsx` riga 184: `{scelto?.residuo ?? 0}` | numero grezzo | `quantita(scelto?.residuo ?? 0)` — importare `quantita` da `Foglio.tsx` |
+  | `PortfolioDetailPage.tsx` riga 1534: `ultimaVendita.quantity` nell'avviso successo | numero grezzo nel `<b>` | `quantita(ultimaVendita.quantity)` |
+  | `PortfolioDetailPage.tsx` riga 1199: `ep.soldQuantity.toLocaleString('it-IT')` nelle posizioni chiuse | `toLocaleString('it-IT')` (max 3 decimali default) | `quantita(ep.soldQuantity)` |
+
+  I seguenti punti sono già stati aggiornati da US-047:
+  - Registro: `quantita(vendita.quantity)` (riga 1752) — ✅ già fatto
+  - Riquadro residuo: `quantita()` su `totalQuantity`, `loadedQuantity`, `soldQuantity` — ✅ già fatto
+  - Messaggio consumo parziale: `quantita()` — ✅ già fatto
+
+  ### 6. Formattazione messaggio impedimento server
+
+  In `server/src/api/positions.ts` riga 169, il messaggio di impedimento mostra:
+  ```ts
+  `in parte (${lotto.quantitaConsumata} quote su ${lotto.quantita})`
+  ```
+
+  Con quantità frazionarie mostrerebbe float brutti (es. `2.4950000000000001`). Va formattato con `toLocaleString('it-IT', { maximumFractionDigits: 6 })` o con la funzione `quote()` esportata da `lottiLifo.ts`. La funzione `quote()` è attualmente privata: la si esporta come `formatQuote` (o si duplica il formatter inline). La stessa formattazione va applicata a `lotto.quantita` nella stessa stringa.
+
+  ---
+
+  ## Strategia di Test
+
+  I test coprono i tre livelli: dominio puro (Vitest), integrazione server (Vitest + Fastify inject), E2E (Playwright).
+
+  ### Test puri del dominio (Vitest)
+
+  - **`lottiLifo.test.ts`:** Nuovi casi con quantità frazionarie sullo scarico:
+    - **Caso critico — vendita totale frazionaria con residuo esatto a zero.** Due carichi (12,345 + 7,5 = 19,845 quote), vendita di 5,005 (LIFO: dal carico di 7,5, residuo 2,495), poi vendita di 14,84: il `quantitaResidua` del registro rigiocato deve essere **esattamente** `0`, non `~1e-16`. `totalQuantity === 0` vero.
+    - Vendita parziale frazionaria: su 19,845 quote residue, vendita di 5,005 → `quantitaResidua = 14,84`, `costoAttribuito` e `costoResiduo` corretti per ogni lotto.
+    - `verificaVendita` accetta una vendita di quantità esattamente uguale alla giacenza frazionaria (14,84 su 14,84): esito `ok`.
+    - `verificaVendita` rifiuta una vendita di 14,841 su 14,84: esito `quantita-eccedente`.
+    - `residuoPerIsin` a residuo zero dopo vendite frazionarie: `totalQuantity === 0`, `avgLoadPrice === null`, `latentPnl === 0` (zero misurato).
+
+  ### Test di integrazione server (Vitest)
+
+  - **`api.sales.test.ts`:** Nuovi casi per POST:
+    - Accettazione: `quantity: 5.005` → 201.
+    - Accettazione: `quantity: 7.5` → 201.
+    - Rifiuto: `quantity: 5.0051234` (più di 6 decimali) → 400 con messaggio che nomina il limite.
+    - Rifiuto: `quantity: 0` → 400.
+    - Rifiuto: `quantity: -1.5` → 400.
+    - I casi interi preesistenti restano verdi.
+    - Vista riepilogo dopo vendita frazionaria totale: `totalQuantity === 0`, posizione chiusa.
+
+  ### Test E2E — Simulazione utente
+
+  **Framework:** Playwright (già configurato nel progetto)
+  **Video:** Demo scenario registrato — il campo `Dimostra` descrive un flusso filmabile.
+
+  | Scenario | Flusso utente |
+  |---|---|
+  | Scarico parziale frazionario | L'utente crea un portafoglio, iscrive due carichi di 12,345 e 7,5 quote (già possibili da US-047), poi registra una vendita di 5,005 quote. Verifica: residuo 14,84, il lotto più recente consumato in parte (2,495 su 7,5), la quantità venduta formattata con la virgola nel Registro e nel riquadro del residuo. |
+  | Scarico totale frazionario che chiude la posizione | L'utente vende le restanti 14,84 quote. Verifica: il titolo esce dai posseduti, compare in «Posizioni chiuse» con residuo zero, P&L latente 0, e la quantità venduta nella sezione chiuse è formattata correttamente. |
+  | Validazione client — quantità errate | L'utente tenta di iscrivere una vendita con 7+ decimali, con 0, con testo non numerico: verifica messaggi di errore client. |
+
+  **Chiave ISIN:** Nuova costante `TITOLO_US_048` in `e2e/support/titoli.ts`, riservata a `US-048__scarico-frazionario.spec.ts`.
+  **Video:** Salvato in `docs/test-results/US-048/demo-scarico-frazionario.webm`.
+
+  ---
+
+  _Piano generato via ARchetipo Planning — 2026-08-17_
+tasks:
+  - id: TASK-01
+    title: 'Migrazione schema: sales.quantity da integer a real'
+    description: 'In `server/src/db/schema.ts`, cambiare `quantity: integer(''quantity'').notNull()` in `quantity: real(''quantity'').notNull()` nella tabella `sales` (riga 96). Generare la migrazione con `npx drizzle-kit generate`. Verificare che il SQL prodotto usi la sequenza standard SQLite (create temp → copy → drop → rename) e che preservi tutti i dati interi esistenti senza perdita.'
+    type: Impl
+    status: DONE
+    body: 'In `server/src/db/schema.ts`, cambiare `quantity: integer(''quantity'').notNull()` in `quantity: real(''quantity'').notNull()` nella tabella `sales` (riga 96). Generare la migrazione con `npx drizzle-kit generate`. Verificare che il SQL prodotto usi la sequenza standard SQLite (create temp → copy → drop → rename) e che preservi tutti i dati interi esistenti senza perdita.'
+    ref: TASK-01
+  - id: TASK-02
+    title: 'Robustezza virgola mobile: round6 in rigiocaRegistro'
+    description: 'In `shared/domain/lottiLifo.ts`, aggiungere una funzione privata `round6(v: number): number { return Math.round(v * 1e6) / 1e6; }`. Applicarla nei due punti di `rigiocaRegistro` dove si eseguono sottrazioni di quantità: (1) riga 237 `residuo.set(carico.id, round6(disponibile - presa));` e (2) riga 238 `daCoprire = round6(daCoprire - presa);`. Questo garantisce che il residuo di un lotto sia sempre un numero pulito a 6 decimali, rendendo `totalQuantity === 0` vero per costruzione dopo una vendita totale frazionaria. Ricostruire `shared` con `npm run build --workspace=shared` e verificare che tutti i test esistenti (`npm run test`) restino verdi: su quantità intere `round6` è un no-op.'
+    type: Impl
+    status: DONE
+    body: 'In `shared/domain/lottiLifo.ts`, aggiungere una funzione privata `round6(v: number): number { return Math.round(v * 1e6) / 1e6; }`. Applicarla nei due punti di `rigiocaRegistro` dove si eseguono sottrazioni di quantità: (1) riga 237 `residuo.set(carico.id, round6(disponibile - presa));` e (2) riga 238 `daCoprire = round6(daCoprire - presa);`. Questo garantisce che il residuo di un lotto sia sempre un numero pulito a 6 decimali, rendendo `totalQuantity === 0` vero per costruzione dopo una vendita totale frazionaria. Ricostruire `shared` con `npm run build --workspace=shared` e verificare che tutti i test esistenti (`npm run test`) restino verdi: su quantità intere `round6` è un no-op.'
+    ref: TASK-02
+  - id: TASK-03
+    title: 'Test puri: LIFO e residuo esatto a zero su quantità frazionarie'
+    description: 'In `server/tests/lottiLifo.test.ts`, aggiungere un gruppo `describe` per le quantità frazionarie con i casi: (1) vendita parziale frazionaria — due carichi 12,345 + 7,5, vendita di 5,005, verificare `quantitaResidua = 14,84`, costo attribuito e costoResiduo corretti per ogni lotto, LIFO ha consumato dal lotto più recente; (2) **vendita totale frazionaria con residuo esatto a zero** — vendita di 14,84 sulle quote rimanenti, `quantitaResidua` esattamente `0` (non `~1e-16`), `scopertoTotale === 0`; (3) `verificaVendita` accetta la vendita di quantità esattamente uguale alla giacenza frazionaria (14,84 su 14,84), esito `ok`; (4) `verificaVendita` rifiuta la vendita di 14,841 su 14,84, esito `quantita-eccedente`; (5) `residuoPerIsin` a residuo zero: `totalQuantity === 0`, `avgLoadPrice === null`, `latentPnl === 0` (zero misurato, non null).'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+    body: 'In `server/tests/lottiLifo.test.ts`, aggiungere un gruppo `describe` per le quantità frazionarie con i casi: (1) vendita parziale frazionaria — due carichi 12,345 + 7,5, vendita di 5,005, verificare `quantitaResidua = 14,84`, costo attribuito e costoResiduo corretti per ogni lotto, LIFO ha consumato dal lotto più recente; (2) **vendita totale frazionaria con residuo esatto a zero** — vendita di 14,84 sulle quote rimanenti, `quantitaResidua` esattamente `0` (non `~1e-16`), `scopertoTotale === 0`; (3) `verificaVendita` accetta la vendita di quantità esattamente uguale alla giacenza frazionaria (14,84 su 14,84), esito `ok`; (4) `verificaVendita` rifiuta la vendita di 14,841 su 14,84, esito `quantita-eccedente`; (5) `residuoPerIsin` a residuo zero: `totalQuantity === 0`, `avgLoadPrice === null`, `latentPnl === 0` (zero misurato, non null).'
+    ref: TASK-03
+  - id: TASK-04
+    title: 'Server: validazione quantità frazionaria in POST sales'
+    description: 'In `server/src/api/sales.ts`, riga 83, sostituire la guardia `typeof quantity !== ''number'' || !Number.isInteger(quantity) || quantity <= 0` con: `typeof quantity !== ''number'' || !Number.isFinite(quantity) || quantity <= 0 || Math.round(quantity * 1e6) / 1e6 !== quantity`. Il messaggio di errore diventa: `''La quantità venduta deve essere un numero positivo con al più sei decimali.''`. È la stessa guardia già applicata ai carichi in US-047.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'In `server/src/api/sales.ts`, riga 83, sostituire la guardia `typeof quantity !== ''number'' || !Number.isInteger(quantity) || quantity <= 0` con: `typeof quantity !== ''number'' || !Number.isFinite(quantity) || quantity <= 0 || Math.round(quantity * 1e6) / 1e6 !== quantity`. Il messaggio di errore diventa: `''La quantità venduta deve essere un numero positivo con al più sei decimali.''`. È la stessa guardia già applicata ai carichi in US-047.'
+    ref: TASK-04
+  - id: TASK-05
+    title: 'Test server: quantità frazionarie in POST sales'
+    description: 'In `server/tests/api.sales.test.ts`, aggiungere un gruppo `describe` per la validazione della quantità frazionaria: (1) accettazione di `quantity: 5.005` → 201; (2) accettazione di `quantity: 7.5` → 201; (3) rifiuto di `quantity: 5.0051234` (7+ decimali) → 400 con messaggio che nomina il limite dei 6 decimali; (4) rifiuto di `quantity: 0` → 400; (5) rifiuto di `quantity: -1.5` → 400. Il caso `quantità non intera` nell''array `invalidi` esistente (riga 318) va aggiornato perché ora `1.5` è accettata: sostituirlo con un caso a 7+ decimali. Aggiungere un caso di vista riepilogo dopo vendita frazionaria totale: `totalQuantity === 0`, posizione chiusa. I casi interi preesistenti devono restare verdi.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    body: 'In `server/tests/api.sales.test.ts`, aggiungere un gruppo `describe` per la validazione della quantità frazionaria: (1) accettazione di `quantity: 5.005` → 201; (2) accettazione di `quantity: 7.5` → 201; (3) rifiuto di `quantity: 5.0051234` (7+ decimali) → 400 con messaggio che nomina il limite dei 6 decimali; (4) rifiuto di `quantity: 0` → 400; (5) rifiuto di `quantity: -1.5` → 400. Il caso `quantità non intera` nell''array `invalidi` esistente (riga 318) va aggiornato perché ora `1.5` è accettata: sostituirlo con un caso a 7+ decimali. Aggiungere un caso di vista riepilogo dopo vendita frazionaria totale: `totalQuantity === 0`, posizione chiusa. I casi interi preesistenti devono restare verdi.'
+    ref: TASK-05
+  - id: TASK-06
+    title: 'Client: ModuloScarico — input decimale con comma/punto'
+    description: 'In `client/src/components/ModuloScarico.tsx`: (1) Riga 248: cambiare l''input quantità da `type="number" min="1" step="1"` a `type="text" inputMode="decimal"` con placeholder `"es. 5,005"`. (2) Riga 240: la sotto-etichetta da `"numero intero di quote"` a `"numero positivo, al più 6 decimali"`. (3) In `validaForma` (riga 101): sostituire `parseInt(quantity, 10)` con normalizzazione virgola→punto + `parseFloat` + controllo `isNaN || <= 0 || più di 6 decimali`. Aggiornare il messaggio di errore. (4) In `iscrivi` (riga 120): `parseInt(quantity, 10)` diventa `parseFloat(quantity.replace('','', ''.''))`.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'In `client/src/components/ModuloScarico.tsx`: (1) Riga 248: cambiare l''input quantità da `type="number" min="1" step="1"` a `type="text" inputMode="decimal"` con placeholder `"es. 5,005"`. (2) Riga 240: la sotto-etichetta da `"numero intero di quote"` a `"numero positivo, al più 6 decimali"`. (3) In `validaForma` (riga 101): sostituire `parseInt(quantity, 10)` con normalizzazione virgola→punto + `parseFloat` + controllo `isNaN || <= 0 || più di 6 decimali`. Aggiornare il messaggio di errore. (4) In `iscrivi` (riga 120): `parseInt(quantity, 10)` diventa `parseFloat(quantity.replace('','', ''.''))`.'
+    ref: TASK-06
+  - id: TASK-07
+    title: 'Resa a schermo: quantità vendute e residuo nel modulo di scarico'
+    description: 'Tre punti di visualizzazione da aggiornare: (1) `ModuloScarico.tsx` riga 184: `{scelto?.residuo ?? 0}` → importare `quantita` da `Foglio.tsx` e usare `quantita(scelto?.residuo ?? 0)`. (2) `PortfolioDetailPage.tsx` riga 1534: `{ultimaVendita.quantity}` nell''avviso di successo → `{quantita(ultimaVendita.quantity)}`. (3) `PortfolioDetailPage.tsx` riga 1199: `{ep.soldQuantity.toLocaleString(''it-IT'')}` nella tabella posizioni chiuse → `{quantita(ep.soldQuantity)}`. I punti del Registro e del riquadro residuo sono già stati aggiornati da US-047 e non richiedono intervento.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'Tre punti di visualizzazione da aggiornare: (1) `ModuloScarico.tsx` riga 184: `{scelto?.residuo ?? 0}` → importare `quantita` da `Foglio.tsx` e usare `quantita(scelto?.residuo ?? 0)`. (2) `PortfolioDetailPage.tsx` riga 1534: `{ultimaVendita.quantity}` nell''avviso di successo → `{quantita(ultimaVendita.quantity)}`. (3) `PortfolioDetailPage.tsx` riga 1199: `{ep.soldQuantity.toLocaleString(''it-IT'')}` nella tabella posizioni chiuse → `{quantita(ep.soldQuantity)}`. I punti del Registro e del riquadro residuo sono già stati aggiornati da US-047 e non richiedono intervento.'
+    ref: TASK-07
+  - id: TASK-08
+    title: 'Server: formattazione quantità nel messaggio di impedimento'
+    description: 'In `server/src/api/positions.ts` riga 169, il messaggio di impedimento mostra `${lotto.quantitaConsumata} quote su ${lotto.quantita}` come numeri grezzi. Con quantità frazionarie mostrerebbe float brutti (es. `2.4950000000000001`). Formattare entrambi con `toLocaleString(''it-IT'', { maximumFractionDigits: 6 })` inline, oppure estrarre la funzione `quote()` da `lottiLifo.ts` e importarla. La funzione `quote()` in `lottiLifo.ts` è già stata aggiornata a `maximumFractionDigits: 6` da US-047 — se la si esporta (rinominandola `formatQuote` per chiarezza) diventa riutilizzabile senza duplicazione.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-02
+    body: 'In `server/src/api/positions.ts` riga 169, il messaggio di impedimento mostra `${lotto.quantitaConsumata} quote su ${lotto.quantita}` come numeri grezzi. Con quantità frazionarie mostrerebbe float brutti (es. `2.4950000000000001`). Formattare entrambi con `toLocaleString(''it-IT'', { maximumFractionDigits: 6 })` inline, oppure estrarre la funzione `quote()` da `lottiLifo.ts` e importarla. La funzione `quote()` in `lottiLifo.ts` è già stata aggiornata a `maximumFractionDigits: 6` da US-047 — se la si esporta (rinominandola `formatQuote` per chiarezza) diventa riutilizzabile senza duplicazione.'
+    ref: TASK-08
+  - id: TASK-09
+    title: 'E2E: scarico frazionario parziale e totale con chiusura posizione'
+    description: 'Nuovo file `e2e/US-048__scarico-frazionario.spec.ts`. Registrare la chiave ISIN in `e2e/support/titoli.ts` come `TITOLO_US_048`. Scenario demo (con video): crea portafoglio via fixture, semina un ISIN, iscrive due carichi di 12,345 e 7,5 quote, registra una vendita di 5,005 quote. Verifica: residuo 14,84 formattato «14,84», il lotto più recente consumato in parte (2,495 su 7,5) con le quantità formattate, la riga di scarico nel Registro con quantità «5,005». Poi vende le restanti 14,84 quote: il titolo esce dai posseduti, compare in «Posizioni chiuse» con quantità venduta formattata, P&L latente 0, residuo esattamente zero. Scenario validazione: tenta 7+ decimali, 0, testo non numerico, verifica messaggi di errore. Video registrato in `docs/test-results/US-048/demo-scarico-frazionario.webm`.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+      - TASK-06
+      - TASK-07
+    body: 'Nuovo file `e2e/US-048__scarico-frazionario.spec.ts`. Registrare la chiave ISIN in `e2e/support/titoli.ts` come `TITOLO_US_048`. Scenario demo (con video): crea portafoglio via fixture, semina un ISIN, iscrive due carichi di 12,345 e 7,5 quote, registra una vendita di 5,005 quote. Verifica: residuo 14,84 formattato «14,84», il lotto più recente consumato in parte (2,495 su 7,5) con le quantità formattate, la riga di scarico nel Registro con quantità «5,005». Poi vende le restanti 14,84 quote: il titolo esce dai posseduti, compare in «Posizioni chiuse» con quantità venduta formattata, P&L latente 0, residuo esattamente zero. Scenario validazione: tenta 7+ decimali, 0, testo non numerico, verifica messaggi di errore. Video registrato in `docs/test-results/US-048/demo-scarico-frazionario.webm`.'
+    ref: TASK-09

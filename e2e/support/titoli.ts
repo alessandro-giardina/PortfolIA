@@ -1936,6 +1936,26 @@ export const ISIN_MAI_RILEVATO_US_015: ChiaveRiservata = {
 };
 
 /**
+ * Riservato a `US-048__scarico-frazionario.spec.ts`: il titolo su cui si
+ * dimostra che uno scarico con quantita frazionaria porta il residuo
+ * esattamente a zero e che la posizione compare fra le chiuse.
+ */
+export const TITOLO_US_048: TitoloSeminabile = {
+  isin: 'IE00BFNM3J75',
+  file: 'US-048__scarico-frazionario.spec.ts',
+  campi: {
+    name: 'Invesco Eqqq Nasdaq-100 Ucits Etf Acc',
+    price: 60.5,
+    ticker: 'EQQQ',
+    instrument_type: 'ETF',
+    total_annual_fees: '0,30%',
+    currency: 'USD',
+    issuer: 'INVESCO MARKETS PLC',
+    segment: 'ETF Indicizzati',
+  },
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *
@@ -2016,4 +2036,7 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   // partire.
   TITOLO_US_015.isin,
   TITOLO_US_015_VARIANTI.isin,
+  // Il titolo di US-048: il seme in cache basta al backfill d'avvio per crearne
+  // un'osservazione.
+  TITOLO_US_048.isin,
 ];

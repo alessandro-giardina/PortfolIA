@@ -203,6 +203,11 @@ function perData<T extends { readonly id: number }>(
  * lettura restano leggibili anche su un archivio incoerente, e la scrittura è
  * chiusa a monte da `verificaVendita`.
  */
+/** Arrotonda a 6 decimali: elimina il rumore di virgola mobile sulle quantità frazionarie. */
+function round6(v: number): number {
+  return Math.round(v * 1e6) / 1e6;
+}
+
 export function rigiocaRegistro({ carichi, vendite }: RegistroInput): RegistroRigiocato {
   // Il residuo vive in una mappa e non sui lotti: i lotti in ingresso sono
   // `readonly`, e mutarli farebbe di questa funzione pura una funzione che
@@ -234,8 +239,8 @@ export function rigiocaRegistro({ carichi, vendite }: RegistroInput): RegistroRi
       if (disponibile <= 0) continue;
 
       const presa = Math.min(disponibile, daCoprire);
-      residuo.set(carico.id, disponibile - presa);
-      daCoprire -= presa;
+      residuo.set(carico.id, round6(disponibile - presa));
+      daCoprire = round6(daCoprire - presa);
 
       const costo = carico.loadPrice * presa;
       costoAttribuito += costo;
@@ -357,7 +362,7 @@ export interface VerificaVenditaInput extends RegistroInput {
 
 /** Formatta un intero di quote con il separatore delle migliaia italiano. */
 function quote(n: number): string {
-  return n.toLocaleString('it-IT');
+  return n.toLocaleString('it-IT', { maximumFractionDigits: 6 });
 }
 
 /**

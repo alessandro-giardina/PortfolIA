@@ -80,8 +80,8 @@ export async function salesRoutes(fastify: FastifyInstance): Promise<void> {
     }
 
     const quantity = body.quantity;
-    if (typeof quantity !== 'number' || !Number.isInteger(quantity) || quantity <= 0) {
-      return reply.status(400).send({ error: 'La quantità venduta deve essere un intero positivo.' });
+    if (typeof quantity !== 'number' || !Number.isFinite(quantity) || quantity <= 0 || Math.round(quantity * 1e6) / 1e6 !== quantity) {
+      return reply.status(400).send({ error: 'La quantità venduta deve essere un numero positivo con al più sei decimali.' });
     }
 
     // Il registro di questo ISIN in questo portafoglio: i carichi e le vendite

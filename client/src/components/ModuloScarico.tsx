@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { CaricoLotto, CreateSaleRequest, Sale, VenditaLotto } from '@portfolia/shared';
 import FasciaLifo from './FasciaLifo.js';
+import { quantita } from './Foglio.js';
 
 /**
  * Il **modulo di scarico**: la registrazione di una vendita (US-042, FR-022).
@@ -98,9 +99,10 @@ export default function ModuloScarico({ portfolioId, titoli, onIscritta }: Modul
     if (!salePrice || Number.isNaN(prezzo) || prezzo <= 0) {
       errori.salePrice = 'Il prezzo di vendita deve essere un valore positivo.';
     }
-    const quote = parseInt(quantity, 10);
-    if (!quantity || Number.isNaN(quote) || quote <= 0 || String(quote) !== quantity.trim()) {
-      errori.quantity = 'La quantità venduta deve essere un intero positivo.';
+    const normalizzata = quantity.trim().replace(',', '.');
+    const quote = parseFloat(normalizzata);
+    if (!quantity || Number.isNaN(quote) || quote <= 0 || Math.round(quote * 1e6) / 1e6 !== quote) {
+      errori.quantity = 'La quantità venduta deve essere un numero positivo con al più 6 decimali.';
     }
     setErroriCampo(errori);
     return Object.keys(errori).length === 0;
@@ -117,7 +119,7 @@ export default function ModuloScarico({ portfolioId, titoli, onIscritta }: Modul
         isin: scelto.isin,
         sale_date: saleDate,
         sale_price: parseFloat(salePrice),
-        quantity: parseInt(quantity, 10),
+        quantity: parseFloat(quantity.replace(',', '.')),
       };
       const res = await fetch(`/api/portfolios/${portfolioId}/sales`, {
         method: 'POST',
@@ -181,7 +183,7 @@ export default function ModuloScarico({ portfolioId, titoli, onIscritta }: Modul
                   ))}
                 </select>
                 <span className="giacenza" data-testid="scarico-giacenza">
-                  residuo <b>{scelto?.residuo ?? 0}</b> quote
+                  residuo <b>{quantita(scelto?.residuo ?? 0)}</b> quote
                 </span>
               </div>
             </div>
@@ -237,17 +239,16 @@ export default function ModuloScarico({ portfolioId, titoli, onIscritta }: Modul
             <div className={`riga-modulo${erroriCampo.quantity ? ' con-errore' : ''}`}>
               <label htmlFor="scarico-quantita">
                 Quantità venduta
-                <span className="sotto-etichetta">numero intero di quote</span>
+                <span className="sotto-etichetta">numero positivo, al più 6 decimali</span>
               </label>
               <div className={`campo${erroriCampo.quantity ? ' con-errore' : ''}`}>
                 <span className="unita">QTÀ</span>
                 <input
                   id="scarico-quantita"
                   data-testid="scarico-quantita"
-                  type="number"
-                  min="1"
-                  step="1"
-                  placeholder="0"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="es. 5,005"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   disabled={inCorso}

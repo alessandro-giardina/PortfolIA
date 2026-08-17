@@ -14,6 +14,7 @@ import {
   importoConSegno,
   percentualeConSegno,
   prezzo,
+  quantita,
 } from './Foglio.js';
 import GraficoTitolo from './GraficoTitolo.js';
 import MetricheTitolo from './MetricheTitolo.js';
@@ -318,7 +319,7 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
         <div className="orizzonte">
           <span className="et">Quantità</span>
           <span className="valore" data-testid="dettaglio-quantita">
-            {detail.totalQuantity.toLocaleString('it-IT')}
+            {quantita(detail.totalQuantity)}
           </span>
           <span className="perc">
             su {numeroCarichi} {numeroCarichi === 1 ? 'carico' : 'carichi'}
@@ -542,7 +543,7 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
                     <strong>{dataCarico(carico.loadDate)}</strong>
                   </span>
                 </td>
-                <td className="cifra">{carico.quantity.toLocaleString('it-IT')}</td>
+                <td className="cifra">{quantita(carico.quantity)}</td>
                 <td className="cifra euro">{prezzo(carico.loadPrice)}</td>
                 <td className="cifra euro">{importo(carico.loadPrice * carico.quantity)}</td>
               </tr>
@@ -551,7 +552,7 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
           <tfoot>
             <tr>
               <td>Totale &middot; prezzo medio</td>
-              <td className="cifra">{detail.totalQuantity.toLocaleString('it-IT')}</td>
+              <td className="cifra">{quantita(detail.totalQuantity)}</td>
               <td className={detail.avgLoadPrice !== null ? 'cifra euro' : 'cifra dato-mancante'}>
                 {detail.avgLoadPrice !== null ? prezzo(detail.avgLoadPrice) : '—'}
               </td>

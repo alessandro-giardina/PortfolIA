@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-047 · Rettifica carico con quantita frazionaria</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+/* Stile inline specifico per la rettifica — troppo poco per un file a se */
+
+/* Riga in modalita modifica */
+.mastro tbody tr.in-modifica {
+  background: rgba(156,125,52,.12);
+}
+.mastro tbody tr.in-modifica td {
+  border-bottom: 1.5px solid var(--ottone);
+}
+.mastro tbody tr.in-modifica td:first-child {
+  border-left: 3px solid var(--ottone);
+}
+
+/* Input inline nel registro */
+.mastro tbody tr.in-modifica input {
+  border: none;
+  background: transparent;
+  font-family: 'Courier Prime', monospace;
+  font-size: 14px;
+  color: var(--inchiostro);
+  padding: 4px 2px;
+  border-bottom: 1.5px dotted var(--ottone);
+  width: 90px;
+  text-align: right;
+}
+.mastro tbody tr.in-modifica input:focus {
+  outline: none;
+  border-bottom-color: var(--rosso-margine);
+  background: rgba(156,125,52,.08);
+}
+
+/* Errore nella riga di modifica */
+.errore-inline {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--carminio);
+  display: block;
+  margin-bottom: 4px;
+}
+.errore-inline::before { content: "\2717 "; font-style: normal; font-size: 10px; }
+</style>
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Rettifica carico &middot; quantit&agrave; frazionaria in modifica inline</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#" class="attiva">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- ====== Scenario 1: modifica in corso ====== -->
+    <div class="sezione-titolo">
+      Rettifica inline &middot; da intero a frazionario
+      <span class="nota">il carico passa da 10 a 5,25 quote</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Denominazione &middot; ISIN</th>
+            <th>Data</th>
+            <th>Prezzo</th>
+            <th>Quantit&agrave;</th>
+            <th>Controvalore</th>
+            <th>Residuo</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Riga in modalita modifica -->
+          <tr class="in-modifica">
+            <td><span class="marca">Carico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td>
+              <input type="date" value="2026-08-10" style="width: 130px;">
+            </td>
+            <td>
+              <input type="text" inputmode="decimal" value="8,2000" style="width: 80px;">
+            </td>
+            <td>
+              <!-- Il campo quantita in modifica: type="text" inputmode="decimal" -->
+              <input type="text" inputmode="decimal" value="5,25" style="width: 70px;">
+            </td>
+            <td class="cifra euro">&mdash;</td>
+            <td class="cifra">10</td>
+            <td>
+              <button class="bottone" style="font-size: 11px; padding: 6px 12px; margin-right: 4px;">Salva</button>
+              <button class="bottone secondario" style="font-size: 11px; padding: 6px 12px;">Annulla</button>
+            </td>
+          </tr>
+          <!-- Altra riga, non in modifica -->
+          <tr>
+            <td><span class="marca">Carico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">16.VIII.2026</td>
+            <td class="cifra euro">8,0000</td>
+            <td class="cifra">7,5</td>
+            <td class="cifra euro">60,00</td>
+            <td class="cifra">7,5</td>
+            <td>
+              <button class="bottone secondario" style="font-size: 11px; padding: 6px 12px;">Modifica</button>
+              <button class="bottone rosso" style="font-size: 11px; padding: 6px 12px;">Rimuovi</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="postilla">
+      Il campo quantit&agrave; nella riga di modifica usa <code>type="text" inputmode="decimal"</code>,
+      come il modulo di creazione. La normalizzazione virgola/punto si applica anche qui.
+      L&rsquo;utente pu&ograve; digitare &laquo;5,25&raquo; o &laquo;5.25&raquo; indifferentemente.
+    </div>
+
+    <!-- ====== Scenario 2: errore nella rettifica ====== -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Rettifica con errore &middot; troppi decimali
+      <span class="nota">la validazione client protegge anche in modifica</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Denominazione &middot; ISIN</th>
+            <th>Data</th>
+            <th>Prezzo</th>
+            <th>Quantit&agrave;</th>
+            <th>Controvalore</th>
+            <th>Residuo</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="in-modifica">
+            <td><span class="marca">Carico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td>
+              <input type="date" value="2026-08-10" style="width: 130px;">
+            </td>
+            <td>
+              <input type="text" inputmode="decimal" value="8,2000" style="width: 80px;">
+            </td>
+            <td>
+              <input type="text" inputmode="decimal" value="5,2500001" style="width: 70px; border-bottom-color: #8d231f;">
+            </td>
+            <td class="cifra euro">&mdash;</td>
+            <td class="cifra">10</td>
+            <td>
+              <span class="errore-inline">La quantit&agrave; deve essere un numero positivo con al pi&ugrave; sei decimali.</span>
+              <button class="bottone" style="font-size: 11px; padding: 6px 12px; margin-right: 4px;">Salva</button>
+              <button class="bottone secondario" style="font-size: 11px; padding: 6px 12px;">Annulla</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ====== Scenario 3: dopo il salvataggio ====== -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Dopo il salvataggio &middot; resa aggiornata
+      <span class="nota">la rettifica &egrave; stata accettata: 5,25 quote</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Denominazione &middot; ISIN</th>
+            <th>Data</th>
+            <th>Prezzo</th>
+            <th>Quantit&agrave;</th>
+            <th>Controvalore</th>
+            <th>Residuo</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="marca">Carico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">10.VIII.2026</td>
+            <td class="cifra euro">8,2000</td>
+            <!-- quantita(5.25) => "5,25" -->
+            <td class="cifra"><b>5,25</b></td>
+            <td class="cifra euro">43,05</td>
+            <!-- quantita(5.25) => "5,25" -->
+            <td class="cifra"><b>5,25</b></td>
+            <td>
+              <button class="bottone secondario" style="font-size: 11px; padding: 6px 12px;">Modifica</button>
+              <button class="bottone rosso" style="font-size: 11px; padding: 6px 12px;">Rimuovi</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="marca">Carico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">16.VIII.2026</td>
+            <td class="cifra euro">8,0000</td>
+            <td class="cifra">7,5</td>
+            <td class="cifra euro">60,00</td>
+            <td class="cifra">7,5</td>
+            <td>
+              <button class="bottone secondario" style="font-size: 11px; padding: 6px 12px;">Modifica</button>
+              <button class="bottone rosso" style="font-size: 11px; padding: 6px 12px;">Rimuovi</button>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">Totale controvalore carico</td>
+            <td class="cifra euro">103,05</td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Riquadro totali aggiornati -->
+    <div class="riquadro-demo" style="margin-top: 22px;">
+      <div class="fascia">
+        <div class="cella">
+          <span class="et">Totale quote</span>
+          <span class="cifra-grande">12,75</span>
+          <span class="dettaglio">5,25 + 7,5 (prima: 10 + 7,5 = 17,5)</span>
+        </div>
+        <div class="cella">
+          <span class="et">Prezzo medio ponderato</span>
+          <span class="cifra-grande"><span class="valuta">EUR</span>8,0824</span>
+          <span class="dettaglio">(43,05 + 60,00) / 12,75</span>
+        </div>
+        <div class="cella">
+          <span class="et">Controvalore carico</span>
+          <span class="cifra-grande"><span class="valuta">EUR</span>103,05</span>
+          <span class="dettaglio">43,05 + 60,00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="postilla">
+      La rettifica aggiorna anche il prezzo medio ponderato del Riepilogo, ricalcolato
+      dal server su tutte le quote residue. Nessun carico &egrave; stato cancellato:
+      la rettifica &egrave; la correzione di un&rsquo;iscrizione errata, non una nuova operazione.
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; Deposito Titoli</span>
+    <span>US-047 &middot; Rettifica inline &middot; quantit&agrave; frazionaria</span>
+  </footer>
+
+  <div class="nav-mockup">
+    Mockup &mdash;
+    <a href="index.html">Modulo e validazione</a>
+    <a href="registro.html">Registro &amp; Riepilogo</a>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -315,7 +315,7 @@ describe('POST /api/portfolios/:id/sales — validazioni di forma', () => {
     { nome: 'prezzo nullo', payload: { isin: ISIN, sale_date: '2026-06-03', sale_price: 0, quantity: 1 }, atteso: 'prezzo' },
     { nome: 'prezzo negativo', payload: { isin: ISIN, sale_date: '2026-06-03', sale_price: -1, quantity: 1 }, atteso: 'prezzo' },
     { nome: 'prezzo non numerico', payload: { isin: ISIN, sale_date: '2026-06-03', sale_price: '12,50', quantity: 1 }, atteso: 'prezzo' },
-    { nome: 'quantità non intera', payload: { isin: ISIN, sale_date: '2026-06-03', sale_price: 12.5, quantity: 1.5 }, atteso: 'quantità' },
+    { nome: 'quantità con più di 6 decimali', payload: { isin: ISIN, sale_date: '2026-06-03', sale_price: 12.5, quantity: 1.5000001 }, atteso: 'quantità' },
     { nome: 'quantità nulla', payload: { isin: ISIN, sale_date: '2026-06-03', sale_price: 12.5, quantity: 0 }, atteso: 'quantità' },
     { nome: 'quantità negativa', payload: { isin: ISIN, sale_date: '2026-06-03', sale_price: 12.5, quantity: -10 }, atteso: 'quantità' },
   ];
@@ -553,5 +553,90 @@ describe('Le tre viste aggregate dopo una vendita', () => {
     ).json<PositionSummary[]>();
     expect(sommaB.totalQuantity).toBe(1000);
     expect(sommaB.soldQuantity).toBe(0);
+  });
+});
+
+// ─── US-048: quantità frazionarie nelle vendite ────────────────────────────────
+describe('POST /api/portfolios/:id/sales — quantità frazionarie (US-048)', () => {
+  it('accetta quantity: 5.005', async () => {
+    const app = await buildApp();
+    const { portfolioId } = await scenario(app, `Fraz 5.005 ${Math.random()}`);
+    const res = await vendi(app, portfolioId, {
+      isin: ISIN,
+      sale_date: '2026-06-03',
+      sale_price: 12.5,
+      quantity: 5.005,
+    });
+    expect(res.statusCode).toBe(201);
+    expect(res.json<Sale>().quantity).toBe(5.005);
+  });
+
+  it('accetta quantity: 7.5', async () => {
+    const app = await buildApp();
+    const { portfolioId } = await scenario(app, `Fraz 7.5 ${Math.random()}`);
+    const res = await vendi(app, portfolioId, {
+      isin: ISIN,
+      sale_date: '2026-06-03',
+      sale_price: 12.5,
+      quantity: 7.5,
+    });
+    expect(res.statusCode).toBe(201);
+    expect(res.json<Sale>().quantity).toBe(7.5);
+  });
+
+  it('rifiuta quantity: 5.0051234 (7+ decimali) con messaggio che nomina il limite', async () => {
+    const app = await buildApp();
+    const { portfolioId } = await scenario(app, `Fraz 7dec ${Math.random()}`);
+    const res = await vendi(app, portfolioId, {
+      isin: ISIN,
+      sale_date: '2026-06-03',
+      sale_price: 12.5,
+      quantity: 5.0051234,
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json<{ error: string }>().error).toContain('sei decimali');
+  });
+
+  it('rifiuta quantity: 0', async () => {
+    const app = await buildApp();
+    const { portfolioId } = await scenario(app, `Fraz zero ${Math.random()}`);
+    const res = await vendi(app, portfolioId, {
+      isin: ISIN,
+      sale_date: '2026-06-03',
+      sale_price: 12.5,
+      quantity: 0,
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('rifiuta quantity: -1.5', async () => {
+    const app = await buildApp();
+    const { portfolioId } = await scenario(app, `Fraz neg ${Math.random()}`);
+    const res = await vendi(app, portfolioId, {
+      isin: ISIN,
+      sale_date: '2026-06-03',
+      sale_price: 12.5,
+      quantity: -1.5,
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('vendita frazionaria totale: riepilogo con totalQuantity === 0', async () => {
+    const app = await buildApp();
+    const portfolioId = await creaPortafoglio(app, `Fraz totale ${Math.random()}`);
+    await carica(app, portfolioId, ISIN, '2024-01-15', 10, 12.345);
+    await carica(app, portfolioId, ISIN, '2024-06-01', 15, 7.5);
+
+    // Vendita parziale poi totale
+    await vendi(app, portfolioId, { isin: ISIN, sale_date: '2025-01-10', sale_price: 18, quantity: 5.005 });
+    await vendi(app, portfolioId, { isin: ISIN, sale_date: '2025-02-15', sale_price: 20, quantity: 14.84 });
+
+    const [summary] = (
+      await app.inject({ method: 'GET', url: `/api/portfolios/${portfolioId}/positions/summary` })
+    ).json<PositionSummary[]>();
+
+    expect(summary.totalQuantity).toBe(0);
+    expect(summary.avgLoadPrice).toBeNull();
+    expect(summary.totalLoadValue).toBe(0);
   });
 });

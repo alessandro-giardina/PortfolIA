@@ -55,7 +55,7 @@ export const positions = sqliteTable('positions', {
   isin: text('isin').notNull(),
   load_date: text('load_date').notNull(),
   load_price: real('load_price').notNull(),
-  quantity: integer('quantity').notNull(),
+  quantity: real('quantity').notNull(),
   created_at: integer('created_at')
     .notNull()
     .default(sql`(unixepoch())`),
@@ -93,7 +93,7 @@ export const sales = sqliteTable('sales', {
   isin: text('isin').notNull(),
   sale_date: text('sale_date').notNull(),
   sale_price: real('sale_price').notNull(),
-  quantity: integer('quantity').notNull(),
+  quantity: real('quantity').notNull(),
   created_at: integer('created_at')
     .notNull()
     .default(sql`(unixepoch())`),

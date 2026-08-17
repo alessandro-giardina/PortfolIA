@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-048 · Flusso LIFO e round6</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Attribuzione LIFO &middot; vendita frazionaria parziale e totale</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- ══ Il flusso della spec: campo «Dimostra» ══ -->
+    <div class="sezione-titolo">
+      Dimostrazione &middot; il flusso della spec
+      <span class="nota">due carichi da 12,345 + 7,5 &rarr; due vendite frazionarie &rarr; chiusura</span>
+    </div>
+
+    <!-- Passo 1: premessa — i due carichi -->
+    <div class="passo-titolo">
+      <span class="passo-etichetta">1</span>
+      Premessa &mdash; due carichi frazionari (US-047)
+    </div>
+
+    <div class="riquadro-demo">
+      <div class="fascia">
+        <div class="cella">
+          <span class="et">Primo carico</span>
+          <span class="cifra-grande">12,345</span>
+          <span class="dettaglio">quote a &euro;&nbsp;8,2000 ciascuna &mdash; 15.VIII.2026</span>
+        </div>
+        <div class="cella">
+          <span class="et">Secondo carico</span>
+          <span class="cifra-grande">7,5</span>
+          <span class="dettaglio">quote a &euro;&nbsp;8,0000 ciascuna &mdash; 16.VIII.2026</span>
+        </div>
+        <div class="cella">
+          <span class="et">Giacenza totale</span>
+          <span class="cifra-grande">19,845</span>
+          <span class="dettaglio">12,345 + 7,5 = 19,845 quote</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Passo 2: vendita parziale frazionaria -->
+    <div class="passo-titolo">
+      <span class="passo-etichetta">2</span>
+      Vendita parziale &mdash; 5,005 quote (LIFO dal secondo carico)
+    </div>
+
+    <div class="riquadro-demo">
+      <div class="fascia">
+        <div class="cella">
+          <span class="et">Vendita</span>
+          <span class="cifra-grande" style="color: var(--carminio);">5,005</span>
+          <span class="dettaglio">quote a &euro;&nbsp;8,4500 ciascuna &mdash; 18.VIII.2026</span>
+        </div>
+        <div class="cella">
+          <span class="et">Attribuzione LIFO</span>
+          <span class="cifra-grande">7,5 &rarr; 2,495</span>
+          <span class="dettaglio">dal secondo carico: 7,5 &minus; 5,005 = 2,495 residue</span>
+        </div>
+        <div class="cella">
+          <span class="et">Residuo totale</span>
+          <span class="cifra-grande">14,84</span>
+          <span class="dettaglio">19,845 &minus; 5,005 = 14,84</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registro dopo vendita parziale -->
+    <div class="tabella-scroll" style="margin-top: 0;">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>ISIN</th>
+            <th>Data</th>
+            <th>Prezzo</th>
+            <th>Quantit&agrave;</th>
+            <th>Controv.</th>
+            <th>Residuo lotto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="marca">Carico</span></td>
+            <td class="voce">IE00BK5BQT80</td>
+            <td class="cifra">15.VIII.2026</td>
+            <td class="cifra euro">8,2000</td>
+            <td class="cifra"><b>12,345</b></td>
+            <td class="cifra euro">101,23</td>
+            <td class="cifra">12,345</td>
+          </tr>
+          <tr>
+            <td><span class="marca">Carico</span></td>
+            <td class="voce">IE00BK5BQT80</td>
+            <td class="cifra">16.VIII.2026</td>
+            <td class="cifra euro">8,0000</td>
+            <td class="cifra"><b>7,5</b></td>
+            <td class="cifra euro">60,00</td>
+            <!-- consumato in parte: 2,495 su 7,5 -->
+            <td class="cifra" style="color: var(--carminio); font-weight: 700;">2,495</td>
+          </tr>
+          <tr class="riga-nuova">
+            <td><span class="marca carminio">Scarico</span></td>
+            <td class="voce">IE00BK5BQT80</td>
+            <td class="cifra">18.VIII.2026</td>
+            <td class="cifra euro">8,4500</td>
+            <td class="cifra" style="color: var(--carminio); font-weight: 700;"><b>5,005</b></td>
+            <td class="cifra euro">42,29</td>
+            <td class="cifra">&mdash;</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">Quantit&agrave; residua complessiva</td>
+            <td class="cifra" colspan="2"><b>14,84</b></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="postilla">
+      Il secondo carico &egrave; consumato in parte: <b>2,495 quote su 7,5</b>.
+      Entrambe le cifre formattate con <code>quantita()</code>, non con il numero grezzo.
+      Il messaggio server diventa: &laquo;consumato in parte (2,495 quote su 7,5)&raquo; &mdash;
+      mai &laquo;2.4950000000000001 quote su 7.5&raquo;.
+    </div>
+
+    <!-- Passo 3: vendita totale — il caso critico -->
+    <div class="passo-titolo">
+      <span class="passo-etichetta">3</span>
+      Vendita totale &mdash; 14,84 quote (chiude la posizione)
+    </div>
+
+    <div class="riquadro-demo">
+      <div class="fascia">
+        <div class="cella">
+          <span class="et">Vendita</span>
+          <span class="cifra-grande" style="color: var(--carminio);">14,84</span>
+          <span class="dettaglio">quote a &euro;&nbsp;8,6000 ciascuna &mdash; 19.VIII.2026</span>
+        </div>
+        <div class="cella">
+          <span class="et">Attribuzione LIFO</span>
+          <span class="cifra-grande">2,495 + 12,345</span>
+          <span class="dettaglio">il secondo carico tutto (2,495), poi il primo tutto (12,345)</span>
+        </div>
+        <div class="cella">
+          <span class="et">Residuo</span>
+          <span class="cifra-grande" style="color: var(--verde-attivo);">0</span>
+          <span class="dettaglio">posizione chiusa &mdash; esce dai posseduti</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Il problema IEEE 754 ══ -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Il problema &middot; IEEE 754 e il residuo fantasma
+      <span class="nota">perch&eacute; serve <code>round6</code></span>
+    </div>
+
+    <div class="lavagna">
+      <p class="titolo-lavagna">Aritmetica in virgola mobile &mdash; senza round6</p>
+      <pre class="calcolo">
+LIFO: 14,84 quote da vendere
+
+<span class="op">&rarr;</span> dal carico 2 (residuo 2,495):    14,84 <span class="op">&minus;</span> 2,495 <span class="op">=</span> <span class="sbagliato">12,344999999999999</span>
+  <span class="fantasma">IEEE 754: 14.84 - 2.495 = 12.344999999999999</span>
+
+<span class="op">&rarr;</span> dal carico 1 (12,345 quote):      12,345 <span class="op">&minus;</span> 12,344999999999999 <span class="op">=</span> <span class="sbagliato">1,7764e&minus;15</span>
+  <span class="fantasma">residuo = 0.0000000000000017763568394002505</span>
+
+<span class="op">=</span> totalQuantity <span class="op">===</span> 0?  <span class="sbagliato">false</span>
+  <span class="fantasma">La posizione resta fra i posseduti. Il P&amp;L latente &egrave; calcolato su un nulla.</span></pre>
+      <p class="nota-gesso">
+        Il confronto esatto <code>totalQuantity === 0</code> fallisce: un residuo di 10<sup>&minus;15</sup>
+        impedisce alla posizione di risultare chiusa.
+      </p>
+    </div>
+
+    <div class="lavagna">
+      <p class="titolo-lavagna">Aritmetica in virgola mobile &mdash; con round6</p>
+      <pre class="calcolo">
+LIFO: 14,84 quote da vendere
+
+<span class="op">&rarr;</span> dal carico 2 (residuo 2,495):    round6(14,84 <span class="op">&minus;</span> 2,495) <span class="op">=</span> <span class="corretto">12,345</span>
+  <span class="fantasma" style="color: rgba(215,221,196,.4);">Math.round(12.344999999999999 * 1e6) / 1e6 = 12.345</span>
+
+<span class="op">&rarr;</span> dal carico 1 (12,345 quote):      round6(12,345 <span class="op">&minus;</span> 12,345) <span class="op">=</span> <span class="corretto">0</span>
+  <span class="fantasma" style="color: rgba(215,221,196,.4);">Math.round(0 * 1e6) / 1e6 = 0</span>
+
+<span class="op">=</span> totalQuantity <span class="op">===</span> 0?  <span class="corretto">true</span>
+  <span class="fantasma" style="color: rgba(215,221,196,.4);">Posizione chiusa. Esce dai posseduti, entra in &laquo;Posizioni chiuse&raquo;.</span></pre>
+      <p class="nota-gesso">
+        <code>round6(v) = Math.round(v * 1e6) / 1e6</code> &mdash; applicato a ogni sottrazione di quantit&agrave;
+        in <code>rigiocaRegistro</code>. Sui dati interi &egrave; un no-op.
+      </p>
+    </div>
+
+    <!-- ══ Registro completo dopo chiusura ══ -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Registro delle iscrizioni &middot; IE00BK5BQT80
+      <span class="nota">dopo la chiusura completa della posizione</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Denominazione &middot; ISIN</th>
+            <th>Data</th>
+            <th>Prezzo</th>
+            <th>Quantit&agrave;</th>
+            <th>Controvalore</th>
+            <th>Residuo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="marca">Carico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">15.VIII.2026</td>
+            <td class="cifra euro">8,2000</td>
+            <td class="cifra"><b>12,345</b></td>
+            <td class="cifra euro">101,23</td>
+            <td class="cifra" style="color: var(--carminio);">0</td>
+          </tr>
+          <tr>
+            <td><span class="marca">Carico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">16.VIII.2026</td>
+            <td class="cifra euro">8,0000</td>
+            <td class="cifra"><b>7,5</b></td>
+            <td class="cifra euro">60,00</td>
+            <td class="cifra" style="color: var(--carminio);">0</td>
+          </tr>
+          <tr>
+            <td><span class="marca carminio">Scarico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">18.VIII.2026</td>
+            <td class="cifra euro">8,4500</td>
+            <td class="cifra" style="color: var(--carminio); font-weight: 700;"><b>5,005</b></td>
+            <td class="cifra euro">42,29</td>
+            <td class="cifra">&mdash;</td>
+          </tr>
+          <tr class="riga-nuova">
+            <td><span class="marca carminio">Scarico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">19.VIII.2026</td>
+            <td class="cifra euro">8,6000</td>
+            <td class="cifra" style="color: var(--carminio); font-weight: 700;"><b>14,84</b></td>
+            <td class="cifra euro">127,62</td>
+            <td class="cifra">&mdash;</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">Quantit&agrave; residua complessiva</td>
+            <td class="cifra" colspan="2" style="font-weight: 700; color: var(--verde-attivo);">0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="postilla">
+      Residuo esattamente <b>0</b> &mdash; non &laquo;0,000000&raquo; e non &laquo;1,7764e&minus;15&raquo;.
+      La posizione esce dalla tabella dei posseduti e compare in &laquo;Posizioni chiuse&raquo;.
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; Deposito Titoli</span>
+    <span>US-048 &middot; Flusso LIFO e round6</span>
+  </footer>
+
+  <div class="nav-mockup">
+    Mockup &mdash;
+    <a href="index.html">Modulo e validazione</a>
+    <a href="posizioni-chiuse.html">Posizioni chiuse</a>
+  </div>
+
+</div>
+
+</body>
+</html>

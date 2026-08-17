@@ -107,6 +107,11 @@ export function prezzo(valore: number): string {
   return valore.toLocaleString('it-IT', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 }
 
+/** Quantità con i soli decimali presenti, es. «12,345» e «10», mai «10,000000». */
+export function quantita(valore: number): string {
+  return valore.toLocaleString('it-IT', { maximumFractionDigits: 6 });
+}
+
 /**
  * Il segno tipografico di una cifra con segno: `+` per il guadagno, il **meno
  * tipografico** `−` (U+2212, non il trattino) per la perdita.

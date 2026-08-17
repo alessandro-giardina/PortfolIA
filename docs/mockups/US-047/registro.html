@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-047 · Registro e Riepilogo con quantita frazionarie</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Riepilogo e registro &middot; quantit&agrave; frazionarie a schermo</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#" class="attiva">Riepilogo</a>
+    <a href="#">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- ====== Il Riepilogo — quantita formattate con quantita() ====== -->
+    <div class="sezione-titolo">
+      Riepilogo del portafoglio
+      <span class="nota">FR-013 &middot; valore attuale e differenza rispetto al carico</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Denominazione &middot; ISIN</th>
+            <th>Quantit&agrave;</th>
+            <th>Medio carico</th>
+            <th>Prezzo attuale</th>
+            <th>Rilevamento</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World UCITS ETF (USD) Acc
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <!-- quantita(19.845) => "19,845" — non "19" ne "19,845000" -->
+            <td class="cifra"><b>19,845</b></td>
+            <td class="cifra euro">8,1367</td>
+            <td class="cifra euro">8,3200</td>
+            <td class="cifra" style="font-size: 12px;">17.VIII.2026 09:14</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="voce">
+                iShares Core MSCI World UCITS ETF USD (Acc)
+                <small>IE00B4L5Y983</small>
+              </span>
+            </td>
+            <!-- quantita(100) => "100" — intero resta intero -->
+            <td class="cifra"><b>100</b></td>
+            <td class="cifra euro">85,4500</td>
+            <td class="cifra euro">89,1200</td>
+            <td class="cifra" style="font-size: 12px;">17.VIII.2026 09:14</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="voce">
+                Amundi MSCI Emerging Markets UCITS ETF Acc
+                <small>LU1681045370</small>
+              </span>
+            </td>
+            <!-- quantita(3.14159) => "3,14159" — cinque decimali, tutti mostrati -->
+            <td class="cifra"><b>3,14159</b></td>
+            <td class="cifra euro">22,8000</td>
+            <td class="cifra euro">23,4500</td>
+            <td class="cifra" style="font-size: 12px;">17.VIII.2026 09:14</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Confronto con la resa precedente -->
+    <div class="postilla">
+      Le quantit&agrave; sopra usano <code>quantita()</code>: &laquo;19,845&raquo; e non &laquo;19&raquo; (troncamento intero),
+      &laquo;100&raquo; e non &laquo;100,000000&raquo; (zeri in coda),
+      &laquo;3,14159&raquo; e non &laquo;3.14159&raquo; (punto anglosassone).
+    </div>
+
+    <!-- ====== Titoli iscritti a conto ====== -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Titoli iscritti a conto
+      <span class="nota">3 ISIN distinti</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Denominazione &middot; ISIN</th>
+            <th>Quantit&agrave; residua</th>
+            <th>Prezzo medio carico</th>
+            <th>Controvalore carico</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <!-- quantita(19.845) => "19,845" -->
+            <td class="cifra"><b>19,845</b></td>
+            <td class="cifra euro">8,1367</td>
+            <td class="cifra euro">161,43</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="voce">
+                iShares Core MSCI World
+                <small>IE00B4L5Y983</small>
+              </span>
+            </td>
+            <!-- quantita(100) => "100" -->
+            <td class="cifra"><b>100</b></td>
+            <td class="cifra euro">85,4500</td>
+            <td class="cifra euro">8.545,00</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="voce">
+                Amundi MSCI Emerging Markets
+                <small>LU1681045370</small>
+              </span>
+            </td>
+            <!-- quantita(3.14159) => "3,14159" -->
+            <td class="cifra"><b>3,14159</b></td>
+            <td class="cifra euro">22,8000</td>
+            <td class="cifra euro">71,63</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">Totale controvalore carico</td>
+            <td class="cifra euro">8.778,06</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- ====== Demo: il flusso della spec ====== -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Dimostrazione &middot; il flusso della spec
+      <span class="nota">12,345 quote a 8,20 &euro; + 7,5 quote</span>
+    </div>
+
+    <!-- Step 1: primo carico -->
+    <div class="riquadro-demo">
+      <div class="fascia">
+        <div class="cella">
+          <span class="et">Primo carico</span>
+          <span class="cifra-grande">12,345</span>
+          <span class="dettaglio">quote a &euro;&nbsp;8,2000 ciascuna</span>
+        </div>
+        <div class="cella">
+          <span class="et">Controvalore</span>
+          <span class="cifra-grande"><span class="valuta">EUR</span>101,23</span>
+          <span class="dettaglio">8,2000 &times; 12,345 = 101,229 &rarr; arrotondato</span>
+        </div>
+        <div class="cella">
+          <span class="et">Quantit&agrave; residua</span>
+          <span class="cifra-grande">12,345</span>
+          <span class="dettaglio">nessuna vendita iscritta</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: secondo carico -->
+    <div class="riquadro-demo" style="margin-top: 0; border-top: none;">
+      <div class="fascia">
+        <div class="cella">
+          <span class="et">Secondo carico</span>
+          <span class="cifra-grande">7,5</span>
+          <span class="dettaglio">quote a &euro;&nbsp;8,0000 ciascuna</span>
+        </div>
+        <div class="cella">
+          <span class="et">Totale quote</span>
+          <span class="cifra-grande">19,845</span>
+          <span class="dettaglio">12,345 + 7,5</span>
+        </div>
+        <div class="cella">
+          <span class="et">Prezzo medio ponderato</span>
+          <span class="cifra-grande"><span class="valuta">EUR</span>8,1367</span>
+          <span class="dettaglio">(101,23 + 60,00) / 19,845</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Registro delle iscrizioni ====== -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Registro delle iscrizioni &middot; IE00BK5BQT80
+      <span class="nota">carichi con quantit&agrave; frazionaria</span>
+    </div>
+
+    <div class="tabella-scroll">
+      <table class="mastro">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Denominazione &middot; ISIN</th>
+            <th>Data</th>
+            <th>Prezzo</th>
+            <th>Quantit&agrave;</th>
+            <th>Controvalore</th>
+            <th>Residuo</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="riga-nuova">
+            <td><span class="marca">Carico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">15.VIII.2026</td>
+            <td class="cifra euro">8,2000</td>
+            <!-- quantita(12.345) => "12,345" -->
+            <td class="cifra"><b>12,345</b></td>
+            <td class="cifra euro">101,23</td>
+            <!-- quantita(12.345) => "12,345" -->
+            <td class="cifra">12,345</td>
+            <td>
+              <button class="bottone secondario" style="font-size: 11px; padding: 6px 12px;">Modifica</button>
+              <button class="bottone rosso" style="font-size: 11px; padding: 6px 12px;">Rimuovi</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="marca">Carico</span></td>
+            <td>
+              <span class="voce">
+                Vanguard FTSE All-World
+                <small>IE00BK5BQT80</small>
+              </span>
+            </td>
+            <td class="cifra">16.VIII.2026</td>
+            <td class="cifra euro">8,0000</td>
+            <!-- quantita(7.5) => "7,5" -->
+            <td class="cifra"><b>7,5</b></td>
+            <td class="cifra euro">60,00</td>
+            <td class="cifra">7,5</td>
+            <td>
+              <button class="bottone secondario" style="font-size: 11px; padding: 6px 12px;">Modifica</button>
+              <button class="bottone rosso" style="font-size: 11px; padding: 6px 12px;">Rimuovi</button>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">Totale controvalore carico</td>
+            <td class="cifra euro">161,23</td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Nota sulla persistenza -->
+    <div class="postilla">
+      Dopo il ricaricamento della pagina le quantit&agrave; restano &laquo;12,345&raquo; e &laquo;7,5&raquo; &mdash;
+      non arrotondate a intero: la colonna <code>positions.quantity</code> &egrave; ora <code>real</code>,
+      non pi&ugrave; <code>integer</code>.
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; Deposito Titoli</span>
+    <span>US-047 &middot; Registro e Riepilogo &middot; quantit&agrave; frazionarie</span>
+  </footer>
+
+  <div class="nav-mockup">
+    Mockup &mdash;
+    <a href="index.html">Modulo e validazione</a>
+    <a href="rettifica.html">Rettifica inline</a>
+  </div>
+
+</div>
+
+</body>
+</html>

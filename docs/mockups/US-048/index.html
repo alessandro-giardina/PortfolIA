@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA — US-048 · Scarico con quantita frazionaria</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div class="foglio">
+
+  <header class="testata">
+    <div>
+      <p class="marchio">Conto a mastro &middot; partita singola</p>
+      <h1>Conto <span class="corsivo">Deposito Titoli Alfa</span></h1>
+      <p class="sottotesto">Scarico titoli &middot; quantit&agrave; frazionarie e residuo esatto a zero</p>
+    </div>
+    <div class="colonna-registro">
+      <div>VOL. <b>I</b> &mdash; ANNO <b>MMXXVI</b></div>
+      <div>Portafoglio n. <b>004</b></div>
+      <div>Aperto il <b>11.II.2023</b></div>
+    </div>
+  </header>
+
+  <nav class="linguette">
+    <a href="#">&larr; Portafogli</a>
+    <a href="#">Riepilogo</a>
+    <a href="#" class="attiva">Carico titoli</a>
+    <a class="disabilitata">Scheda titolo</a>
+  </nav>
+
+  <main class="corpo">
+
+    <!-- ══ Esito: scarico frazionario appena iscritto ══ -->
+    <div class="avviso-successo">
+      <span class="timbro-ok">Iscritto</span>
+      <p>
+        Scarico di <b>5,005</b> quote <b>IE00BK5BQT80</b> del <b>18.VIII.2026</b> a
+        <b>&euro;&nbsp;8,4500</b> iscritto nel registro. Nessun carico &egrave; stato modificato o cancellato.
+      </p>
+    </div>
+
+    <!-- ══ Il modulo di scarico — DOPO: frazionario ══ -->
+    <div class="sezione-titolo">
+      Scarico titoli &middot; registrazione di una vendita
+      <span class="nota">FR-022, US-048 &middot; quantit&agrave; frazionaria, virgola o punto</span>
+    </div>
+
+    <div class="riquadro-modulo scarico">
+      <div class="intestazione-modulo">
+        <span>Modulo di scarico titolo</span>
+        <span class="num-modulo">MOD/SCA-002 &middot; rev. II &mdash; quote frazionarie</span>
+      </div>
+      <div class="corpo-modulo">
+        <form onsubmit="return false">
+
+          <!-- Titolo (select) -->
+          <div class="riga-modulo">
+            <label for="sca-titolo">
+              Titolo
+              <span class="sotto-etichetta">fra quelli con quantit&agrave; residua</span>
+            </label>
+            <div class="campo">
+              <select id="sca-titolo" disabled>
+                <option>IE00BK5BQT80 &mdash; Vanguard FTSE All-World UCITS ETF Acc</option>
+              </select>
+              <!-- quantita(14.84) => "14,84" -->
+              <span class="giacenza">residuo <b>14,84</b> quote</span>
+            </div>
+          </div>
+
+          <!-- Data di vendita -->
+          <div class="riga-modulo">
+            <label for="sca-data">
+              Data di vendita
+              <span class="sotto-etichetta">giorno dell&apos;operazione eseguita</span>
+            </label>
+            <div class="campo">
+              <input id="sca-data" type="date" value="2026-08-19" disabled>
+            </div>
+          </div>
+
+          <!-- Prezzo -->
+          <div class="riga-modulo">
+            <label for="sca-prezzo">
+              Prezzo di vendita
+              <span class="sotto-etichetta">per singola quota, in euro</span>
+            </label>
+            <div class="campo">
+              <span class="unita">EUR</span>
+              <input id="sca-prezzo" type="text" inputmode="decimal" placeholder="0,0000" value="8,6000" disabled>
+            </div>
+          </div>
+
+          <!-- Quantita venduta — il campo cambiato dalla spec -->
+          <div class="riga-modulo">
+            <label for="sca-quantita">
+              Quantit&agrave; venduta
+              <span class="sotto-etichetta">numero positivo, al pi&ugrave; 6 decimali</span>
+            </label>
+            <div class="campo">
+              <span class="unita">QT&Agrave;</span>
+              <input
+                id="sca-quantita"
+                type="text"
+                inputmode="decimal"
+                placeholder="es. 5,005"
+                value="14,84"
+              >
+            </div>
+          </div>
+
+        </form>
+
+        <p class="nota-contabile">
+          L&apos;incasso dell&apos;operazione &mdash; prezzo &times; quantit&agrave; &mdash; <b>non</b> &egrave; trattenuto come
+          liquidit&agrave; del portafoglio: PortfolIA tiene i titoli, non la cassa (ADR-009). La vendita &egrave;
+          una <b>nuova iscrizione</b>: nessun carico viene modificato o cancellato.
+        </p>
+
+        <div class="bottoni">
+          <button type="submit" class="bottone rosso">Iscrive lo scarico</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Correzione evidenziata: prima / dopo -->
+    <div class="postilla">
+      <strong>Correzione US-048.</strong>
+      Il campo Quantit&agrave; venduta era <code>type="number" min="1" step="1"</code> &mdash;
+      ora &egrave; <code>type="text" inputMode="decimal"</code> con normalizzazione virgola/punto,
+      come gi&agrave; fatto per il carico in US-047.
+      La sotto-etichetta &laquo;numero intero di quote&raquo; diventa &laquo;numero positivo, al pi&ugrave; 6 decimali&raquo;.
+      Il residuo &egrave; formattato con <code>quantita()</code>: &laquo;14,84&raquo; e non &laquo;14.84&raquo;.
+    </div>
+
+    <!-- ══ Validazione: scenari di rifiuto ══ -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Validazione del campo quantit&agrave; venduta
+      <span class="nota">tre scenari di rifiuto client-side</span>
+    </div>
+
+    <!-- Errore: troppi decimali -->
+    <div class="riquadro-modulo scarico" style="margin-bottom: 18px;">
+      <div class="intestazione-modulo">
+        <span>Modulo di scarico titolo</span>
+        <span class="num-modulo">Scenario: 7+ decimali</span>
+      </div>
+      <div class="corpo-modulo">
+        <div class="riga-modulo con-errore">
+          <label for="err-decimali">
+            Quantit&agrave; venduta
+            <span class="sotto-etichetta">numero positivo, al pi&ugrave; 6 decimali</span>
+          </label>
+          <div class="campo con-errore">
+            <span class="unita">QT&Agrave;</span>
+            <input id="err-decimali" type="text" inputmode="decimal" value="5,0051234">
+            <span class="errore-campo visibile">La quantit&agrave; venduta deve essere un numero positivo con al pi&ugrave; sei decimali.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Errore: zero -->
+    <div class="riquadro-modulo scarico" style="margin-bottom: 18px;">
+      <div class="intestazione-modulo">
+        <span>Modulo di scarico titolo</span>
+        <span class="num-modulo">Scenario: zero</span>
+      </div>
+      <div class="corpo-modulo">
+        <div class="riga-modulo con-errore">
+          <label for="err-zero">
+            Quantit&agrave; venduta
+            <span class="sotto-etichetta">numero positivo, al pi&ugrave; 6 decimali</span>
+          </label>
+          <div class="campo con-errore">
+            <span class="unita">QT&Agrave;</span>
+            <input id="err-zero" type="text" inputmode="decimal" value="0">
+            <span class="errore-campo visibile">La quantit&agrave; venduta deve essere un numero positivo con al pi&ugrave; sei decimali.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Errore: non numerico -->
+    <div class="riquadro-modulo scarico">
+      <div class="intestazione-modulo">
+        <span>Modulo di scarico titolo</span>
+        <span class="num-modulo">Scenario: testo non numerico</span>
+      </div>
+      <div class="corpo-modulo">
+        <div class="riga-modulo con-errore">
+          <label for="err-testo">
+            Quantit&agrave; venduta
+            <span class="sotto-etichetta">numero positivo, al pi&ugrave; 6 decimali</span>
+          </label>
+          <div class="campo con-errore">
+            <span class="unita">QT&Agrave;</span>
+            <input id="err-testo" type="text" inputmode="decimal" value="abc">
+            <span class="errore-campo visibile">La quantit&agrave; venduta deve essere un numero positivo con al pi&ugrave; sei decimali.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Rifiuto server: quantita eccedente ══ -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Rifiuto server &middot; FR-024
+      <span class="nota">la vendita eccede la giacenza &mdash; anche di un millesimo</span>
+    </div>
+
+    <div class="avviso-rifiuto">
+      <span class="timbro-ko">Rifiutato</span>
+      <p>
+        La quantit&agrave; venduta (14,841) eccede la giacenza disponibile per IE00BK5BQT80
+        alla data indicata (14,84 quote).
+      </p>
+    </div>
+
+    <div class="postilla">
+      <strong>FR-024 sui decimali.</strong>
+      Una vendita di 14,841 su una giacenza di 14,84 &egrave; rifiutata (eccedente di 0,001).
+      Una vendita di 14,84 su 14,84 &egrave; accettata: <code>round6</code> garantisce che il confronto
+      non fallisca per un errore di rappresentazione IEEE&nbsp;754.
+    </div>
+
+    <!-- ══ Resa a schermo: le quantita vendute ══ -->
+    <div class="sezione-titolo" style="margin-top: 36px;">
+      Resa a schermo &middot; formatter <code>quantita()</code> sullo scarico
+      <span class="nota">i soli decimali presenti, formato it-IT</span>
+    </div>
+
+    <div class="confronto-resa">
+      <div class="lato">
+        <h4>Prima &mdash; numeri grezzi</h4>
+        <div class="esempio"><s>14.84</s></div>
+        <div class="spiegazione">Residuo nel modulo: punto anglosassone, nessuna formattazione</div>
+        <div class="esempio" style="margin-top: 12px"><s>5.005</s></div>
+        <div class="spiegazione">Quantit&agrave; venduta nell'avviso di successo: numero grezzo</div>
+        <div class="esempio" style="margin-top: 12px"><s>19,845</s></div>
+        <div class="spiegazione">Posizioni chiuse con toLocaleString: potrebbe mostrare 3 decimali default</div>
+      </div>
+      <div class="lato">
+        <h4>Dopo &mdash; quantita()</h4>
+        <div class="esempio"><b>14,84</b></div>
+        <div class="spiegazione">Residuo: virgola it-IT, solo i 2 decimali che ha</div>
+        <div class="esempio" style="margin-top: 12px"><b>5,005</b></div>
+        <div class="spiegazione">Avviso: virgola, 3 decimali presenti</div>
+        <div class="esempio" style="margin-top: 12px"><b>19,845</b></div>
+        <div class="spiegazione">Posizioni chiuse: coerente con il resto del registro</div>
+      </div>
+    </div>
+
+    <div class="postilla">
+      I tre punti aggiornati: (1) <code>ModuloScarico.tsx</code> residuo nel campo Titolo,
+      (2) <code>PortfolioDetailPage.tsx</code> quantit&agrave; nell'avviso di successo,
+      (3) <code>PortfolioDetailPage.tsx</code> quantit&agrave; venduta nella tabella Posizioni chiuse.
+    </div>
+
+  </main>
+
+  <footer class="pie">
+    <span class="firma">PortfolIA &mdash; Deposito Titoli</span>
+    <span>US-048 &middot; Scarico frazionario &middot; Modulo e validazione</span>
+  </footer>
+
+  <div class="nav-mockup">
+    Mockup &mdash;
+    <a href="flusso-lifo.html">Flusso LIFO e round6</a>
+    <a href="posizioni-chiuse.html">Posizioni chiuse</a>
+  </div>
+
+</div>
+
+</body>
+</html>

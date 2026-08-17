@@ -60,7 +60,7 @@ function dataPunto(punto: Pick<PuntoSerie, 'at' | 'origin'>): string {
 
 /** Conteggio con separatore delle migliaia, es. "1.785". */
 function conteggio(valore: number): string {
-  return valore.toLocaleString('it-IT');
+  return valore.toLocaleString('it-IT', { maximumFractionDigits: 6 });
 }
 
 /**

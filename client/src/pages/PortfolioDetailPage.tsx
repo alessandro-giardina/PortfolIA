@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import type { Portfolio, Position, PositionSummary, EnrichedPositionSummary, CreatePositionRequest, UpdatePositionRequest, Sale, CaricoLotto, VenditaLotto, PortfolioSeriesEntry } from '@portfolia/shared';
 import { isValidIsin, residuoPerIsin, rigiocaRegistro } from '@portfolia/shared';
-import Foglio, { dataRegistro, importo, prezzo } from '../components/Foglio.js';
+import Foglio, { dataRegistro, importo, prezzo, quantita } from '../components/Foglio.js';
 import SchedaTitolo from '../components/SchedaTitolo.js';
 import AggiornaObsoleti from '../components/AggiornaObsoleti.js';
 import ModuloScarico, { type TitoloScaricabile } from '../components/ModuloScarico.js';
@@ -542,9 +542,10 @@ export default function PortfolioDetailPage() {
     if (!loadPrice || isNaN(price) || price <= 0) {
       errors.loadPrice = 'Il prezzo deve essere un valore positivo.';
     }
-    const qty = parseInt(quantity, 10);
-    if (!quantity || isNaN(qty) || qty <= 0 || String(qty) !== quantity.trim()) {
-      errors.quantity = 'La quantità deve essere un intero positivo.';
+    const normalizzato = quantity.trim().replace(',', '.');
+    const qty = parseFloat(normalizzato);
+    if (!quantity || isNaN(qty) || qty <= 0 || Math.round(qty * 1e6) / 1e6 !== qty) {
+      errors.quantity = 'La quantità deve essere un numero positivo con al più sei decimali.';
     }
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -562,7 +563,7 @@ export default function PortfolioDetailPage() {
         isin: isin.trim().toUpperCase(),
         load_date: loadDate,
         load_price: parseFloat(loadPrice),
-        quantity: parseInt(quantity, 10),
+        quantity: parseFloat(quantity.trim().replace(',', '.')),
       };
       const res = await fetch(`/api/portfolios/${id}/positions`, {
         method: 'POST',
@@ -629,9 +630,10 @@ export default function PortfolioDetailPage() {
     }
     updates.load_price = price;
 
-    const qty = parseInt(editQuantity, 10);
-    if (!editQuantity || isNaN(qty) || qty <= 0 || String(qty) !== editQuantity.trim()) {
-      setEditError('La quantità deve essere un intero positivo.');
+    const normalizzatoEdit = editQuantity.trim().replace(',', '.');
+    const qty = parseFloat(normalizzatoEdit);
+    if (!editQuantity || isNaN(qty) || qty <= 0 || Math.round(qty * 1e6) / 1e6 !== qty) {
+      setEditError('La quantità deve essere un numero positivo con al più sei decimali.');
       return;
     }
     updates.quantity = qty;
@@ -1028,7 +1030,7 @@ export default function PortfolioDetailPage() {
                                 )}
                               </CellaTitolo>
                             </td>
-                            <td className="cifra">{ep.totalQuantity.toLocaleString('it-IT')}</td>
+                            <td className="cifra">{quantita(ep.totalQuantity)}</td>
                             {/* Il medio del residuo, assente a residuo 0: il trattino
                                 dice «non esiste», uno zero direbbe «comprato a zero». */}
                             <td className={ep.avgLoadPrice !== null ? 'cifra euro' : 'cifra dato-mancante'}>
@@ -1194,7 +1196,7 @@ export default function PortfolioDetailPage() {
                                         <CellaTitolo isin={ep.isin} nome={ep.name} />
                                       </td>
                                       <td className="et-chiusura">{chiusuraIl ? dataCarico(chiusuraIl) : '–'}</td>
-                                      <td className="cifra">{ep.soldQuantity.toLocaleString('it-IT')}</td>
+                                      <td className="cifra">{quantita(ep.soldQuantity)}</td>
                                       <td className="cifra euro">{ep.soldRevenue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                       <td className={ep.realizedPnl >= 0 ? 'cifra guadagno' : 'cifra perdita'}>
                                         {`${ep.realizedPnl >= 0 ? '+' : ''}${ep.realizedPnl.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -1464,17 +1466,16 @@ export default function PortfolioDetailPage() {
                     <div className={`riga-modulo${fieldErrors.quantity ? ' con-errore' : ''}`}>
                       <label htmlFor="carico-quantita">
                         Quantità
-                        <span className="sotto-etichetta">numero intero di quote</span>
+                        <span className="sotto-etichetta">numero positivo, al più 6 decimali</span>
                       </label>
                       <div className={`campo${fieldErrors.quantity ? ' con-errore' : ''}`}>
                         <span className="unita">QTÀ</span>
                         <input
                           id="carico-quantita"
                           data-testid="input-quantita"
-                          type="number"
-                          min="1"
-                          step="1"
-                          placeholder="0"
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="es. 12,345"
                           value={quantity}
                           onChange={(e) => setQuantity(e.target.value)}
                           disabled={submitting}
@@ -1530,7 +1531,7 @@ export default function PortfolioDetailPage() {
                 <div className="avviso-successo" role="status" data-testid="scarico-successo">
                   <span className="timbro-ok">Iscritto</span>
                   <p>
-                    Scarico di <b>{ultimaVendita.quantity}</b> quote <b>{ultimaVendita.isin}</b> del{' '}
+                    Scarico di <b>{quantita(ultimaVendita.quantity)}</b> quote <b>{ultimaVendita.isin}</b> del{' '}
                     <b>{dataCarico(ultimaVendita.saleDate)}</b> a{' '}
                     <b>€ {prezzo(ultimaVendita.salePrice)}</b> iscritto nel registro. Nessun carico è
                     stato modificato o cancellato.
@@ -1561,11 +1562,11 @@ export default function PortfolioDetailPage() {
                     <div className="casella-residuo">
                       <span className="et">Quantità residua</span>
                       <span className="cifra-grande" data-testid="residuo-quantita">
-                        {residuoDopoVendita.dopo.totalQuantity.toLocaleString('it-IT')}
+                        {quantita(residuoDopoVendita.dopo.totalQuantity)}
                       </span>
                       <span className="prima-dopo">
-                        Σ carichi {residuoDopoVendita.dopo.loadedQuantity.toLocaleString('it-IT')} − Σ
-                        vendite {residuoDopoVendita.dopo.soldQuantity.toLocaleString('it-IT')}
+                        Σ carichi {quantita(residuoDopoVendita.dopo.loadedQuantity)} − Σ
+                        vendite {quantita(residuoDopoVendita.dopo.soldQuantity)}
                       </span>
                     </div>
                     <div className="casella-residuo">
@@ -1658,7 +1659,7 @@ export default function PortfolioDetailPage() {
                           <td>
                             <CellaTitolo isin={summary.isin} nome={nomePerIsin.get(summary.isin) ?? null} />
                           </td>
-                          <td className="cifra">{summary.totalQuantity}</td>
+                          <td className="cifra">{quantita(summary.totalQuantity)}</td>
                           <td className={summary.avgLoadPrice !== null ? 'cifra euro' : 'cifra dato-mancante'}>
                             {summary.avgLoadPrice !== null ? summary.avgLoadPrice.toFixed(4) : '—'}
                           </td>
@@ -1748,7 +1749,7 @@ export default function PortfolioDetailPage() {
                               </td>
                               <td className="cifra">{dataCarico(vendita.saleDate)}</td>
                               <td className="cifra euro">{prezzo(vendita.salePrice)}</td>
-                              <td className="cifra">{vendita.quantity}</td>
+                              <td className="cifra">{quantita(vendita.quantity)}</td>
                               <td className="cifra euro">{importo(vendita.salePrice * vendita.quantity)}</td>
                               <td className="cifra dato-mancante">—</td>
                               <td />
@@ -1772,7 +1773,7 @@ export default function PortfolioDetailPage() {
                         const perche = consumato
                           ? residuo === 0
                             ? 'consumato da una vendita: si rettifica solo un\'iscrizione errata'
-                            : `consumato in parte (${pos.quantity - residuo} quote su ${pos.quantity}) da una vendita: si rettifica solo un'iscrizione errata`
+                            : `consumato in parte (${quantita(pos.quantity - residuo)} quote su ${quantita(pos.quantity)}) da una vendita: si rettifica solo un'iscrizione errata`
                           : null;
                         return editingPositionId === pos.id ? (
                           /* ── Form inline modifica ── */
@@ -1807,14 +1808,14 @@ export default function PortfolioDetailPage() {
                             </td>
                             <td>
                               <input
-                                type="number"
-                                min="1"
-                                step="1"
+                                type="text"
+                                inputMode="decimal"
+                                placeholder="es. 12,345"
                                 value={editQuantity}
                                 onChange={(e) => setEditQuantity(e.target.value)}
                                 data-testid="edit-input-quantita"
                                 disabled={editSubmitting}
-                                style={{ width: '70px' }}
+                                style={{ width: '90px' }}
                               />
                             </td>
                             <td className="cifra euro">—</td>
@@ -1868,9 +1869,9 @@ export default function PortfolioDetailPage() {
                             </td>
                             <td className="cifra">{dataCarico(pos.loadDate)}</td>
                             <td className="cifra euro">{pos.loadPrice.toFixed(4)}</td>
-                            <td className="cifra">{pos.quantity}</td>
+                            <td className="cifra">{quantita(pos.quantity)}</td>
                             <td className="cifra euro">{(pos.loadPrice * pos.quantity).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                            <td className="cifra" data-testid={`residuo-lotto-${pos.id}`}>{residuo}</td>
+                            <td className="cifra" data-testid={`residuo-lotto-${pos.id}`}>{quantita(residuo)}</td>
                             <td>
                               {/*
                                 Sul carico consumato i due comandi **non spariscono**:

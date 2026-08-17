@@ -6,7 +6,7 @@ epic:
   title: Gestione delle posizioni
 priority: HIGH
 points: 3
-status: TODO
+status: REVIEW
 scope: MVP
 body: |-
   #### US-047: Iscrivere un carico con quantità frazionaria
@@ -39,3 +39,9 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-17T14:53:18Z"
+  - status: PLANNED
+    at: "2026-08-17T15:07:15Z"
+  - status: IN PROGRESS
+    at: "2026-08-17T15:15:06Z"
+  - status: REVIEW
+    at: "2026-08-17T15:19:55Z"

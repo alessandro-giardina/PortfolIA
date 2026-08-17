@@ -617,6 +617,83 @@ describe('residuoPerIsin — soldRevenue, l\'incasso complessivo (US-044)', () =
   });
 });
 
+// ─── Quantità frazionarie (US-048) ────────────────────────────────────────────
+// Carichi: 12,345 + 7,5 = 19,845 quote. Vendita parziale di 5,005 →
+// residuo 14,84. Vendita totale di 14,84 → residuo esattamente 0.
+describe('quantità frazionarie', () => {
+  const CARICO_F1 = carico(10, '2024-01-15', 12.345, 10);
+  const CARICO_F2 = carico(11, '2024-06-01', 7.5, 15);
+  const CARICHI_F = [CARICO_F1, CARICO_F2];
+
+  it('vendita parziale frazionaria: LIFO consuma dal lotto più recente', () => {
+    const registro = rigiocaRegistro({
+      carichi: CARICHI_F,
+      vendite: [vendita(100, '2025-01-10', 5.005, 18)],
+    });
+
+    // LIFO: consuma 5,005 dal lotto n. 2 (7,5 quote) → residuo lotto 2 = 2,495
+    const lotto2 = registro.lotti.find((l) => l.caricoId === 11)!;
+    expect(lotto2.quantitaResidua).toBe(2.495);
+    expect(lotto2.quantitaConsumata).toBe(5.005);
+
+    // Lotto 1 intatto
+    const lotto1 = registro.lotti.find((l) => l.caricoId === 10)!;
+    expect(lotto1.quantitaResidua).toBe(12.345);
+    expect(lotto1.quantitaConsumata).toBe(0);
+
+    // Quantità residua totale: 12,345 + 2,495 = 14,84
+    const totResiduo = registro.lotti.reduce((s, l) => s + l.quantitaResidua, 0);
+    expect(totResiduo).toBe(14.84);
+  });
+
+  it('vendita totale frazionaria: residuo esattamente 0 (non ~1e-16)', () => {
+    const registro = rigiocaRegistro({
+      carichi: CARICHI_F,
+      vendite: [
+        vendita(100, '2025-01-10', 5.005, 18),
+        vendita(101, '2025-02-15', 14.84, 20),
+      ],
+    });
+
+    const totResiduo = registro.lotti.reduce((s, l) => s + l.quantitaResidua, 0);
+    expect(totResiduo).toBe(0);
+    expect(registro.scopertoTotale).toBe(0);
+  });
+
+  it('verificaVendita accetta vendita di quantità uguale alla giacenza frazionaria', () => {
+    const registroInput = {
+      carichi: CARICHI_F,
+      vendite: [vendita(100, '2025-01-10', 5.005, 18)],
+    };
+    const esito = verificaVendita({ ...registroInput, saleDate: '2025-02-15', quantita: 14.84 });
+    expect(esito.esito).toBe('ok');
+  });
+
+  it('verificaVendita rifiuta vendita di 14,841 su 14,84 disponibili', () => {
+    const registroInput = {
+      carichi: CARICHI_F,
+      vendite: [vendita(100, '2025-01-10', 5.005, 18)],
+    };
+    const esito = verificaVendita({ ...registroInput, saleDate: '2025-02-15', quantita: 14.841 });
+    expect(esito.esito).toBe('quantita-eccedente');
+  });
+
+  it('residuoPerIsin a residuo zero: totalQuantity === 0, avgLoadPrice null, latentPnl 0', () => {
+    const residuo = residuoPerIsin({
+      carichi: CARICHI_F,
+      vendite: [
+        vendita(100, '2025-01-10', 5.005, 18),
+        vendita(101, '2025-02-15', 14.84, 20),
+      ],
+      currentPrice: 25,
+    });
+
+    expect(residuo.totalQuantity).toBe(0);
+    expect(residuo.avgLoadPrice).toBeNull();
+    expect(residuo.latentPnl).toBe(0);
+  });
+});
+
 describe('residuoPerIsin — invariante del criterio 4: vendere a prezzo di mercato non crea né distrugge', () => {
   it('il totale prima e dopo una vendita al prezzo corrente esatto è identico al centesimo', () => {
     // Prima dello scarico: 1.000 quote, nessuna vendita, prezzo di mercato 12,50.
