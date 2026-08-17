@@ -6,9 +6,9 @@ epic:
   title: Gestione delle posizioni
 priority: HIGH
 points: 3
-status: REVIEW
+status: TODO
 scope: MVP
-body: |-
+body: |
   #### US-047: Iscrivere un carico con quantità frazionaria
 
   **Epic:** EP-003 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
@@ -36,6 +36,13 @@ body: |-
   - [ ] Ogni punto che mostra una quantità di carico la rende in it-IT con i soli decimali presenti — «12,345» e «10», mai «10,000000»: tabella del Riepilogo, «Titoli iscritti a conto», «Registro delle iscrizioni»
   - [ ] Controvalore di carico, prezzo medio ponderato (FR-008) e valore attuale del portafoglio (FR-010) restano corretti su quantità frazionarie, coperti da test puri
   - [ ] Un test E2E iscrive un carico frazionario e ne verifica quantità e controvalore a schermo
+
+  ## Rework Feedback
+
+  <!-- Added by request-changes. archetipo-plan converts each item into a Fix task. -->
+
+  - Implementazione incompleta: solo TASK-01 (migrazione schema) è DONE. I task 02–07 — validazione server, validazione client, formatter di resa, test unitari LIFO, test E2E — sono ancora TODO. La spec non è pronta per l'accettazione; va completata con /archetipo-implement US-047.
+rework: true
 history:
   - status: TODO
     at: "2026-08-17T14:53:18Z"
@@ -45,3 +52,5 @@ history:
     at: "2026-08-17T15:15:06Z"
   - status: REVIEW
     at: "2026-08-17T15:19:55Z"
+  - status: TODO
+    at: "2026-08-17T20:43:04Z"

@@ -6,7 +6,7 @@ epic:
   title: Vendite e posizioni chiuse
 priority: HIGH
 points: 5
-status: REVIEW
+status: DONE
 scope: MVP
 body: |-
   #### US-048: Registrare uno scarico con quantità frazionaria
@@ -46,3 +46,5 @@ history:
     at: "2026-08-17T15:35:12Z"
   - status: REVIEW
     at: "2026-08-17T15:51:11Z"
+  - status: DONE
+    at: "2026-08-17T20:44:00Z"

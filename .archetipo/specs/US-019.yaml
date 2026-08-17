@@ -6,7 +6,7 @@ epic:
   title: Grafico andamento del portafoglio
 priority: HIGH
 points: 5
-status: REVIEW
+status: DONE
 scope: MVP
 body: |-
   #### US-019: Visualizzare il grafico del valore del portafoglio nel tempo
@@ -46,3 +46,5 @@ history:
     at: "2026-08-13T12:27:05Z"
   - status: REVIEW
     at: "2026-08-13T16:36:52Z"
+  - status: DONE
+    at: "2026-08-17T20:39:24Z"
