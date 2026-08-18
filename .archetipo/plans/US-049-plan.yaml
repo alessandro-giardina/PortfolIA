@@ -1,0 +1,267 @@
+schema: archetipo/plan/v2
+spec_code: US-049
+body: |-
+  # US-049: Estrarre la logica dalle pagine in hook riusabili — Piano di implementazione
+
+  **Generato da:** Team di Pianificazione ARchetipo
+  **Data:** 2026-08-18
+
+  ---
+
+  ## Spec
+
+  **Epic:** EP-009 — Direzione visiva commutabile
+  **Priorità:** HIGH | **Punti:** 5
+
+  **User Story**
+  Come sviluppatore che mantiene il frontend di PortfolIA,
+  voglio che la logica di fetch, stato e side-effect di ogni pagina sia estratta in hook dedicati, separati dal markup,
+  così che un secondo design possa riusare la stessa logica senza duplicarla.
+
+  **Criteri di Accettazione**
+  - [ ] `PortfolioDetailPage.tsx`, `DashboardPage.tsx` e `SecuritySearchPage.tsx` importano la logica da hook dedicati e non contengono `fetch`, `useEffect` per dati, né gestione di stato dei form
+  - [ ] Le utility di formattazione neutre (`importo`, `prezzo`, `segnoDi`, `classeSegno`, `percentualeConSegno`, `importoConSegno`) sono in un modulo proprio, distinto da `Foglio.tsx`
+  - [ ] La suite E2E esistente (61 file) passa verde senza modifiche ai test
+  - [ ] `npm run check` (lint + typecheck + test unitari) è verde
+
+  ---
+
+  ## Soluzione Tecnica
+
+  ### 1. Estrazione delle utility di formattazione neutre
+
+  **Nuovo modulo:** `client/src/domain/formattazione.ts`
+
+  Le sei utility neutre elencate nei criteri (`importo`, `prezzo`, `segnoDi`, `classeSegno`, `percentualeConSegno`, `importoConSegno`) vengono spostate da `Foglio.tsx` a questo nuovo modulo. Il modulo è puro — nessuna dipendenza da React — e si affianca al già esistente `recuperoTitolo.ts` nella directory `domain/`.
+
+  **Restano in `Foglio.tsx`:**
+  - Il componente `Foglio` (default export)
+  - `dataRegistro` — formato «gg.MESE_ROMANO.anno» da timestamp, legato alla resa del Libro Mastro
+  - `dataCarico` — formato «gg.MESE_ROMANO.anno» da ISO date, stessa famiglia
+  - `quantita` — non elencata nei criteri, resta nel guscio per ora
+
+  **File da aggiornare** (8 componenti + 1 pagina importano almeno una delle 6 utility da `Foglio.tsx`):
+
+  | File | Import da spostare a `formattazione.ts` | Import che restano su `Foglio.tsx` |
+  |---|---|---|
+  | `QuadroRisultato.tsx` | `classeSegno`, `importo`, `percentualeConSegno`, `segnoDi` | — |
+  | `MetricheTitolo.tsx` | `classeSegno`, `importo`, `importoConSegno`, `percentualeConSegno`, `prezzo`, `segnoDi` | `dataCarico` |
+  | `GraficoTitolo.tsx` | `importo`, `prezzo` | — |
+  | `GraficoPortafoglio.tsx` | `importo`, `prezzo` | — |
+  | `SchedaTitolo.tsx` | `classeSegno`, `importo`, `importoConSegno`, `percentualeConSegno`, `prezzo` | `dataCarico`, `dataRegistro`, `quantita` |
+  | `MetrichePortafoglio.tsx` | `classeSegno`, `importo`, `importoConSegno`, `percentualeConSegno`, `segnoDi` | `dataCarico` |
+  | `FasciaLifo.tsx` | `importo`, `prezzo` | `dataCarico` |
+  | `PortfolioDetailPage.tsx` | `importo`, `prezzo` | `dataRegistro`, `quantita` + default `Foglio` |
+
+  `DashboardPage.tsx`, `SecuritySearchPage.tsx`, `ModuloScarico.tsx` e `graficoTela.ts` non importano nessuna delle 6 utility neutre e restano invariati.
+
+  ### 2. Hook per `DashboardPage.tsx`
+
+  **Nuovo hook:** `client/src/hooks/usePortafogli.ts`
+
+  Estrae:
+  - `useState<Portfolio[]>` per la lista
+  - `useState<string | null>` per l'errore
+  - `useState<boolean>` per il loading
+  - Il `useEffect` che esegue `fetch('/api/portfolios')` al montaggio
+  - La callback `handleCreated` che aggiunge un portafoglio alla lista
+
+  La pagina riceve `{ portfolios, error, loading, handleCreated }` e contiene solo markup + la composizione del `Foglio`.
+
+  ### 3. Hook per `SecuritySearchPage.tsx`
+
+  **Nuovo hook:** `client/src/hooks/useRicercaTitolo.ts`
+
+  Estrae:
+  - Tutto lo stato della ricerca (`isin`, `status`, `security`, `lastFetchedAt`, `confirmation`, `dataSource`, `esito`, `searchedIsin`)
+  - Lo stato del dialog (`dialogOpen`)
+  - La funzione `lookup(force)` con la catena di fetch e gestione degli status code
+  - La funzione `handleDialogConfirm(portfolioId)` (richiede `navigate`, passato come parametro o usando `useNavigate` dentro l'hook)
+  - I setter esposti: `setIsin`, `setConfirmation`, `setDialogOpen`
+
+  Le funzioni pure `formatPrice`, `formatRilevazione`, `campiAnagrafica` restano nel file della pagina come helper di resa — non sono stato, e non servono altrove.
+
+  ### 4. Hook per `PortfolioDetailPage.tsx` (~1950 righe)
+
+  La pagina più grande si scompone in 4 hook nella directory `client/src/hooks/`.
+
+  #### 4a. `usePortafoglio(id)` — `client/src/hooks/usePortafoglio.ts`
+
+  Metadati e ciclo di vita del portafoglio:
+  - Fetch di `GET /api/portfolios/:id` con gestione di 404/errore
+  - Stato: `portfolio`, `loading`, `error`, `notFound`
+  - Rinomina: `renameValue`, `renameError`, `renaming`, `handleRename`
+  - Eliminazione: `deleteError`, `deleting`, `handleDelete`
+
+  Restituisce anche `setPortfolio` per aggiornare il nome dopo il PATCH.
+
+  #### 4b. `useDatiPortafoglio(id, { abilitato })` — `client/src/hooks/useDatiPortafoglio.ts`
+
+  Dati di registro e stato derivato. `abilitato` previene il fetch finché il portafoglio non è confermato esistente.
+
+  **Fetch (5 callback stabili):**
+  - `fetchPositions` → `positions`
+  - `fetchSales` → `sales`
+  - `fetchSummary` → `summaries`
+  - `fetchEnriched(silenzioso?)` → `enrichedPositions`, `enrichedLoading`
+  - `fetchSeries(silenzioso?)` → `series`, `seriesLoading`
+
+  **Stato derivato (7 useMemo):**
+  - `registri` — carichi e vendite raggruppati per ISIN, rigiocati via `rigiocaRegistro`
+  - `residuoPerLotto` — quantità residua per id di posizione
+  - `posizioniAperte` / `posizioniChiuse` — partizione di `enrichedPositions` su `totalQuantity`
+  - `ultimaVenditaPerIsin` — data dell'ultima vendita per ISIN (per «Chiusa il»)
+  - `nomePerIsin` — Map ISIN → denominazione
+  - `titoliScaricabili` — titoli con residuo > 0 per il `ModuloScarico`
+  - `iscrizioni` — registro unificato carichi+scarichi ordinato per data
+
+  **Side-effect:**
+  - `useEffect` iniziale che lancia i 5 fetch quando `abilitato` diventa true
+  - `useEffect` di `visibilitychange`/`focus` per il ricarico silenzioso della serie
+  - `useEffect` per il ricalcolo al cambio di scheda (riceve `scheda` come parametro)
+  - `useEffect` di guardia che resetta `isinSelezionato` se il titolo scompare
+
+  **Callback composte:**
+  - `dopoScarico(vendita)` — aggiorna `ultimaVendita` e rilancia i 4 fetch
+  - `ricalcolaSilenzioso()` — wrapper di `fetchEnriched(true)` con identità stabile
+
+  #### 4c. `useFormCarico(portfolioId, onSuccess)` — `client/src/hooks/useFormCarico.ts`
+
+  Stato e logica del modulo di iscrizione di un nuovo carico:
+  - Campo: `isin`, `loadDate`, `loadPrice`, `quantity`, `prefillName`
+  - Errori: `fieldErrors`, `submitError`, `submitSuccess`
+  - Flag: `submitting`, `newPositionId`
+  - Funzioni: `validateForm`, `handleCarico(e)`, `resetForm`
+  - Prefill: `useEffect` su `location.state` per precompilare i campi dalla ricerca titoli
+
+  #### 4d. `useModificaPosizione(portfolioId, onSuccess)` — `client/src/hooks/useModificaPosizione.ts`
+
+  Stato e logica del form inline di modifica/rimozione di un carico:
+  - Stato edit: `editingPositionId`, `editLoadDate`, `editLoadPrice`, `editQuantity`, `editError`, `editSubmitting`
+  - Stato delete: `positionDeleteError`, `deletingPositionId`
+  - Funzioni: `startEdit(pos)`, `cancelEdit`, `handleEditSubmit(e, posId)`, `handleDeletePosition(posId)`
+
+  #### Nota sulla `dataCarico` locale
+
+  `PortfolioDetailPage.tsx` righe 15-19 contiene una copia locale di `dataCarico` con il proprio array `MESI_ROMANI`, identica a quella esportata da `Foglio.tsx`. Durante il refactoring la copia locale va eliminata e sostituita con `import { dataCarico } from '../components/Foglio.js'` — lo stesso import già usato da 5 altri componenti.
+
+  Lo stesso vale per `dataRilevamento` (righe 27-33): è una funzione pura di resa che resta nella pagina (non è stato, non è un hook), oppure — se futuri sviluppi la richiedono altrove — va in `formattazione.ts`. Per ora resta locale.
+
+  ### 5. Struttura delle directory dopo il refactoring
+
+  ```
+  client/src/
+  ├── domain/
+  │   ├── formattazione.ts      ← NUOVO: 6 utility neutre
+  │   └── recuperoTitolo.ts     (invariato)
+  ├── hooks/
+  │   ├── usePortafogli.ts      ← NUOVO: DashboardPage
+  │   ├── useRicercaTitolo.ts   ← NUOVO: SecuritySearchPage
+  │   ├── usePortafoglio.ts     ← NUOVO: metadati portafoglio
+  │   ├── useDatiPortafoglio.ts ← NUOVO: fetch + stato derivato
+  │   ├── useFormCarico.ts      ← NUOVO: modulo carico titoli
+  │   └── useModificaPosizione.ts ← NUOVO: modifica/rimozione inline
+  ├── components/
+  │   └── Foglio.tsx            (snellito: solo componente + dataRegistro + dataCarico + quantita)
+  ├── pages/
+  │   ├── DashboardPage.tsx     (solo markup + usePortafogli)
+  │   ├── SecuritySearchPage.tsx (solo markup + useRicercaTitolo)
+  │   └── PortfolioDetailPage.tsx (solo markup + 4 hook)
+  ```
+
+  ---
+
+  ## Rischi e mitigazioni
+
+  1. **Identità referenziale dei callback:** `ricalcolaSilenzioso`, `dopoScarico`, `fetchEnriched` e `setIsinInLavorazione` sono passati a componenti figli (`AggiornaObsoleti`, `ModuloScarico`, `GraficoPortafoglio`). Se l'estrazione ne cambia la stabilità, `useEffect` potrebbe ripartire in loop. **Mitigazione:** ogni callback restituita dall'hook è avvolta in `useCallback` con le stesse dipendenze dell'attuale implementazione.
+
+  2. **Import circolari:** gli hook importano tipi da `@portfolia/shared` e utility da `domain/formattazione.ts`. Nessuno dei due importa da `hooks/`, quindi non c'è rischio di ciclo.
+
+  3. **Stato condiviso fra hook nella stessa pagina:** `useDatiPortafoglio` espone `setIsinSelezionato` e `setScheda` che il markup della pagina orchestra. Lo stato resta nel hook; la pagina lo destruttura e lo lega al JSX senza logica propria. Se due hook dovessero condividere stato, il coordinamento resta nella pagina (nessun contesto globale introdotto).
+
+  ---
+
+  ## Strategia di test
+
+  **Nessun test nuovo.** È un refactoring puro di estrazione: il comportamento osservabile non cambia.
+
+  **Verifica in due passi:**
+  1. `npm run check` — lint, typecheck (src + e2e), registro chiavi, test supporto e2e, test unitari Vitest
+  2. `npx playwright test` — suite E2E completa (61 file). Nessun file di test viene modificato: se un test fallisce, il refactoring ha introdotto una regressione.
+
+  **Checkpoint intermedio:** dopo TASK-01..TASK-03 (estrazione utility + aggiornamento import), `npm run check` deve già passare — intercetta errori di import prima di toccare la logica dei hook.
+
+  **Nessun E2E aggiuntivo** perché la spec non introduce comportamento nuovo da filmare. Il campo «Dimostra» conferma: la suite esistente è la dimostrazione stessa.
+tasks:
+  - id: TASK-01
+    title: Creare formattazione.ts ed estrarre le 6 utility neutre da Foglio.tsx
+    description: Creare `client/src/domain/formattazione.ts` con le funzioni `importo`, `prezzo`, `segnoDi`, `classeSegno`, `percentualeConSegno`, `importoConSegno` copiate da `Foglio.tsx`. Poi rimuoverle da `Foglio.tsx` lasciando `dataRegistro`, `dataCarico`, `quantita` e il componente `Foglio`. Esportare tutto dal nuovo modulo.
+    type: Impl
+    status: TODO
+    body: Creare `client/src/domain/formattazione.ts` con le funzioni `importo`, `prezzo`, `segnoDi`, `classeSegno`, `percentualeConSegno`, `importoConSegno` copiate da `Foglio.tsx`. Poi rimuoverle da `Foglio.tsx` lasciando `dataRegistro`, `dataCarico`, `quantita` e il componente `Foglio`. Esportare tutto dal nuovo modulo.
+  - id: TASK-02
+    title: Aggiornare gli import delle utility estratte in tutti i file consumatori
+    description: In ciascuno degli 8 file che importavano almeno una delle 6 utility da `Foglio.tsx` (`QuadroRisultato`, `MetricheTitolo`, `GraficoTitolo`, `GraficoPortafoglio`, `SchedaTitolo`, `MetrichePortafoglio`, `FasciaLifo`, `PortfolioDetailPage`), spostare gli import delle 6 utility a `../domain/formattazione.js` (o `../../domain/formattazione.js` per le pagine), conservando gli import residui (`dataCarico`, `dataRegistro`, `quantita`, `Foglio`) su `Foglio.js`.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: In ciascuno degli 8 file che importavano almeno una delle 6 utility da `Foglio.tsx` (`QuadroRisultato`, `MetricheTitolo`, `GraficoTitolo`, `GraficoPortafoglio`, `SchedaTitolo`, `MetrichePortafoglio`, `FasciaLifo`, `PortfolioDetailPage`), spostare gli import delle 6 utility a `../domain/formattazione.js` (o `../../domain/formattazione.js` per le pagine), conservando gli import residui (`dataCarico`, `dataRegistro`, `quantita`, `Foglio`) su `Foglio.js`.
+  - id: TASK-03
+    title: 'Checkpoint: npm run check verde dopo l''estrazione delle utility'
+    description: Eseguire `npm run check` (lint + typecheck + test unitari) e verificare che tutto passi. Se ci sono errori di import o di tipo, correggerli prima di procedere con l'estrazione dei hook.
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-02
+    body: Eseguire `npm run check` (lint + typecheck + test unitari) e verificare che tutto passi. Se ci sono errori di import o di tipo, correggerli prima di procedere con l'estrazione dei hook.
+  - id: TASK-04
+    title: Creare usePortafogli hook e riscrivere DashboardPage.tsx
+    description: Creare `client/src/hooks/usePortafogli.ts` che estrae da `DashboardPage.tsx` tutto lo stato (`portfolios`, `error`, `loading`), il `useEffect` di fetch e la callback `handleCreated`. La pagina importa l'hook e contiene solo markup + composizione del `Foglio`. Non deve restare alcun `fetch` né `useEffect` nella pagina.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-03
+    body: Creare `client/src/hooks/usePortafogli.ts` che estrae da `DashboardPage.tsx` tutto lo stato (`portfolios`, `error`, `loading`), il `useEffect` di fetch e la callback `handleCreated`. La pagina importa l'hook e contiene solo markup + composizione del `Foglio`. Non deve restare alcun `fetch` né `useEffect` nella pagina.
+  - id: TASK-05
+    title: Creare useRicercaTitolo hook e riscrivere SecuritySearchPage.tsx
+    description: Creare `client/src/hooks/useRicercaTitolo.ts` che estrae tutto lo stato della ricerca (`isin`, `status`, `security`, `lastFetchedAt`, `confirmation`, `dataSource`, `esito`, `searchedIsin`, `dialogOpen`), la funzione `lookup(force)` e `handleDialogConfirm`. Le funzioni pure di resa (`formatPrice`, `formatRilevazione`, `campiAnagrafica`) restano nella pagina. Non deve restare alcun `fetch` né stato di form nella pagina.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-03
+    body: Creare `client/src/hooks/useRicercaTitolo.ts` che estrae tutto lo stato della ricerca (`isin`, `status`, `security`, `lastFetchedAt`, `confirmation`, `dataSource`, `esito`, `searchedIsin`, `dialogOpen`), la funzione `lookup(force)` e `handleDialogConfirm`. Le funzioni pure di resa (`formatPrice`, `formatRilevazione`, `campiAnagrafica`) restano nella pagina. Non deve restare alcun `fetch` né stato di form nella pagina.
+  - id: TASK-06
+    title: Creare i 4 hook per PortfolioDetailPage
+    description: 'Creare nella directory `client/src/hooks/` i seguenti hook:\n- `usePortafoglio.ts`: metadati portafoglio, rinomina, eliminazione\n- `useDatiPortafoglio.ts`: fetch (positions, sales, summaries, enriched, series), 7 useMemo derivati, side-effect di visibilitychange/focus, callback `dopoScarico` e `ricalcolaSilenzioso`\n- `useFormCarico.ts`: stato del modulo di carico, validazione client-side, submit, prefill da location.state\n- `useModificaPosizione.ts`: stato e handler per modifica/rimozione inline di un carico\nOgni callback esposta deve essere avvolta in `useCallback` con le stesse dipendenze dell''implementazione attuale per preservare la stabilità referenziale.'
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-03
+    body: 'Creare nella directory `client/src/hooks/` i seguenti hook:\n- `usePortafoglio.ts`: metadati portafoglio, rinomina, eliminazione\n- `useDatiPortafoglio.ts`: fetch (positions, sales, summaries, enriched, series), 7 useMemo derivati, side-effect di visibilitychange/focus, callback `dopoScarico` e `ricalcolaSilenzioso`\n- `useFormCarico.ts`: stato del modulo di carico, validazione client-side, submit, prefill da location.state\n- `useModificaPosizione.ts`: stato e handler per modifica/rimozione inline di un carico\nOgni callback esposta deve essere avvolta in `useCallback` con le stesse dipendenze dell''implementazione attuale per preservare la stabilità referenziale.'
+  - id: TASK-07
+    title: Riscrivere PortfolioDetailPage.tsx usando i nuovi hook
+    description: Riscrivere `PortfolioDetailPage.tsx` perché contenga solo markup e la chiamata ai 4 hook (TASK-06). Rimuovere la `dataCarico` locale duplicata (righe 14-19) e usare l'import da `Foglio.tsx`. La funzione `dataRilevamento` resta locale (è resa, non stato). Nessun `fetch`, `useEffect` per dati, né gestione di stato di form deve restare nel file della pagina.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-06
+    body: Riscrivere `PortfolioDetailPage.tsx` perché contenga solo markup e la chiamata ai 4 hook (TASK-06). Rimuovere la `dataCarico` locale duplicata (righe 14-19) e usare l'import da `Foglio.tsx`. La funzione `dataRilevamento` resta locale (è resa, non stato). Nessun `fetch`, `useEffect` per dati, né gestione di stato di form deve restare nel file della pagina.
+  - id: TASK-08
+    title: npm run check verde (lint + typecheck + test unitari)
+    description: Eseguire `npm run check` e verificare che l'intera pipeline (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) sia verde. Correggere eventuali errori emersi dal refactoring.
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-04
+      - TASK-05
+      - TASK-07
+    body: Eseguire `npm run check` e verificare che l'intera pipeline (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) sia verde. Correggere eventuali errori emersi dal refactoring.
+  - id: TASK-09
+    title: Suite E2E completa (61 file) verde senza modifiche ai test
+    description: Eseguire `npx playwright test` e verificare che tutti i 61 file della suite passino. Nessun file di test deve essere stato modificato. Se un test fallisce, il refactoring ha introdotto una regressione che va corretta nel codice applicativo, mai nel test.
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-08
+    body: Eseguire `npx playwright test` e verificare che tutti i 61 file della suite passino. Nessun file di test deve essere stato modificato. Se un test fallisce, il refactoring ha introdotto una regressione che va corretta nel codice applicativo, mai nel test.
