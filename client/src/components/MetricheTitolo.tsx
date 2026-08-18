@@ -6,15 +6,15 @@ import {
   giornoCivilePunto,
 } from '@portfolia/shared';
 import type { ContestoSottoIlGrafico } from './GraficoTitolo.js';
+import { dataCarico } from './Foglio.js';
 import {
   classeSegno,
-  dataCarico,
   importo,
   importoConSegno,
   percentualeConSegno,
   prezzo,
   segnoDi,
-} from './Foglio.js';
+} from '../domain/formattazione.js';
 
 /**
  * Props della bilancia a due piatti (US-038).

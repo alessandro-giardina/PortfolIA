@@ -197,71 +197,80 @@ tasks:
     title: Creare formattazione.ts ed estrarre le 6 utility neutre da Foglio.tsx
     description: Creare `client/src/domain/formattazione.ts` con le funzioni `importo`, `prezzo`, `segnoDi`, `classeSegno`, `percentualeConSegno`, `importoConSegno` copiate da `Foglio.tsx`. Poi rimuoverle da `Foglio.tsx` lasciando `dataRegistro`, `dataCarico`, `quantita` e il componente `Foglio`. Esportare tutto dal nuovo modulo.
     type: Impl
-    status: TODO
+    status: DONE
     body: Creare `client/src/domain/formattazione.ts` con le funzioni `importo`, `prezzo`, `segnoDi`, `classeSegno`, `percentualeConSegno`, `importoConSegno` copiate da `Foglio.tsx`. Poi rimuoverle da `Foglio.tsx` lasciando `dataRegistro`, `dataCarico`, `quantita` e il componente `Foglio`. Esportare tutto dal nuovo modulo.
+    ref: TASK-01
   - id: TASK-02
     title: Aggiornare gli import delle utility estratte in tutti i file consumatori
     description: In ciascuno degli 8 file che importavano almeno una delle 6 utility da `Foglio.tsx` (`QuadroRisultato`, `MetricheTitolo`, `GraficoTitolo`, `GraficoPortafoglio`, `SchedaTitolo`, `MetrichePortafoglio`, `FasciaLifo`, `PortfolioDetailPage`), spostare gli import delle 6 utility a `../domain/formattazione.js` (o `../../domain/formattazione.js` per le pagine), conservando gli import residui (`dataCarico`, `dataRegistro`, `quantita`, `Foglio`) su `Foglio.js`.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: In ciascuno degli 8 file che importavano almeno una delle 6 utility da `Foglio.tsx` (`QuadroRisultato`, `MetricheTitolo`, `GraficoTitolo`, `GraficoPortafoglio`, `SchedaTitolo`, `MetrichePortafoglio`, `FasciaLifo`, `PortfolioDetailPage`), spostare gli import delle 6 utility a `../domain/formattazione.js` (o `../../domain/formattazione.js` per le pagine), conservando gli import residui (`dataCarico`, `dataRegistro`, `quantita`, `Foglio`) su `Foglio.js`.
+    ref: TASK-02
   - id: TASK-03
     title: 'Checkpoint: npm run check verde dopo l''estrazione delle utility'
     description: Eseguire `npm run check` (lint + typecheck + test unitari) e verificare che tutto passi. Se ci sono errori di import o di tipo, correggerli prima di procedere con l'estrazione dei hook.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
     body: Eseguire `npm run check` (lint + typecheck + test unitari) e verificare che tutto passi. Se ci sono errori di import o di tipo, correggerli prima di procedere con l'estrazione dei hook.
+    ref: TASK-03
   - id: TASK-04
     title: Creare usePortafogli hook e riscrivere DashboardPage.tsx
     description: Creare `client/src/hooks/usePortafogli.ts` che estrae da `DashboardPage.tsx` tutto lo stato (`portfolios`, `error`, `loading`), il `useEffect` di fetch e la callback `handleCreated`. La pagina importa l'hook e contiene solo markup + composizione del `Foglio`. Non deve restare alcun `fetch` né `useEffect` nella pagina.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: Creare `client/src/hooks/usePortafogli.ts` che estrae da `DashboardPage.tsx` tutto lo stato (`portfolios`, `error`, `loading`), il `useEffect` di fetch e la callback `handleCreated`. La pagina importa l'hook e contiene solo markup + composizione del `Foglio`. Non deve restare alcun `fetch` né `useEffect` nella pagina.
+    ref: TASK-04
   - id: TASK-05
     title: Creare useRicercaTitolo hook e riscrivere SecuritySearchPage.tsx
     description: Creare `client/src/hooks/useRicercaTitolo.ts` che estrae tutto lo stato della ricerca (`isin`, `status`, `security`, `lastFetchedAt`, `confirmation`, `dataSource`, `esito`, `searchedIsin`, `dialogOpen`), la funzione `lookup(force)` e `handleDialogConfirm`. Le funzioni pure di resa (`formatPrice`, `formatRilevazione`, `campiAnagrafica`) restano nella pagina. Non deve restare alcun `fetch` né stato di form nella pagina.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: Creare `client/src/hooks/useRicercaTitolo.ts` che estrae tutto lo stato della ricerca (`isin`, `status`, `security`, `lastFetchedAt`, `confirmation`, `dataSource`, `esito`, `searchedIsin`, `dialogOpen`), la funzione `lookup(force)` e `handleDialogConfirm`. Le funzioni pure di resa (`formatPrice`, `formatRilevazione`, `campiAnagrafica`) restano nella pagina. Non deve restare alcun `fetch` né stato di form nella pagina.
+    ref: TASK-05
   - id: TASK-06
     title: Creare i 4 hook per PortfolioDetailPage
     description: 'Creare nella directory `client/src/hooks/` i seguenti hook:\n- `usePortafoglio.ts`: metadati portafoglio, rinomina, eliminazione\n- `useDatiPortafoglio.ts`: fetch (positions, sales, summaries, enriched, series), 7 useMemo derivati, side-effect di visibilitychange/focus, callback `dopoScarico` e `ricalcolaSilenzioso`\n- `useFormCarico.ts`: stato del modulo di carico, validazione client-side, submit, prefill da location.state\n- `useModificaPosizione.ts`: stato e handler per modifica/rimozione inline di un carico\nOgni callback esposta deve essere avvolta in `useCallback` con le stesse dipendenze dell''implementazione attuale per preservare la stabilità referenziale.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: 'Creare nella directory `client/src/hooks/` i seguenti hook:\n- `usePortafoglio.ts`: metadati portafoglio, rinomina, eliminazione\n- `useDatiPortafoglio.ts`: fetch (positions, sales, summaries, enriched, series), 7 useMemo derivati, side-effect di visibilitychange/focus, callback `dopoScarico` e `ricalcolaSilenzioso`\n- `useFormCarico.ts`: stato del modulo di carico, validazione client-side, submit, prefill da location.state\n- `useModificaPosizione.ts`: stato e handler per modifica/rimozione inline di un carico\nOgni callback esposta deve essere avvolta in `useCallback` con le stesse dipendenze dell''implementazione attuale per preservare la stabilità referenziale.'
+    ref: TASK-06
   - id: TASK-07
     title: Riscrivere PortfolioDetailPage.tsx usando i nuovi hook
     description: Riscrivere `PortfolioDetailPage.tsx` perché contenga solo markup e la chiamata ai 4 hook (TASK-06). Rimuovere la `dataCarico` locale duplicata (righe 14-19) e usare l'import da `Foglio.tsx`. La funzione `dataRilevamento` resta locale (è resa, non stato). Nessun `fetch`, `useEffect` per dati, né gestione di stato di form deve restare nel file della pagina.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-06
     body: Riscrivere `PortfolioDetailPage.tsx` perché contenga solo markup e la chiamata ai 4 hook (TASK-06). Rimuovere la `dataCarico` locale duplicata (righe 14-19) e usare l'import da `Foglio.tsx`. La funzione `dataRilevamento` resta locale (è resa, non stato). Nessun `fetch`, `useEffect` per dati, né gestione di stato di form deve restare nel file della pagina.
+    ref: TASK-07
   - id: TASK-08
     title: npm run check verde (lint + typecheck + test unitari)
     description: Eseguire `npm run check` e verificare che l'intera pipeline (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) sia verde. Correggere eventuali errori emersi dal refactoring.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-04
       - TASK-05
       - TASK-07
     body: Eseguire `npm run check` e verificare che l'intera pipeline (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) sia verde. Correggere eventuali errori emersi dal refactoring.
+    ref: TASK-08
   - id: TASK-09
     title: Suite E2E completa (61 file) verde senza modifiche ai test
     description: Eseguire `npx playwright test` e verificare che tutti i 61 file della suite passino. Nessun file di test deve essere stato modificato. Se un test fallisce, il refactoring ha introdotto una regressione che va corretta nel codice applicativo, mai nel test.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-08
     body: Eseguire `npx playwright test` e verificare che tutti i 61 file della suite passino. Nessun file di test deve essere stato modificato. Se un test fallisce, il refactoring ha introdotto una regressione che va corretta nel codice applicativo, mai nel test.
+    ref: TASK-09

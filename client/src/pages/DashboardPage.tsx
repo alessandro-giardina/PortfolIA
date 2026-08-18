@@ -1,29 +1,11 @@
-import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import type { Portfolio } from '@portfolia/shared';
 import CreatePortfolioForm from '../components/CreatePortfolioForm.js';
 import Foglio, { dataRegistro } from '../components/Foglio.js';
+import { usePortafogli } from '../hooks/usePortafogli.js';
 
 export default function DashboardPage() {
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { portfolios, error, loading, handleCreated } = usePortafogli();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetch('/api/portfolios')
-      .then((res) => {
-        if (!res.ok) throw new Error('Risposta non valida dal server');
-        return res.json() as Promise<Portfolio[]>;
-      })
-      .then(setPortfolios)
-      .catch(() => setError('Backend non raggiungibile'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const handleCreated = (portfolio: Portfolio) => {
-    setPortfolios((prev) => [...prev, portfolio]);
-  };
 
   const linguette = (
     <>

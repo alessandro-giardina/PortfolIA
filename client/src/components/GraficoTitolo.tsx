@@ -25,7 +25,7 @@ import {
   definizioneVista,
   ritagliaSerie,
 } from '@portfolia/shared';
-import { importo, prezzo } from './Foglio.js';
+import { importo, prezzo } from '../domain/formattazione.js';
 import {
   MARGINE_SEGNO,
   RIQUADRO,

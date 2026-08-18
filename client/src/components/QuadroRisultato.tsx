@@ -1,5 +1,5 @@
 import type { EnrichedPositionSummary } from '@portfolia/shared';
-import { classeSegno, importo, percentualeConSegno, segnoDi } from './Foglio.js';
+import { classeSegno, importo, percentualeConSegno, segnoDi } from '../domain/formattazione.js';
 
 export interface QuadroRisultatoProps {
   /** Le posizioni arricchite del portafoglio, le stesse del riquadro del valore totale. */

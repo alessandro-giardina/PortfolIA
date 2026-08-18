@@ -1,6 +1,7 @@
 import type { CaricoLotto, VenditaLotto } from '@portfolia/shared';
 import { rigiocaRegistro } from '@portfolia/shared';
-import { dataCarico, importo, prezzo } from './Foglio.js';
+import { dataCarico } from './Foglio.js';
+import { importo, prezzo } from '../domain/formattazione.js';
 
 /**
  * La **fascia dei lotti**: l'attribuzione LIFO resa visibile (US-042, FR-023).

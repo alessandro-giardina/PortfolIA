@@ -1,22 +1,19 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import type { Portfolio, Position, PositionSummary, EnrichedPositionSummary, CreatePositionRequest, UpdatePositionRequest, Sale, CaricoLotto, VenditaLotto, PortfolioSeriesEntry } from '@portfolia/shared';
-import { isValidIsin, residuoPerIsin, rigiocaRegistro } from '@portfolia/shared';
-import Foglio, { dataRegistro, importo, prezzo, quantita } from '../components/Foglio.js';
+import { useCallback, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import type { Sale } from '@portfolia/shared';
+import Foglio, { dataCarico, dataRegistro, quantita } from '../components/Foglio.js';
+import { importo, prezzo } from '../domain/formattazione.js';
 import SchedaTitolo from '../components/SchedaTitolo.js';
 import AggiornaObsoleti from '../components/AggiornaObsoleti.js';
-import ModuloScarico, { type TitoloScaricabile } from '../components/ModuloScarico.js';
+import ModuloScarico from '../components/ModuloScarico.js';
 import QuadroRisultato from '../components/QuadroRisultato.js';
 import GraficoPortafoglio from '../components/GraficoPortafoglio.js';
 import MetrichePortafoglio from '../components/MetrichePortafoglio.js';
 import CellaTitolo from '../components/CellaTitolo.js';
-
-/** Formatta una data ISO-8601 (YYYY-MM-DD) in stile registro (es. "15.III.2026"). */
-const MESI_ROMANI = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
-function dataCarico(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  return `${String(d).padStart(2,'0')}.${MESI_ROMANI[m - 1]}.${y}`;
-}
+import { usePortafoglio } from '../hooks/usePortafoglio.js';
+import { useDatiPortafoglio, type Scheda } from '../hooks/useDatiPortafoglio.js';
+import { useFormCarico } from '../hooks/useFormCarico.js';
+import { useModificaPosizione } from '../hooks/useModificaPosizione.js';
 
 /**
  * Formatta il momento dell'ultimo rilevamento del prezzo (unix, secondi) come
@@ -33,710 +30,116 @@ function dataRilevamento(fetchedAt: number): string {
   return `${gg}/${mm}/${d.getFullYear()} ${hh}:${min}`;
 }
 
-type Scheda = 'riepilogo' | 'carico' | 'titolo';
-
-interface PrefillState {
-  isin: string;
-  name: string | null;
-  price: number | null;
-  currency: string | null;
-}
-
 export default function PortfolioDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const location = useLocation();
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-  // La scheda iniziale dipende da come si è arrivati qui: con un carico da
-  // registrare (dalla ricerca titoli) si apre su "Carico titoli", altrimenti su
-  // "Riepilogo". Lazy initializer, non useEffect, per non mostrare la scheda
-  // sbagliata al primo render.
+
+  const portafoglio = usePortafoglio();
+  const {
+    id,
+    portfolio,
+    error,
+    loading,
+    notFound,
+    renameValue,
+    setRenameValue,
+    renameError,
+    renaming,
+    handleRename,
+    deleteError,
+    deleting,
+    handleDelete,
+  } = portafoglio;
+
   const [scheda, setScheda] = useState<Scheda>(() => {
-    const state = location.state as { prefill?: PrefillState } | null;
+    const state = location.state as { prefill?: { isin: string } } | null;
     return state?.prefill?.isin ? 'carico' : 'riepilogo';
   });
 
-  // Rename form state
-  const [renameValue, setRenameValue] = useState('');
-  const [renameError, setRenameError] = useState<string | null>(null);
-  const [renaming, setRenaming] = useState(false);
+  const dati = useDatiPortafoglio(id, !loading && !notFound && !error, scheda, setScheda);
+  const {
+    positions,
+    ultimaVendita,
+    summaries,
+    enrichedPositions,
+    enrichedLoading,
+    series,
+    seriesLoading,
+    isinSelezionato,
+    setIsinSelezionato,
+    isinInLavorazione,
+    setIsinInLavorazione,
+    positionsLoading,
+    residuoPerLotto,
+    posizioniAperte,
+    posizioniChiuse,
+    ultimaVenditaPerIsin,
+    nomePerIsin,
+    titoliScaricabili,
+    iscrizioni,
+    residuoDopoVendita,
+    dopoScarico,
+    ricalcolaSilenzioso,
+    fetchPositions,
+    fetchSummary,
+    fetchEnriched,
+  } = dati;
 
-  // Delete state
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const onPositionChanged = useCallback(() => {
+    fetchPositions();
+    fetchSummary();
+    fetchEnriched();
+  }, [fetchPositions, fetchSummary, fetchEnriched]);
 
-  // Positions state
-  const [positions, setPositions] = useState<Position[]>([]);
-  // Le vendite iscritte (US-042): la seconda specie di iscrizione del registro.
-  // Vive accanto ai carichi e non dentro di essi perché è ciò che sono — due
-  // elenchi di fatti distinti, che la tabella riunisce in un solo libro (ADR-009).
-  const [sales, setSales] = useState<Sale[]>([]);
-  // L'ultima vendita iscritta in questa sessione, per il riquadro del residuo:
-  // mostra il prezzo medio ricalcolato accanto a quello che aveva **prima**, e
-  // quel «prima» si ottiene rigiocando il registro senza questa vendita.
-  const [ultimaVendita, setUltimaVendita] = useState<Sale | null>(null);
-  const [summaries, setSummaries] = useState<PositionSummary[]>([]);
-  const [enrichedPositions, setEnrichedPositions] = useState<EnrichedPositionSummary[]>([]);
-  const [enrichedLoading, setEnrichedLoading] = useState(false);
-  // Il perimetro grezzo per il grafico dell'andamento (US-019, TASK-05/TASK-10):
-  // un solo fetch per l'intera sezione, mai una richiesta per singolo titolo.
-  const [series, setSeries] = useState<PortfolioSeriesEntry[]>([]);
-  const [seriesLoading, setSeriesLoading] = useState(false);
-  // ISIN del titolo aperto nella scheda di dettaglio (US-018). Finché è null la
-  // linguetta "Scheda titolo" resta disabilitata: non c'è nulla da mostrare.
-  const [isinSelezionato, setIsinSelezionato] = useState<string | null>(null);
-  // ISIN interrogato in questo istante dall'aggiornamento in blocco (US-035).
-  // Vive qui e non nel componente del comando perché è la *tabella* a doverne
-  // marcare la riga: è la terza variante della postilla di US-034.
-  const [isinInLavorazione, setIsinInLavorazione] = useState<string | null>(null);
-  const [positionsLoading, setPositionsLoading] = useState(false);
-  const [newPositionId, setNewPositionId] = useState<number | null>(null);
+  const carico = useFormCarico(id, onPositionChanged);
+  const {
+    isin,
+    setIsin,
+    prefillName,
+    loadDate,
+    setLoadDate,
+    loadPrice,
+    setLoadPrice,
+    quantity,
+    setQuantity,
+    submitError,
+    submitSuccess,
+    submitting,
+    newPositionId,
+    fieldErrors,
+    handleCarico,
+  } = carico;
 
-  // Edit/Delete position state
-  const [editingPositionId, setEditingPositionId] = useState<number | null>(null);
-  const [editLoadDate, setEditLoadDate] = useState('');
-  const [editLoadPrice, setEditLoadPrice] = useState('');
-  const [editQuantity, setEditQuantity] = useState('');
-  const [editError, setEditError] = useState<string | null>(null);
-  const [editSubmitting, setEditSubmitting] = useState(false);
-  const [positionDeleteError, setPositionDeleteError] = useState<string | null>(null);
-  const [deletingPositionId, setDeletingPositionId] = useState<number | null>(null);
+  const modifica = useModificaPosizione(id, onPositionChanged);
+  const {
+    editingPositionId,
+    editLoadDate,
+    setEditLoadDate,
+    editLoadPrice,
+    setEditLoadPrice,
+    editQuantity,
+    setEditQuantity,
+    editError,
+    editSubmitting,
+    positionDeleteError,
+    setPositionDeleteError,
+    deletingPositionId,
+    startEdit,
+    cancelEdit,
+    handleEditSubmit,
+    handleDeletePosition,
+  } = modifica;
 
-  // Carico form state
-  const [isin, setIsin] = useState('');
-  const [prefillName, setPrefillName] = useState<string | null>(null);
-  const [loadDate, setLoadDate] = useState('');
-  const [loadPrice, setLoadPrice] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{
-    isin?: string;
-    loadDate?: string;
-    loadPrice?: string;
-    quantity?: string;
-  }>({});
-
-  const fetchPositions = useCallback(() => {
-    if (!id) return;
-    setPositionsLoading(true);
-    fetch(`/api/portfolios/${id}/positions`)
-      .then((res) => {
-        if (!res.ok) return [];
-        return res.json() as Promise<Position[]>;
-      })
-      .then((data) => setPositions(data))
-      .catch(() => setPositions([]))
-      .finally(() => setPositionsLoading(false));
-  }, [id]);
-
-  const fetchSales = useCallback(() => {
-    if (!id) return;
-    fetch(`/api/portfolios/${id}/sales`)
-      .then((res) => {
-        if (!res.ok) return [];
-        return res.json() as Promise<Sale[]>;
-      })
-      .then((data) => setSales(data))
-      .catch(() => setSales([]));
-  }, [id]);
-
-  const fetchSummary = useCallback(() => {
-    if (!id) return;
-    fetch(`/api/portfolios/${id}/positions/summary`)
-      .then((res) => {
-        if (!res.ok) return [];
-        return res.json() as Promise<PositionSummary[]>;
-      })
-      .then((data) => setSummaries(data))
-      .catch(() => setSummaries([]));
-  }, [id]);
-
-  /**
-   * Rilegge la vista arricchita: prezzi, valori, differenze e `freshness`
-   * ricalcolati dal server a ogni chiamata.
-   *
-   * `silenzioso` non cambia *cosa* si legge, cambia se la lettura si dichiara.
-   * In modalità rumorosa alza `enrichedLoading` e il riepilogo sostituisce la
-   * tabella con «Caricamento titoli…»: giusto al primo caricamento, sbagliato
-   * durante l'aggiornamento in blocco (US-035), che rilegge dopo *ogni* titolo e
-   * farebbe lampeggiare via la tabella una volta per titolo — l'opposto del
-   * criterio «i valori si aggiornano dopo ogni titolo rilevato».
-   *
-   * Restituisce la promessa della lettura, così il ciclo di US-035 può attendere
-   * che la tabella sia riscritta prima di passare al titolo successivo.
-   */
-  const fetchEnriched = useCallback(
-    (silenzioso = false): Promise<void> => {
-      if (!id) return Promise.resolve();
-      if (!silenzioso) setEnrichedLoading(true);
-      return fetch(`/api/portfolios/${id}/positions/enriched`)
-        .then((res) => {
-          if (!res.ok) return [];
-          return res.json() as Promise<EnrichedPositionSummary[]>;
-        })
-        .then((data) => setEnrichedPositions(data))
-        .catch(() => setEnrichedPositions([]))
-        .finally(() => {
-          if (!silenzioso) setEnrichedLoading(false);
-        });
-    },
-    [id],
-  );
-
-  useEffect(() => {
-    if (!id) return;
-    fetch(`/api/portfolios/${id}`)
-      .then((res) => {
-        if (res.status === 404) { setNotFound(true); return null; }
-        if (!res.ok) throw new Error('Risposta non valida dal server');
-        return res.json() as Promise<Portfolio>;
-      })
-      .then((data) => {
-        if (data) {
-          setPortfolio(data);
-          setRenameValue(data.name);
-        }
-      })
-      .catch(() => setError('Backend non raggiungibile'))
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  /**
-   * Rilegge il perimetro grezzo per il grafico dell'andamento (US-019).
-   *
-   * Stesso pattern di `fetchEnriched`: `silenzioso` non alza `seriesLoading`,
-   * così il ricarico al rientro sulla linguetta del browser non fa lampeggiare
-   * il grafico via uno stato di caricamento bloccante.
-   */
-  const fetchSeries = useCallback(
-    (silenzioso = false): Promise<void> => {
-      if (!id) return Promise.resolve();
-      if (!silenzioso) setSeriesLoading(true);
-      return fetch(`/api/portfolios/${id}/series`)
-        .then((res) => {
-          if (!res.ok) return [];
-          return res.json() as Promise<PortfolioSeriesEntry[]>;
-        })
-        .then((data) => setSeries(data))
-        .catch(() => setSeries([]))
-        .finally(() => {
-          if (!silenzioso) setSeriesLoading(false);
-        });
-    },
-    [id],
-  );
-
-  useEffect(() => {
-    if (!loading && !notFound && !error) {
-      fetchPositions();
-      fetchSales();
-      fetchSummary();
-      fetchEnriched();
-      fetchSeries();
-    }
-  }, [loading, notFound, error, fetchPositions, fetchSales, fetchSummary, fetchEnriched, fetchSeries]);
-
-  /**
-   * Ricarico silenzioso al rientro sulla linguetta del browser (US-019).
-   *
-   * Nessun pattern equivalente esiste già altrove in questa pagina: il
-   * ricalcolo di `fetchEnriched` al cambio di *scheda* (sopra) risponde a un
-   * altro evento — la navigazione interna fra Riepilogo/Carico/Scheda titolo,
-   * non l'uscita e il rientro sulla linguetta del browser. Qui l'evento è
-   * `visibilitychange`/`focus`: chi lascia questa pagina aperta in una
-   * linguetta e ci torna dopo un aggiornamento in blocco altrove (o dopo che
-   * l'orologio ha fatto avanzare "oggi") ritrova un grafico aggiornato senza
-   * un lampeggio di caricamento.
-   */
-  useEffect(() => {
-    function alRientroSullaLinguetta() {
-      if (document.visibilityState === 'visible') {
-        void fetchSeries(true);
-      }
-    }
-    document.addEventListener('visibilitychange', alRientroSullaLinguetta);
-    window.addEventListener('focus', alRientroSullaLinguetta);
-    return () => {
-      document.removeEventListener('visibilitychange', alRientroSullaLinguetta);
-      window.removeEventListener('focus', alRientroSullaLinguetta);
-    };
-  }, [fetchSeries]);
-
-  /**
-   * Il registro per ISIN — carichi e vendite — e il residuo di ogni singolo lotto.
-   *
-   * Il criterio LIFO **non è riscritto qui**: `rigiocaRegistro` è la stessa
-   * funzione pura che il server usa per iscrivere una vendita e per calcolare il
-   * residuo delle viste aggregate. Ricalcolarlo nel client non è una seconda
-   * verità ma la stessa, letta due volte: se divergesse, la fascia dei lotti
-   * mostrerebbe un'attribuzione diversa da quella su cui il prezzo medio del
-   * residuo a schermo è stato calcolato — e nulla lo segnalerebbe.
-   */
-  const registri = useMemo(() => {
-    const perIsin = new Map<string, { carichi: CaricoLotto[]; vendite: VenditaLotto[] }>();
-    for (const pos of positions) {
-      const registro = perIsin.get(pos.isin) ?? { carichi: [], vendite: [] };
-      registro.carichi.push({
-        id: pos.id,
-        loadDate: pos.loadDate,
-        loadPrice: pos.loadPrice,
-        quantity: pos.quantity,
-      });
-      perIsin.set(pos.isin, registro);
-    }
-    for (const vendita of sales) {
-      // Come sul server: un ISIN venduto ma non caricato non è un titolo del
-      // portafoglio, e non se ne crea una voce.
-      perIsin.get(vendita.isin)?.vendite.push({
-        id: vendita.id,
-        saleDate: vendita.saleDate,
-        quantity: vendita.quantity,
-        salePrice: vendita.salePrice,
-      });
-    }
-    return perIsin;
-  }, [positions, sales]);
-
-  /** Quote che ogni carico ha ancora, per `id` di posizione. */
-  const residuoPerLotto = useMemo(() => {
-    const residui = new Map<number, number>();
-    for (const registro of registri.values()) {
-      for (const lotto of rigiocaRegistro(registro).lotti) {
-        residui.set(lotto.caricoId, lotto.quantitaResidua);
-      }
-    }
-    return residui;
-  }, [registri]);
-
-  /**
-   * Le posizioni **aperte** — quantità residua superiore a zero — e quelle
-   * **chiuse** — venduto per intero (US-044, FR-013, FR-026).
-   *
-   * La partizione vive qui e non nel rendering perché entrambe le sezioni della
-   * scheda Riepilogo (la tabella dei posseduti, il riquadro del valore totale, e
-   * la nuova tabella «Posizioni chiuse») leggono lo stesso confine: calcolarlo in
-   * due punti diversi rischierebbe di farli divergere su un arrotondamento o un
-   * refactor futuro. `QuadroRisultato` **non** legge questi due elenchi: continua
-   * a ricevere `enrichedPositions` per intero, perché il realizzato delle
-   * posizioni chiuse deve restare nel P&L totale del portafoglio anche dopo che
-   * la loro riga è uscita dalla tabella dei posseduti (criterio 3).
-   */
-  const posizioniAperte = useMemo(
-    () => enrichedPositions.filter((ep) => ep.totalQuantity > 0),
-    [enrichedPositions],
-  );
-  const posizioniChiuse = useMemo(
-    () => enrichedPositions.filter((ep) => ep.totalQuantity === 0),
-    [enrichedPositions],
-  );
-
-  /**
-   * L'ultima data di vendita per ISIN, per la colonna «Chiusa il» di «Posizioni
-   * chiuse» (US-044).
-   *
-   * Non è un nuovo campo di dominio: si legge dal registro già rigiocato per la
-   * tabella unificata di «Carico titoli» (`registri`), lo stesso registro da cui
-   * `residuoPerLotto` legge il residuo lotto per lotto. Le vendite sono ordinate
-   * per data crescente da `rigiocaRegistro`, quindi l'ultima dell'array è la più
-   * recente.
-   */
-  const ultimaVenditaPerIsin = useMemo(() => {
-    const date = new Map<string, string>();
-    for (const [isin, registro] of registri.entries()) {
-      const { vendite } = rigiocaRegistro(registro);
-      const ultima = vendite.at(-1);
-      if (ultima) date.set(isin, ultima.saleDate);
-    }
-    return date;
-  }, [registri]);
-
-  /**
-   * La denominazione di ogni ISIN mai iscritto in questo portafoglio (US-046).
-   *
-   * Non è un dato nuovo e non costa una richiesta in più: `enrichedPositions` è
-   * già letta all'apertura del portafoglio — non al cambio di scheda — e riletta
-   * dopo ogni iscrizione, e comprende anche le righe a residuo zero, cioè i
-   * titoli venduti per intero che restano a registro. È per questo la sorgente
-   * giusta per «Carico titoli», dove il *Registro delle iscrizioni* elenca anche
-   * ciò che non si possiede più.
-   *
-   * Una `Map` e non un `.find()` per riga: le due tabelle risolvono il nome una
-   * volta per riga, e il registro ne ha una per ogni iscrizione — la ricerca
-   * lineare sarebbe quadratica sul numero di iscrizioni.
-   */
-  const nomePerIsin = useMemo(() => {
-    const nomi = new Map<string, string>();
-    for (const ep of enrichedPositions) {
-      if (ep.name) nomi.set(ep.isin, ep.name);
-    }
-    return nomi;
-  }, [enrichedPositions]);
-
-  /**
-   * I titoli con quantità residua: i soli vendibili.
-   *
-   * Un titolo interamente venduto resta a registro con residuo 0 — toglierlo dal
-   * riepilogo è US-044 — ma sparisce da qui, perché offrire di vendere zero quote
-   * sarebbe un rifiuto annunciato.
-   */
-  const titoliScaricabili = useMemo<TitoloScaricabile[]>(
-    () =>
-      [...registri.entries()]
-        .map(([isin, registro]) => ({
-          isin,
-          name: nomePerIsin.get(isin) ?? null,
-          residuo: residuoPerIsin(registro).totalQuantity,
-          carichi: registro.carichi,
-          vendite: registro.vendite,
-        }))
-        .filter((t) => t.residuo > 0)
-        .sort((a, b) => (a.isin < b.isin ? -1 : 1)),
-    [registri, nomePerIsin],
-  );
-
-  /**
-   * Il registro **unificato**: carichi e scarichi nella stessa tabella, in ordine
-   * di data.
-   *
-   * Due tabelle affiancate sarebbero più facili da costruire e direbbero una cosa
-   * falsa — che i due fatti vivono in libri separati. Sono invece iscrizioni dello
-   * stesso libro, ed è esattamente la tesi di ADR-009. L'`id` scioglie il pari
-   * merito fra due iscrizioni dello stesso giorno, e a pari data un carico precede
-   * lo scarico: non si può scaricare ciò che non è ancora stato caricato, e
-   * mostrarlo al rovescio suggerirebbe il contrario.
-   */
-  const iscrizioni = useMemo(() => {
-    const righe: Array<
-      | { specie: 'carico'; data: string; ordine: number; posizione: Position }
-      | { specie: 'scarico'; data: string; ordine: number; vendita: Sale }
-    > = [
-      ...positions.map((posizione) => ({
-        specie: 'carico' as const,
-        data: posizione.loadDate,
-        ordine: 0,
-        posizione,
-      })),
-      ...sales.map((vendita) => ({
-        specie: 'scarico' as const,
-        data: vendita.saleDate,
-        ordine: 1,
-        vendita,
-      })),
-    ];
-    return righe.sort((a, b) => {
-      if (a.data !== b.data) return a.data < b.data ? -1 : 1;
-      if (a.ordine !== b.ordine) return a.ordine - b.ordine;
-      const idA = a.specie === 'carico' ? a.posizione.id : a.vendita.id;
-      const idB = b.specie === 'carico' ? b.posizione.id : b.vendita.id;
-      return idA - idB;
-    });
-  }, [positions, sales]);
-
-  /**
-   * Il residuo del titolo appena venduto, con il prezzo medio **prima** e **dopo**.
-   *
-   * Il «prima» non è memorizzato: si ottiene rigiocando lo stesso registro senza
-   * l'ultima vendita. Conservarlo in uno stato al momento dell'invio sarebbe la
-   * solita seconda copia — vera all'istante in cui è stata scritta e non
-   * necessariamente dopo, per esempio se un'altra scheda intanto ha corretto un
-   * carico.
-   */
-  const residuoDopoVendita = useMemo(() => {
-    if (!ultimaVendita) return null;
-    const registro = registri.get(ultimaVendita.isin);
-    if (!registro) return null;
-    const dopo = residuoPerIsin(registro);
-    const prima = residuoPerIsin({
-      carichi: registro.carichi,
-      vendite: registro.vendite.filter((v) => v.id !== ultimaVendita.id),
-    });
-    return { isin: ultimaVendita.isin, vendita: ultimaVendita, dopo, prima };
-  }, [ultimaVendita, registri]);
-
-  /** Rilegge l'intero registro dopo un'iscrizione di scarico. */
-  const dopoScarico = useCallback(
+  const dopoScaricoCompleto = useCallback(
     (vendita: Sale) => {
-      setUltimaVendita(vendita);
       setPositionDeleteError(null);
-      fetchPositions();
-      fetchSales();
-      fetchSummary();
-      void fetchEnriched();
+      dopoScarico(vendita);
     },
-    [fetchPositions, fetchSales, fetchSummary, fetchEnriched],
+    [dopoScarico, setPositionDeleteError],
   );
 
-  /**
-   * Il ricalcolo che l'aggiornamento in blocco chiama dopo ogni titolo.
-   *
-   * Identità stabile (dipende dal solo `fetchEnriched`, a sua volta stabile per
-   * `id`): il ciclo di US-035 la tiene in un riferimento e una nuova identità a
-   * ogni render sarebbe rumore inutile.
-   */
-  const ricalcolaSilenzioso = useCallback(() => fetchEnriched(true), [fetchEnriched]);
-
-  /**
-   * Rientro sulla linguetta Riepilogo: il conteggio dei titoli obsoleti va
-   * ricalcolato (US-035).
-   *
-   * Cambiare linguetta non smonta la pagina, quindi il ricalcolo al montaggio
-   * qui sopra non basta: chi lascia il riepilogo mentre un aggiornamento in
-   * blocco è in corso e poi ci torna troverebbe la fotografia di prima. La
-   * lettura è silenziosa perché sostituire la tabella con «Caricamento titoli…»
-   * a ogni cambio di linguetta sarebbe un lampeggio senza informazione.
-   *
-   * Il primo giro è saltato: al montaggio il riepilogo è già letto dall'effetto
-   * precedente, e leggerlo due volte sarebbe una richiesta in più a ogni
-   * apertura di portafoglio.
-   */
-  const primoGiroDellaScheda = useRef(true);
-  useEffect(() => {
-    if (primoGiroDellaScheda.current) {
-      primoGiroDellaScheda.current = false;
-      return;
-    }
-    if (scheda === 'riepilogo') void fetchEnriched(true);
-  }, [scheda, fetchEnriched]);
-
-  // Un titolo può sparire dal portafoglio mentre la sua scheda è aperta: basta
-  // rimuoverne l'ultimo carico dalla scheda "Carico titoli". Senza questo,
-  // la linguetta resterebbe attiva su un dettaglio che non esiste più.
-  useEffect(() => {
-    if (isinSelezionato === null || enrichedLoading) return;
-    if (!enrichedPositions.some((ep) => ep.isin === isinSelezionato)) {
-      setIsinSelezionato(null);
-      setScheda((corrente) => (corrente === 'titolo' ? 'riepilogo' : corrente));
-    }
-  }, [enrichedPositions, enrichedLoading, isinSelezionato]);
-
-  useEffect(() => {
-    const state = location.state as { prefill?: PrefillState } | null;
-    if (state?.prefill?.isin) {
-      const prefill = state.prefill;
-      setIsin(prefill.isin);
-      if (prefill.price !== null) {
-        setLoadPrice(String(prefill.price));
-      }
-      if (prefill.name) {
-        setPrefillName(prefill.name);
-      }
-      window.history.replaceState({}, document.title);
-    }
-  }, []);
-
-  /** Validazione client-side del form di carico. */
-  function validateForm(): boolean {
-    const errors: typeof fieldErrors = {};
-    if (!isin || !isValidIsin(isin)) {
-      errors.isin = 'Inserire un codice ISIN valido (12 caratteri alfanumerici).';
-    }
-    if (!loadDate || !/^\d{4}-\d{2}-\d{2}$/.test(loadDate)) {
-      errors.loadDate = 'La data di carico è obbligatoria.';
-    }
-    const price = parseFloat(loadPrice);
-    if (!loadPrice || isNaN(price) || price <= 0) {
-      errors.loadPrice = 'Il prezzo deve essere un valore positivo.';
-    }
-    const normalizzato = quantity.trim().replace(',', '.');
-    const qty = parseFloat(normalizzato);
-    if (!quantity || isNaN(qty) || qty <= 0 || Math.round(qty * 1e6) / 1e6 !== qty) {
-      errors.quantity = 'La quantità deve essere un numero positivo con al più sei decimali.';
-    }
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  }
-
-  async function handleCarico(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitError(null);
-    setSubmitSuccess(null);
-    if (!validateForm()) return;
-
-    setSubmitting(true);
-    try {
-      const payload: CreatePositionRequest = {
-        isin: isin.trim().toUpperCase(),
-        load_date: loadDate,
-        load_price: parseFloat(loadPrice),
-        quantity: parseFloat(quantity.trim().replace(',', '.')),
-      };
-      const res = await fetch(`/api/portfolios/${id}/positions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const data = (await res.json()) as { error: string };
-        setSubmitError(data.error ?? 'Errore durante il salvataggio.');
-        return;
-      }
-      const created = (await res.json()) as Position;
-      setNewPositionId(created.id);
-      setSubmitSuccess(`Posizione ${created.isin} iscritta nel registro con successo.`);
-      // Reset form
-      setIsin('');
-      setLoadDate('');
-      setLoadPrice('');
-      setQuantity('');
-      setFieldErrors({});
-      fetchPositions();
-      fetchSummary();
-      fetchEnriched();
-    } catch {
-      setSubmitError('Backend non raggiungibile.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  /** Apre il form inline di modifica per la posizione specificata. */
-  function startEdit(pos: Position) {
-    setEditingPositionId(pos.id);
-    setEditLoadDate(pos.loadDate);
-    setEditLoadPrice(String(pos.loadPrice));
-    setEditQuantity(String(pos.quantity));
-    setEditError(null);
-  }
-
-  /** Annulla la modifica in corso. */
-  function cancelEdit() {
-    setEditingPositionId(null);
-    setEditError(null);
-  }
-
-  /** Invia il form di modifica tramite PATCH. */
-  async function handleEditSubmit(e: React.FormEvent, posId: number) {
-    e.preventDefault();
-    setEditError(null);
-
-    const updates: UpdatePositionRequest = {};
-    const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-    if (!editLoadDate || !ISO_DATE_RE.test(editLoadDate)) {
-      setEditError('La data di carico deve essere nel formato YYYY-MM-DD.');
-      return;
-    }
-    updates.load_date = editLoadDate;
-
-    const price = parseFloat(editLoadPrice);
-    if (!editLoadPrice || isNaN(price) || price <= 0) {
-      setEditError('Il prezzo deve essere un valore positivo.');
-      return;
-    }
-    updates.load_price = price;
-
-    const normalizzatoEdit = editQuantity.trim().replace(',', '.');
-    const qty = parseFloat(normalizzatoEdit);
-    if (!editQuantity || isNaN(qty) || qty <= 0 || Math.round(qty * 1e6) / 1e6 !== qty) {
-      setEditError('La quantità deve essere un numero positivo con al più sei decimali.');
-      return;
-    }
-    updates.quantity = qty;
-
-    setEditSubmitting(true);
-    try {
-      const res = await fetch(`/api/portfolios/${id}/positions/${posId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-      if (!res.ok) {
-        const data = (await res.json()) as { error: string };
-        setEditError(data.error ?? 'Errore durante il salvataggio.');
-        return;
-      }
-      setEditingPositionId(null);
-      fetchPositions();
-      fetchSummary();
-      fetchEnriched();
-    } catch {
-      setEditError('Backend non raggiungibile.');
-    } finally {
-      setEditSubmitting(false);
-    }
-  }
-
-  /** Rimuove una posizione previa conferma. */
-  async function handleDeletePosition(posId: number) {
-    const confirmed = window.confirm('Rimuovere questo carico? L\'operazione è irreversibile.');
-    if (!confirmed) return;
-    setPositionDeleteError(null);
-    setDeletingPositionId(posId);
-    try {
-      const res = await fetch(`/api/portfolios/${id}/positions/${posId}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const data = (await res.json()) as { error: string };
-        setPositionDeleteError(data.error ?? 'Errore durante la rimozione.');
-        return;
-      }
-      fetchPositions();
-      fetchSummary();
-      fetchEnriched();
-    } catch {
-      setPositionDeleteError('Backend non raggiungibile.');
-    } finally {
-      setDeletingPositionId(null);
-    }
-  }
-
-  async function handleRename(e: React.FormEvent) {
-    e.preventDefault();
-    setRenameError(null);
-    if (!renameValue || renameValue.trim() === '') {
-      setRenameError('Il nome non può essere vuoto.');
-      return;
-    }
-    setRenaming(true);
-    try {
-      const res = await fetch(`/api/portfolios/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: renameValue.trim() }),
-      });
-      if (res.status === 409) {
-        const data = (await res.json()) as { error: string };
-        setRenameError(data.error);
-        return;
-      }
-      if (!res.ok) {
-        setRenameError('Errore durante il salvataggio. Riprova.');
-        return;
-      }
-      const updated = (await res.json()) as Portfolio;
-      setPortfolio(updated);
-      setRenameValue(updated.name);
-    } catch {
-      setRenameError('Backend non raggiungibile.');
-    } finally {
-      setRenaming(false);
-    }
-  }
-
-  async function handleDelete() {
-    const confirmed = window.confirm(
-      `Eliminare il portafoglio "${portfolio?.name}"? L'operazione è irreversibile.`
-    );
-    if (!confirmed) return;
-    setDeleteError(null);
-    setDeleting(true);
-    try {
-      const res = await fetch(`/api/portfolios/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const data = (await res.json()) as { error: string };
-        setDeleteError(data.error ?? "Errore durante l'eliminazione.");
-        return;
-      }
-      navigate('/');
-    } catch {
-      setDeleteError('Backend non raggiungibile.');
-    } finally {
-      setDeleting(false);
-    }
+  function apriSchedaTitolo(isinTitolo: string) {
+    setIsinSelezionato(isinTitolo);
+    setScheda('titolo');
   }
 
   const linguette = (
@@ -757,7 +160,6 @@ export default function PortfolioDetailPage() {
         Carico titoli
       </a>
       {isinSelezionato === null ? (
-        // Nessun titolo scelto: la linguetta non ha un dettaglio da aprire.
         <a className="disabilitata">Scheda titolo</a>
       ) : (
         <a
@@ -770,12 +172,6 @@ export default function PortfolioDetailPage() {
       )}
     </>
   );
-
-  /** Apre la scheda di dettaglio sul titolo indicato (US-018). */
-  function apriSchedaTitolo(isinTitolo: string) {
-    setIsinSelezionato(isinTitolo);
-    setScheda('titolo');
-  }
 
   const registro = (
     <>
@@ -847,19 +243,9 @@ export default function PortfolioDetailPage() {
               ) : (
                 <>
                   {(() => {
-                    // Da US-044 il riquadro si calcola sulle sole posizioni
-                    // APERTE, non più su `enrichedPositions`: una posizione
-                    // chiusa contribuisce 0 al valore attuale (criterio 3), e
-                    // non deve né contarsi come "posizione senza prezzo" né
-                    // gonfiare il denominatore del conteggio qui sotto.
                     const positionsWithPrice = posizioniAperte.filter((ep) => ep.currentValue !== null);
                     const totalCurrentValue = positionsWithPrice.reduce((s, ep) => s + (ep.currentValue ?? 0), 0);
                     const missingPriceCount = posizioniAperte.length - positionsWithPrice.length;
-                    // Zero **misurato**, non assente: nessuna posizione aperta
-                    // significa che il conto non possiede oggi alcun titolo, non
-                    // che un prezzo sia irreperibile. Il trattino resta riservato
-                    // al solo caso — posizioni aperte, nessun prezzo in cache —
-                    // in cui il dato manca davvero.
                     const nessunaPosizioneAperta = posizioniAperte.length === 0;
                     return (
                       <div className="riquadro-valore-totale" data-testid="valore-totale-portafoglio" aria-label="Valore attuale totale del portafoglio">
@@ -893,26 +279,7 @@ export default function PortfolioDetailPage() {
                       </div>
                     );
                   })()}
-                  {/*
-                    Il quadro del risultato (US-043) sta subito sotto il
-                    riquadro del valore attuale e sopra il comando di
-                    aggiornamento in blocco: il primo riquadro dichiara che
-                    cosa il conto possiede oggi, questo quanto quel possesso è
-                    valso — comprese le quote già vendute. Riceve le stesse
-                    `enrichedPositions` del riquadro sopra: nessun secondo
-                    calcolo, nessuna seconda richiesta.
-                  */}
                   <QuadroRisultato enrichedPositions={enrichedPositions} />
-                  {/*
-                    Andamento del portafoglio (US-019, TASK-10): sta subito
-                    sotto il quadro del risultato e sopra il comando di
-                    aggiornamento in blocco — la stessa progressione di
-                    lettura di QuadroRisultato, "quanto vale oggi" seguito da
-                    "come vi è arrivato". Un solo fetch (`fetchSeries`) per
-                    l'intera sezione: nessuna richiesta per singolo titolo, e
-                    `GraficoPortafoglio` stesso non genera alcuna richiesta di
-                    rete (TASK-05, TASK-08).
-                  */}
                   <div className="sezione-titolo" style={{ marginTop: '40px' }}>
                     Andamento del portafoglio
                     <span className="nota">FR-015 &middot; valore complessivo nel tempo, dal registro dei carichi e delle rilevazioni</span>
@@ -921,18 +288,9 @@ export default function PortfolioDetailPage() {
                   {seriesLoading ? (
                     <p className="messaggio attesa">Caricamento andamento…</p>
                   ) : (
-                    // Portafoglio senza titoli: `series` è `[]` e
-                    // `GraficoPortafoglio` ha già un ramo dedicato che si
-                    // degrada a testo invece di disegnare un riquadro vuoto.
                     <GraficoPortafoglio
                       titoli={series}
                       sottoIlGrafico={(contesto) => (
-                        // US-015: la scomposizione della variazione, sotto il
-                        // grafico. `titoli` è la stessa `series` già in mano
-                        // alla pagina — nessuna nuova richiesta di rete —
-                        // ed `enrichedPositions` è la stessa del quadro del
-                        // risultato qui sopra: il sigillo cita il suo P&L
-                        // complessivo senza ricalcolarlo.
                         <MetrichePortafoglio
                           {...contesto}
                           titoli={series}
@@ -941,14 +299,6 @@ export default function PortfolioDetailPage() {
                       )}
                     />
                   )}
-                  {/*
-                    Il riquadro di conteggio di US-034 e il comando di
-                    aggiornamento in blocco di US-035 sono un corpo solo: la
-                    cifra del riquadro *è* la ragione del comando. Vivono
-                    perciò in un componente unico, che ospita anche la macchina
-                    a stati del lavoro — fuori di qui, dove sarebbe l'ennesima
-                    parentesi di una pagina già lunga.
-                  */}
                   {id && (
                     <AggiornaObsoleti
                       portfolioId={id}
@@ -958,13 +308,6 @@ export default function PortfolioDetailPage() {
                     />
                   )}
                   {posizioniAperte.length === 0 ? (
-                    // Ogni posizione di questo portafoglio è stata venduta per
-                    // intero (US-044, criterio 3): la tabella dei posseduti non
-                    // ha righe da mostrare, ma non è lo stato "mai popolato" di
-                    // `riepilogo-vuoto` — il registro porta carichi e vendite,
-                    // solo nessuno con residuo. Il risultato non è perduto: sta
-                    // nel quadro qui sopra e nella sezione «Posizioni chiuse» qui
-                    // sotto.
                     <div className="dettaglio-placeholder" data-testid="riepilogo-tutte-chiuse">
                       <span className="icona-conto" aria-hidden="true">&#9634;</span>
                       <p className="sottotitolo" style={{ fontFamily: "'IM Fell English', serif", fontStyle: 'italic', fontSize: '18px', fontWeight: 400 }}>
@@ -1001,9 +344,6 @@ export default function PortfolioDetailPage() {
                             aria-label={`Apri la scheda del titolo ${ep.name ?? ep.isin}`}
                             onClick={() => apriSchedaTitolo(ep.isin)}
                             onKeyDown={(e) => {
-                              // Una riga con role="button" deve rispondere a Enter e
-                              // Spazio come un bottone vero. `preventDefault` sullo
-                              // Spazio evita che la pagina scorra sotto l'utente.
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 apriSchedaTitolo(ep.isin);
@@ -1012,17 +352,6 @@ export default function PortfolioDetailPage() {
                           >
                             <td>
                               <CellaTitolo isin={ep.isin} nome={ep.name}>
-                                {/*
-                                  Il segnale che questo ISIN ha un passato: una
-                                  volta chiuso — residuo azzerato, uscito dalla
-                                  tabella — un nuovo carico lo riporta qui, e
-                                  `soldQuantity > 0` è il solo modo di saperlo
-                                  senza consultare «Posizioni chiuse» (US-044).
-                                  Non è un caso della sola prima apertura dopo
-                                  la chiusura: resta finché il titolo è tenuto,
-                                  perché il registro delle vendite non si azzera
-                                  mai da solo.
-                                */}
                                 {ep.soldQuantity > 0 && (
                                   <span className="badge-riaperta" data-testid={`badge-riaperta-${ep.isin}`}>
                                     &#8635; riaperta
@@ -1031,8 +360,6 @@ export default function PortfolioDetailPage() {
                               </CellaTitolo>
                             </td>
                             <td className="cifra">{quantita(ep.totalQuantity)}</td>
-                            {/* Il medio del residuo, assente a residuo 0: il trattino
-                                dice «non esiste», uno zero direbbe «comprato a zero». */}
                             <td className={ep.avgLoadPrice !== null ? 'cifra euro' : 'cifra dato-mancante'}>
                               {ep.avgLoadPrice !== null ? ep.avgLoadPrice.toFixed(4) : '–'}
                             </td>
@@ -1042,23 +369,6 @@ export default function PortfolioDetailPage() {
                             >
                               {ep.currentPrice !== null ? ep.currentPrice.toFixed(4) : '–'}
                             </td>
-                            {/*
-                              Un solo predicato per entrambe le nuove colonne, e
-                              include `currentPrice`: una riga in cache può avere
-                              `fetched_at` valorizzato e `price` nullo, e mostrare
-                              lì un istante racconterebbe che «il prezzo è stato
-                              rilevato» — falso, e proprio accanto a un «–».
-                            */}
-                            {/*
-                              La marcatura di US-034 sta DENTRO questa cella, su
-                              riga propria: nessuna ottava colonna, quindi il
-                              `tfoot` conserva il suo colSpan={5} e i due totali
-                              restano incolonnati sotto le rispettive intestazioni.
-                              Il `data-testid` e la classe `dato-mancante` vivono
-                              sullo <span> dell'istante e non sul <td>: le
-                              asserzioni di US-032 leggono il testo *completo*
-                              dell'elemento marcato, e la postilla lo sporcherebbe.
-                            */}
                             <td className="cifra cella-rilevamento">
                               <span
                                 className={
@@ -1072,21 +382,6 @@ export default function PortfolioDetailPage() {
                                   ? dataRilevamento(ep.fetchedAt)
                                   : '–'}
                               </span>
-                              {/*
-                                Il verdetto arriva già deciso dal server: qui si
-                                sceglie solo la parola. Le tre varianti portano
-                                testi diversi — non soltanto colori diversi —
-                                perché la marcatura deve restare leggibile in
-                                scala di grigi.
-
-                                «In aggiornamento» (US-035) è transitoria e non
-                                viene dal server: dice che *questa* riga è quella
-                                in volo, e prevale sulle altre due perché mentre
-                                si aspetta la risposta il verdetto d'archivio non
-                                è più l'informazione utile. Le cifre restano però
-                                quelle in archivio: la riga non si svuota mentre
-                                si aspetta, com'era già la regola di US-030.
-                              */}
                               {isinInLavorazione === ep.isin ? (
                                 <small
                                   className="marca-rilevamento in-lavorazione"
@@ -1150,15 +445,6 @@ export default function PortfolioDetailPage() {
                   </p>
                   </>
                   )}
-                  {/*
-                    ══ Posizioni chiuse (US-044, FR-026, FR-013) ══
-                    Visibile solo quando esiste almeno un ISIN a residuo 0: un
-                    elenco derivato dallo stesso registro delle iscrizioni, non
-                    un secondo archivio. Vive sotto la tabella dei posseduti (o
-                    sotto il suo stato vuoto) e sopra i comandi di gestione del
-                    conto, così che chi legge trovi prima "che cosa ha" e poi
-                    "che cosa ha prodotto ciò che non ha più".
-                  */}
                   {posizioniChiuse.length > 0 && (
                     <>
                       <div className="sezione-titolo" style={{ marginTop: '40px' }}>
@@ -1294,12 +580,6 @@ export default function PortfolioDetailPage() {
           {/* ===== SCHEDA: Scheda titolo (US-018) ===== */}
           {scheda === 'titolo' && isinSelezionato !== null && id && (
             <>
-              {/* Un aggiornamento riuscito dalla scheda cambia il prezzo in
-                  archivio, quindi valore totale e tabella di riepilogo: senza
-                  questo ricalcolo, tornando al Riepilogo l'utente ritroverebbe
-                  il prezzo vecchio (US-030). Il ricalcolo non chiude la scheda:
-                  finché `enrichedLoading` è true l'effetto che azzera
-                  `isinSelezionato` si astiene. */}
               <SchedaTitolo portfolioId={id} isin={isinSelezionato} onDatiAggiornati={fetchEnriched} />
 
               <div className="bottoni" style={{ marginTop: '24px' }}>
@@ -1513,13 +793,6 @@ export default function PortfolioDetailPage() {
               {/* Divisore */}
               <hr className="divisore-sezione" />
 
-              {/*
-                Lo scarico sta **sotto** il carico e nella stessa linguetta
-                (criterio 1): è il secondo verso della stessa operazione, e
-                confinarlo in una scheda propria suggerirebbe che sia un'altra
-                materia. La testata in carminio è ciò che rende impossibile
-                confondere i due moduli.
-              */}
               <div className="sezione-titolo" style={{ marginTop: '32px' }}>
                 Scarico titoli &middot; registrazione di una vendita
                 <span className="nota">
@@ -1542,16 +815,9 @@ export default function PortfolioDetailPage() {
               <ModuloScarico
                 portfolioId={id ?? ''}
                 titoli={titoliScaricabili}
-                onIscritta={dopoScarico}
+                onIscritta={dopoScaricoCompleto}
               />
 
-              {/*
-                Le due cifre che il criterio 3 chiede di leggere dopo l'operazione:
-                la quantità residua e il prezzo medio **ricalcolato**, quest'ultimo
-                accanto al valore che aveva prima. Il ricalcolo è il fatto — non
-                l'assestamento di una cifra qualunque — e mostrarlo senza il termine
-                di confronto lo renderebbe invisibile.
-              */}
               {residuoDopoVendita && (
                 <div
                   className={`riquadro-residuo${residuoDopoVendita.dopo.totalQuantity === 0 ? ' chiuso' : ''}`}
@@ -1577,8 +843,6 @@ export default function PortfolioDetailPage() {
                           {prezzo(residuoDopoVendita.dopo.avgLoadPrice)}
                         </span>
                       ) : (
-                        /* A residuo 0 non esiste un residuo su cui calcolare la
-                           media: si dichiara assente, mai «0,0000» (ADR-003). */
                         <span
                           className="cifra-grande assente dato-mancante"
                           data-testid="residuo-prezzo-medio"
@@ -1629,11 +893,7 @@ export default function PortfolioDetailPage() {
                 <table className="mastro" data-testid="tabella-posizioni">
                   <thead>
                     <tr>
-                      {/* Stessa intestazione e stessa cella del Riepilogo (US-046):
-                          una seconda variante direbbe che sono due dati diversi. */}
                       <th>Denominazione &middot; ISIN</th>
-                      {/* «Residua» e non «totale» da US-042: le vendite iscritte ne
-                          hanno consumato quote, e i carichi restano tutti a registro. */}
                       <th>Quantità residua</th>
                       <th>Prezzo medio carico</th>
                       <th>Controvalore carico</th>
@@ -1703,10 +963,6 @@ export default function PortfolioDetailPage() {
                   <thead>
                     <tr>
                       <th>Iscrizione</th>
-                      {/* Come sopra e come nel Riepilogo (US-046). La colonna resta
-                          per iscrizione e non per ISIN: raggrupparla qui
-                          cancellerebbe l'ordine cronologico, che è il senso stesso
-                          del registro. */}
                       <th>Denominazione &middot; ISIN</th>
                       <th>Data</th>
                       <th>Prezzo</th>
@@ -1732,10 +988,6 @@ export default function PortfolioDetailPage() {
                         if (iscrizione.specie === 'scarico') {
                           const { vendita } = iscrizione;
                           return (
-                            /* Lo scarico è una riga della **stessa** tabella, distinta
-                               dalla marca in prima colonna. Il «Residuo del lotto» non
-                               si applica: una vendita non è un lotto, e scriverci 0
-                               affermerebbe che un lotto è esaurito. */
                             <tr
                               key={`scarico-${vendita.id}`}
                               className={`iscrizione-scarico${ultimaVendita?.id === vendita.id ? ' riga-nuova' : ''}`}
@@ -1757,26 +1009,14 @@ export default function PortfolioDetailPage() {
                           );
                         }
                         const pos = iscrizione.posizione;
-                        // Il residuo del lotto: `undefined` solo nell'istante fra la
-                        // POST di un carico e la rilettura del registro, e in quel
-                        // caso la quantità nominale è la risposta giusta — nessuna
-                        // vendita può ancora averlo toccato.
                         const residuo = residuoPerLotto.get(pos.id) ?? pos.quantity;
                         const consumato = residuo < pos.quantity;
-                        // La ragione, scritta sotto i comandi resi inerti: la versione
-                        // breve che sta in una colonna, mentre il testo completo arriva
-                        // dal server con il 409. Entrambe le varianti nominano **la
-                        // vendita e l'errata** e non solo la misura del consumo — è la
-                        // distinzione che il criterio 6 chiede di rendere esplicita, e
-                        // ometterla nel caso parziale la renderebbe leggibile solo su
-                        // metà dei lotti impediti.
                         const perche = consumato
                           ? residuo === 0
                             ? 'consumato da una vendita: si rettifica solo un\'iscrizione errata'
                             : `consumato in parte (${quantita(pos.quantity - residuo)} quote su ${quantita(pos.quantity)}) da una vendita: si rettifica solo un'iscrizione errata`
                           : null;
                         return editingPositionId === pos.id ? (
-                          /* ── Form inline modifica ── */
                           <tr key={pos.id} data-testid={`edit-riga-${pos.id}`}>
                             <td>
                               <span className="marca">Carico</span>
@@ -1853,7 +1093,6 @@ export default function PortfolioDetailPage() {
                             </td>
                           </tr>
                         ) : (
-                          /* ── Riga normale ── */
                           <tr
                             key={pos.id}
                             className={`${pos.id === newPositionId ? 'riga-nuova' : ''}${residuo === 0 ? ' lotto-esaurito' : ''}`.trim()}
@@ -1873,17 +1112,6 @@ export default function PortfolioDetailPage() {
                             <td className="cifra euro">{(pos.loadPrice * pos.quantity).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             <td className="cifra" data-testid={`residuo-lotto-${pos.id}`}>{quantita(residuo)}</td>
                             <td>
-                              {/*
-                                Sul carico consumato i due comandi **non spariscono**:
-                                restano al loro posto, tratteggiati e inerti, con la
-                                ragione scritta sotto. Un bottone scomparso non spiega
-                                la propria scomparsa, e la distinzione fra la
-                                correzione di un'iscrizione errata e la vendita è
-                                proprio ciò che il criterio 6 chiede di rendere
-                                esplicito. `disabled` e non un `onClick` che avvisa: il
-                                comando è impossibile, non solo sconsigliato — e il
-                                server risponde comunque 409 se qualcuno lo forza.
-                              */}
                               <button
                                 type="button"
                                 className={`bottone secondario${consumato ? ' impedito' : ''}`}
@@ -1916,15 +1144,6 @@ export default function PortfolioDetailPage() {
                   </tbody>
                   {iscrizioni.length > 0 && (
                     <tfoot>
-                      {/*
-                        Solo il controvalore, e **non** un totale di quantità. Il
-                        registro elenca tutti gli ISIN del portafoglio, e sommare le
-                        quote di titoli diversi produrrebbe un numero che non misura
-                        nulla: «600 + 100 quote» di due strumenti distinti non è una
-                        quantità. Gli euro invece si sommano, ed è la stessa riga di
-                        totale che questa tabella aveva prima di US-042 — misurata
-                        ora sul residuo invece che sul nominale.
-                      */}
                       <tr>
                         <td colSpan={5}>Controvalore di carico del residuo</td>
                         <td className="cifra euro" data-testid="registro-controvalore-residuo">

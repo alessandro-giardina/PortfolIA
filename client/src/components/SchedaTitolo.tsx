@@ -6,16 +6,14 @@ import type { DataSource, PositionDetail, RefetchConfirmation } from '@portfolia
 // la convenzione di segno: la casella «Differenza» qui sotto e il riquadro del
 // P&L sotto il grafico mostrano la **stessa** cifra, e due formattatori distinti
 // potrebbero scriverla in due modi — che per chi guarda è una divergenza.
+import { dataCarico, dataRegistro, quantita } from './Foglio.js';
 import {
   classeSegno,
-  dataCarico,
-  dataRegistro,
   importo,
   importoConSegno,
   percentualeConSegno,
   prezzo,
-  quantita,
-} from './Foglio.js';
+} from '../domain/formattazione.js';
 import GraficoTitolo from './GraficoTitolo.js';
 import MetricheTitolo from './MetricheTitolo.js';
 import { recuperaTitolo } from '../domain/recuperoTitolo.js';

@@ -7,7 +7,8 @@ import {
   istanteDataCivile,
 } from '@portfolia/shared';
 import type { ContestoSottoIlGraficoPortafoglio } from './GraficoPortafoglio.js';
-import { classeSegno, dataCarico, importo, importoConSegno, percentualeConSegno, segnoDi } from './Foglio.js';
+import { dataCarico } from './Foglio.js';
+import { classeSegno, importo, importoConSegno, percentualeConSegno, segnoDi } from '../domain/formattazione.js';
 
 /**
  * Props della stanga a tre pesi (US-015).
