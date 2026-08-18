@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-051
+title: Quadro strumenti — riepilogo del portafoglio
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 5
+status: TODO
+body: |-
+  #### US-051: Quadro strumenti — riepilogo del portafoglio
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 5 | **Stato:** TODO
+  **Bloccato da:** US-050
+
+  **User Story**
+  Come utente di PortfolIA che preferisce un'interfaccia più leggibile e con cifre in primo piano,
+  voglio che la schermata «Riepilogo» del portafoglio sia disponibile anche nel design «Quadro strumenti»,
+  così che le informazioni chiave (valore, capitale investito, differenza, titoli da aggiornare) siano leggibili a colpo d'occhio.
+
+  **Dimostra**
+  Dopo l'implementazione, commutando su «Quadro strumenti» la schermata Riepilogo mostra: barra laterale con navigazione, card KPI (valore attuale, capitale investito, differenza, titoli da aggiornare, senza prezzo), grafico dell'andamento del portafoglio (lo stesso `GraficoPortafoglio` ridipinto con i token del design), tabella dei titoli iscritti, composizione — secondo il mockup `docs/mockups/quadro-strumenti/index.html`. Tutti i dati provengono dagli stessi hook estratti in US-049.
+
+  **Criteri di accettazione**
+  - [ ] Nel design «quadro», il riepilogo mostra le card KPI con cifre grandi (≥ 34px), etichette compatte, e segnalazione dei titoli da aggiornare e senza prezzo
+  - [ ] La barra laterale del mockup è presente e permette la navigazione fra le schermate disponibili
+  - [ ] Il grafico dell'andamento del portafoglio (`GraficoPortafoglio`) è reso con colori e tipografia coerenti al design «quadro», senza duplicare il componente
+  - [ ] La tabella dei titoli iscritti include le colonne del mockup e le righe sono cliccabili per aprire la scheda titolo
+  - [ ] Commutando fra «mastro» e «quadro» i dati restano invariati: la logica è condivisa
+  - [ ] Il toggle tema chiaro/scuro è funzionante nel design «quadro» come nel mockup
+  - [ ] I `data-testid` dei punti di verifica principali sono presenti anche nel markup del design «quadro»
+history:
+  - status: TODO
+    at: "2026-08-18T05:27:39Z"

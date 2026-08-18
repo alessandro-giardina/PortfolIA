@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-050
+title: Commutatore di design con registrazione unica
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: HIGH
+points: 3
+status: TODO
+body: |-
+  #### US-050: Commutatore di design con registrazione unica
+
+  **Epica:** EP-009 | **Priorità:** HIGH | **Punti:** 3 | **Stato:** TODO
+  **Bloccato da:** US-049
+
+  **User Story**
+  Come utente di PortfolIA,
+  voglio poter commutare fra il design «Libro Mastro» e il design «Quadro strumenti» tramite un pulsante nell'interfaccia,
+  così che possa scegliere la veste grafica che preferisco senza perdere la scelta al ricaricamento.
+
+  **Dimostra**
+  Dopo l'implementazione, l'attributo `data-design` su `<html>` vale `mastro` o `quadro`, un pulsante nell'interfaccia lo alterna, e la preferenza è persistita in `localStorage`. Poiché il solo design registrato è il Libro Mastro, l'aspetto dell'app non cambia ancora — il meccanismo è in piedi ma il foglio di stile «quadro» è vuoto o minimale.
+
+  **Criteri di accettazione**
+  - [ ] `ledger.css` è avvolto sotto `:root[data-design='mastro']` (nesting CSS nativo o scoping equivalente); le regole su `html` e `body` restano fuori dallo scope per non spezzare il cascading
+  - [ ] Esiste un punto di ingresso CSS per il design «quadro» (foglio separato o sezione scoped), inizialmente vuoto o con i soli reset necessari
+  - [ ] Un pulsante visibile in ogni pagina commuta `data-design` fra `mastro` e `quadro` senza ricaricamento
+  - [ ] La preferenza è salvata in `localStorage` e applicata al caricamento successivo
+  - [ ] Il design predefinito in assenza di preferenza salvata è `mastro`
+  - [ ] La suite E2E esistente passa verde senza modifiche ai test
+  - [ ] `npm run check` è verde
+history:
+  - status: TODO
+    at: "2026-08-18T05:27:39Z"

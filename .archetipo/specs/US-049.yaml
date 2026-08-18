@@ -1,0 +1,31 @@
+schema: archetipo/spec/v2
+code: US-049
+title: Estrarre la logica dalle pagine in hook riusabili
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: HIGH
+points: 5
+status: TODO
+body: |-
+  #### US-049: Estrarre la logica dalle pagine in hook riusabili
+
+  **Epica:** EP-009 | **Priorità:** HIGH | **Punti:** 5 | **Stato:** TODO
+  **Bloccato da:** —
+
+  **User Story**
+  Come sviluppatore che mantiene il frontend di PortfolIA,
+  voglio che la logica di fetch, stato e side-effect di ogni pagina sia estratta in hook dedicati, separati dal markup,
+  così che un secondo design possa riusare la stessa logica senza duplicarla.
+
+  **Dimostra**
+  Dopo l'implementazione, la suite E2E (61 file) passa verde senza modifiche. `PortfolioDetailPage.tsx` contiene solo markup e la chiamata agli hook; `DashboardPage.tsx` e `SecuritySearchPage.tsx` seguono lo stesso schema. Le utility neutre (`importo`, `prezzo`, `segnoDi`, `classeSegno`, `percentualeConSegno`, `importoConSegno`) vivono in un modulo separato dal guscio `Foglio.tsx`, mentre `dataRegistro` e `dataCarico` restano in `Foglio.tsx` perché sono scelte di resa legate al Libro Mastro.
+
+  **Criteri di accettazione**
+  - [ ] `PortfolioDetailPage.tsx`, `DashboardPage.tsx` e `SecuritySearchPage.tsx` importano la logica da hook dedicati e non contengono `fetch`, `useEffect` per dati, né gestione di stato dei form
+  - [ ] Le utility di formattazione neutre (`importo`, `prezzo`, `segnoDi`, `classeSegno`, `percentualeConSegno`, `importoConSegno`) sono in un modulo proprio, distinto da `Foglio.tsx`
+  - [ ] La suite E2E esistente (61 file) passa verde senza modifiche ai test
+  - [ ] `npm run check` (lint + typecheck + test unitari) è verde
+history:
+  - status: TODO
+    at: "2026-08-18T05:27:39Z"

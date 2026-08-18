@@ -1,0 +1,32 @@
+schema: archetipo/spec/v2
+code: US-055
+title: Quadro strumenti — ricerca titoli
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 3
+status: TODO
+body: |-
+  #### US-055: Quadro strumenti — ricerca titoli
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 3 | **Stato:** TODO
+  **Bloccato da:** US-050
+
+  **User Story**
+  Come utente di PortfolIA che preferisce il design «Quadro strumenti»,
+  voglio che la schermata di ricerca titoli per ISIN sia disponibile nel nuovo design,
+  così che la consultazione di anagrafica e prezzo di un titolo sia coerente con il resto dell'app.
+
+  **Dimostra**
+  Dopo l'implementazione, commutando su «Quadro strumenti» la schermata di ricerca mostra il campo ISIN, i risultati con anagrafica e prezzo, la provenienza del dato e il pulsante per aggiungere il titolo a un portafoglio — nella veste del nuovo design.
+
+  **Criteri di accettazione**
+  - [ ] Nel design «quadro», il campo di ricerca ISIN e il pulsante di invio sono resi nella veste del nuovo design
+  - [ ] Il risultato della ricerca mostra nome, ISIN, prezzo, valuta, fonte del dato e data di rilevamento con la stessa informazione del design «mastro»
+  - [ ] L'azione «Aggiungi a portafoglio» funziona come nel design «mastro»
+  - [ ] I messaggi di errore e gli stati (caricamento, ISIN non trovato, dato non disponibile) sono resi in coerenza con il design «quadro»
+  - [ ] I dati provengono dagli stessi hook estratti in US-049
+history:
+  - status: TODO
+    at: "2026-08-18T05:27:39Z"

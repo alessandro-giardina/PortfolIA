@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-053
+title: Quadro strumenti — elenco portafogli
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 3
+status: TODO
+body: |-
+  #### US-053: Quadro strumenti — elenco portafogli
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 3 | **Stato:** TODO
+  **Bloccato da:** US-050
+
+  **User Story**
+  Come utente di PortfolIA che preferisce il design «Quadro strumenti»,
+  voglio che l'elenco dei portafogli e la creazione di un nuovo portafoglio siano disponibili nel nuovo design,
+  così che la schermata iniziale dell'app sia coerente con il riepilogo e la scheda titolo.
+
+  **Dimostra**
+  Dopo l'implementazione, commutando su «Quadro strumenti» la schermata iniziale mostra l'elenco dei portafogli esistenti con la possibilità di crearne, rinominarne e eliminarne uno, e il dialogo di scelta portafoglio segue lo stesso stile. La barra laterale è presente e coerente con le altre schermate del design «quadro».
+
+  **Criteri di accettazione**
+  - [ ] Nel design «quadro», l'elenco dei portafogli è reso nella veste del nuovo design con barra laterale, tipografia e superfici coerenti con il riepilogo
+  - [ ] La creazione di un nuovo portafoglio funziona con lo stesso flusso funzionale del design «mastro»
+  - [ ] Rinomina e eliminazione di un portafoglio sono accessibili e funzionanti
+  - [ ] Il dialogo di scelta portafoglio (`PortfolioSelectDialog`) è stilizzato in coerenza con il design «quadro»
+  - [ ] I dati provengono dagli stessi hook estratti in US-049
+  - [ ] I `data-testid` dei punti di verifica principali sono presenti nel markup del design «quadro»
+history:
+  - status: TODO
+    at: "2026-08-18T05:27:39Z"

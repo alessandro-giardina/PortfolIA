@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-054
+title: Quadro strumenti — iscrizione carichi e scarichi
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 5
+status: TODO
+body: |-
+  #### US-054: Quadro strumenti — iscrizione carichi e scarichi
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 5 | **Stato:** TODO
+  **Bloccato da:** US-050
+
+  **User Story**
+  Come utente di PortfolIA che preferisce il design «Quadro strumenti»,
+  voglio che i moduli di iscrizione dei carichi e di registrazione degli scarichi siano disponibili nel nuovo design,
+  così che le operazioni di carico e vendita siano leggibili e utilizzabili nella stessa veste delle altre schermate.
+
+  **Dimostra**
+  Dopo l'implementazione, commutando su «Quadro strumenti» e aprendo la scheda «Carico titoli» di un portafoglio, il modulo di iscrizione carichi è reso nel nuovo design. Il modulo scarico (`ModuloScarico`) e la sezione delle posizioni chiuse con la fascia LIFO seguono lo stesso stile. Tutte le validazioni e i flussi funzionali sono identici al design «mastro».
+
+  **Criteri di accettazione**
+  - [ ] Nel design «quadro», il modulo di iscrizione carico mostra campi ISIN, data di carico, prezzo di carico e quantità nella veste del nuovo design
+  - [ ] Il registro cronologico dei carichi e degli scarichi è leggibile e coerente con il design
+  - [ ] Il modulo scarico (`ModuloScarico`) è reso nel design «quadro» con la stessa struttura funzionale
+  - [ ] La sezione posizioni chiuse e la fascia LIFO (`FasciaLifo`) sono rese nel design «quadro»
+  - [ ] Le validazioni dei campi, i messaggi di errore e di conferma funzionano come nel design «mastro»
+  - [ ] I dati provengono dagli stessi hook estratti in US-049
+history:
+  - status: TODO
+    at: "2026-08-18T05:27:39Z"

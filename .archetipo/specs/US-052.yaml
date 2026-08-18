@@ -1,0 +1,34 @@
+schema: archetipo/spec/v2
+code: US-052
+title: Quadro strumenti — scheda titolo
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 5
+status: TODO
+body: |-
+  #### US-052: Quadro strumenti — scheda titolo
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 5 | **Stato:** TODO
+  **Bloccato da:** US-050
+
+  **User Story**
+  Come utente di PortfolIA che preferisce il design «Quadro strumenti»,
+  voglio che la scheda di dettaglio di un titolo sia disponibile nel nuovo design,
+  così che posizione, grafico, metriche, carichi, vendite e storico prezzi siano leggibili nella stessa veste del riepilogo.
+
+  **Dimostra**
+  Dopo l'implementazione, commutando su «Quadro strumenti» e aprendo un titolo dalla tabella del riepilogo, la scheda titolo mostra: posizione a conto con P&L latente e realizzato, grafico con le due viste (prezzo unitario / valore posizione) e le quattro scale temporali, metriche sotto il grafico, anagrafica ufficiale, tabella carichi, tabella vendite, fascia LIFO, storico prezzi — secondo il mockup `docs/mockups/quadro-strumenti/scheda-titolo.html`. I grafici (`GraficoTitolo`) sono gli stessi ridipinti.
+
+  **Criteri di accettazione**
+  - [ ] Nel design «quadro», la scheda titolo mostra posizione, P&L latente, P&L realizzato, e indicazione della quantità residua dopo le vendite
+  - [ ] Il grafico del titolo (`GraficoTitolo`) è reso con colori e tipografia coerenti al design «quadro», senza duplicare il componente
+  - [ ] Le due viste (prezzo unitario / valore della posizione) e le quattro scale temporali funzionano come nel design «mastro»
+  - [ ] Carichi registrati, vendite registrate, fascia LIFO e storico prezzi sono visibili e coerenti con il mockup
+  - [ ] La navigazione di ritorno al riepilogo funziona dalla barra laterale
+  - [ ] I `data-testid` dei punti di verifica principali sono presenti anche nel markup del design «quadro»
+  - [ ] Commutando fra «mastro» e «quadro» i dati restano invariati
+history:
+  - status: TODO
+    at: "2026-08-18T05:27:39Z"

@@ -19,6 +19,8 @@ epics:
     title: P&L e grafico del singolo titolo
   - code: EP-008
     title: Vendite e posizioni chiuse
+  - code: EP-009
+    title: Direzione visiva commutabile
 order:
   - US-001
   - US-002
@@ -67,3 +69,10 @@ order:
   - US-020
   - US-046
   - US-048
+  - US-049
+  - US-050
+  - US-051
+  - US-052
+  - US-053
+  - US-054
+  - US-055
