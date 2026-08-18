@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: HIGH
 points: 5
-status: REVIEW
+status: DONE
 body: |-
   #### US-049: Estrarre la logica dalle pagine in hook riusabili
 
@@ -35,3 +35,5 @@ history:
     at: "2026-08-18T05:54:06Z"
   - status: REVIEW
     at: "2026-08-18T09:07:58Z"
+  - status: DONE
+    at: "2026-08-18T09:21:07Z"
