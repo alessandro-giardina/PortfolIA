@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useDesign } from '../hooks/useDesign.js';
 
 interface FoglioProps {
   marchio: string;
@@ -27,8 +28,31 @@ export default function Foglio({
   linguette,
   children,
 }: FoglioProps) {
+  const { design, commutaDesign } = useDesign();
+
   return (
     <div className="foglio">
+      <button type="button" className="commutatore" onClick={commutaDesign}>
+        {design === 'mastro' ? (
+          <>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="1" y="1" width="4" height="4" rx=".5" />
+              <rect x="7" y="1" width="4" height="2.5" rx=".5" />
+              <rect x="7" y="5.5" width="4" height="5.5" rx=".5" />
+              <rect x="1" y="7" width="4" height="4" rx=".5" />
+            </svg>
+            Quadro strumenti
+          </>
+        ) : (
+          <>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 2.5h4.5a1.5 1.5 0 0 1 1.5 1.5v9.5a1 1 0 0 0-1-1H2z" />
+              <path d="M14 2.5H9.5A1.5 1.5 0 0 0 8 4v9.5a1 1 0 0 1 1-1h5z" />
+            </svg>
+            Libro Mastro
+          </>
+        )}
+      </button>
       <header className="testata">
         <div>
           <p className="marchio">{marchio}</p>

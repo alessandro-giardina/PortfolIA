@@ -1,0 +1,24 @@
+/* Placeholder: il design "quadro" non è ancora implementato (US-050). */
+:root[data-design='quadro'] {
+  .commutatore {
+    position: absolute;
+    top: 8px;
+    right: 14px;
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    appearance: none;
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    color: inherit;
+    background: transparent;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .commutatore svg { width: 12px; height: 12px; flex-shrink: 0; }
+}

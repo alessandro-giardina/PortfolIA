@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: HIGH
 points: 3
-status: PLANNED
+status: REVIEW
 body: |-
   #### US-050: Commutatore di design con registrazione unica
 
@@ -34,3 +34,7 @@ history:
     at: "2026-08-18T05:27:39Z"
   - status: PLANNED
     at: "2026-08-18T19:30:42Z"
+  - status: IN PROGRESS
+    at: "2026-08-19T12:25:01Z"
+  - status: REVIEW
+    at: "2026-08-19T12:51:33Z"

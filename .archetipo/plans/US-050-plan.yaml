@@ -6,14 +6,16 @@ tasks:
     title: Script anticipato in index.html per applicare data-design
     description: Aggiungere un `<script>` inline sincrono in `client/index.html`, prima del tag `<script type="module">`, che legge `localStorage.getItem('portfolia-design')` e imposta `document.documentElement.dataset.design` al valore trovato o `'mastro'` come default. Lo script deve essere minimo e bloccante per garantire che il primo paint abbia già l'attributo corretto.
     type: Impl
-    status: TODO
+    status: DONE
     body: Aggiungere un `<script>` inline sincrono in `client/index.html`, prima del tag `<script type="module">`, che legge `localStorage.getItem('portfolia-design')` e imposta `document.documentElement.dataset.design` al valore trovato o `'mastro'` come default. Lo script deve essere minimo e bloccante per garantire che il primo paint abbia già l'attributo corretto.
+    ref: TASK-01
   - id: TASK-02
     title: Creare l'hook useDesign
     description: Creare `client/src/hooks/useDesign.ts` che espone `{ design, commutaDesign }`. Lo stato `design` è inizializzato da `document.documentElement.dataset.design` (già impostato dallo script inline di TASK-01). `commutaDesign()` alterna fra `'mastro'` e `'quadro'`, aggiornando sia `document.documentElement.dataset.design` che `localStorage.setItem('portfolia-design', ...)`. Usare `useState` con inizializzazione lazy e `useCallback` per la stabilità referenziale.
     type: Impl
-    status: TODO
+    status: DONE
     body: Creare `client/src/hooks/useDesign.ts` che espone `{ design, commutaDesign }`. Lo stato `design` è inizializzato da `document.documentElement.dataset.design` (già impostato dallo script inline di TASK-01). `commutaDesign()` alterna fra `'mastro'` e `'quadro'`, aggiornando sia `document.documentElement.dataset.design` che `localStorage.setItem('portfolia-design', ...)`. Usare `useState` con inizializzazione lazy e `useCallback` per la stabilità referenziale.
+    ref: TASK-02
   - id: TASK-03
     title: Avvolgere ledger.css sotto :root[data-design='mastro']
     description: |-
@@ -25,7 +27,7 @@ tasks:
 
       I blocchi `@media` che contengono regole di classe restano annidati dentro lo scope del design. Le variabili `:root { ... }` diventano `:root[data-design='mastro'] { ... }`.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: |-
@@ -36,14 +38,16 @@ tasks:
       - Le dichiarazioni `@keyframes` (estratte a top-level)
 
       I blocchi `@media` che contengono regole di classe restano annidati dentro lo scope del design. Le variabili `:root { ... }` diventano `:root[data-design='mastro'] { ... }`.
+    ref: TASK-03
   - id: TASK-04
     title: Creare quadro.css e importarlo in main.tsx
     description: Creare `client/src/quadro.css` con il blocco `:root[data-design='quadro'] { }` inizialmente vuoto o con un commento segnaposto. Aggiungere `import './quadro.css';` in `client/src/main.tsx` dopo l'import di `ledger.css`.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
     body: Creare `client/src/quadro.css` con il blocco `:root[data-design='quadro'] { }` inizialmente vuoto o con un commento segnaposto. Aggiungere `import './quadro.css';` in `client/src/main.tsx` dopo l'import di `ledger.css`.
+    ref: TASK-04
   - id: TASK-05
     title: Aggiungere il pulsante commutatore in Foglio.tsx (alto a destra)
     description: |-
@@ -55,7 +59,7 @@ tasks:
 
       Riferimento visivo: `docs/mockups/US-050/commutatore.html`.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
       - TASK-03
@@ -67,16 +71,18 @@ tasks:
       **Stile Quadro (design attivo = quadro):** fallback minimale poiché il guscio quadro non esiste ancora. Stessa posizione absolute, stile basico con font sans-serif, trasparente a riposo. Sarà raffinato quando il guscio quadro sarà implementato.
 
       Riferimento visivo: `docs/mockups/US-050/commutatore.html`.
+    ref: TASK-05
   - id: TASK-06
     title: npm run check verde
     description: Eseguire `npm run check` (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) e verificare che tutta la pipeline sia verde. Correggere eventuali errori introdotti dalla ristrutturazione CSS o dalle nuove componenti.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
       - TASK-04
       - TASK-05
     body: Eseguire `npm run check` (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) e verificare che tutta la pipeline sia verde. Correggere eventuali errori introdotti dalla ristrutturazione CSS o dalle nuove componenti.
+    ref: TASK-06
   - id: TASK-07
     title: Test E2E — commutatore di design e suite esistente
     description: |-
@@ -88,7 +94,7 @@ tasks:
 
       Registrare il video demo per lo scenario dimostrativo in `docs/test-results/US-050/`. Eseguire l'intera suite E2E (`npx playwright test`) e verificare che tutti i file esistenti passino senza modifiche ai test.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-06
     body: |-
@@ -99,3 +105,4 @@ tasks:
       4. Ritorno a mastro — secondo click torna a `mastro`
 
       Registrare il video demo per lo scenario dimostrativo in `docs/test-results/US-050/`. Eseguire l'intera suite E2E (`npx playwright test`) e verificare che tutti i file esistenti passino senza modifiche ai test.
+    ref: TASK-07
