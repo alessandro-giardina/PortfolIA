@@ -71,7 +71,7 @@ const RIGHE_ATTESE = [
   { campo: 'carico-isin', etichetta: 'ISIN', nota: '12 caratteri alfanumerici' },
   { campo: 'carico-data', etichetta: 'Data di carico', nota: 'data di acquisto' },
   { campo: 'carico-prezzo', etichetta: 'Prezzo di acquisto', nota: 'per singola quota, in euro' },
-  { campo: 'carico-quantita', etichetta: 'Quantità', nota: 'numero intero di quote' },
+  { campo: 'carico-quantita', etichetta: 'Quantità', nota: 'numero positivo, al più 6 decimali' },
 ];
 
 test('demo: ogni nota del modulo di carico si legge su riga propria sotto la sua etichetta', async ({
