@@ -1,0 +1,101 @@
+schema: archetipo/plan/v2
+spec_code: US-050
+body: "## Soluzione tecnica\n\n### Approccio\n\nLa spec chiede un meccanismo di commutazione del design tramite l'attributo `data-design` su `<html>`, un pulsante visibile su ogni pagina e la persistenza della scelta in `localStorage`. Poiché il solo design «registrato» è il Libro Mastro, l'aspetto visivo dell'app non cambia — ma l'infrastruttura CSS e React è completa.\n\n### Decisioni architetturali\n\n1. **Applicazione anticipata del design (FOUC-free)** — Uno `<script>` inline sincrono in `client/index.html`, prima del tag `<script type=\"module\">`, legge `localStorage.getItem('portfolia-design')` e imposta `document.documentElement.dataset.design` al valore trovato o `'mastro'`. Questo garantisce che il primo paint abbia già l'attributo giusto, evitando il flash of unstyled content.\n\n2. **Scoping con CSS nesting nativo** — Il corpo di `ledger.css` viene avvolto sotto `:root[data-design='mastro'] { ... }`. Restano **fuori** dallo scope:\n   - `@import url(...)` (requisito CSS: deve stare a top-level)\n   - `* { box-sizing: border-box; }` e `html { -webkit-font-smoothing }` (reset universali)\n   - Le regole su `body` (cascading invariato per il criterio della spec)\n   - Le dichiarazioni `@keyframes` (estratte a top-level)\n   \n   Le variabili CSS in `:root { ... }` entrano nello scope diventando `:root[data-design='mastro'] { --carta: ...; ... }` perché sono il vocabolario visivo del Libro Mastro; il design Quadro definirà le proprie.\n   \n   I blocchi `@media` restano annidati dentro lo scope — con CSS nesting, un `@media` annidato eredita il contesto padre.\n\n3. **Punto d'ingresso `quadro.css`** — File `client/src/quadro.css` inizialmente con il solo scope `:root[data-design='quadro']` e un commento segnaposto. Importato in `main.tsx` accanto a `ledger.css`.\n\n4. **Hook `useDesign`** — `client/src/hooks/useDesign.ts` fornisce `{ design, commutaDesign }`:\n   - `design` è uno stato React sincronizzato con `document.documentElement.dataset.design`\n   - `commutaDesign()` alterna `mastro` ↔ `quadro`, aggiorna `dataset.design` e `localStorage`\n\n5. **Pulsante commutatore — in alto a destra su ogni pagina** — Il pulsante mostra il nome del design di **destinazione**, non quello attivo. La posizione e lo stile cambiano a seconda del design corrente (vedi mockup `docs/mockups/US-050/commutatore.html`):\n\n   **Libro Mastro:** targhetta d'ottone posizionata in `position: absolute` nell'angolo in alto a destra del `.foglio` (sopra la testata, dentro il padding del foglio). Icona a griglia SVG che richiama il quadro strumenti, testo «QUADRO STRUMENTI» in IM Fell English SC maiuscoletto, colore ottone su sfondo carta semi-trasparente, bordo ottone. Al hover: testo più scuro, bordo pieno, leggero sollevamento.\n\n   **Quadro Strumenti:** pillola nella barra `.azioni-testata`, accanto al commutatore di tema. Icona libro aperto SVG che richiama il mastro, testo «Libro Mastro» in Manrope 600. Stile `.bottone.nudo` — trasparente a riposo, `superficie-2` al hover.\n\n   L'implementazione vive in `Foglio.tsx` (guscio condiviso) per il design mastro. Per il quadro, finché il guscio quadro non esiste, il pulsante avrà uno stile di fallback minimale che resta funzionale.\n\n### Rischi e mitigazioni\n\n- **Specificità CSS** — L'avvolgimento in `:root[data-design='mastro']` aumenta la specificità di tutte le regole di (0,1,1). Poiché l'incremento è uniforme, la competizione fra regole interne resta invariata. Le regole su `body` che restano fuori hanno specificità (0,0,1), già inferiore alle regole di classe — nulla cambia.\n- **`@keyframes` dentro il nesting** — Per sicurezza cross-browser, le dichiarazioni `@keyframes` vengono estratte esplicitamente a top-level.\n- **Variabili CSS e body** — Le regole su `body` referenziano `var(--inchiostro)` ecc., definite dentro `:root[data-design='mastro']`. Con il design `mastro` attivo (default), le variabili sono risolte normalmente. Con `quadro`, le stesse variabili saranno assenti e i valori di fallback si applicheranno — comportamento corretto poiché il design quadro definirà le proprie in futuro.\n\n## Strategia di test\n\n### Test E2E\n\nLa spec coinvolge UI e interazione utente: la strategia E2E è obbligatoria.\n\n**Scenari:**\n1. **Default mastro** — All'apertura senza preferenza salvata, `<html data-design=\"mastro\">` è presente e il pulsante di commutazione è visibile in alto a destra\n2. **Commutazione a quadro** — Click sul pulsante: `data-design` diventa `quadro`, `localStorage` contiene `quadro`\n3. **Persistenza** — Dopo ricaricamento della pagina, `data-design` vale ancora `quadro`\n4. **Ritorno a mastro** — Secondo click: torna a `mastro`, `localStorage` aggiornato\n\n**Video demo:** Registrato per il solo scenario dimostrativo (toggle + persistenza), salvato in `docs/test-results/US-050/`.\n\n**Framework:** Playwright (già in uso nel progetto).\n\n### Verifica di non regressione\n\nLa suite E2E esistente deve passare senza modifiche ai test: il design predefinito è `mastro` e tutte le regole CSS sono preservate sotto quell'attributo.\n\n### Registro chiavi E2E\n\nIl nuovo file spec `US-050__commutatore-design.spec.ts` non utilizza ISIN né titoli — nessuna voce da aggiungere in `e2e/support/titoli.ts`.\n\n### Mockup di riferimento\n\nIl mockup del pulsante (entrambi i design, stati normale e hover) è in `docs/mockups/US-050/commutatore.html`."
+tasks:
+  - id: TASK-01
+    title: Script anticipato in index.html per applicare data-design
+    description: Aggiungere un `<script>` inline sincrono in `client/index.html`, prima del tag `<script type="module">`, che legge `localStorage.getItem('portfolia-design')` e imposta `document.documentElement.dataset.design` al valore trovato o `'mastro'` come default. Lo script deve essere minimo e bloccante per garantire che il primo paint abbia già l'attributo corretto.
+    type: Impl
+    status: TODO
+    body: Aggiungere un `<script>` inline sincrono in `client/index.html`, prima del tag `<script type="module">`, che legge `localStorage.getItem('portfolia-design')` e imposta `document.documentElement.dataset.design` al valore trovato o `'mastro'` come default. Lo script deve essere minimo e bloccante per garantire che il primo paint abbia già l'attributo corretto.
+  - id: TASK-02
+    title: Creare l'hook useDesign
+    description: Creare `client/src/hooks/useDesign.ts` che espone `{ design, commutaDesign }`. Lo stato `design` è inizializzato da `document.documentElement.dataset.design` (già impostato dallo script inline di TASK-01). `commutaDesign()` alterna fra `'mastro'` e `'quadro'`, aggiornando sia `document.documentElement.dataset.design` che `localStorage.setItem('portfolia-design', ...)`. Usare `useState` con inizializzazione lazy e `useCallback` per la stabilità referenziale.
+    type: Impl
+    status: TODO
+    body: Creare `client/src/hooks/useDesign.ts` che espone `{ design, commutaDesign }`. Lo stato `design` è inizializzato da `document.documentElement.dataset.design` (già impostato dallo script inline di TASK-01). `commutaDesign()` alterna fra `'mastro'` e `'quadro'`, aggiornando sia `document.documentElement.dataset.design` che `localStorage.setItem('portfolia-design', ...)`. Usare `useState` con inizializzazione lazy e `useCallback` per la stabilità referenziale.
+  - id: TASK-03
+    title: Avvolgere ledger.css sotto :root[data-design='mastro']
+    description: |-
+      Ristrutturare `client/src/ledger.css` avvolgendo tutte le regole di classe e le variabili CSS sotto `:root[data-design='mastro'] { ... }` con CSS nesting nativo. Restano fuori dallo scope:
+      - `@import url(...)` (requisito CSS top-level)
+      - `* { box-sizing }` e `html { font-smoothing }` (reset universali)
+      - Le regole su `body` (cascading invariato)
+      - Le dichiarazioni `@keyframes` (estratte a top-level)
+
+      I blocchi `@media` che contengono regole di classe restano annidati dentro lo scope del design. Le variabili `:root { ... }` diventano `:root[data-design='mastro'] { ... }`.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: |-
+      Ristrutturare `client/src/ledger.css` avvolgendo tutte le regole di classe e le variabili CSS sotto `:root[data-design='mastro'] { ... }` con CSS nesting nativo. Restano fuori dallo scope:
+      - `@import url(...)` (requisito CSS top-level)
+      - `* { box-sizing }` e `html { font-smoothing }` (reset universali)
+      - Le regole su `body` (cascading invariato)
+      - Le dichiarazioni `@keyframes` (estratte a top-level)
+
+      I blocchi `@media` che contengono regole di classe restano annidati dentro lo scope del design. Le variabili `:root { ... }` diventano `:root[data-design='mastro'] { ... }`.
+  - id: TASK-04
+    title: Creare quadro.css e importarlo in main.tsx
+    description: Creare `client/src/quadro.css` con il blocco `:root[data-design='quadro'] { }` inizialmente vuoto o con un commento segnaposto. Aggiungere `import './quadro.css';` in `client/src/main.tsx` dopo l'import di `ledger.css`.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-01
+    body: Creare `client/src/quadro.css` con il blocco `:root[data-design='quadro'] { }` inizialmente vuoto o con un commento segnaposto. Aggiungere `import './quadro.css';` in `client/src/main.tsx` dopo l'import di `ledger.css`.
+  - id: TASK-05
+    title: Aggiungere il pulsante commutatore in Foglio.tsx (alto a destra)
+    description: |-
+      Nel componente `Foglio.tsx`, aggiungere un pulsante posizionato in alto a destra del `.foglio` che invoca `commutaDesign()` dall'hook `useDesign`. Il pulsante mostra il nome del design di destinazione, non quello attivo.
+
+      **Stile Libro Mastro (design attivo = mastro):** targhetta d'ottone in `position: absolute; top: 8px; right: 14px; z-index: 10` dentro il `.foglio`. Icona a griglia SVG + testo «QUADRO STRUMENTI» in IM Fell English SC maiuscoletto. Colore ottone (`#9c7d34`) su sfondo `rgba(231,217,184,.75)`, bordo `1.5px solid rgba(156,125,52,.45)`. Hover: testo inchiostro, bordo pieno ottone, translateY(-1px). Classe CSS: `.commutatore`.
+
+      **Stile Quadro (design attivo = quadro):** fallback minimale poiché il guscio quadro non esiste ancora. Stessa posizione absolute, stile basico con font sans-serif, trasparente a riposo. Sarà raffinato quando il guscio quadro sarà implementato.
+
+      Riferimento visivo: `docs/mockups/US-050/commutatore.html`.
+    type: Impl
+    status: TODO
+    dependencies:
+      - TASK-02
+      - TASK-03
+    body: |-
+      Nel componente `Foglio.tsx`, aggiungere un pulsante posizionato in alto a destra del `.foglio` che invoca `commutaDesign()` dall'hook `useDesign`. Il pulsante mostra il nome del design di destinazione, non quello attivo.
+
+      **Stile Libro Mastro (design attivo = mastro):** targhetta d'ottone in `position: absolute; top: 8px; right: 14px; z-index: 10` dentro il `.foglio`. Icona a griglia SVG + testo «QUADRO STRUMENTI» in IM Fell English SC maiuscoletto. Colore ottone (`#9c7d34`) su sfondo `rgba(231,217,184,.75)`, bordo `1.5px solid rgba(156,125,52,.45)`. Hover: testo inchiostro, bordo pieno ottone, translateY(-1px). Classe CSS: `.commutatore`.
+
+      **Stile Quadro (design attivo = quadro):** fallback minimale poiché il guscio quadro non esiste ancora. Stessa posizione absolute, stile basico con font sans-serif, trasparente a riposo. Sarà raffinato quando il guscio quadro sarà implementato.
+
+      Riferimento visivo: `docs/mockups/US-050/commutatore.html`.
+  - id: TASK-06
+    title: npm run check verde
+    description: Eseguire `npm run check` (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) e verificare che tutta la pipeline sia verde. Correggere eventuali errori introdotti dalla ristrutturazione CSS o dalle nuove componenti.
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-03
+      - TASK-04
+      - TASK-05
+    body: Eseguire `npm run check` (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) e verificare che tutta la pipeline sia verde. Correggere eventuali errori introdotti dalla ristrutturazione CSS o dalle nuove componenti.
+  - id: TASK-07
+    title: Test E2E — commutatore di design e suite esistente
+    description: |-
+      Creare `e2e/US-050__commutatore-design.spec.ts` con i seguenti scenari:
+      1. Default mastro — senza preferenza salvata, `<html>` ha `data-design="mastro"` e il pulsante è visibile in alto a destra del foglio
+      2. Commutazione a quadro — click sul pulsante porta `data-design` a `quadro` e `localStorage` è aggiornato
+      3. Persistenza — dopo reload, `data-design` è ancora `quadro`
+      4. Ritorno a mastro — secondo click torna a `mastro`
+
+      Registrare il video demo per lo scenario dimostrativo in `docs/test-results/US-050/`. Eseguire l'intera suite E2E (`npx playwright test`) e verificare che tutti i file esistenti passino senza modifiche ai test.
+    type: Test
+    status: TODO
+    dependencies:
+      - TASK-06
+    body: |-
+      Creare `e2e/US-050__commutatore-design.spec.ts` con i seguenti scenari:
+      1. Default mastro — senza preferenza salvata, `<html>` ha `data-design="mastro"` e il pulsante è visibile in alto a destra del foglio
+      2. Commutazione a quadro — click sul pulsante porta `data-design` a `quadro` e `localStorage` è aggiornato
+      3. Persistenza — dopo reload, `data-design` è ancora `quadro`
+      4. Ritorno a mastro — secondo click torna a `mastro`
+
+      Registrare il video demo per lo scenario dimostrativo in `docs/test-results/US-050/`. Eseguire l'intera suite E2E (`npx playwright test`) e verificare che tutti i file esistenti passino senza modifiche ai test.
