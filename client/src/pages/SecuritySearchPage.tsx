@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
 import type { SecurityInfo } from '@portfolia/shared';
-import Foglio, { dataRegistro } from '../components/Foglio.js';
+import Guscio from '../components/Guscio.js';
+import { dataRegistro, type Linguetta } from '../components/Foglio.js';
 import PortfolioSelectDialog from '../components/PortfolioSelectDialog.js';
 import { useRicercaTitolo } from '../hooks/useRicercaTitolo.js';
 
@@ -60,14 +60,12 @@ export default function SecuritySearchPage() {
     lookup,
   } = useRicercaTitolo();
 
-  const linguette = (
-    <>
-      <Link to="/">Portafogli</Link>
-      <a className="disabilitata">Riepilogo</a>
-      <a className="attiva">Ricerca titoli</a>
-      <a className="disabilitata">Scheda titolo</a>
-    </>
-  );
+  const linguette: Linguetta[] = [
+    { chiave: 'portafogli', etichetta: 'Portafogli', stato: 'cliccabile', to: '/' },
+    { chiave: 'riepilogo', etichetta: 'Riepilogo', stato: 'disabilitata' },
+    { chiave: 'ricerca', etichetta: 'Ricerca titoli', stato: 'attiva' },
+    { chiave: 'titolo', etichetta: 'Scheda titolo', stato: 'disabilitata' },
+  ];
 
   const registro = (
     <>
@@ -78,7 +76,7 @@ export default function SecuritySearchPage() {
   );
 
   return (
-    <Foglio
+    <Guscio
       marchio="Ricerca titoli · anagrafica e prezzo"
       titolo="Cerca un titolo "
       titoloCorsivo="per ISIN"
@@ -267,6 +265,6 @@ export default function SecuritySearchPage() {
           onClose={() => setDialogOpen(false)}
         />
       )}
-    </Foglio>
+    </Guscio>
   );
 }

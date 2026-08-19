@@ -1,20 +1,19 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import CreatePortfolioForm from '../components/CreatePortfolioForm.js';
-import Foglio, { dataRegistro } from '../components/Foglio.js';
+import Guscio from '../components/Guscio.js';
+import { dataRegistro, type Linguetta } from '../components/Foglio.js';
 import { usePortafogli } from '../hooks/usePortafogli.js';
 
 export default function DashboardPage() {
   const { portfolios, error, loading, handleCreated } = usePortafogli();
   const navigate = useNavigate();
 
-  const linguette = (
-    <>
-      <a href="/" className="attiva">Portafogli</a>
-      <a className="disabilitata">Riepilogo</a>
-      <Link to="/ricerca">Ricerca titoli</Link>
-      <a className="disabilitata">Scheda titolo</a>
-    </>
-  );
+  const linguette: Linguetta[] = [
+    { chiave: 'portafogli', etichetta: 'Portafogli', stato: 'attiva', href: '/' },
+    { chiave: 'riepilogo', etichetta: 'Riepilogo', stato: 'disabilitata' },
+    { chiave: 'ricerca', etichetta: 'Ricerca titoli', stato: 'cliccabile', to: '/ricerca' },
+    { chiave: 'titolo', etichetta: 'Scheda titolo', stato: 'disabilitata' },
+  ];
 
   const registro = (
     <>
@@ -25,7 +24,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <Foglio
+    <Guscio
       marchio="Registro Personale degli Investimenti"
       titolo="Libro "
       titoloCorsivo="Mastro"
@@ -111,6 +110,6 @@ export default function DashboardPage() {
           </div>
         </>
       )}
-    </Foglio>
+    </Guscio>
   );
 }

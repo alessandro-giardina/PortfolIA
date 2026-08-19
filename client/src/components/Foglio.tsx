@@ -1,5 +1,33 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { useDesign } from '../hooks/useDesign.js';
+
+/**
+ * Descrizione di una linguetta di navigazione (US-051/TASK-01), al posto del
+ * `ReactNode` libero usato in precedenza: ogni pagina costruisce un array di
+ * questi oggetti e `Foglio` decide da solo come renderizzarli, cosicché la
+ * marcatura (classe, `Link` vs `<a>`, `onClick`) resta un dettaglio unico e
+ * condiviso invece di essere ripetuta — con lievi differenze — in ogni pagina.
+ *
+ * - `stato: 'disabilitata'` — sempre un `<a className="disabilitata">`, mai
+ *   interattiva.
+ * - `stato: 'cliccabile'` con `to` — un `Link` di react-router, senza classe
+ *   (comportamento invariato rispetto al markup preesistente).
+ * - `stato: 'cliccabile'` con `onClick` (senza `to`) — un
+ *   `<a className="cliccabile" onClick={...}>` col cursore a manina.
+ * - `stato: 'attiva'` — un `<a className="attiva">`; se porta anche `onClick`
+ *   resta cliccabile (per rieseguire la stessa selezione, come le linguette
+ *   dinamiche del conto), se porta `href` naviga con un anchor semplice (come
+ *   la linguetta "Portafogli" della dashboard).
+ */
+export interface Linguetta {
+  chiave: string;
+  etichetta: string;
+  stato: 'attiva' | 'cliccabile' | 'disabilitata';
+  onClick?: () => void;
+  to?: string;
+  href?: string;
+}
 
 interface FoglioProps {
   marchio: string;
@@ -11,8 +39,36 @@ interface FoglioProps {
   /** Righe della colonna registro in alto a destra */
   registro: ReactNode;
   /** Linguette di navigazione */
-  linguette: ReactNode;
+  linguette: Linguetta[];
   children: ReactNode;
+}
+
+function renderLinguetta(l: Linguetta) {
+  if (l.stato === 'disabilitata') {
+    return <a key={l.chiave} className="disabilitata">{l.etichetta}</a>;
+  }
+  if (l.stato === 'cliccabile') {
+    if (l.to) {
+      return <Link key={l.chiave} to={l.to}>{l.etichetta}</Link>;
+    }
+    return (
+      <a key={l.chiave} className="cliccabile" onClick={l.onClick} style={{ cursor: 'pointer' }}>
+        {l.etichetta}
+      </a>
+    );
+  }
+  // stato === 'attiva'
+  return (
+    <a
+      key={l.chiave}
+      className="attiva"
+      href={l.href}
+      onClick={l.onClick}
+      style={l.onClick ? { cursor: 'pointer' } : undefined}
+    >
+      {l.etichetta}
+    </a>
+  );
 }
 
 /**
@@ -65,7 +121,7 @@ export default function Foglio({
         <div className="colonna-registro">{registro}</div>
       </header>
 
-      <nav className="linguette">{linguette}</nav>
+      <nav className="linguette">{linguette.map(renderLinguetta)}</nav>
 
       <main className="corpo">{children}</main>
 

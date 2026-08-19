@@ -1976,6 +1976,88 @@ export const TITOLO_US_047: TitoloSeminabile = {
 };
 
 /**
+ * Riservati a `US-051__quadro-riepilogo.spec.ts`.
+ *
+ * Tre titoli per il quadro strumenti (US-051): uno rilevato adesso, uno
+ * rilevato in una sessione di borsa ormai chiusa, uno mai iscritto in cache.
+ * Il terzetto è ciò che rende non banali le carte KPI «Da aggiornare» e
+ * «Senza prezzo» — con un solo titolo, o con titoli tutti allineati, entrambe
+ * resterebbero a zero e non proverebbero nulla.
+ *
+ * `IE00BQZ8FD01` (il secondo di questa coppia, sotto) va seminato con
+ * `fetched_at` fissato quattordici giorni indietro da adesso, non con un
+ * istante di calendario: quattordici giorni contengono sempre almeno una
+ * sessione di borsa conclusa, a qualunque ora e in qualunque giorno la suite
+ * giri (stesso argomento di `TITOLO_US_034_OBSOLETO`).
+ */
+export const TITOLO_US_051_FRESCO: TitoloSeminabile = {
+  isin: 'IE00BQZ8FC93',
+  file: 'US-051__quadro-riepilogo.spec.ts',
+  campi: {
+    name: 'Invesco Ftse All-World Ucits Etf Acc',
+    price: 102.5,
+    ticker: 'FWIA',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,15%',
+    currency: 'EUR',
+    issuer: 'INVESCO MARKETS PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/** Riservato a `US-051__quadro-riepilogo.spec.ts`: il titolo col rilevamento obsoleto. */
+export const TITOLO_US_051_OBSOLETO: TitoloSeminabile = {
+  isin: 'IE00BQZ8FD01',
+  file: 'US-051__quadro-riepilogo.spec.ts',
+  campi: {
+    name: 'Spdr Msci Acwi Ucits Etf',
+    price: 76.3,
+    ticker: 'SPYW',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,12%',
+    currency: 'EUR',
+    issuer: 'SSGA SPDR ETFS EUROPE II PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservato a `US-051__quadro-riepilogo.spec.ts`: l'ISIN che il file *rimuove*
+ * dalla cache, per garantire il cache miss che la carta «Senza prezzo» deve
+ * dimostrare. Rimuovere e ripristinare è la stessa pila di undo del seeding,
+ * quindi vale comunque la riserva per file.
+ */
+export const ISIN_MAI_RILEVATO_US_051: ChiaveRiservata = {
+  isin: 'LU2400111329',
+  file: 'US-051__quadro-riepilogo.spec.ts',
+};
+
+/**
+ * Riservato a `US-051__quadro-riepilogo-demo.spec.ts` (il file demo del video):
+ * unico titolo del portafoglio dimostrativo, con un guadagno per rendere il
+ * video visivamente significativo. ISIN distinto da `TITOLO_US_051_FRESCO`/
+ * `TITOLO_US_051_OBSOLETO` (regola un-ISIN-per-file: la spec non-demo e quella
+ * demo sono due file `*.spec.ts` diversi e non possono condividere una chiave).
+ */
+export const TITOLO_US_051_DEMO: TitoloSeminabile = {
+  isin: 'IE00BQZ8FE18',
+  file: 'US-051__quadro-riepilogo-demo.spec.ts',
+  campi: {
+    name: 'Amundi Msci World Ucits Etf Acc',
+    price: 112.8,
+    ticker: 'AMWO',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,18%',
+    currency: 'EUR',
+    issuer: 'AMUNDI ETF',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *
@@ -2062,4 +2144,12 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   // Il titolo di US-047: il seme in cache basta al backfill d'avvio per crearne
   // un'osservazione.
   TITOLO_US_047.isin,
+  // I due titoli con prezzo di US-051: il fresco porta osservazioni esplicite
+  // (per il tracciato reale del grafico, invece di affidarsi al backfill
+  // d'avvio); l'obsoleto no, ma il suo seme in cache basta comunque al
+  // backfill d'avvio per crearne una. ISIN_MAI_RILEVATO_US_051 non entra: non
+  // viene mai seminato in `securities`, quindi il backfill non avrebbe da
+  // dove partire.
+  TITOLO_US_051_FRESCO.isin,
+  TITOLO_US_051_OBSOLETO.isin,
 ];
