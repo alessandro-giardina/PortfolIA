@@ -6,8 +6,8 @@ epic:
   title: Direzione visiva commutabile
 priority: MEDIUM
 points: 5
-status: REVIEW
-body: |-
+status: PLANNED
+body: |
   #### US-051: Quadro strumenti — riepilogo del portafoglio
 
   **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 5 | **Stato:** TODO
@@ -29,6 +29,14 @@ body: |-
   - [ ] Commutando fra «mastro» e «quadro» i dati restano invariati: la logica è condivisa
   - [ ] Il toggle tema chiaro/scuro è funzionante nel design «quadro» come nel mockup
   - [ ] I `data-testid` dei punti di verifica principali sono presenti anche nel markup del design «quadro»
+
+  ## Rework Feedback
+
+  <!-- Added by request-changes. archetipo-plan converts each item into a Fix task. -->
+
+  - **client/src/views/RiepilogoQuadro.tsx:134** — Sostituire il blocco «registro» stile libro mastro (VOL. I — ANNO MMXXVI / Portafoglio n. NNN / Aperto il ...), oggi renderizzato verbatim anche nel design quadro tramite `colonna-registro` in Quadro.tsx:186, con un blocco `.titolo-pagina` posizionato in cima al contenuto (prima della griglia KPI), come nel mockup docs/mockups/US-051/index.html righe 86-96: `h1` col nome del portafoglio in grande e `p.sottotitolo` con «N posizioni · aperto il DD MMM AAAA» (senza la parte «valuta di conto EUR» presente nel mockup, non richiesta). La semantica da libro mastro (VOL./ANNO/numero progressivo) resta solo nel design mastro (Foglio), non va portata nel guscio quadro.
+  - **client/src/views/RiepilogoQuadro.tsx:221** — La sezione «Composizione» (oggi resa verticale in Composizione.tsx, montata dentro `griglia-doppia` insieme al grafico) va trasformata in layout orizzontale e riordinata: l'ordine finale delle tre sezioni deve essere 1) «Titoli iscritti a conto» (oggi al rigo ~270), 2) «Composizione» (orizzontale), 3) «Andamento del portafoglio». L'obiettivo è recuperare spazio orizzontale per le sezioni sottostanti, oggi troppo schiacciate.
+  - **client/src/views/RiepilogoQuadro.tsx:267** — Spostare il pannello «Titoli iscritti a conto» prima della sezione «Composizione» nell'ordine verticale della pagina (vedi commento sulla riga 221 per l'ordine completo delle tre sezioni).
 history:
   - status: TODO
     at: "2026-08-18T05:27:39Z"
@@ -38,3 +46,7 @@ history:
     at: "2026-08-19T13:48:12Z"
   - status: REVIEW
     at: "2026-08-19T18:24:25Z"
+  - status: TODO
+    at: "2026-08-19T19:43:17Z"
+  - status: PLANNED
+    at: "2026-08-19T19:54:39Z"
