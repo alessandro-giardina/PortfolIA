@@ -23,8 +23,11 @@
   --t-base:   15px;
   --t-medio:  17px;
   --t-grande: 21px;
-  --t-cifra:  34px;
-  --t-cifrona:44px;
+  /* Le due misure grandi sono **fluide**: a piena larghezza valgono 34/44px come
+     prima, ma su una colonna stretta scendono invece di sfondare la carta.
+     Il minimo (26/31px) resta ben sopra la soglia di leggibilità del design. */
+  --t-cifra:  clamp(26px, 2.35vw, 34px);
+  --t-cifrona:clamp(31px, 3.05vw, 44px);
 
   /* Superfici (tema scuro, predefinito) */
   --fondo:        #0b0c0e;
@@ -292,7 +295,7 @@ body {
   font-size: clamp(26px, 3vw, 34px);
   font-weight: 700;
   letter-spacing: -.02em;
-  line-height: 1.15;
+  line-height: 1.25;
 }
 
 .titolo-pagina .sottotitolo { margin: 6px 0 0; color: var(--testo-2); font-size: var(--t-base); }
@@ -335,7 +338,7 @@ body {
 
 .griglia-kpi {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
   gap: 14px;
 }
 
@@ -349,6 +352,9 @@ body {
   display: grid;
   gap: 8px;
   align-content: start;
+  /* Senza questo, la cifra grande impone la propria min-content alla carta e
+     tutti i figli sporgono oltre il padding destro. */
+  min-width: 0;
   transition: border-color .2s ease, transform .2s ease;
 }
 .carta-kpi:hover { border-color: var(--bordo-forte); transform: translateY(-2px); }
@@ -366,11 +372,14 @@ body {
   font-size: var(--t-cifra);
   font-weight: 600;
   letter-spacing: -.025em;
-  line-height: 1.05;
+  /* 1.05 era sotto il box del carattere: l'asta dell'«1» e gli accenti
+     venivano tagliati di 3px a 34px e di 5px a 44px. */
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
   display: flex;
   align-items: baseline;
   gap: 8px;
+  min-width: 0;
 }
 
 .carta-kpi .cifra.grande { font-size: var(--t-cifrona); }
@@ -849,7 +858,7 @@ tr.cliccabile:hover .freccia-riga { color: var(--accento); }
   font-size: clamp(22px, 2.4vw, 30px);
   font-weight: 700;
   letter-spacing: -.02em;
-  line-height: 1.15;
+  line-height: 1.25;
 }
 .testa-titolo .marcature { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .testa-titolo .prezzo-vivo { display: grid; gap: 3px; text-align: right; }

@@ -19,7 +19,7 @@ body: |-
   così che posizione, grafico, metriche, carichi, vendite e storico prezzi siano leggibili nella stessa veste del riepilogo.
 
   **Dimostra**
-  Dopo l'implementazione, commutando su «Quadro strumenti» e aprendo un titolo dalla tabella del riepilogo, la scheda titolo mostra: posizione a conto con P&L latente e realizzato, grafico con le due viste (prezzo unitario / valore posizione) e le quattro scale temporali, metriche sotto il grafico, anagrafica ufficiale, tabella carichi, tabella vendite, fascia LIFO, storico prezzi — secondo il mockup `docs/mockups/quadro-strumenti/scheda-titolo.html`. I grafici (`GraficoTitolo`) sono gli stessi ridipinti.
+  Dopo l'implementazione, commutando su «Quadro strumenti» e aprendo un titolo dalla tabella del riepilogo, la scheda titolo mostra: posizione a conto con P&L latente e realizzato, grafico con le due viste (prezzo unitario / valore posizione) e le quattro scale temporali, metriche sotto il grafico, anagrafica ufficiale, tabella carichi, tabella vendite, fascia LIFO, storico prezzi — secondo il mockup `docs/mockups/US-052/scheda-titolo.html`. I grafici (`GraficoTitolo`) sono gli stessi ridipinti.
 
   **Criteri di accettazione**
   - [ ] Nel design «quadro», la scheda titolo mostra posizione, P&L latente, P&L realizzato, e indicazione della quantità residua dopo le vendite

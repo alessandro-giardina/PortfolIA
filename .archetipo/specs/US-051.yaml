@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: MEDIUM
 points: 5
-status: TODO
+status: PLANNED
 body: |-
   #### US-051: Quadro strumenti — riepilogo del portafoglio
 
@@ -19,7 +19,7 @@ body: |-
   così che le informazioni chiave (valore, capitale investito, differenza, titoli da aggiornare) siano leggibili a colpo d'occhio.
 
   **Dimostra**
-  Dopo l'implementazione, commutando su «Quadro strumenti» la schermata Riepilogo mostra: barra laterale con navigazione, card KPI (valore attuale, capitale investito, differenza, titoli da aggiornare, senza prezzo), grafico dell'andamento del portafoglio (lo stesso `GraficoPortafoglio` ridipinto con i token del design), tabella dei titoli iscritti, composizione — secondo il mockup `docs/mockups/quadro-strumenti/index.html`. Tutti i dati provengono dagli stessi hook estratti in US-049.
+  Dopo l'implementazione, commutando su «Quadro strumenti» la schermata Riepilogo mostra: barra laterale con navigazione, card KPI (valore attuale, capitale investito, differenza, titoli da aggiornare, senza prezzo), grafico dell'andamento del portafoglio (lo stesso `GraficoPortafoglio` ridipinto con i token del design), tabella dei titoli iscritti, composizione — secondo il mockup `docs/mockups/US-051/index.html`. Tutti i dati provengono dagli stessi hook estratti in US-049.
 
   **Criteri di accettazione**
   - [ ] Nel design «quadro», il riepilogo mostra le card KPI con cifre grandi (≥ 34px), etichette compatte, e segnalazione dei titoli da aggiornare e senza prezzo
@@ -32,3 +32,5 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-18T05:27:39Z"
+  - status: PLANNED
+    at: "2026-08-19T13:33:46Z"
