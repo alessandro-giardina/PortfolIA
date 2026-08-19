@@ -133,11 +133,10 @@ async function apriInQuadro(page: Page, id: number, name: string) {
     localStorage.setItem('portfolia-design', 'quadro');
   });
   await page.goto(`/portfolio/${id}`);
-  // Non `getByRole('heading', ...)`: nel guscio quadro il nome del conto sta
-  // nelle briciole (`<b>`, non un heading) — a differenza del mastro, che lo
-  // porta in un vero `<h1>`. Il testo è comunque lì, e basta a sapere che il
-  // portafoglio giusto è stato caricato.
-  await expect(page.getByText(name)).toBeVisible({ timeout: 8000 });
+  // Il nome del conto compare due volte nel guscio quadro: nelle briciole
+  // (`<b>`) e nell'`h1` di `.titolo-pagina` (US-051, rework/TASK-13) — un
+  // `getByText` semplice sarebbe ambiguo. L'`h1` è il riferimento univoco.
+  await expect(page.locator('.titolo-pagina h1')).toHaveText(name, { timeout: 8000 });
 
   await expect(page.locator('html')).toHaveAttribute('data-design', 'quadro');
   await expect(page.getByTestId('barra-laterale')).toBeVisible();
@@ -269,4 +268,20 @@ test('il grafico del portafoglio monta un tracciato reale', async ({ page, archi
   const grafico = page.getByTestId('grafico-portafoglio');
   await expect(grafico).toBeVisible({ timeout: 8000 });
   await expect(grafico.locator('svg.tracciato')).toBeVisible();
+});
+
+test('il titolo di pagina porta il nome del conto, senza il timbro da registro del mastro', async ({
+  page,
+  archivio,
+}) => {
+  const { id, name } = await creaPortafoglioDiProva(archivio);
+  await apriInQuadro(page, id, name);
+
+  await expect(page.locator('.titolo-pagina h1')).toHaveText(name);
+
+  // Il timbro da libro mastro (VOL./ANNO/numero progressivo) è una semantica
+  // del solo design mastro (Foglio.tsx): il guscio quadro non deve mostrarne
+  // traccia (US-051, rework — Quadro.tsx non consuma più `registro`).
+  await expect(page.getByText('VOL.')).toHaveCount(0);
+  await expect(page.getByText('Portafoglio n.')).toHaveCount(0);
 });

@@ -609,21 +609,25 @@
   }
   .nota-tabella em { color: var(--testo-2); font-style: normal; font-weight: 600; }
 
-  /* ---------- 12. Griglie di contenuto ---------- */
-
-  .griglia-doppia {
-    display: grid;
-    grid-template-columns: minmax(0, 1.85fr) minmax(300px, .95fr);
-    gap: 16px;
-    align-items: start;
-  }
-
-  /* ---------- 12b. Composizione (US-051/TASK-06) ----------
+  /* ---------- 12b. Composizione (US-051/TASK-06, layout orizzontale TASK-14) ----------
      Porta le regole di docs/mockups/US-051/shared.css (§ Composizione),
      fuori dallo scope di TASK-04: qui la ciambella SVG e la sua legenda
-     diventano React (Composizione.tsx), non più JS del mockup. */
+     diventano React (Composizione.tsx), non più JS del mockup. Pannello a
+     piena larghezza (non più dentro `.griglia-doppia`, rimossa in TASK-14
+     insieme al suo breakpoint perché senza altri usi): ciambella a sinistra,
+     elenco quote a destra. */
 
-  .composizione { display: grid; gap: 18px; justify-items: center; }
+  .composizione {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 28px;
+  }
+
+  @media (max-width: 640px) {
+    .composizione { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  }
 
   .ciambella { position: relative; width: 208px; }
   .ciambella svg { display: block; width: 100%; height: auto; }
@@ -681,10 +685,6 @@
   }
 
   /* ---------- 14. Adattamento ---------- */
-
-  @media (max-width: 1180px) {
-    .griglia-doppia { grid-template-columns: minmax(0, 1fr); }
-  }
 
   @media (max-width: 980px) {
     .guscio { grid-template-columns: minmax(0, 1fr); }

@@ -29,6 +29,8 @@ function dataRilevamento(fetchedAt: number): string {
  * andamento, gestione del conto — e differiscono solo nella presentazione.
  */
 export interface RiepilogoProps {
+  portfolioName: string;
+  portfolioCreatedAt: number;
   enrichedPositions: EnrichedPositionSummary[];
   enrichedLoading: boolean;
   posizioniAperte: EnrichedPositionSummary[];

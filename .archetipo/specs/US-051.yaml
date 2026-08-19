@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: MEDIUM
 points: 5
-status: PLANNED
+status: REVIEW
 body: |
   #### US-051: Quadro strumenti — riepilogo del portafoglio
 
@@ -50,3 +50,7 @@ history:
     at: "2026-08-19T19:43:17Z"
   - status: PLANNED
     at: "2026-08-19T19:54:39Z"
+  - status: IN PROGRESS
+    at: "2026-08-19T20:06:42Z"
+  - status: REVIEW
+    at: "2026-08-19T20:59:04Z"

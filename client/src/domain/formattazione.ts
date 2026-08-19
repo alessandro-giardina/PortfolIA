@@ -42,3 +42,16 @@ export function importoConSegno(valore: number, simbolo = '€'): string {
 export function percentualeConSegno(valore: number): string {
   return `${segnoDi(valore)}${importo(Math.abs(valore))} %`;
 }
+
+const MESI_BREVI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+
+/**
+ * Data civile abbreviata, es. "27 giu 2026" — mese italiano minuscolo di tre
+ * lettere, distinta sia da `dataRegistro` (numeri romani da libro mastro) sia
+ * da `dataRilevamento` (gg/mm/aaaa hh:mm): è il titolo di pagina del design
+ * quadro (US-051/TASK-13), non una terza convenzione per lo stesso dato.
+ */
+export function dataCivile(unixSeconds: number): string {
+  const d = new Date(unixSeconds * 1000);
+  return `${d.getDate()} ${MESI_BREVI[d.getMonth()]} ${d.getFullYear()}`;
+}

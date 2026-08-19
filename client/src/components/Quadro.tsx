@@ -132,7 +132,6 @@ export default function Quadro({
   titolo,
   titoloCorsivo,
   sottotesto,
-  registro,
   linguette,
   children,
 }: QuadroProps) {
@@ -183,7 +182,6 @@ export default function Quadro({
             </b>
           </nav>
           <div className="azioni-testata">
-            <div className="colonna-registro">{registro}</div>
             <button
               type="button"
               className="icona-bottone"

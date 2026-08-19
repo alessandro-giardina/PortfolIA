@@ -7,7 +7,7 @@ import MetrichePortafoglio from '../components/MetrichePortafoglio.js';
 import CellaTitolo from '../components/CellaTitolo.js';
 import AggiornaObsoleti from '../components/AggiornaObsoleti.js';
 import Composizione from '../components/Composizione.js';
-import { importo, percentualeConSegno } from '../domain/formattazione.js';
+import { dataCivile, importo, percentualeConSegno } from '../domain/formattazione.js';
 import type { RiepilogoProps } from './RiepilogoMastro.js';
 
 /**
@@ -65,6 +65,8 @@ function statoRilevamento(
  * letta dalle stesse props.
  */
 export default function RiepilogoQuadro({
+  portfolioName,
+  portfolioCreatedAt,
   enrichedPositions,
   enrichedLoading,
   posizioniAperte,
@@ -131,6 +133,16 @@ export default function RiepilogoQuadro({
 
   return (
     <>
+      <div className="titolo-pagina">
+        <div>
+          <h1>{portfolioName}</h1>
+          <p className="sottotitolo">
+            {posizioniAperte.length} {posizioniAperte.length === 1 ? 'posizione' : 'posizioni'} · aperto il{' '}
+            {dataCivile(portfolioCreatedAt)}
+          </p>
+        </div>
+      </div>
+
       <section className="griglia-kpi" aria-label="Sintesi del portafoglio">
         <article
           className={`carta-kpi${!nessunaPosizioneAperta && positionsWithPrice.length > 0 ? ' segnata-accento' : ''}`}
@@ -217,41 +229,6 @@ export default function RiepilogoQuadro({
           onTitoloInCorso={setIsinInLavorazione}
         />
       )}
-
-      <section className="griglia-doppia">
-        <article className="pannello">
-          <div className="testa-pannello">
-            <div>
-              <h3>Andamento del portafoglio</h3>
-              <span className="chiosa">solo punti d&rsquo;archivio · nessun giorno interpolato</span>
-            </div>
-          </div>
-          <div className="corpo-pannello">
-            {seriesLoading ? (
-              <p className="chiosa">Caricamento andamento…</p>
-            ) : (
-              <GraficoPortafoglio
-                titoli={series}
-                sottoIlGrafico={(contesto) => (
-                  <MetrichePortafoglio {...contesto} titoli={series} enrichedPositions={enrichedPositions} />
-                )}
-              />
-            )}
-          </div>
-        </article>
-
-        <article className="pannello">
-          <div className="testa-pannello">
-            <div>
-              <h3>Composizione</h3>
-              <span className="chiosa">valore attuale per posizione</span>
-            </div>
-          </div>
-          <div className="corpo-pannello stretto">
-            <Composizione enrichedPositions={enrichedPositions} />
-          </div>
-        </article>
-      </section>
 
       {nessunaPosizioneAperta ? (
         <section className="pannello" data-testid="riepilogo-tutte-chiuse">
@@ -387,6 +364,39 @@ export default function RiepilogoQuadro({
           </p>
         </section>
       )}
+
+      <section className="pannello">
+        <div className="testa-pannello">
+          <div>
+            <h3>Composizione</h3>
+            <span className="chiosa">valore attuale per posizione</span>
+          </div>
+        </div>
+        <div className="corpo-pannello">
+          <Composizione enrichedPositions={enrichedPositions} />
+        </div>
+      </section>
+
+      <section className="pannello">
+        <div className="testa-pannello">
+          <div>
+            <h3>Andamento del portafoglio</h3>
+            <span className="chiosa">solo punti d&rsquo;archivio · nessun giorno interpolato</span>
+          </div>
+        </div>
+        <div className="corpo-pannello">
+          {seriesLoading ? (
+            <p className="chiosa">Caricamento andamento…</p>
+          ) : (
+            <GraficoPortafoglio
+              titoli={series}
+              sottoIlGrafico={(contesto) => (
+                <MetrichePortafoglio {...contesto} titoli={series} enrichedPositions={enrichedPositions} />
+              )}
+            />
+          )}
+        </div>
+      </section>
 
       {posizioniChiuse.length > 0 && (
         <section className="pannello">

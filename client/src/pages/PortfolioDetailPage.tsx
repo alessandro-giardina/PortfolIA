@@ -206,6 +206,8 @@ export default function PortfolioDetailPage() {
           {scheda === 'riepilogo' && (
             design === 'quadro' ? (
               <RiepilogoQuadro
+                portfolioName={portfolio.name}
+                portfolioCreatedAt={portfolio.created_at}
                 enrichedPositions={enrichedPositions}
                 enrichedLoading={enrichedLoading}
                 posizioniAperte={posizioniAperte}
@@ -229,6 +231,8 @@ export default function PortfolioDetailPage() {
               />
             ) : (
               <RiepilogoMastro
+                portfolioName={portfolio.name}
+                portfolioCreatedAt={portfolio.created_at}
                 enrichedPositions={enrichedPositions}
                 enrichedLoading={enrichedLoading}
                 posizioniAperte={posizioniAperte}
