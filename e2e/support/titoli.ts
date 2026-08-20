@@ -2058,6 +2058,64 @@ export const TITOLO_US_051_DEMO: TitoloSeminabile = {
 };
 
 /**
+ * Riservato a `US-052__quadro-scheda-titolo.spec.ts` (tutti gli scenari tranne
+ * la demo).
+ *
+ * Due carichi a prezzi e quantità diverse — perché il prezzo medio ponderato
+ * mostrato nella card KPI e nella tabella dei carichi deve dimostrare la
+ * ponderazione, non l'aritmetica semplice — e uno storico di quattro
+ * rilevazioni distribuite da oltre cinque anni a oggi: è la copertura minima
+ * per differenziare le quattro scale (US-037) e il commutatore di vista
+ * (US-039) fra loro. `price` coincide con l'osservazione più recente seminata,
+ * per la stessa ragione registrata su US-009/US-036/US-038/US-039: la scheda
+ * dichiara quella cifra come prezzo attuale e la ripete in cima allo storico,
+ * e una divergenza sarebbe un dato falso invisibile alle sole asserzioni.
+ *
+ * Seminato con `fetched_at` di **adesso** (il default di `seminaTitolo`):
+ * impedisce un recupero reale quando gli scenari non lo richiedono
+ * esplicitamente (guardia di buona cittadinanza).
+ */
+export const TITOLO_US_052: TitoloSeminabile = {
+  isin: 'IE00BQZ8FE26',
+  file: 'US-052__quadro-scheda-titolo.spec.ts',
+  campi: {
+    name: 'Xtrackers Msci World Ucits Etf 1c',
+    price: 92.15,
+    ticker: 'XDWD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,19%',
+    currency: 'EUR',
+    issuer: 'XTRACKERS IE PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-052__quadro-scheda-titolo-demo.spec.ts`: unico titolo del
+ * portafoglio dimostrativo, con un guadagno per rendere il video visivamente
+ * significativo. ISIN distinto da `TITOLO_US_052` (regola un-ISIN-per-file: la
+ * spec non-demo e quella demo sono due file `*.spec.ts` diversi).
+ */
+export const TITOLO_US_052_DEMO: TitoloSeminabile = {
+  isin: 'IE00BQZ8FE34',
+  file: 'US-052__quadro-scheda-titolo-demo.spec.ts',
+  campi: {
+    name: 'Amundi Index Msci World Ucits Etf Dr',
+    price: 105.4,
+    ticker: 'AMWD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,18%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *
@@ -2152,4 +2210,10 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   // dove partire.
   TITOLO_US_051_FRESCO.isin,
   TITOLO_US_051_OBSOLETO.isin,
+  // TITOLO_US_052: le quattro rilevazioni che il file semina esplicitamente
+  // per differenziare scale e viste. TITOLO_US_052_DEMO non semina
+  // osservazioni proprie, ma il suo seme in cache basta al backfill d'avvio
+  // per crearne una.
+  TITOLO_US_052.isin,
+  TITOLO_US_052_DEMO.isin,
 ];

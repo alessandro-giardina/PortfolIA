@@ -1,3 +1,5 @@
+import type { DataSource } from '@portfolia/shared';
+
 /**
  * Il segno tipografico di una cifra con segno: `+` per il guadagno, il **meno
  * tipografico** `−` (U+2212, non il trattino) per la perdita.
@@ -54,4 +56,31 @@ const MESI_BREVI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set
 export function dataCivile(unixSeconds: number): string {
   const d = new Date(unixSeconds * 1000);
   return `${d.getDate()} ${MESI_BREVI[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/**
+ * Come si chiama una fonte in pagina; `null` quando l'archivio non la registra.
+ *
+ * Vive qui e non nella scheda titolo (US-052/TASK-01) perché sia `useSchedaTitolo`
+ * — che ne ha bisogno per costruire l'esito di un aggiornamento — sia ogni vista
+ * che mostra la scheda (mastro, e la futura quadro) devono scrivere lo stesso
+ * nome per la stessa fonte: un secondo formattatore, anche solo duplicato,
+ * potrebbe divergere dal primo.
+ */
+export function nomeFonte(dataSource: DataSource | null): string | null {
+  if (dataSource === 'morningstar') return 'MorningStar (backup)';
+  if (dataSource === 'borsaitaliana') return 'Borsa Italiana';
+  return null;
+}
+
+/**
+ * Simbolo della valuta di denominazione; l'euro è la valuta del registro.
+ *
+ * Stessa ragione di `nomeFonte`: `useSchedaTitolo` lo usa per comporre la
+ * stringa di prezzo dell'esito di aggiornamento, e ogni vista della scheda
+ * titolo lo usa per la stessa colonna di prezzo — un solo formattatore, mai
+ * due copie che potrebbero disallinearsi.
+ */
+export function simboloDi(currency: string | null): string {
+  return currency === 'USD' ? '$' : currency === 'GBP' ? '£' : '€';
 }

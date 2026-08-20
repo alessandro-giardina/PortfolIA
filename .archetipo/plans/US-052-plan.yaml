@@ -11,13 +11,14 @@ tasks:
 
       Verifica: la suite E2E esistente (US-018, US-030, US-036, US-037, US-038, US-039, US-042 e ogni altro test che tocchi la scheda titolo) resta verde senza modificare un solo test.
     type: Impl
-    status: TODO
+    status: DONE
     body: |-
       Creare `client/src/hooks/useSchedaTitolo.ts` estraendo da `client/src/components/SchedaTitolo.tsx` tutto lo stato oggi interno al componente: lettura del dettaglio (`leggiDettaglio`, l'effetto che lo richiama a ogni cambio di `isin`), la richiesta di aggiornamento (`aggiornaDati`, con i suoi rami non-trovato/fonte-muta/errore/guardia/riuscito) e gli stati `esito`/`conferma`/`appenaAggiornato`. L'hook riceve `{ portfolioId, isin, onDatiAggiornati }` e restituisce `{ detail, loading, error, esito, conferma, appenaAggiornato, aggiornaDati }` — la stessa forma che `SchedaTitolo.tsx` già usa internamente, solo spostata.
 
       Rifattorizzare `SchedaTitolo.tsx` perché consumi l'hook: **nessuna riga di JSX o di logica di rendering cambia**, cambia solo la provenienza dello stato. È un puro spostamento, come l'estrazione di `RiepilogoMastro` in US-051/TASK-01.
 
       Verifica: la suite E2E esistente (US-018, US-030, US-036, US-037, US-038, US-039, US-042 e ogni altro test che tocchi la scheda titolo) resta verde senza modificare un solo test.
+    ref: TASK-01
   - id: TASK-02
     title: quadro.css — intestazione del titolo, anagrafica, layout a due colonne
     description: |-
@@ -25,11 +26,12 @@ tasks:
 
       Estendere inoltre `.carta-kpi .cifra`/`.piede` con le classi `guadagno`/`perdita` prodotte da `classeSegno` (`domain/formattazione.ts`): oggi `quadro.css` definisce quella coppia di classi solo dentro selettori di `QuadroRisultato`, mentre la card «Differenza» della scheda titolo (TASK-04) e la bilancia delle metriche (TASK-03) ne hanno bisogno a livello generico.
     type: Impl
-    status: TODO
+    status: DONE
     body: |-
       Aggiungere a `client/src/quadro.css` le regole per ciò che il mockup `docs/mockups/US-052/scheda-titolo.html` mostra e che US-051 non ha ancora scritto: `.testa-titolo` (con `.stemma`, `.anagrafe`, `.marcature`, `.prezzo-vivo`), le varianti di pillola per ISIN e fonte (`.pillola.isin`, `.pillola.fonte`, `.pillola.di-backup`), la griglia dell'anagrafica ufficiale (`.griglia-def`/`.voce-def`), e un contenitore a due colonne per affiancare «Carichi registrati» e «Storico prezzi» — nel mockup è `.griglia-doppia`, la stessa classe che US-051/TASK-14 ha rimosso da questo file perché nessun `.tsx` la referenziava più: va riletta quella rework (in `.archetipo/plans/US-051-plan.yaml`, TASK-14) prima di ripristinarla, per riprendere lo stesso breakpoint verso il layout a una colonna sotto ~640px.
 
       Estendere inoltre `.carta-kpi .cifra`/`.piede` con le classi `guadagno`/`perdita` prodotte da `classeSegno` (`domain/formattazione.ts`): oggi `quadro.css` definisce quella coppia di classi solo dentro selettori di `QuadroRisultato`, mentre la card «Differenza» della scheda titolo (TASK-04) e la bilancia delle metriche (TASK-03) ne hanno bisogno a livello generico.
+    ref: TASK-02
   - id: TASK-03
     title: quadro.css — ridipingere GraficoTitolo e MetricheTitolo senza duplicarli
     description: |-
@@ -39,13 +41,14 @@ tasks:
 
       Nessun file `.tsx` viene toccato: la differenza è tutta in `quadro.css`, verificata a video (un `var()` o una classe dimenticata non danno errore, spariscono).
     type: Impl
-    status: TODO
+    status: DONE
     body: |-
       Procedere da un elenco esaustivo, non a colpo d'occhio: `grep -o 'className={\?"[a-z0-9 -]*"' client/src/components/GraficoTitolo.tsx client/src/components/MetricheTitolo.tsx` (o equivalente) dà i nomi di classe citati dai due componenti; confrontarli con ciò che `quadro.css` già definisce dalla sezione «15e. GraficoPortafoglio» di US-051/TASK-07 (`.barra-scala`, `.scala-temporale`, `.tracciato .*`, `.grafico-cornice`, `.dichiarazione-vuota`, `.avviso-rado`, condivise perché `GraficoTitolo` porta gli stessi nomi) per isolare ciò che manca davvero.
 
       Restano scoperte almeno: il commutatore di vista di US-039 (`.barra-vista`, `.commutatore-vista`, `.ordinata-attiva`, `.sigillo-indipendenza`) e l'intera bilancia di `MetricheTitolo` (`.bilancia`, `.piatto` con il suo modificatore `.assente`, `.fulcro`, `.testa-piatto`, `.et-piatto`, `.unita`, `.cifre`, `.importo`/`.percento` con `guadagno`/`perdita`, `.provenienza`, `.et-prov`, `.passo`/`.passi`, `.freccia`, `.coda`, `.rimando-differenza`, `.orizzonte-piatto`, `.segna-orizzonte.fisso`/`.mobile`, `.timbro-piatto`, `.perche-assente`, `.elenco-perche`, `.postilla-bilancia`) e le classi del ramo «vista senza serie» di US-039 (`.dichiarazione-vuota` con `.riga-intervallo`, `.ragione-vista-valore`, `.spiegazione`, `.dove-esiste`, `.tasto-citato`, `.invito-scala`) se non già coperte.
 
       Nessun file `.tsx` viene toccato: la differenza è tutta in `quadro.css`, verificata a video (un `var()` o una classe dimenticata non danno errore, spariscono).
+    ref: TASK-03
   - id: TASK-04
     title: SchedaTitoloQuadro — intestazione, posizione a conto, provenienza
     description: |-
@@ -55,7 +58,7 @@ tasks:
       - la riga di provenienza (`fonte-dato`, `btn-aggiorna-dati`), l'esito dell'aggiornamento (`esito-aggiornamento`) e la guardia di conferma (`avviso-conferma-aggiornamento`, `istante-rilevazione`) — stessa posizione relativa del mastro (sotto l'intestazione), stessi `data-testid`, stesso testo delle tre uscite «in corso»/«riuscito»/«fallito» (decisione architetturale 6: non salgono nella testata condivisa);
       - le quattro card KPI di «Posizione a conto» sulla `griglia-kpi`/`carta-kpi` di TASK-02: Quantità (`dettaglio-quantita`), Valore medio di carico (`dettaglio-prezzo-medio`), Valore attuale (`dettaglio-valore-attuale`), Differenza (`dettaglio-differenza`, con `segna-rimando-differenza`) — stessi formattatori del mastro (`quantita`, `prezzo`, `importo`, `importoConSegno`, `percentualeConSegno`, `classeSegno`) e stessa dichiarazione di `NON_DISPONIBILE` quando un campo manca.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
       - TASK-02
@@ -65,6 +68,7 @@ tasks:
       - l'intestazione del titolo (`.testa-titolo`): stemma a due lettere derivato dal nome (o dall'ISIN quando il nome non è in archivio), denominazione, pillole ISIN/ticker/tipo strumento/fonte, prezzo attuale;
       - la riga di provenienza (`fonte-dato`, `btn-aggiorna-dati`), l'esito dell'aggiornamento (`esito-aggiornamento`) e la guardia di conferma (`avviso-conferma-aggiornamento`, `istante-rilevazione`) — stessa posizione relativa del mastro (sotto l'intestazione), stessi `data-testid`, stesso testo delle tre uscite «in corso»/«riuscito»/«fallito» (decisione architetturale 6: non salgono nella testata condivisa);
       - le quattro card KPI di «Posizione a conto» sulla `griglia-kpi`/`carta-kpi` di TASK-02: Quantità (`dettaglio-quantita`), Valore medio di carico (`dettaglio-prezzo-medio`), Valore attuale (`dettaglio-valore-attuale`), Differenza (`dettaglio-differenza`, con `segna-rimando-differenza`) — stessi formattatori del mastro (`quantita`, `prezzo`, `importo`, `importoConSegno`, `percentualeConSegno`, `classeSegno`) e stessa dichiarazione di `NON_DISPONIBILE` quando un campo manca.
+    ref: TASK-04
   - id: TASK-05
     title: SchedaTitoloQuadro — anagrafica, carichi, storico prezzi, grafico
     description: |-
@@ -76,7 +80,7 @@ tasks:
 
       Verifica visiva: aprire la scheda in entrambi i design sullo stesso titolo e confrontare a occhio che nessuna regola di TASK-02/03 lasci un tratto scolorito.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
       - TASK-03
@@ -89,6 +93,7 @@ tasks:
       - la sezione «Andamento del titolo» (`sezione-grafico-titolo`) che monta `GraficoTitolo` **invariato**, con `sottoIlGrafico` che rende `MetricheTitolo` **invariato** — stesse props di `SchedaTitolo.tsx` (`loads`, `sales`, `observations`, `avgLoadPrice`, `simboloValuta`, `key={detail.isin}`), nessun ricalcolo.
 
       Verifica visiva: aprire la scheda in entrambi i design sullo stesso titolo e confrontare a occhio che nessuna regola di TASK-02/03 lasci un tratto scolorito.
+    ref: TASK-05
   - id: TASK-06
     title: 'Cablaggio in PortfolioDetailPage: il ternario del design per la scheda titolo'
     description: |-
@@ -96,21 +101,23 @@ tasks:
 
       Nessuna modifica al bottone «Torna al riepilogo» (già uno stile generico `.bottone.secondario`, condiviso dai due design) né alla barra laterale: la navigazione fra le schede è già cablata sui dati delle linguette da US-051/TASK-08, e la voce «Riepilogo» funziona identicamente indipendentemente dal contenuto della scheda corrente.
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-05
     body: |-
       In `client/src/pages/PortfolioDetailPage.tsx`, nel blocco `scheda === 'titolo'`, aggiungere lo stesso ternario già in uso per il riepilogo (`design === 'quadro' ? <SchedaTitoloQuadro .../> : <SchedaTitolo .../>`, con `useDesign()` già importato in quel file) con le stesse props (`portfolioId`, `isin`, `onDatiAggiornati`).
 
       Nessuna modifica al bottone «Torna al riepilogo» (già uno stile generico `.bottone.secondario`, condiviso dai due design) né alla barra laterale: la navigazione fra le schede è già cablata sui dati delle linguette da US-051/TASK-08, e la voce «Riepilogo» funziona identicamente indipendentemente dal contenuto della scheda corrente.
+    ref: TASK-06
   - id: TASK-07
     title: npm run check verde
     description: 'Eseguire `npm run check` (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) e correggere quanto emerge. Attenzione alla firma di `useSchedaTitolo`: `SchedaTitolo.tsx` e `SchedaTitoloQuadro.tsx` devono condividere lo stesso tipo per il valore di ritorno, così che una divergenza fra le due rese diventi un errore di compilazione invece di una differenza a video.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-06
     body: 'Eseguire `npm run check` (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) e correggere quanto emerge. Attenzione alla firma di `useSchedaTitolo`: `SchedaTitolo.tsx` e `SchedaTitoloQuadro.tsx` devono condividere lo stesso tipo per il valore di ritorno, così che una divergenza fra le due rese diventi un errore di compilazione invece di una differenza a video.'
+    ref: TASK-07
   - id: TASK-08
     title: 'E2E — scheda titolo quadro: posizione, grafico, anagrafica, carichi, storico, aggiornamento'
     description: |-
@@ -118,13 +125,14 @@ tasks:
 
       Dichiarare in `e2e/support/titoli.ts` le chiavi ISIN possedute da questo file (regola R1, mai condivise con un altro `*.spec.ts`): almeno un titolo con più carichi e più rilevazioni, per esercitare sia la vista del valore (US-039) sia le quattro scale. Usare la fixture `archivio`, mai `try/finally`, nessun nome fisso di portafoglio (`nomeUnico`).
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-07
     body: |-
       Creare `e2e/US-052__quadro-scheda-titolo.spec.ts` con gli scenari: vista e scale del grafico (commutatore prezzo/valore e le quattro scale, confronto `data-punti`/`data-copertura` con lo stesso titolo letto in mastro); anagrafica/carichi/storico coerenti col mastro; aggiornamento dati con i tre esiti e la guardia di conferma; ritorno al riepilogo dalla barra laterale.
 
       Dichiarare in `e2e/support/titoli.ts` le chiavi ISIN possedute da questo file (regola R1, mai condivise con un altro `*.spec.ts`): almeno un titolo con più carichi e più rilevazioni, per esercitare sia la vista del valore (US-039) sia le quattro scale. Usare la fixture `archivio`, mai `try/finally`, nessun nome fisso di portafoglio (`nomeUnico`).
+    ref: TASK-08
   - id: TASK-09
     title: E2E demo — «stessi dati, veste diversa» con video
     description: |-
@@ -132,19 +140,21 @@ tasks:
 
       Salvare il video in `docs/test-results/US-052/` con `page.video().saveAs(...)` in un `afterEach`, dopo `page.close()`. Chiavi ISIN proprie di questo file, distinte da quelle di TASK-08.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-07
     body: |-
       Creare `e2e/US-052__quadro-scheda-titolo-demo.spec.ts`, file separato perché `launchOptions.slowMo` non è restringibile a un `describe` (cfr. CLAUDE.md). Unico scenario: apre un titolo dal riepilogo in design mastro, legge quantità/prezzo medio/valore attuale/differenza nella scheda titolo, commuta su «Quadro strumenti» **senza ricaricare**, rilegge gli stessi `data-testid` e verifica che le stringhe coincidano — la prova diretta del criterio «i dati restano invariati» e dello scenario del campo Dimostra della spec.
 
       Salvare il video in `docs/test-results/US-052/` con `page.video().saveAs(...)` in un `afterEach`, dopo `page.close()`. Chiavi ISIN proprie di questo file, distinte da quelle di TASK-08.
+    ref: TASK-09
   - id: TASK-10
     title: 'Regressione: suite E2E completa verde'
     description: 'Eseguire `npx playwright test` per intero. Il design predefinito resta `mastro`, quindi ogni spec preesistente — in particolare US-018, US-030, US-036, US-037, US-038, US-039, US-042 — deve passare senza che un solo test sia stato modificato: è la rete che copre l''estrazione di TASK-01, che per contratto è un puro spostamento. Se una spec richiede una modifica, l''estrazione non è stata pura — correggere il codice, non il test.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-08
       - TASK-09
     body: 'Eseguire `npx playwright test` per intero. Il design predefinito resta `mastro`, quindi ogni spec preesistente — in particolare US-018, US-030, US-036, US-037, US-038, US-039, US-042 — deve passare senza che un solo test sia stato modificato: è la rete che copre l''estrazione di TASK-01, che per contratto è un puro spostamento. Se una spec richiede una modifica, l''estrazione non è stata pura — correggere il codice, non il test.'
+    ref: TASK-10

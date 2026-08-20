@@ -14,6 +14,7 @@ import { useModificaPosizione } from '../hooks/useModificaPosizione.js';
 import { useDesign } from '../hooks/useDesign.js';
 import RiepilogoMastro from '../views/RiepilogoMastro.js';
 import RiepilogoQuadro from '../views/RiepilogoQuadro.js';
+import SchedaTitoloQuadro from '../views/SchedaTitoloQuadro.js';
 
 export default function PortfolioDetailPage() {
   const location = useLocation();
@@ -260,12 +261,16 @@ export default function PortfolioDetailPage() {
           {/* ===== SCHEDA: Scheda titolo (US-018) ===== */}
           {scheda === 'titolo' && isinSelezionato !== null && id && (
             <>
-              <SchedaTitolo portfolioId={id} isin={isinSelezionato} onDatiAggiornati={fetchEnriched} />
+              {design === 'quadro' ? (
+                <SchedaTitoloQuadro portfolioId={id} isin={isinSelezionato} onDatiAggiornati={fetchEnriched} />
+              ) : (
+                <SchedaTitolo portfolioId={id} isin={isinSelezionato} onDatiAggiornati={fetchEnriched} />
+              )}
 
               <div className="bottoni" style={{ marginTop: '24px' }}>
                 <button
                   type="button"
-                  className="bottone secondario"
+                  className={design === 'quadro' ? 'bottone quieto' : 'bottone secondario'}
                   data-testid="btn-torna-riepilogo"
                   onClick={() => setScheda('riepilogo')}
                 >

@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { DataSource, PositionDetail, RefetchConfirmation } from '@portfolia/shared';
 // `dataCarico` sta in `Foglio.tsx` e non qui: la tabella dei carichi e il
 // grafico dell'andamento (US-036) mostrano la stessa data, e devono scriverla
 // con lo stesso formattatore. Da US-038 vale lo stesso per `importo`, `prezzo` e
@@ -11,41 +9,16 @@ import {
   classeSegno,
   importo,
   importoConSegno,
+  nomeFonte,
   percentualeConSegno,
   prezzo,
+  simboloDi,
 } from '../domain/formattazione.js';
 import GraficoTitolo from './GraficoTitolo.js';
 import MetricheTitolo from './MetricheTitolo.js';
-import { recuperaTitolo } from '../domain/recuperoTitolo.js';
+import { useSchedaTitolo, type UseSchedaTitoloProps } from '../hooks/useSchedaTitolo.js';
 
-interface SchedaTitoloProps {
-  /** Portafoglio a cui il titolo è iscritto. */
-  portfolioId: string;
-  /** ISIN del titolo di cui mostrare il dettaglio. */
-  isin: string;
-  /**
-   * Notifica un aggiornamento dei dati andato a buon fine (US-030).
-   *
-   * Serve a chi mostra anche il riepilogo del portafoglio: il prezzo appena
-   * rilevato cambia valore attuale e differenza di *tutte* le viste, non solo
-   * di questa scheda. Non viene invocata quando la guardia chiede conferma né
-   * quando nessuna fonte ha risposto: in entrambi i casi l'archivio è intatto.
-   */
-  onDatiAggiornati?: () => void;
-}
-
-/** Esito dichiarato dell'ultimo aggiornamento richiesto dall'utente. */
-type EsitoAggiornamento =
-  | { tipo: 'in-corso' }
-  | { tipo: 'riuscito'; fonte: string | null; prezzo: string | null }
-  | { tipo: 'fallito'; motivo: string };
-
-/** Come si chiama una fonte in pagina; `null` quando l'archivio non la registra. */
-function nomeFonte(dataSource: DataSource | null): string | null {
-  if (dataSource === 'morningstar') return 'MorningStar (backup)';
-  if (dataSource === 'borsaitaliana') return 'Borsa Italiana';
-  return null;
-}
+type SchedaTitoloProps = UseSchedaTitoloProps;
 
 /** Formatta un timestamp unix come "07.VIII.2026 · 09:14", nello stile del registro. */
 function dataRilevazione(fetchedAt: number): string {
@@ -58,11 +31,6 @@ function dataRilevazione(fetchedAt: number): string {
 /** Giorno della settimana di una rilevazione, es. "lunedì". */
 function giornoSettimana(observedAt: number): string {
   return new Date(observedAt * 1000).toLocaleDateString('it-IT', { weekday: 'long' });
-}
-
-/** Simbolo della valuta di denominazione; l'euro è la valuta del registro. */
-function simboloDi(currency: string | null): string {
-  return currency === 'USD' ? '$' : currency === 'GBP' ? '£' : '€';
 }
 
 /** Etichetta unica per ogni campo assente: la spec vieta il valore inventato. */
@@ -107,153 +75,8 @@ function VoceAnagrafica({ etichetta, valore }: { etichetta: string; valore: stri
  * senza anagrafica.
  */
 export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: SchedaTitoloProps) {
-  const [detail, setDetail] = useState<PositionDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // ─── Aggiornamento dei dati dalla riga di provenienza (US-030) ─────────────
-  const [esito, setEsito] = useState<EsitoAggiornamento | null>(null);
-  const [conferma, setConferma] = useState<RefetchConfirmation | null>(null);
-  const [appenaAggiornato, setAppenaAggiornato] = useState(false);
-
-  /**
-   * ISIN attualmente in pagina. Un aggiornamento può restare in volo una decina
-   * di secondi, abbastanza perché l'utente torni al riepilogo e apra un altro
-   * titolo: alla risposta si confronta questo riferimento, e se il titolo è
-   * cambiato la risposta viene lasciata cadere. Senza, la scheda del titolo
-   * nuovo mostrerebbe i valori di quello vecchio — un dato falso indistinguibile
-   * da uno vero.
-   */
-  const isinMostrato = useRef(isin);
-  useEffect(() => {
-    isinMostrato.current = isin;
-  }, [isin]);
-
-  /** Legge il dettaglio dal server. Solleva con il messaggio da mostrare. */
-  const leggiDettaglio = useCallback(async (): Promise<PositionDetail> => {
-    const res = await fetch(`/api/portfolios/${portfolioId}/positions/${isin}/detail`);
-    if (!res.ok) {
-      const dati = (await res.json().catch(() => null)) as { error?: string } | null;
-      throw new Error(dati?.error ?? 'Impossibile leggere il dettaglio del titolo.');
-    }
-    return (await res.json()) as PositionDetail;
-  }, [portfolioId, isin]);
-
-  useEffect(() => {
-    let annullato = false;
-    setLoading(true);
-    setError(null);
-    setDetail(null);
-    // Il verdetto di un aggiornamento vale per il titolo che lo ha richiesto:
-    // cambiando titolo va via con lui.
-    setEsito(null);
-    setConferma(null);
-    setAppenaAggiornato(false);
-
-    leggiDettaglio()
-      .then((dati) => {
-        if (!annullato) setDetail(dati);
-      })
-      .catch((causa: Error) => {
-        if (!annullato) setError(causa.message === 'Failed to fetch' ? 'Backend non raggiungibile.' : causa.message);
-      })
-      .finally(() => {
-        if (!annullato) setLoading(false);
-      });
-
-    // Un cambio di titolo mentre la richiesta precedente è in volo non deve
-    // far comparire nella scheda il dettaglio del titolo abbandonato.
-    return () => {
-      annullato = true;
-    };
-  }, [leggiDettaglio]);
-
-  /**
-   * Chiede alla fonte i dati aggiornati del titolo e rilegge il dettaglio.
-   *
-   * `loading` resta falso per tutta l'attesa: i valori d'archivio restano a
-   * schermo, dichiarati come tali dalla riga d'esito. Con la fonte di backup
-   * l'interrogazione arriva a una decina di secondi, e una scheda vuota per
-   * tutto quel tempo sarebbe una regressione rispetto a US-018.
-   *
-   * Il ricalcolo di valore attuale e differenza non avviene qui: la formula
-   * vive sul server, e rileggere l'endpoint di dettaglio è l'unico modo per non
-   * duplicarla nel client.
-   */
-  async function aggiornaDati(force: boolean): Promise<void> {
-    setConferma(null);
-    setAppenaAggiornato(false);
-    setEsito({ tipo: 'in-corso' });
-
-    /** L'utente ha cambiato titolo mentre la fonte rispondeva? */
-    const titoloAbbandonato = () => isinMostrato.current !== isin;
-
-    // L'interrogazione e la lettura del suo esito vivono in un posto solo
-    // (`domain/recuperoTitolo`), condiviso con l'aggiornamento in blocco del
-    // riepilogo (US-035). Le frasi qui sotto restano invece di questa scheda:
-    // dicono che cosa succede *ai dati in scheda*, cosa che il consuntivo di un
-    // lavoro su più titoli non potrebbe affermare.
-    const recupero = await recuperaTitolo(isin, force);
-    if (titoloAbbandonato()) return;
-
-    if (recupero.tipo === 'non-trovato') {
-      setEsito({
-        tipo: 'fallito',
-        motivo: 'Nessuna delle due fonti ha trovato il titolo. I dati in scheda restano quelli in archivio.',
-      });
-      return;
-    }
-    if (recupero.tipo === 'fonte-muta') {
-      setEsito({
-        tipo: 'fallito',
-        motivo: 'Nessuna delle due fonti ha risposto. I dati in scheda restano quelli già rilevati.',
-      });
-      return;
-    }
-    if (recupero.tipo === 'errore') {
-      setEsito({
-        tipo: 'fallito',
-        motivo: recupero.rete
-          ? 'Backend non raggiungibile. I dati in scheda restano quelli già rilevati.'
-          : 'Errore inatteso durante l’aggiornamento. I dati in scheda restano quelli già rilevati.',
-      });
-      return;
-    }
-
-    // La guardia ha risposto dalla cache senza contattare la fonte: nulla è
-    // cambiato in archivio, e la decisione di procedere spetta all'utente.
-    if (recupero.tipo === 'guardia') {
-      setConferma(recupero.conferma);
-      setEsito(null);
-      return;
-    }
-
-    try {
-      const aggiornato = await leggiDettaglio();
-      if (titoloAbbandonato()) return;
-
-      setDetail(aggiornato);
-      setAppenaAggiornato(true);
-      setEsito({
-        tipo: 'riuscito',
-        // La fonte dichiarata è quella della riga appena riletta, la stessa che
-        // valorizza il timbro di provenienza: due letture diverse dello stesso
-        // fatto potrebbero divergere, e una di loro sarebbe falsa.
-        fonte: nomeFonte(aggiornato.dataSource),
-        prezzo:
-          aggiornato.currentPrice !== null
-            ? `${simboloDi(aggiornato.currency)} ${prezzo(aggiornato.currentPrice)}`
-            : null,
-      });
-      onDatiAggiornati?.();
-    } catch {
-      if (titoloAbbandonato()) return;
-      setEsito({
-        tipo: 'fallito',
-        motivo: 'Backend non raggiungibile. I dati in scheda restano quelli già rilevati.',
-      });
-    }
-  }
+  const { detail, loading, error, esito, conferma, appenaAggiornato, aggiornaDati, annullaConferma } =
+    useSchedaTitolo({ portfolioId, isin, onDatiAggiornati });
 
   if (loading) {
     return <p className="messaggio attesa">Caricamento scheda titolo…</p>;
@@ -510,7 +333,7 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
             >
               Procedi comunque
             </button>
-            <button type="button" className="bottone secondario" onClick={() => setConferma(null)}>
+            <button type="button" className="bottone secondario" onClick={annullaConferma}>
               Annulla
             </button>
           </div>

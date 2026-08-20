@@ -305,6 +305,24 @@
 
   .titolo-pagina .sottotitolo { margin: 6px 0 0; color: var(--testo-2); font-size: var(--t-base); }
 
+  /* Intestazione di sezione fuori da un pannello (mockup US-052,
+     `docs/mockups/US-052/shared.css`): nessuna vista reale l'aveva ancora
+     usata — `RiepilogoQuadro` intesta le sue sezioni con `.testa-pannello`
+     dentro un `.pannello` — ma la scheda titolo del mockup separa «Posizione
+     a conto», «Andamento del titolo», «Le due misure» e «Anagrafica
+     ufficiale» con questo titolo leggero, fuori da qualunque riquadro. */
+  .et-sezione {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    margin: 14px 2px 2px;
+  }
+  .et-sezione h2 {
+    margin: 0;
+    font-size: var(--t-grande);
+    font-weight: 700;
+    letter-spacing: -.015em;
+  }
+  .et-sezione .chiosa { color: var(--testo-3); font-size: var(--t-piccolo); }
+
   /* ---------- 6. Pannelli ---------- */
 
   .pannello {
@@ -393,6 +411,19 @@
   .negativo { color: var(--perdita); }
   .ambrato  { color: var(--ambra); }
   .assente  { color: var(--testo-3); }
+
+  /* `classeSegno()` (client/src/domain/formattazione.ts) restituisce
+     'guadagno'/'perdita', non 'positivo'/'negativo': queste due varianti
+     coprono la cifra e il piede di una carta KPI generica quando il valore
+     nasce già con quella classe, senza toccare le regole di QuadroRisultato
+     (sezione 15b, `.cifra-pl.guadagno`/`.percentuale.guadagno`), che restano
+     un contesto separato e non vanno duplicate qui. */
+  .carta-kpi .cifra.guadagno { color: var(--guadagno); }
+  .carta-kpi .cifra.perdita  { color: var(--perdita); }
+  .carta-kpi .piede b.guadagno,
+  .carta-kpi .piede .guadagno { color: var(--guadagno); }
+  .carta-kpi .piede b.perdita,
+  .carta-kpi .piede .perdita  { color: var(--perdita); }
 
   /* Filo di stato in cima alla carta */
   .carta-kpi::before {
@@ -525,6 +556,28 @@
   .avviso strong { display: block; font-size: var(--t-base); }
   .avviso p { margin: 2px 0 0; font-size: var(--t-piccolo); color: var(--testo-2); }
   .avviso.sereno .glifo { background: var(--alone-guadagno); color: var(--guadagno); }
+  /* Terzo stato oltre al predefinito (ambra, «in attesa/attenzione») e a
+     `.sereno` (verde, «riuscito»): l'esito «fallito» di un aggiornamento
+     (US-030) va dichiarato, non attenuato allo stesso ambra dell'attesa. */
+  .avviso.critico .glifo { background: var(--alone-perdita); color: var(--perdita); }
+
+  /* Riga di provenienza del dato (scheda titolo, US-052/TASK-04): stessa
+     posizione relativa del mastro — sotto l'intestazione del titolo, non
+     nella testata condivisa (decisione architetturale 6 del piano) — con un
+     nome di classe proprio (`.riga-provenienza`, non `.riga-fonte` del
+     mastro) perché non intercetti markup non-quadro. */
+  .riga-provenienza {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 14px 20px;
+    border: 1px solid var(--bordo);
+    border-radius: var(--raggio);
+    background: var(--superficie);
+    box-shadow: var(--ombra);
+  }
+  .riga-provenienza .azione-fonte { margin-left: auto; }
+  .riga-provenienza .istante-rilevazione { font-family: var(--font-mono); color: var(--testo-2); }
+  .riga-provenienza .istante-rilevazione b { color: var(--testo); }
+  .riga-provenienza .istante-rilevazione b.appena-aggiornato { color: var(--guadagno); }
 
   /* ---------- 11. Tabelle ---------- */
 
@@ -609,6 +662,109 @@
   }
   .nota-tabella em { color: var(--testo-2); font-style: normal; font-weight: 600; }
 
+  /* ---------- 12. Griglie di contenuto (US-052/TASK-02) ----------
+     .griglia-doppia era già qui in US-051/TASK-04 per affiancare grafico e
+     Composizione nel riepilogo; TASK-14 l'ha rimossa senza altri usi in vista.
+     US-052 la richiede di nuovo per affiancare «Carichi registrati» e
+     «Storico prezzi» nella scheda titolo: stessa regola, stesso breakpoint
+     (rispettivamente sezione 12 e 14 prima della rimozione — commit 3b22e96),
+     non reinventati. .griglia-def/.voce-def sono nuove: la griglia a due
+     colonne dell'anagrafica ufficiale del mockup, con `.dato.assente` per il
+     campo mancante — stesso concetto di `NON_DISPONIBILE` del mastro
+     (`SchedaTitolo.tsx`), non lo stesso selettore: lì è `.anagrafica .voce-def`,
+     qui `.griglia-def .voce-def`, per non intercettare markup non-quadro. */
+
+  .griglia-doppia {
+    display: grid;
+    grid-template-columns: minmax(0, 1.85fr) minmax(300px, .95fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .griglia-def {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
+    gap: 1px;
+    background: var(--bordo);
+    border-radius: var(--raggio-s);
+    overflow: hidden;
+  }
+  .griglia-def .voce-def {
+    background: var(--superficie);
+    padding: 14px 16px;
+    display: grid;
+    gap: 4px;
+  }
+  .griglia-def .voce-def .et {
+    font-size: var(--t-micro);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--testo-3);
+    font-weight: 700;
+  }
+  .griglia-def .voce-def .dato { font-size: var(--t-base); font-weight: 600; }
+  .griglia-def .voce-def .dato.mono {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: .04em;
+  }
+  .griglia-def .voce-def .dato.assente {
+    color: var(--testo-3);
+    font-weight: 500;
+    font-style: italic;
+  }
+
+  /* ---------- 12c. Intestazione del titolo (scheda titolo, US-052/TASK-02) ----------
+     Porta `.testa-titolo` dal mockup: stemma a due lettere, denominazione e
+     pillole di marcatura, prezzo attuale in evidenza — stessi token di colore
+     e tipografia delle carte KPI qui sopra, nessun valore hardcoded nuovo. */
+
+  .testa-titolo {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 22px;
+    border-radius: var(--raggio);
+    border: 1px solid var(--bordo);
+    background:
+      linear-gradient(120deg, var(--alone-accento), transparent 46%),
+      var(--superficie);
+    box-shadow: var(--ombra);
+  }
+  .testa-titolo .stemma {
+    width: 56px; height: 56px; flex: none;
+    display: grid; place-items: center;
+    border-radius: 16px;
+    background: var(--superficie-3);
+    font-family: var(--font-cifre);
+    font-size: var(--t-grande);
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  .testa-titolo .anagrafe { min-width: 0; flex: 1 1 320px; display: grid; gap: 7px; }
+  .testa-titolo h1 {
+    margin: 0;
+    font-family: var(--font-cifre);
+    font-size: clamp(22px, 2.4vw, 30px);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.25;
+  }
+  .testa-titolo .marcature { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .testa-titolo .prezzo-vivo { display: grid; gap: 3px; text-align: right; }
+  .testa-titolo .prezzo-vivo .cifra {
+    font-family: var(--font-cifre);
+    font-size: var(--t-cifra);
+    font-weight: 600;
+    letter-spacing: -.025em;
+    font-variant-numeric: tabular-nums;
+  }
+  .testa-titolo .prezzo-vivo .et {
+    font-size: var(--t-micro); text-transform: uppercase; letter-spacing: .14em;
+    color: var(--testo-3); font-weight: 700;
+  }
+
   /* ---------- 12b. Composizione (US-051/TASK-06, layout orizzontale TASK-14) ----------
      Porta le regole di docs/mockups/US-051/shared.css (§ Composizione),
      fuori dallo scope di TASK-04: qui la ciambella SVG e la sua legenda
@@ -685,6 +841,14 @@
   }
 
   /* ---------- 14. Adattamento ---------- */
+
+  /* Breakpoint di .griglia-doppia, ripristinato con la regola in sezione 12
+     (US-052/TASK-02): stesso valore di prima della rimozione in US-051/TASK-14
+     (commit 3b22e96), non i 640px del breakpoint di .composizione qui sopra —
+     sono due regole distinte con due punti di rottura distinti. */
+  @media (max-width: 1180px) {
+    .griglia-doppia { grid-template-columns: minmax(0, 1fr); }
+  }
 
   @media (max-width: 980px) {
     .guscio { grid-template-columns: minmax(0, 1fr); }
@@ -1704,6 +1868,270 @@
     .scala-temporale { flex-direction: column; }
     .scala-temporale button { width: 100%; }
     .postilla-predefinita { float: right; margin-left: 0; }
+  }
+
+  /* ---------- 15f. GraficoTitolo — commutatore di vista, gradino, copertura (US-052/TASK-03) ----------
+     Il commutatore di vista (US-039) sta sopra la scala, con lo stesso
+     linguaggio visivo di `.barra-scala`/`.scala-temporale` ma un gruppo di
+     comandi indipendente — da qui il colore del bottone attivo non si
+     confonde con quello della scala. `.tasto-citato` era già usato dentro
+     `.invito-scala`, `.dove-esiste`, il gradino e la copertura parziale, ma
+     stilizzato solo nel primo: la regola generica qui sotto lo rende visibile
+     ovunque compaia, senza toccare la specificità già scritta per
+     `.invito-scala`. */
+  .barra-vista {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 10px 18px;
+    border: 1px solid var(--bordo);
+    border-bottom: none;
+    border-radius: var(--raggio) var(--raggio) 0 0;
+    background: var(--superficie-2);
+  }
+  .barra-vista .et-vista { font-size: var(--t-micro); letter-spacing: .12em; text-transform: uppercase; color: var(--testo-3); white-space: nowrap; }
+  .barra-vista .ordinata-attiva { margin-left: auto; font-family: var(--font-mono); font-size: var(--t-piccolo); color: var(--testo-2); white-space: nowrap; }
+  .barra-vista .ordinata-attiva b { color: var(--testo); }
+  .barra-vista .ordinata-attiva.senza-dati { color: var(--perdita); font-style: italic; }
+
+  .commutatore-vista { display: flex; gap: 8px; flex-wrap: wrap; }
+  .commutatore-vista button {
+    font-family: var(--font-mono);
+    font-size: var(--t-piccolo);
+    padding: 7px 14px;
+    border: 1px solid var(--bordo);
+    border-radius: 999px;
+    background: var(--superficie-2);
+    color: var(--testo-2);
+    cursor: pointer;
+    letter-spacing: .02em;
+    white-space: nowrap;
+    transition: background .16s ease, color .16s ease, border-color .16s ease;
+  }
+  .commutatore-vista button:hover { background: var(--superficie-3); color: var(--testo); }
+  .commutatore-vista button:focus-visible { outline: 2px solid var(--accento); outline-offset: 2px; }
+  .commutatore-vista button.attiva {
+    background: var(--accento-2);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 700;
+  }
+  .commutatore-vista button.attiva:hover { filter: brightness(1.1); }
+  .commutatore-vista button.attiva.senza-dati { background: var(--perdita); color: #180505; }
+
+  /* Il sigillo chiude il blocco della vista: nessun bordo superiore proprio,
+     così il gruppo vista+sigillo si legge come un solo riquadro, e la scala
+     sotto riapre il proprio con `border-top` — stesso schema di
+     `.barra-perimetro + .barra-scala` in GraficoPortafoglio. */
+  .barra-vista + .sigillo-indipendenza {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin: 0;
+    padding: 10px 18px;
+    border: 1px solid var(--bordo);
+    border-top: none;
+    background: var(--superficie-2);
+    font-size: var(--t-piccolo);
+    line-height: 1.6;
+    color: var(--testo-2);
+  }
+  .sigillo-indipendenza .graffa { font-size: 20px; line-height: 1; color: var(--ambra); flex: 0 0 auto; }
+  .sigillo-indipendenza b { color: var(--testo); }
+  .sigillo-indipendenza + .barra-scala { border-top: 1px solid var(--bordo); }
+
+  .tasto-citato {
+    font-family: var(--font-mono);
+    font-style: normal;
+    font-size: var(--t-piccolo);
+    padding: 2px 9px;
+    border: 1px solid var(--bordo-forte);
+    border-radius: var(--raggio-xs);
+    background: var(--superficie-2);
+    color: var(--testo);
+    white-space: nowrap;
+  }
+
+  /* Il gradino di carico, dichiarato (US-020 criterio 4): la cifra del salto
+     non è rendimento, ed è nel testo — qui solo la cornice che lo isola dal
+     resto della narrazione del grafico. */
+  .dichiarazione-gradino {
+    border: 1px solid var(--bordo);
+    border-left: 3px solid var(--perdita);
+    border-radius: var(--raggio-s);
+    background: var(--superficie);
+    padding: 14px 18px;
+    margin-top: 14px;
+  }
+  .dichiarazione-gradino .misura-salto {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .dichiarazione-gradino .et-salto { font-size: var(--t-micro); letter-spacing: .1em; text-transform: uppercase; color: var(--testo-3); }
+  .dichiarazione-gradino .cifra-salto {
+    font-family: var(--font-cifre); font-size: var(--t-medio); font-weight: 700; color: var(--perdita);
+    font-variant-numeric: tabular-nums;
+  }
+  .dichiarazione-gradino .conto-salto { font-family: var(--font-mono); font-size: var(--t-piccolo); color: var(--testo-3); margin-left: auto; }
+  .dichiarazione-gradino .spiega-salto { margin: 0; font-size: var(--t-piccolo); line-height: 1.55; color: var(--testo-2); }
+  .dichiarazione-gradino .spiega-salto .non-e { color: var(--perdita); font-weight: 700; font-style: normal; }
+  .dichiarazione-gradino .spiega-salto b { color: var(--testo); font-weight: 700; }
+
+  /* La copertura parziale (US-020 criterio 5): stesso linguaggio visivo del
+     regolo di copertura di `.doppio-regolo`, ma indipendente — qui non c'è un
+     secondo regolo affiancato, solo la misura di questa finestra. */
+  .misura-copertura {
+    border: 1px solid var(--ambra);
+    border-left-width: 3px;
+    border-radius: var(--raggio-s);
+    background: var(--alone-ambra);
+    padding: 14px 18px;
+    margin-top: 14px;
+  }
+  .misura-copertura .intestazione-misura {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    font-size: var(--t-micro); letter-spacing: .1em; text-transform: uppercase; color: var(--ambra);
+    margin-bottom: 10px;
+  }
+  .misura-copertura .cifra-misura {
+    font-family: var(--font-mono); font-size: var(--t-piccolo); letter-spacing: 0; text-transform: none; color: var(--testo-2);
+  }
+  .misura-copertura .barra-copertura {
+    position: relative; height: 22px;
+    border: 1px solid var(--bordo);
+    border-radius: var(--raggio-xs);
+    background: var(--superficie-2);
+    overflow: hidden;
+  }
+  .misura-copertura .barra-copertura .coperto {
+    position: absolute; top: 0; bottom: 0; right: 0;
+    background: var(--alone-ambra);
+    border-left: 2px solid var(--ambra);
+  }
+  .misura-copertura .barra-copertura .etichetta-scoperto {
+    position: absolute; left: 8px; top: 3px;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .02em; color: var(--testo-3);
+  }
+  .misura-copertura .legenda-copertura {
+    margin: 10px 0 0; font-size: var(--t-piccolo); line-height: 1.55; color: var(--testo-2);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .misura-copertura .legenda-copertura b { font-family: var(--font-mono); color: var(--testo); }
+
+  @media (max-width: 900px) {
+    .barra-vista { flex-direction: column; align-items: stretch; gap: 10px; }
+    .barra-vista .ordinata-attiva { margin-left: 0; white-space: normal; }
+    .commutatore-vista button { flex: 1 1 auto; text-align: center; }
+    .misura-copertura .intestazione-misura { flex-direction: column; align-items: flex-start; gap: 4px; }
+  }
+
+  /* ---------- 15g. MetricheTitolo — la bilancia a due piatti (US-052/TASK-03, US-038) ----------
+     Stessa idea grafica di `.quadro-risultato` (due colonne separate da un
+     segno, non un totale): qui il segno è «≠» e non «=», perché le due misure
+     non si sommano — è il criterio che il componente stesso deve rendere
+     impossibile confondere (vedi il commento del componente). */
+  .bilancia {
+    display: grid;
+    grid-template-columns: 1fr 44px 1fr;
+    align-items: stretch;
+    border: 1px solid var(--bordo);
+    border-radius: var(--raggio);
+    background: var(--superficie);
+    box-shadow: var(--ombra);
+    overflow: hidden;
+    margin-top: 16px;
+  }
+  .bilancia .intestazione-bilancia {
+    grid-column: 1 / -1;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--bordo);
+    background: var(--superficie-2);
+    font-size: var(--t-piccolo); font-weight: 700; color: var(--testo);
+  }
+  .bilancia .intestazione-bilancia .chiosa {
+    font-family: var(--font-mono); font-size: var(--t-micro); font-weight: 400; letter-spacing: .02em; color: var(--testo-3);
+  }
+
+  .bilancia .piatto { padding: 18px 22px 16px; }
+  .bilancia .piatto.periodo { border-left: 1px solid var(--bordo); }
+
+  .bilancia .testa-piatto { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .bilancia .et-piatto { font-size: var(--t-micro); letter-spacing: .14em; text-transform: uppercase; font-weight: 700; color: var(--testo-3); }
+  .bilancia .unita { font-family: var(--font-mono); font-size: var(--t-piccolo); color: var(--testo-2); }
+  .bilancia .unita b { color: var(--testo); }
+
+  .bilancia .cifre { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .bilancia .importo { font-family: var(--font-cifre); font-size: var(--t-cifra); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .bilancia .importo.guadagno { color: var(--guadagno); }
+  .bilancia .importo.perdita { color: var(--perdita); }
+  .bilancia .percento { font-family: var(--font-mono); font-size: var(--t-base); font-weight: 600; }
+  .bilancia .percento.guadagno { color: var(--guadagno); }
+  .bilancia .percento.perdita { color: var(--perdita); }
+
+  .bilancia .provenienza { margin: 12px 0 0; font-size: var(--t-piccolo); line-height: 1.7; color: var(--testo-2); }
+  .bilancia .provenienza .et-prov { display: block; font-size: var(--t-micro); letter-spacing: .1em; text-transform: uppercase; color: var(--testo-3); margin-bottom: 4px; }
+  .bilancia .provenienza .passo { font-family: var(--font-mono); }
+  .bilancia .provenienza .passo b { color: var(--testo); font-family: var(--font-mono); }
+  .bilancia .provenienza .dato-mancante { color: var(--perdita); font-style: italic; }
+  .bilancia .provenienza .freccia { margin: 0 8px; color: var(--testo-3); }
+  .bilancia .provenienza .coda { display: block; margin-top: 6px; font-style: italic; color: var(--testo-3); font-family: var(--font-ui); }
+
+  .bilancia .rimando-differenza {
+    margin: 10px 0 0; padding-top: 8px; border-top: 1px dashed var(--bordo);
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: var(--t-piccolo); font-style: italic; color: var(--testo-3);
+  }
+  .bilancia .rimando-differenza .croce { flex-shrink: 0; }
+
+  .bilancia .timbro-piatto {
+    display: inline-block;
+    text-transform: uppercase; letter-spacing: .16em; font-weight: 700;
+    font-size: var(--t-micro);
+    padding: 7px 16px;
+    border: 2px solid var(--perdita);
+    border-radius: 999px;
+    color: var(--perdita);
+    background: var(--alone-perdita);
+  }
+  .bilancia .perche-assente {
+    margin: 12px 0 0; font-size: var(--t-piccolo); line-height: 1.6; color: var(--testo-2); font-style: normal;
+  }
+  .bilancia .perche-assente .et-perche { display: block; font-size: var(--t-micro); letter-spacing: .1em; text-transform: uppercase; color: var(--testo-3); margin-bottom: 6px; }
+  .bilancia .elenco-perche { margin: 8px 0 0; padding-left: 18px; }
+  .bilancia .elenco-perche li { margin-bottom: 4px; }
+
+  .bilancia .orizzonte-piatto {
+    margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--bordo);
+    font-size: var(--t-piccolo); color: var(--testo-3); line-height: 1.5;
+  }
+  .bilancia .segna-orizzonte {
+    display: inline-block; margin-right: 8px;
+    font-family: var(--font-mono); font-size: var(--t-micro); letter-spacing: .06em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 999px; border: 1px solid var(--bordo-forte);
+  }
+  .bilancia .segna-orizzonte.fisso { color: var(--testo-2); }
+  .bilancia .segna-orizzonte.mobile { color: var(--ambra); border-color: var(--ambra); }
+
+  .bilancia .fulcro {
+    display: flex; align-items: center; justify-content: center;
+    border-left: 1px solid var(--bordo); border-right: 1px solid var(--bordo);
+    background: var(--superficie-2);
+  }
+  .bilancia .fulcro .segno { font-family: var(--font-cifre); font-size: 26px; font-weight: 600; color: var(--testo-3); }
+
+  .postilla-bilancia {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin: 12px 0 0;
+    padding: 12px 18px 14px;
+    border: 1px solid var(--bordo); border-radius: var(--raggio-s);
+    background: var(--superficie-2);
+    font-size: var(--t-piccolo); line-height: 1.6; color: var(--testo-2);
+  }
+  .postilla-bilancia .glifo-postilla { font-size: 20px; line-height: 1; color: var(--testo-3); flex: 0 0 auto; }
+  .postilla-bilancia .mai { color: var(--ambra); font-weight: 700; }
+  .postilla-bilancia b { color: var(--testo); }
+
+  @media (max-width: 720px) {
+    .bilancia { grid-template-columns: 1fr; }
+    .bilancia .piatto.periodo { border-left: none; border-top: 1px solid var(--bordo); }
+    .bilancia .fulcro { display: none; }
   }
 
   /* ---------- 16. Riepilogo — vuoti e gestione del conto (US-051/TASK-05) ----------
