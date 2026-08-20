@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: MEDIUM
 points: 3
-status: REVIEW
+status: DONE
 body: |-
   #### US-055: Quadro strumenti — ricerca titoli
 
@@ -36,3 +36,5 @@ history:
     at: "2026-08-20T14:05:44Z"
   - status: REVIEW
     at: "2026-08-20T14:26:19Z"
+  - status: DONE
+    at: "2026-08-20T16:17:16Z"
