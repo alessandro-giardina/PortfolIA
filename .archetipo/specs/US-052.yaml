@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: MEDIUM
 points: 5
-status: REVIEW
+status: DONE
 body: |-
   #### US-052: Quadro strumenti — scheda titolo
 
@@ -38,3 +38,5 @@ history:
     at: "2026-08-20T08:51:07Z"
   - status: REVIEW
     at: "2026-08-20T11:03:45Z"
+  - status: DONE
+    at: "2026-08-20T12:59:59Z"
