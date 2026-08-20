@@ -15,7 +15,7 @@ import type { CaricoProps } from './CaricoMastro.js';
  * `dataCarico`) — riscriverli sarebbe il primo posto in cui i due design
  * divergerebbero in silenzio.
  *
- * Riferimento visivo: `docs/mockups/US-054/carico-scarico.html`.
+ * Riferimento visivo: `docs/mockups/US-054/index.html`.
  */
 export default function CaricoQuadro({ id, carico, dati, modifica, dopoScaricoCompleto }: CaricoProps) {
   const {

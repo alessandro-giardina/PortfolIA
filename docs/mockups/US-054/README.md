@@ -10,7 +10,7 @@ ricerca titoli in [`../US-055/`](../US-055/).
 
 | File | Che cosa mostra |
 |---|---|
-| `carico-scarico.html` | **Carico titoli** — modulo di iscrizione di un carico, modulo di scarico, fascia dei lotti (LIFO), residuo dopo la vendita, titoli iscritti a conto e registro cronologico delle iscrizioni |
+| `index.html` | **Carico titoli** — modulo di iscrizione di un carico, modulo di scarico, fascia dei lotti (LIFO), residuo dopo la vendita, titoli iscritti a conto e registro cronologico delle iscrizioni |
 
 `shared.css` e `app.js` sono la copia autosufficiente della cartella US-055 (a sua volta copia
 di US-053 → US-051): ciascuna cartella `US-*` porta la propria copia, come in tutto questo

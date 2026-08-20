@@ -88,8 +88,12 @@ Output must always stay inside `{config.paths.mockups}` relative to the project 
 
 `{config.paths.mockups}/mockup-name/`
 
+Every folder must contain an `index.html`: the ARchetipo view lists a mockup folder only if
+that file exists, so a folder whose single screen is named after the feature
+(`ricerca-titoli.html`) is invisible from the board even though the file is there.
+
 Allowed files inside that folder:
-- `index.html`
+- `index.html` (required — the entry point the view links to)
 - additional `*.html` screens
 - `shared.css`
 - page-specific `*.css`

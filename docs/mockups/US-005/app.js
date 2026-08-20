@@ -1,6 +1,6 @@
 /* ============================================================
    PortfolIA — US-005 Mockup: app.js
-   Interazioni prototipo per dashboard-con-portafogli.html
+   Interazioni prototipo per index.html
    e dashboard-vuota.html
    ============================================================ */
 

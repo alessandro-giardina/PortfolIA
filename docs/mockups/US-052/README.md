@@ -8,7 +8,7 @@ del riepilogo in [`../US-051/`](../US-051/).
 
 | File | Che cosa mostra |
 |---|---|
-| `scheda-titolo.html` | **Scheda titolo** — posizione a conto, grafico con le due viste e le quattro scale, le due misure, anagrafica ufficiale, carichi, vendite, storico prezzi |
+| `index.html` | **Scheda titolo** — posizione a conto, grafico con le due viste e le quattro scale, le due misure, anagrafica ufficiale, carichi, vendite, storico prezzi |
 
 `shared.css` e `app.js` sono la copia autosufficiente della cartella US-051: le due pagine
 condividono i token e lo stesso prototipo di grafici, e ciascuna cartella porta la propria

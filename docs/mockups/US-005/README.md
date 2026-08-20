@@ -4,13 +4,13 @@
 
 | File | Descrizione |
 |---|---|
-| `dashboard-con-portafogli.html` | Dashboard principale con 3 portafogli di esempio cliccabili + modulo apertura nuovo conto |
+| `index.html` | Dashboard principale con 3 portafogli di esempio cliccabili + modulo apertura nuovo conto |
 | `dashboard-vuota.html` | Stesso layout ma senza portafogli: stato vuoto con CTA che ancora al modulo |
 | `dettaglio-portafoglio-placeholder.html` | Placeholder per la vista di dettaglio; legge il nome del portafoglio dai query params |
 
 ## Come navigare
 
-1. Apri `dashboard-con-portafogli.html` nel browser.
+1. Apri `index.html` nel browser.
 2. Clicca su una riga della tabella → arrivi al dettaglio placeholder con il nome del conto nell'intestazione.
 3. Usa il link "← Torna all'elenco portafogli" per tornare indietro.
 4. Apri `dashboard-vuota.html` per vedere lo stato vuoto con il CTA di creazione.

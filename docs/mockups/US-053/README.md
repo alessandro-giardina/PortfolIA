@@ -9,7 +9,7 @@ riepilogo in [`../US-051/`](../US-051/) e della scheda titolo in [`../US-052/`](
 
 | File | Che cosa mostra |
 |---|---|
-| `elenco-portafogli.html` | **Elenco portafogli** — tabella dei conti aperti (nome, data di apertura, posizioni, freccia), il suo stato vuoto («nessun portafoglio»), il modulo **Nuovo portafoglio** con validazione inline, e il dialogo `PortfolioSelectDialog` restilizzato coi token del quadro |
+| `index.html` | **Elenco portafogli** — tabella dei conti aperti (nome, data di apertura, posizioni, freccia), il suo stato vuoto («nessun portafoglio»), il modulo **Nuovo portafoglio** con validazione inline, e il dialogo `PortfolioSelectDialog` restilizzato coi token del quadro |
 
 `shared.css` e `app.js` sono la copia autosufficiente della cartella US-051: le tre pagine
 condividono i token, e ciascuna cartella porta la propria copia come tutte le altre cartelle

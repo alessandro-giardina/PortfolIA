@@ -9,7 +9,7 @@ e dell'elenco portafogli in [`../US-053/`](../US-053/).
 
 | File | Che cosa mostra |
 |---|---|
-| `ricerca-titoli.html` | **Ricerca per ISIN** — modulo di ricerca, riga di esito, anagrafica recuperata con la sua provenienza, azione «Aggiungi a portafoglio» e dialogo di scelta, più tutti gli stati intermedi |
+| `index.html` | **Ricerca per ISIN** — modulo di ricerca, riga di esito, anagrafica recuperata con la sua provenienza, azione «Aggiungi a portafoglio» e dialogo di scelta, più tutti gli stati intermedi |
 
 `shared.css` e `app.js` sono la copia autosufficiente della cartella US-053 (a sua volta copia
 di US-051): ciascuna cartella `US-*` porta la propria copia, come in tutto questo repository.
