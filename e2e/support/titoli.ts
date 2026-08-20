@@ -2143,6 +2143,62 @@ export const TITOLO_US_053: TitoloSeminabile = {
 };
 
 /**
+ * Riservato a `US-055__quadro-ricerca-titoli.spec.ts`.
+ *
+ * `data_source` è esplicito perché lo scenario di parità legge la riga di
+ * provenienza in entrambi i design: senza fissarla, la fonte dichiarata
+ * dipenderebbe da quale adapter ha popolato la cache l'ultima volta.
+ *
+ * Il seme porta `fetched_at` di adesso (il default di `seminaTitolo`) ed è la
+ * guardia che impedisce un recupero reale: la ricerca attraversa
+ * `GET /api/securities/:isin`, e a cache scaduta il server ricontatterebbe la
+ * fonte — 8-12 secondi non deterministici, fuori dal budget del test.
+ *
+ * `dividend_policy` resta fuori dal seme di proposito: lo scenario di parità
+ * verifica anche che un campo mancante sia scritto «Dato non disponibile» in
+ * entrambe le rese, e serve almeno un campo assente per poterlo dimostrare.
+ */
+export const TITOLO_US_055: TitoloSeminabile = {
+  isin: 'IE00B4WXJJ64',
+  file: 'US-055__quadro-ricerca-titoli.spec.ts',
+  campi: {
+    name: 'Ishares Core Global Aggregate Bond Ucits Etf',
+    price: 4.87,
+    ticker: 'AGGH',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,10%',
+    currency: 'EUR',
+    issuer: 'ISHARES III PLC',
+    segment: 'ETF Obbligazionari',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-055__quadro-ricerca-titoli-demo.spec.ts` (il solo file demo).
+ *
+ * Anagrafica completa in tutti e dieci i campi: il video deve mostrare la
+ * scheda del risultato piena, non una griglia mezza vuota. Stessa ragione del
+ * seme fresco di `TITOLO_US_055` per il `fetched_at`.
+ */
+export const TITOLO_US_055_DEMO: TitoloSeminabile = {
+  isin: 'IE00BK1PV551',
+  file: 'US-055__quadro-ricerca-titoli-demo.spec.ts',
+  campi: {
+    name: 'Xtrackers Msci World Information Technology Ucits Etf',
+    price: 72.35,
+    ticker: 'XDWT',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,25%',
+    currency: 'EUR',
+    issuer: 'XTRACKERS IE PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *

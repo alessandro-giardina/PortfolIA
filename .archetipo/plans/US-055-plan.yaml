@@ -6,36 +6,41 @@ tasks:
     title: Estrarre RicercaMastro.tsx e trasformare SecuritySearchPage in dispatcher
     description: 'Spostare verbatim il markup mastro di `SecuritySearchPage.tsx` (form `.ricerca-isin`, `.riga-esito`, `.anagrafica` con scheletro di caricamento, `.fonte-prezzo`, `.riquadro-vuoto`, `.avviso-conferma`, montaggio di `PortfolioSelectDialog`) in `client/src/views/RicercaMastro.tsx`, insieme agli helper locali `formatPrice`, `formatRilevazione`, `campiAnagrafica` e alla costante `SIMBOLI_VALUTA`. Esportare il tipo condiviso `RicercaProps = ReturnType<typeof useRicercaTitolo>`. `SecuritySearchPage.tsx` diventa un dispatcher sottile: chiama `useRicercaTitolo()` una sola volta, tiene `<Guscio>`, `linguette` e `registro`, e monta `RicercaMastro` (per ora sempre; il ramo quadro arriva in TASK-03). Nessun cambiamento di copy, classi, `data-testid` o comportamento per il design mastro.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'Spostare verbatim il markup mastro di `SecuritySearchPage.tsx` (form `.ricerca-isin`, `.riga-esito`, `.anagrafica` con scheletro di caricamento, `.fonte-prezzo`, `.riquadro-vuoto`, `.avviso-conferma`, montaggio di `PortfolioSelectDialog`) in `client/src/views/RicercaMastro.tsx`, insieme agli helper locali `formatPrice`, `formatRilevazione`, `campiAnagrafica` e alla costante `SIMBOLI_VALUTA`. Esportare il tipo condiviso `RicercaProps = ReturnType<typeof useRicercaTitolo>`. `SecuritySearchPage.tsx` diventa un dispatcher sottile: chiama `useRicercaTitolo()` una sola volta, tiene `<Guscio>`, `linguette` e `registro`, e monta `RicercaMastro` (per ora sempre; il ramo quadro arriva in TASK-03). Nessun cambiamento di copy, classi, `data-testid` o comportamento per il design mastro.'
+    ref: TASK-01
   - id: TASK-02
     title: Aggiungere la sezione 21 «Ricerca titoli» a quadro.css
     description: 'Aggiungere in coda a `client/src/quadro.css`, dentro `:root[data-design=''quadro'']`, la sezione 21 con le sole quattro cose che le sezioni esistenti non coprono: campo ISIN monospaziato con contatore `n/12` (`.riga-campo input.isin`, `.contatore-isin`, `.nota-campo-isin`), riga di esito `.riga-esito-quadro` con le varianti `trovato`/`non-trovato`/`in-attesa`/`guasto`/`inerte` e il `.punto-attesa` pulsante, scheletro `.scheletro-quadro` per l''anagrafica in caricamento, e `.riga-provenienza-quadro` (classe propria, non riuso di `.riga-provenienza` della sezione 15, che allinea a destra un comando qui assente). Le keyframe vanno fuori dal selettore di scoping, come le altre del file. Riferimento visivo: `docs/mockups/US-055/shared.css`, sezione 21.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'Aggiungere in coda a `client/src/quadro.css`, dentro `:root[data-design=''quadro'']`, la sezione 21 con le sole quattro cose che le sezioni esistenti non coprono: campo ISIN monospaziato con contatore `n/12` (`.riga-campo input.isin`, `.contatore-isin`, `.nota-campo-isin`), riga di esito `.riga-esito-quadro` con le varianti `trovato`/`non-trovato`/`in-attesa`/`guasto`/`inerte` e il `.punto-attesa` pulsante, scheletro `.scheletro-quadro` per l''anagrafica in caricamento, e `.riga-provenienza-quadro` (classe propria, non riuso di `.riga-provenienza` della sezione 15, che allinea a destra un comando qui assente). Le keyframe vanno fuori dal selettore di scoping, come le altre del file. Riferimento visivo: `docs/mockups/US-055/shared.css`, sezione 21.'
+    ref: TASK-02
   - id: TASK-03
     title: Creare RicercaQuadro.tsx e completare il dispatcher
     description: 'Creare `client/src/views/RicercaQuadro.tsx` che consuma `RicercaProps` (TASK-01) e rende: titolo di pagina `.titolo-pagina`; modulo di ricerca in un `.pannello` con `.modulo-gestione`/`.campo-gestione`/`.riga-campo` e `.errore-campo-quadro` per l''ISIN non valido; riga di esito `.riga-esito-quadro` per i cinque stati (idle, loading, found, notfound, error); scheletro `.griglia-def` + `.scheletro-quadro` durante il caricamento; a risultato trovato `.testa-titolo` (stemma, nome, pillole ISIN/ticker/tipo/fonte, `.prezzo-vivo`), `.riga-provenienza-quadro` con fonte e istante di rilevamento, anagrafica su `.griglia-def`/`.voce-def` con `.dato.assente` per i campi mancanti, e il bottone `data-testid="btn-aggiungi-portafoglio"` che apre `PortfolioSelectDialog` (invariato, già stilizzato da US-053); `.avviso.critico` per la guardia di conferma; `.placeholder-quadro` per «non trovato», «fonte muta» e «nessuna ricerca». Usare `prezzo`, `simboloDi` e `nomeFonte` da `client/src/domain/formattazione.ts`. Completare il ternario in `SecuritySearchPage.tsx` su `useDesign()`. Riferimento visivo: `docs/mockups/US-055/ricerca-titoli.html`.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
       - TASK-02
     body: 'Creare `client/src/views/RicercaQuadro.tsx` che consuma `RicercaProps` (TASK-01) e rende: titolo di pagina `.titolo-pagina`; modulo di ricerca in un `.pannello` con `.modulo-gestione`/`.campo-gestione`/`.riga-campo` e `.errore-campo-quadro` per l''ISIN non valido; riga di esito `.riga-esito-quadro` per i cinque stati (idle, loading, found, notfound, error); scheletro `.griglia-def` + `.scheletro-quadro` durante il caricamento; a risultato trovato `.testa-titolo` (stemma, nome, pillole ISIN/ticker/tipo/fonte, `.prezzo-vivo`), `.riga-provenienza-quadro` con fonte e istante di rilevamento, anagrafica su `.griglia-def`/`.voce-def` con `.dato.assente` per i campi mancanti, e il bottone `data-testid="btn-aggiungi-portafoglio"` che apre `PortfolioSelectDialog` (invariato, già stilizzato da US-053); `.avviso.critico` per la guardia di conferma; `.placeholder-quadro` per «non trovato», «fonte muta» e «nessuna ricerca». Usare `prezzo`, `simboloDi` e `nomeFonte` da `client/src/domain/formattazione.ts`. Completare il ternario in `SecuritySearchPage.tsx` su `useDesign()`. Riferimento visivo: `docs/mockups/US-055/ricerca-titoli.html`.'
+    ref: TASK-03
   - id: TASK-04
     title: npm run check verde
     description: Eseguire `npm run check` (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) e verificare che tutta la pipeline sia verde, correggendo quanto introdotto dall'estrazione e dalla nuova vista.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: Eseguire `npm run check` (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) e verificare che tutta la pipeline sia verde, correggendo quanto introdotto dall'estrazione e dalla nuova vista.
+    ref: TASK-04
   - id: TASK-05
     title: Test E2E — ricerca titoli nel quadro
     description: 'Dichiarare in `e2e/support/titoli.ts` le chiavi `TITOLO_US_055` e `TITOLO_US_055_DEMO`, ciascuna col proprio `file` proprietario. Creare `e2e/US-055__quadro-ricerca-titoli.spec.ts` con gli scenari funzionali: parità di informazione fra mastro e quadro sullo stesso ISIN seminato, «Aggiungi a portafoglio» fino al modulo di carico precompilato, ISIN non valido con errore inline e nessuna richiesta, 404 e 502 serviti con `route.fulfill()` resi come stati distinti, e stato di attesa con risposta ritardata. Creare `e2e/US-055__quadro-ricerca-titoli-demo.spec.ts` con il solo scenario dimostrativo (commutazione a «Quadro strumenti», ricerca dell''ISIN seminato, risultato completo a schermo), `test.use({ video, slowMo })` a livello di file e video salvato in `docs/test-results/US-055/` da un `afterEach` dopo `page.close()`. Eseguire l''intera suite e verificare che US-007, US-008 e US-025 passino senza modifiche ai loro test.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-04
     body: 'Dichiarare in `e2e/support/titoli.ts` le chiavi `TITOLO_US_055` e `TITOLO_US_055_DEMO`, ciascuna col proprio `file` proprietario. Creare `e2e/US-055__quadro-ricerca-titoli.spec.ts` con gli scenari funzionali: parità di informazione fra mastro e quadro sullo stesso ISIN seminato, «Aggiungi a portafoglio» fino al modulo di carico precompilato, ISIN non valido con errore inline e nessuna richiesta, 404 e 502 serviti con `route.fulfill()` resi come stati distinti, e stato di attesa con risposta ritardata. Creare `e2e/US-055__quadro-ricerca-titoli-demo.spec.ts` con il solo scenario dimostrativo (commutazione a «Quadro strumenti», ricerca dell''ISIN seminato, risultato completo a schermo), `test.use({ video, slowMo })` a livello di file e video salvato in `docs/test-results/US-055/` da un `afterEach` dopo `page.close()`. Eseguire l''intera suite e verificare che US-007, US-008 e US-025 passino senza modifiche ai loro test.'
+    ref: TASK-05

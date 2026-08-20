@@ -2303,6 +2303,128 @@
     border-top: 1px solid var(--bordo);
     background: var(--superficie-2);
   }
+
+  /* ---------- 21. Ricerca titoli (US-055/TASK-02) ----------
+     La schermata di ricerca per ISIN nella veste del quadro. Quasi tutto è
+     già in casa: il modulo riusa `.modulo-gestione`/`.campo-gestione`/
+     `.riga-campo` della sezione 16, l'anagrafica riusa `.griglia-def` della
+     sezione 12, l'intestazione del risultato riusa `.testa-titolo` della 12c,
+     le pillole la 9 e i due stati «senza risultato» riusano
+     `.placeholder-quadro` della 16. Restano quattro cose che nessuna sezione
+     copriva, e sono l'unica aggiunta qui.
+
+     La quarta è `.riga-provenienza-quadro` e ha una classe propria invece di
+     riusare `.riga-provenienza` della sezione 10: quella allinea a destra
+     (`margin-left: auto`) un comando di aggiornamento che in ricerca non
+     esiste, e riusarla lascerebbe la riga con uno spazio vuoto a destra
+     rimasto in eredità da un elemento assente. */
+
+  .campo-gestione.campo-isin { max-width: 560px; }
+
+  .riga-campo input[type='text'].isin {
+    font-family: var(--font-mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-size: var(--t-medio);
+    padding: 12px 14px;
+  }
+  .riga-campo input[type='text'].isin::placeholder {
+    letter-spacing: .08em;
+    text-transform: none;
+    color: var(--testo-3);
+  }
+
+  /* Il contatore dei 12 caratteri: informazione, non decorazione — l'ISIN ha
+     una lunghezza fissa e vederla scorrere evita metà degli errori di battitura. */
+  .contatore-isin {
+    font-family: var(--font-mono);
+    font-size: var(--t-piccolo);
+    color: var(--testo-3);
+    flex: none;
+    min-width: 44px;
+    text-align: right;
+  }
+  .contatore-isin.completo { color: var(--guadagno); }
+
+  .nota-campo-isin {
+    flex-basis: 100%;
+    font-size: var(--t-piccolo);
+    color: var(--testo-3);
+    margin: 0;
+  }
+
+  /* ----- Esito della ricerca: una riga sola, sempre nello stesso posto -----
+     Il bordo sinistro porta l'esito: verde trovato, rosso non trovato, ambra
+     fonte muta. Il colore non è l'unico segnale — la pillola accanto dice la
+     stessa cosa a parole. */
+
+  .riga-esito-quadro {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    min-height: 44px;
+    padding: 11px 16px;
+    border: 1px solid var(--bordo);
+    border-left: 3px solid var(--bordo-forte);
+    border-radius: var(--raggio-s);
+    background: var(--superficie-2);
+    font-size: var(--t-piccolo);
+    color: var(--testo-2);
+  }
+  .riga-esito-quadro b { color: var(--testo); font-weight: 700; }
+  .riga-esito-quadro .isin-citato {
+    font-family: var(--font-mono);
+    letter-spacing: .06em;
+    color: var(--testo);
+  }
+  .riga-esito-quadro.trovato     { border-left-color: var(--guadagno); }
+  .riga-esito-quadro.non-trovato { border-left-color: var(--perdita); }
+  .riga-esito-quadro.in-attesa   { border-left-color: var(--accento); }
+  .riga-esito-quadro.guasto      { border-left-color: var(--ambra); }
+  .riga-esito-quadro.inerte      { color: var(--testo-3); }
+
+  /* Il punto che pulsa mentre la fonte è interrogata: unico segnale di attesa
+     oltre allo scheletro, e volutamente piccolo — la ricerca di ripiego può
+     durare una decina di secondi e una barra che corre a vuoto mentirebbe sul
+     tempo che manca. */
+  .punto-attesa {
+    width: 9px; height: 9px; flex: none;
+    border-radius: 50%;
+    background: var(--accento);
+    animation: pulsa-punto 1.1s ease-in-out infinite;
+  }
+
+  /* ----- Scheletro dell'anagrafica in attesa ----- */
+
+  .scheletro-quadro {
+    display: block;
+    height: 15px;
+    width: 72%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--superficie-2) 0%, var(--superficie-3) 42%, var(--superficie-2) 84%);
+    background-size: 220% 100%;
+    animation: scorre-scheletro 1.5s linear infinite;
+  }
+  .voce-def:nth-child(3n) .scheletro-quadro { width: 54%; }
+  .voce-def:nth-child(3n + 2) .scheletro-quadro { width: 86%; }
+
+  /* ----- Provenienza del dato (FR-021) ----- */
+
+  .riga-provenienza-quadro {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border: 1px solid var(--bordo);
+    border-radius: var(--raggio-s);
+    background: var(--superficie-2);
+    font-size: var(--t-piccolo);
+    color: var(--testo-2);
+  }
+  .riga-provenienza-quadro b { color: var(--testo); font-weight: 700; }
+  .riga-provenienza-quadro .istante { font-family: var(--font-mono); }
 }
 
 /* Le keyframe dei componenti condivisi (sezione 15): stessa ragione di
@@ -2316,6 +2438,18 @@
 /* Le keyframe sono un @-rule di primo livello: non possono essere annidate
    dentro il selettore di scoping (a differenza di @media). */
 @keyframes sali { to { opacity: 1; transform: none; } }
+
+
+/* Le keyframe della sezione 21 (ricerca titoli): stessa ragione delle altre,
+   un @-rule di primo livello non è annidabile dentro il selettore di scoping. */
+@keyframes pulsa-punto {
+  0%, 100% { opacity: .28; transform: scale(.8); }
+  50%      { opacity: 1;   transform: scale(1.15); }
+}
+@keyframes scorre-scheletro {
+  from { background-position: 120% 0; }
+  to   { background-position: -80% 0; }
+}
 
 /* ---------- Tema chiaro — stesso impianto, stessi ruoli ---------- */
 
