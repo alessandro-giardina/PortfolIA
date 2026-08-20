@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="it" data-tema="scuro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA · Carico e scarico titoli — Quadro strumenti</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body data-pagina="carico-scarico" data-stato="iscritto">
+
+<div class="guscio">
+
+  <!-- ============ Barra laterale ============ -->
+  <aside class="barra-laterale">
+    <div class="marchio">
+      <span class="segno" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 17l5-6 4 4 5-8 4 5"></path>
+        </svg>
+      </span>
+      <span>
+        <span class="nome">PortfolIA</span>
+        <span class="coda">Quadro strumenti</span>
+      </span>
+    </div>
+
+    <nav class="gruppo-nav" aria-label="Navigazione principale">
+      <span class="et-nav">Registro</span>
+      <a class="voce-nav" href="../US-053/elenco-portafogli.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path></svg>
+        Portafogli
+      </a>
+      <a class="voce-nav" href="../US-051/index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="2"></rect><rect x="13" y="3" width="8" height="5" rx="2"></rect><rect x="13" y="10" width="8" height="11" rx="2"></rect><rect x="3" y="13" width="8" height="8" rx="2"></rect></svg>
+        Riepilogo
+      </a>
+      <a class="voce-nav attiva" href="carico-scarico.html" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+        Carico titoli
+      </a>
+      <a class="voce-nav" href="../US-055/ricerca-titoli.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        Ricerca titoli
+      </a>
+      <a class="voce-nav" href="../US-052/scheda-titolo.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"></path><path d="M9 12h7M9 16h5"></path></svg>
+        Scheda titolo
+      </a>
+    </nav>
+
+    <div class="piede-laterale">
+      <div class="scheda-conto">
+        <span class="iniziale" aria-hidden="true">AG</span>
+        <span class="righe">
+          <strong>Alessandro G.</strong>
+          <span>6 conti aperti</span>
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ Colonna principale ============ -->
+  <main class="principale">
+
+    <header class="testata">
+      <nav class="briciole" aria-label="Percorso">
+        <a href="../US-053/elenco-portafogli.html">Portafogli</a>
+        <span class="sep">/</span>
+        <a href="../US-051/index.html">Conto pensione</a>
+        <span class="sep">/</span>
+        <b>Carico titoli</b>
+      </nav>
+      <div class="azioni-testata">
+        <button class="icona-bottone" type="button" data-azione="tema" aria-label="Alterna tema chiaro e scuro">
+          <svg class="solo-scuro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"></path></svg>
+          <svg class="solo-chiaro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"></path></svg>
+        </button>
+        <button class="bottone nudo" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2.5h4.5a1.5 1.5 0 0 1 1.5 1.5v9.5a1 1 0 0 0-1-1H2z"></path><path d="M14 2.5H9.5A1.5 1.5 0 0 0 8 4v9.5a1 1 0 0 1 1-1h5z"></path></svg>
+          Libro Mastro
+        </button>
+      </div>
+    </header>
+
+    <div class="contenuto">
+
+      <div class="titolo-pagina entra">
+        <div>
+          <h1>Carico titoli</h1>
+          <p class="sottotitolo">Iscrizione di un carico e registrazione di uno scarico &mdash; nessuna riga del registro viene mai riscritta</p>
+        </div>
+        <span class="pillola">Conto pensione &middot; n. 003</span>
+      </div>
+
+      <!-- ============ Commutatore degli stati (solo mockup) ============ -->
+      <div class="barra-azioni-risultato entra" role="group" aria-label="Stati della schermata (demo del mockup)">
+        <div class="segmentato">
+          <button type="button" data-stato-scelto="vuoto" aria-pressed="false">Registro vuoto</button>
+          <button type="button" data-stato-scelto="precompilato" aria-pressed="false">Da ricerca</button>
+          <button type="button" data-stato-scelto="errori" aria-pressed="false">Modulo rifiutato</button>
+          <button type="button" data-stato-scelto="iscritto" aria-pressed="true">Carico iscritto</button>
+          <button type="button" data-stato-scelto="scarico" aria-pressed="false">Scarico iscritto</button>
+          <button type="button" data-stato-scelto="rettifica" aria-pressed="false">Rettifica in linea</button>
+          <button type="button" data-stato-scelto="senza-giacenze" aria-pressed="false">Senza giacenze</button>
+        </div>
+        <span class="demo-note">solo nel mockup: nell&rsquo;app lo stato lo decide il registro</span>
+      </div>
+
+      <!-- ============ Esiti: conferme e rifiuti ============ -->
+
+      <div class="avviso sereno entra" role="status" data-quando="iscritto rettifica">
+        <div class="dettagli">
+          <span class="glifo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+          </span>
+          <div>
+            <strong>Carico iscritto nel registro</strong>
+            <p>Posizione <b>IE00BJRHVJ28</b> &middot; 12 quote a &euro; 9,8420 del 14/02/2026 &mdash; controvalore di carico &euro;&nbsp;118,10.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="avviso sereno entra" role="status" data-quando="scarico">
+        <div class="dettagli">
+          <span class="glifo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+          </span>
+          <div>
+            <strong>Scarico iscritto nel registro</strong>
+            <p>Scarico di <b>7 quote</b> di <b>IE00BJRHVJ28</b> del 04/06/2026 a &euro;&nbsp;11,2000. Nessun carico &egrave; stato modificato o cancellato.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="avviso critico entra" role="alert" data-quando="errori">
+        <div class="dettagli">
+          <span class="glifo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"></path><path d="M12 16.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg>
+          </span>
+          <div>
+            <strong>Il modulo contiene 3 voci non valide</strong>
+            <ul class="elenco-errori">
+              <li>Inserire un codice ISIN valido (12 caratteri alfanumerici).</li>
+              <li>Il prezzo deve essere un valore positivo.</li>
+              <li>La quantit&agrave; deve essere un numero positivo con al pi&ugrave; sei decimali.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ Modulo di carico ============ -->
+      <section class="pannello modulo-iscrizione entra" aria-label="Iscrizione di un nuovo carico">
+        <span class="filo-verso" aria-hidden="true"></span>
+        <div class="testa-pannello">
+          <div>
+            <h3>Iscrizione nuova posizione</h3>
+            <span class="chiosa">FR-007 &middot; il controvalore &egrave; calcolato come prezzo &times; quantit&agrave; al salvataggio</span>
+          </div>
+          <div class="azioni-riga">
+            <span class="pillola verso-carico">Carico</span>
+            <span class="sigla-modulo">MOD/CPC-001 &middot; rev. I</span>
+          </div>
+        </div>
+
+        <div class="corpo-pannello">
+          <form class="griglia-campi" id="modulo-carico" data-form="carico" novalidate>
+
+            <!-- Denominazione: presente solo quando si arriva dalla ricerca titoli -->
+            <div class="campo-modulo larghezza-piena sola-lettura" data-quando="precompilato">
+              <label for="carico-nome">
+                Denominazione del titolo
+                <span class="sotto-etichetta">dalla ricerca titoli &mdash; sola lettura</span>
+              </label>
+              <div class="guscio-campo">
+                <span class="unita-campo" aria-hidden="true">DA RIC.</span>
+                <input id="carico-nome" type="text" value="iShares MSCI World SRI UCITS ETF" readonly>
+              </div>
+            </div>
+
+            <div class="campo-modulo larghezza-piena">
+              <label for="carico-isin">
+                ISIN
+                <span class="sotto-etichetta">12 caratteri alfanumerici</span>
+              </label>
+              <div class="guscio-campo" data-quando="vuoto iscritto scarico rettifica senza-giacenze">
+                <span class="unita-campo" aria-hidden="true">ISIN</span>
+                <input id="carico-isin" name="isin" class="isin-campo" type="text" maxlength="12" placeholder="es. IE00BJRHVJ28" autocomplete="off" spellcheck="false">
+              </div>
+              <div class="guscio-campo" data-quando="precompilato">
+                <span class="unita-campo" aria-hidden="true">ISIN</span>
+                <input class="isin-campo" type="text" maxlength="12" value="IE00BJRHVJ28" autocomplete="off" spellcheck="false">
+              </div>
+              <div class="guscio-campo con-errore" data-quando="errori">
+                <span class="unita-campo" aria-hidden="true">ISIN</span>
+                <input class="isin-campo" type="text" maxlength="12" value="IE00BJRH" autocomplete="off" spellcheck="false" aria-invalid="true" aria-describedby="err-isin">
+              </div>
+              <span class="errore-campo-quadro" id="err-isin" role="alert" data-quando="errori">Inserire un codice ISIN valido (12 caratteri alfanumerici).</span>
+            </div>
+
+            <div class="campo-modulo">
+              <label for="carico-data">
+                Data di carico
+                <span class="sotto-etichetta">giorno dell&rsquo;acquisto eseguito</span>
+              </label>
+              <div class="guscio-campo">
+                <span class="unita-campo" aria-hidden="true">DATA</span>
+                <input id="carico-data" name="data" type="date">
+              </div>
+            </div>
+
+            <div class="campo-modulo">
+              <label for="carico-prezzo">
+                Prezzo di acquisto
+                <span class="sotto-etichetta">per singola quota, in euro</span>
+              </label>
+              <div class="guscio-campo" data-quando="vuoto iscritto scarico rettifica senza-giacenze">
+                <span class="unita-campo" aria-hidden="true">EUR</span>
+                <input id="carico-prezzo" name="prezzo" class="cifra" type="number" min="0.0001" step="0.0001" placeholder="0,0000">
+              </div>
+              <div class="guscio-campo" data-quando="precompilato">
+                <span class="unita-campo" aria-hidden="true">EUR</span>
+                <input class="cifra" type="number" min="0.0001" step="0.0001" value="9.8420">
+              </div>
+              <div class="guscio-campo con-errore" data-quando="errori">
+                <span class="unita-campo" aria-hidden="true">EUR</span>
+                <input class="cifra" type="number" value="-3" aria-invalid="true" aria-describedby="err-prezzo">
+              </div>
+              <span class="errore-campo-quadro" id="err-prezzo" role="alert" data-quando="errori">Il prezzo deve essere un valore positivo.</span>
+            </div>
+
+            <div class="campo-modulo">
+              <label for="carico-quantita">
+                Quantit&agrave;
+                <span class="sotto-etichetta">numero positivo, al pi&ugrave; 6 decimali</span>
+              </label>
+              <div class="guscio-campo" data-quando="vuoto precompilato iscritto scarico rettifica senza-giacenze">
+                <span class="unita-campo" aria-hidden="true">QT&Agrave;</span>
+                <input id="carico-quantita" name="quantita" class="cifra" type="text" inputmode="decimal" placeholder="es. 12,345">
+              </div>
+              <div class="guscio-campo con-errore" data-quando="errori">
+                <span class="unita-campo" aria-hidden="true">QT&Agrave;</span>
+                <input class="cifra" type="text" inputmode="decimal" value="1,2345678" aria-invalid="true" aria-describedby="err-quantita">
+              </div>
+              <span class="errore-campo-quadro" id="err-quantita" role="alert" data-quando="errori">La quantit&agrave; deve essere un numero positivo con al pi&ugrave; sei decimali.</span>
+            </div>
+          </form>
+
+          <p class="nota-modulo">
+            Il controvalore di carico &egrave; calcolato come prodotto di <b>prezzo &times; quantit&agrave;</b> e iscritto
+            nel registro al momento del salvataggio. La quantit&agrave; ammette frazioni fino al sesto decimale:
+            un ETF si compra anche per mezza quota.
+          </p>
+
+          <div class="piede-modulo">
+            <button class="bottone" type="submit" form="modulo-carico" data-azione="iscrive">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M8 3v10"></path><path d="M3 8h10"></path></svg>
+              Iscrive nel registro
+            </button>
+            <a class="bottone quieto" href="../US-051/index.html">Annulla</a>
+            <span class="chiosa">nel mockup l&rsquo;invio commuta fra &laquo;Carico iscritto&raquo; e &laquo;Modulo rifiutato&raquo;</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Modulo di scarico ============ -->
+      <div class="et-sezione entra">
+        <h2>Scarico titoli</h2>
+        <span class="chiosa">FR-022 &middot; la vendita &egrave; una nuova iscrizione, non la rettifica di un carico</span>
+      </div>
+
+      <p class="placeholder-quadro entra" data-quando="vuoto senza-giacenze" style="border:1px dashed var(--bordo); border-radius:var(--raggio); padding:34px 24px;">
+        Nessun titolo ha quantit&agrave; residua: non c&rsquo;&egrave; nulla da scaricare. Le vendite si registrano
+        su una giacenza, e i carichi interamente venduti restano iscritti a registro.
+      </p>
+
+      <section class="pannello modulo-iscrizione verso-scarico entra" aria-label="Registrazione di una vendita" data-quando="precompilato errori iscritto scarico rettifica">
+        <span class="filo-verso" aria-hidden="true"></span>
+        <div class="testa-pannello">
+          <div>
+            <h3>Registrazione di uno scarico</h3>
+            <span class="chiosa">l&rsquo;incasso non &egrave; trattenuto come liquidit&agrave;: PortfolIA tiene i titoli, non la cassa (ADR-009)</span>
+          </div>
+          <div class="azioni-riga">
+            <span class="pillola verso-scarico">Scarico</span>
+            <span class="sigla-modulo">MOD/SCA-002 &middot; rev. I</span>
+          </div>
+        </div>
+
+        <div class="corpo-pannello">
+          <form class="griglia-campi" data-form="scarico" novalidate>
+            <div class="campo-modulo larghezza-piena">
+              <label for="scarico-titolo">
+                Titolo
+                <span class="sotto-etichetta">fra quelli con quantit&agrave; residua &mdash; si vende ci&ograve; che si possiede</span>
+              </label>
+              <div class="guscio-campo con-select">
+                <span class="unita-campo" aria-hidden="true">ISIN</span>
+                <select id="scarico-titolo" data-campo="scarico-titolo">
+                  <option value="IE00BJRHVJ28" data-residuo="43">IE00BJRHVJ28 &mdash; iShares MSCI World SRI UCITS ETF</option>
+                  <option value="IE00B4L5Y983" data-residuo="12,5">IE00B4L5Y983 &mdash; iShares Core MSCI World UCITS ETF</option>
+                  <option value="LU1781541179" data-residuo="6,125">LU1781541179 &mdash; Amundi MSCI Europe UCITS ETF</option>
+                </select>
+              </div>
+              <span class="giacenza-scelta">residuo <b data-giacenza>43</b> quote</span>
+            </div>
+
+            <div class="campo-modulo">
+              <label for="scarico-data">
+                Data di vendita
+                <span class="sotto-etichetta">giorno dell&rsquo;operazione eseguita</span>
+              </label>
+              <div class="guscio-campo">
+                <span class="unita-campo" aria-hidden="true">DATA</span>
+                <input id="scarico-data" data-campo="scarico-data" type="date" value="2026-06-04">
+              </div>
+            </div>
+
+            <div class="campo-modulo">
+              <label for="scarico-prezzo">
+                Prezzo di vendita
+                <span class="sotto-etichetta">per singola quota, in euro</span>
+              </label>
+              <div class="guscio-campo">
+                <span class="unita-campo" aria-hidden="true">EUR</span>
+                <input id="scarico-prezzo" class="cifra" type="number" min="0.0001" step="0.0001" value="11.2000">
+              </div>
+            </div>
+
+            <div class="campo-modulo">
+              <label for="scarico-quantita">
+                Quantit&agrave; venduta
+                <span class="sotto-etichetta">numero positivo, al pi&ugrave; 6 decimali</span>
+              </label>
+              <div class="guscio-campo">
+                <span class="unita-campo" aria-hidden="true">QT&Agrave;</span>
+                <input id="scarico-quantita" class="cifra" type="text" inputmode="decimal" value="7">
+              </div>
+            </div>
+          </form>
+
+          <p class="nota-modulo">
+            La vendita &egrave; una <b>nuova iscrizione</b>: nessun carico viene modificato o cancellato.
+            L&rsquo;attribuzione dei lotti segue il criterio <b>LIFO</b> &mdash; dal carico pi&ugrave; recente al pi&ugrave;
+            antico &mdash; e la fascia qui sotto la mostra <b>prima</b> dell&rsquo;invio, alla data scritta nel modulo.
+          </p>
+
+          <div class="piede-modulo">
+            <button class="bottone carminio" type="button">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 8h10"></path></svg>
+              Iscrive lo scarico
+            </button>
+            <span class="chiosa">la disponibilit&agrave; alla data la giudica il registro, non il modulo</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Fascia dei lotti (LIFO) ============ -->
+      <section class="fascia-lifo-quadro entra" aria-label="Attribuzione LIFO dei lotti" data-quando="precompilato errori iscritto scarico rettifica">
+        <div class="capo-fascia">
+          <h3><span class="isin-fascia" data-isin-fascia>IE00BJRHVJ28</span><span data-fascia-data> &mdash; lotti al 2026-06-04</span></h3>
+          <span class="freccia-consumo">ordine di consumo</span>
+        </div>
+
+        <div class="pila-lotti">
+          <div class="lotto-quadro" data-lotto data-data="2026-05-22">
+            <div class="targa-lotto">
+              <b>Carico n. 3</b>
+              <small>22/05/2026 &middot; 18 quote &middot; &euro; 10,4100</small>
+            </div>
+            <div class="barra-lotto">
+              <div class="quota consumata" style="flex:7">7 consumate</div>
+              <div class="quota residua" style="flex:11">11 residue</div>
+            </div>
+            <div class="esito-lotto">
+              consumato in parte
+              <b>costo residuo &euro; 114,51</b>
+            </div>
+          </div>
+
+          <div class="lotto-quadro intatto" data-lotto data-data="2026-03-09">
+            <div class="targa-lotto">
+              <b>Carico n. 2</b>
+              <small>09/03/2026 &middot; 20 quote &middot; &euro; 9,9800</small>
+            </div>
+            <div class="barra-lotto">
+              <div class="quota residua" style="flex:20">20 residue</div>
+            </div>
+            <div class="esito-lotto">
+              non toccato
+              <b>costo residuo &euro; 199,60</b>
+            </div>
+          </div>
+
+          <div class="lotto-quadro intatto" data-lotto data-data="2026-02-14">
+            <div class="targa-lotto">
+              <b>Carico n. 1</b>
+              <small>14/02/2026 &middot; 12 quote &middot; &euro; 9,8420</small>
+            </div>
+            <div class="barra-lotto">
+              <div class="quota residua" style="flex:12">12 residue</div>
+            </div>
+            <div class="esito-lotto">
+              non toccato
+              <b>costo residuo &euro; 118,10</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="legenda-consumo">
+          <span><i class="consumata" aria-hidden="true"></i> quote consumate da una vendita</span>
+          <span><i class="residua" aria-hidden="true"></i> quote ancora detenute</span>
+          <span class="identita-costo">
+            costo attribuito &euro; <b>72,87</b> + costo residuo &euro; <b>432,21</b> = costo dei carichi &euro; <b>505,08</b>
+          </span>
+        </div>
+      </section>
+
+      <!-- ============ Residuo dopo la vendita ============ -->
+      <div class="et-sezione entra" data-quando="scarico">
+        <h2>Il residuo dopo l&rsquo;operazione</h2>
+        <span class="chiosa">ricalcolato sui soli lotti non consumati &mdash; il registro conserva tutte le iscrizioni</span>
+      </div>
+
+      <div class="griglia-residuo entra" data-quando="scarico">
+        <div class="carta-residuo">
+          <span class="et">Quantit&agrave; residua</span>
+          <span class="cifra-residuo">43</span>
+          <span class="prima-dopo">&Sigma; carichi 50 &minus; &Sigma; vendite 7</span>
+        </div>
+        <div class="carta-residuo">
+          <span class="et">Prezzo medio del residuo</span>
+          <span class="cifra-residuo"><span class="valuta">EUR</span>10,0515</span>
+          <span class="prima-dopo">prima dell&rsquo;operazione <s>&euro; 10,1017</s> &mdash; ricalcolato sui soli lotti non consumati</span>
+        </div>
+        <div class="carta-residuo">
+          <span class="et">Controvalore di carico residuo</span>
+          <span class="cifra-residuo"><span class="valuta">EUR</span>432,21</span>
+          <span class="prima-dopo">nessun carico modificato: il registro conserva tutte le iscrizioni</span>
+        </div>
+      </div>
+
+      <!-- ============ Titoli iscritti a conto ============ -->
+      <div class="et-sezione entra">
+        <h2>Titoli iscritti a conto</h2>
+        <span class="contatore-portafogli" data-quando="iscritto scarico rettifica precompilato errori"><b>3</b> ISIN distinti</span>
+        <span class="contatore-portafogli" data-quando="vuoto senza-giacenze"><b>0</b> ISIN distinti</span>
+      </div>
+
+      <section class="pannello entra" aria-label="Titoli iscritti a conto">
+        <div class="tabella-scroll" data-quando="precompilato errori iscritto scarico rettifica">
+          <table class="dati">
+            <thead>
+              <tr>
+                <th scope="col">Denominazione &middot; ISIN</th>
+                <th scope="col" class="cifra">Quantit&agrave; residua</th>
+                <th scope="col" class="cifra">Prezzo medio carico</th>
+                <th scope="col" class="cifra">Controvalore carico</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <span class="voce-titolo"><strong>iShares MSCI World SRI UCITS ETF</strong><span class="isin">IE00BJRHVJ28</span></span>
+                </td>
+                <td class="cifra">43</td>
+                <td class="cifra">10,0515</td>
+                <td class="cifra">432,21</td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="voce-titolo"><strong>iShares Core MSCI World UCITS ETF</strong><span class="isin">IE00B4L5Y983</span></span>
+                </td>
+                <td class="cifra">12,5</td>
+                <td class="cifra">88,4200</td>
+                <td class="cifra">1.105,25</td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="voce-titolo"><strong>Amundi MSCI Europe UCITS ETF</strong><span class="isin">LU1781541179</span></span>
+                </td>
+                <td class="cifra">6,125</td>
+                <td class="cifra assente">&mdash;</td>
+                <td class="cifra">168,44</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3"><span class="et-totale">Totale controvalore di carico</span></td>
+                <td class="cifra">1.705,90</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="placeholder-quadro" data-quando="vuoto senza-giacenze">
+          <h3>Nessuna posizione iscritta</h3>
+          <p>Compila il modulo qui sopra per registrare il primo titolo del portafoglio. Il registro nasce vuoto, e resta vuoto finch&eacute; non c&rsquo;&egrave; un&rsquo;operazione da iscrivere.</p>
+        </div>
+      </section>
+
+      <!-- ============ Registro delle iscrizioni ============ -->
+      <div class="et-sezione entra">
+        <h2>Registro delle iscrizioni</h2>
+        <span class="chiosa">carichi e scarichi in ordine di data &middot; nessuna riga &egrave; mai riscritta</span>
+      </div>
+
+      <section class="pannello entra" aria-label="Registro cronologico delle iscrizioni">
+        <div class="tabella-scroll" data-quando="precompilato errori iscritto scarico rettifica">
+          <table class="dati">
+            <thead>
+              <tr>
+                <th scope="col">Iscrizione</th>
+                <th scope="col">Denominazione &middot; ISIN</th>
+                <th scope="col" class="cifra">Data</th>
+                <th scope="col" class="cifra">Prezzo</th>
+                <th scope="col" class="cifra">Quantit&agrave;</th>
+                <th scope="col" class="cifra">Controvalore</th>
+                <th scope="col" class="cifra">Residuo del lotto</th>
+                <th scope="col">Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Carico rettificabile: nessuna vendita lo ha ancora toccato -->
+              <tr data-quando="precompilato errori iscritto scarico">
+                <td><span class="marca-iscrizione carico">Carico</span></td>
+                <td><span class="voce-titolo"><strong>iShares MSCI World SRI UCITS ETF</strong><span class="isin">IE00BJRHVJ28</span></span></td>
+                <td class="cifra">14/02/2026</td>
+                <td class="cifra">9,8420</td>
+                <td class="cifra">12</td>
+                <td class="cifra">118,10</td>
+                <td class="cifra">12</td>
+                <td>
+                  <div class="azioni-riga">
+                    <button class="bottone quieto minuto" type="button" data-azione="rettifica">Modifica</button>
+                    <button class="bottone carminio minuto" type="button">Rimuovi</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- La stessa riga, in rettifica: i campi vivono nella riga, non in un dialogo -->
+              <tr class="in-rettifica" data-quando="rettifica">
+                <td><span class="marca-iscrizione carico">Carico</span></td>
+                <td><span class="voce-titolo"><strong>iShares MSCI World SRI UCITS ETF</strong><span class="isin">IE00BJRHVJ28</span></span></td>
+                <td><input class="campo-inline" type="date" value="2026-02-14" aria-label="Data di carico"></td>
+                <td><input class="campo-inline" type="number" step="0.0001" value="9.8420" aria-label="Prezzo di carico"></td>
+                <td><input class="campo-inline" type="text" inputmode="decimal" value="12" aria-label="Quantit&agrave;"></td>
+                <td class="cifra assente">&mdash;</td>
+                <td class="cifra">12</td>
+                <td>
+                  <div class="azioni-riga">
+                    <button class="bottone minuto" type="button" data-azione="salva-rettifica">Salva</button>
+                    <button class="bottone quieto minuto" type="button" data-azione="annulla-rettifica">Annulla</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-quando="precompilato errori iscritto scarico rettifica">
+                <td><span class="marca-iscrizione carico">Carico</span></td>
+                <td><span class="voce-titolo"><strong>iShares MSCI World SRI UCITS ETF</strong><span class="isin">IE00BJRHVJ28</span></span></td>
+                <td class="cifra">09/03/2026</td>
+                <td class="cifra">9,9800</td>
+                <td class="cifra">20</td>
+                <td class="cifra">199,60</td>
+                <td class="cifra">20</td>
+                <td>
+                  <div class="azioni-riga">
+                    <button class="bottone quieto minuto" type="button" data-azione="rettifica">Modifica</button>
+                    <button class="bottone carminio minuto" type="button">Rimuovi</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Carico consumato da una vendita: resta a registro, ma non si rettifica -->
+              <tr class="lotto-esaurito" data-quando="precompilato errori iscritto scarico rettifica">
+                <td><span class="marca-iscrizione carico">Carico</span></td>
+                <td><span class="voce-titolo"><strong>iShares MSCI World SRI UCITS ETF</strong><span class="isin">IE00BJRHVJ28</span></span></td>
+                <td class="cifra">22/05/2026</td>
+                <td class="cifra">10,4100</td>
+                <td class="cifra">18</td>
+                <td class="cifra">187,38</td>
+                <td class="cifra">11</td>
+                <td class="azioni-riga">
+                  <button class="bottone quieto minuto impedito" type="button" aria-disabled="true">Modifica</button>
+                  <button class="bottone carminio minuto impedito" type="button" aria-disabled="true">Rimuovi</button>
+                  <span class="perche-impedito">consumato in parte (7 quote su 18) da una vendita: si rettifica solo un&rsquo;iscrizione errata</span>
+                </td>
+              </tr>
+
+              <!-- Scarico appena iscritto -->
+              <tr class="riga-scarico riga-nuova" data-quando="scarico">
+                <td><span class="marca-iscrizione scarico">Scarico</span></td>
+                <td><span class="voce-titolo"><strong>iShares MSCI World SRI UCITS ETF</strong><span class="isin">IE00BJRHVJ28</span></span></td>
+                <td class="cifra">04/06/2026</td>
+                <td class="cifra">11,2000</td>
+                <td class="cifra">7</td>
+                <td class="cifra">78,40</td>
+                <td class="cifra assente">&mdash;</td>
+                <td></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5"><span class="et-totale">Controvalore di carico del residuo</span></td>
+                <td class="cifra">432,21</td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="placeholder-quadro" data-quando="vuoto senza-giacenze">
+          <h3>Nessuna iscrizione registrata</h3>
+          <p>Il registro &egrave; il libro delle operazioni: ogni carico e ogni scarico vi entrano come una riga nuova, e nessuna riga esistente viene mai riscritta.</p>
+        </div>
+
+        <p class="nota-tabella">
+          Il <em>residuo del lotto</em> non &egrave; un dato inserito: &egrave; ci&ograve; che resta di quel carico dopo
+          l&rsquo;attribuzione LIFO di tutte le vendite iscritte. Uno scarico non ha residuo proprio &mdash; consuma quello
+          dei carichi &mdash; e la sua cella dichiara l&rsquo;assenza invece di mostrare uno zero.
+        </p>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

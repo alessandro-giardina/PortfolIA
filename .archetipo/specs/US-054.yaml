@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: MEDIUM
 points: 5
-status: TODO
+status: PLANNED
 body: |-
   #### US-054: Quadro strumenti — iscrizione carichi e scarichi
 
@@ -31,3 +31,5 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-18T05:27:39Z"
+  - status: PLANNED
+    at: "2026-08-20T14:55:07Z"

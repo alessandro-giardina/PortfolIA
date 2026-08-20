@@ -1,0 +1,1697 @@
+/* ============================================================
+   PortfolIA — Quadro strumenti
+   Direzione alternativa al «Libro Mastro»: pannello di lettura
+   moderno, scuro di default, cifre grandi e gerarchia esplicita.
+   Riferimento visivo: dashboard Track Republic (card KPI, sidebar,
+   numeri accentati, tabelle ariose).
+   MOCKUP — non è codice di produzione.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* ---------- 1. Token ---------- */
+
+:root {
+  /* Tipografia */
+  --font-ui:    'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-cifre: 'Space Grotesk', 'Manrope', sans-serif;
+  --font-mono:  'IBM Plex Mono', ui-monospace, monospace;
+
+  /* Scala tipografica — nessun testo informativo sotto i 13px */
+  --t-micro:  12px;   /* solo etichette maiuscole spaziate */
+  --t-piccolo:13px;
+  --t-base:   15px;
+  --t-medio:  17px;
+  --t-grande: 21px;
+  /* Le due misure grandi sono **fluide**: a piena larghezza valgono 34/44px come
+     prima, ma su una colonna stretta scendono invece di sfondare la carta.
+     Il minimo (26/31px) resta ben sopra la soglia di leggibilità del design. */
+  --t-cifra:  clamp(26px, 2.35vw, 34px);
+  --t-cifrona:clamp(31px, 3.05vw, 44px);
+
+  /* Superfici (tema scuro, predefinito) */
+  --fondo:        #0b0c0e;
+  --fondo-2:      #101216;
+  --superficie:   #16181d;
+  --superficie-2: #1c1f25;
+  --superficie-3: #23272e;
+  --bordo:        rgba(255,255,255,.09);
+  --bordo-forte:  rgba(255,255,255,.16);
+
+  /* Inchiostri */
+  --testo:   #f2f4f7;
+  --testo-2: #a7aeba;
+  --testo-3: #7b8390;
+
+  /* Accenti */
+  --accento:   #58a6ff;
+  --accento-2: #1f6feb;
+  --guadagno:  #3fd18b;
+  --perdita:   #ff6b6b;
+  --ambra:     #f2b544;
+  --viola:     #b18cff;
+  --ciano:     #4fd6d1;
+
+  /* Traccia del Libro Mastro: il rosso del margine, ridotto ad accento */
+  --rosso-mastro: #c0453c;
+
+  --alone-accento: rgba(88,166,255,.14);
+  --alone-guadagno: rgba(63,209,139,.14);
+  --alone-perdita: rgba(255,107,107,.14);
+  --alone-ambra:   rgba(242,181,68,.15);
+
+  /* Forma */
+  --raggio:    14px;
+  --raggio-s:  10px;
+  --raggio-xs: 8px;
+  --ombra:     0 1px 0 rgba(255,255,255,.03) inset, 0 18px 40px -28px rgba(0,0,0,.9);
+  --larghezza: 1560px;
+  --sidebar:   248px;
+}
+
+/* Tema chiaro — stesso impianto, stessi ruoli */
+[data-tema='chiaro'] {
+  --fondo:        #eef0f4;
+  --fondo-2:      #e6e9ef;
+  --superficie:   #ffffff;
+  --superficie-2: #f5f7fa;
+  --superficie-3: #eceff4;
+  --bordo:        rgba(16,20,28,.10);
+  --bordo-forte:  rgba(16,20,28,.20);
+
+  --testo:   #14171d;
+  --testo-2: #565f6e;
+  --testo-3: #767f8e;
+
+  --accento:   #1f6feb;
+  --accento-2: #1a5ec4;
+  --guadagno:  #0d8f5b;
+  --perdita:   #d13b3b;
+  --ambra:     #a86a00;
+  --viola:     #6f4fd8;
+  --ciano:     #158b87;
+
+  --alone-accento:  rgba(31,111,235,.10);
+  --alone-guadagno: rgba(13,143,91,.12);
+  --alone-perdita:  rgba(209,59,59,.12);
+  --alone-ambra:    rgba(168,106,0,.13);
+
+  --ombra: 0 1px 2px rgba(16,20,28,.05), 0 18px 40px -30px rgba(16,20,28,.5);
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  background-image:
+    radial-gradient(1200px 620px at 78% -12%, rgba(88,166,255,.10), transparent 60%),
+    radial-gradient(900px 520px at 4% 4%, rgba(177,140,255,.07), transparent 62%);
+  background-attachment: fixed;
+  color: var(--testo);
+  font-family: var(--font-ui);
+  font-size: var(--t-base);
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+::selection { background: var(--alone-accento); }
+
+/* ---------- 2. Impianto ---------- */
+
+.guscio {
+  display: grid;
+  grid-template-columns: var(--sidebar) minmax(0, 1fr);
+  min-height: 100vh;
+  max-width: var(--larghezza);
+  margin: 0 auto;
+}
+
+.principale {
+  min-width: 0;
+  padding: 0 32px 72px;
+}
+
+.contenuto { display: grid; gap: 20px; }
+
+/* ---------- 3. Barra laterale ---------- */
+
+.barra-laterale {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 26px 16px 22px;
+  background: linear-gradient(180deg, var(--fondo-2), transparent 65%);
+  border-right: 1px solid var(--bordo);
+}
+
+.marchio { display: flex; align-items: center; gap: 12px; padding: 0 8px; }
+
+.marchio .segno {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(150deg, var(--accento), var(--viola));
+  color: #06070a;
+  box-shadow: 0 8px 20px -10px var(--accento);
+}
+
+.marchio .segno svg { width: 22px; height: 22px; }
+
+.marchio .nome {
+  font-family: var(--font-cifre);
+  font-weight: 700;
+  font-size: var(--t-medio);
+  letter-spacing: -.01em;
+  line-height: 1.1;
+}
+
+.marchio .coda {
+  display: block;
+  font-size: var(--t-micro);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--testo-3);
+  font-weight: 600;
+}
+
+.gruppo-nav { display: grid; gap: 3px; }
+
+.et-nav {
+  font-size: var(--t-micro);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--testo-3);
+  font-weight: 700;
+  padding: 0 10px 8px;
+}
+
+.voce-nav {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: var(--raggio-s);
+  color: var(--testo-2);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: var(--t-base);
+  border: 1px solid transparent;
+  transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.voce-nav svg { width: 18px; height: 18px; flex: none; opacity: .85; }
+.voce-nav:hover { background: var(--superficie-2); color: var(--testo); }
+.voce-nav:focus-visible { outline: 2px solid var(--accento); outline-offset: 2px; }
+
+.voce-nav.attiva {
+  background: var(--superficie-2);
+  color: var(--testo);
+  border-color: var(--bordo);
+  box-shadow: inset 3px 0 0 var(--accento);
+}
+
+.piede-laterale { margin-top: auto; display: grid; gap: 14px; }
+
+.scheda-conto {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 12px;
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio-s);
+  background: var(--superficie);
+}
+
+.scheda-conto .iniziale {
+  width: 34px; height: 34px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--superficie-3);
+  font-family: var(--font-cifre);
+  font-weight: 700;
+}
+
+.scheda-conto .righe { min-width: 0; }
+.scheda-conto strong { display: block; font-size: var(--t-piccolo); }
+.scheda-conto span { display: block; font-size: var(--t-micro); color: var(--testo-3); }
+
+/* ---------- 4. Testata ---------- */
+
+.testata {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px 0 16px;
+  margin-bottom: 6px;
+  background: linear-gradient(180deg, var(--fondo) 62%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.briciole {
+  display: flex; align-items: center; gap: 9px;
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+  font-weight: 600;
+}
+.briciole a { color: var(--testo-3); text-decoration: none; }
+.briciole a:hover { color: var(--testo); }
+.briciole b { color: var(--testo); font-weight: 700; }
+.briciole .sep { opacity: .5; }
+
+.azioni-testata { display: flex; align-items: center; gap: 10px; }
+
+.timbro-prezzi {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--t-piccolo);
+  color: var(--testo-2);
+  padding: 7px 12px;
+  border: 1px solid var(--bordo);
+  border-radius: 999px;
+  background: var(--superficie);
+}
+.timbro-prezzi .punto-vivo {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--guadagno);
+  box-shadow: 0 0 0 4px var(--alone-guadagno);
+}
+
+/* ---------- 5. Titoli di pagina e di sezione ---------- */
+
+.titolo-pagina { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin: 6px 0 4px; }
+
+.titolo-pagina h1 {
+  margin: 0;
+  font-family: var(--font-cifre);
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.25;
+}
+
+.titolo-pagina .sottotitolo { margin: 6px 0 0; color: var(--testo-2); font-size: var(--t-base); }
+
+.et-sezione {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  margin: 14px 2px 2px;
+}
+.et-sezione h2 {
+  margin: 0;
+  font-size: var(--t-grande);
+  font-weight: 700;
+  letter-spacing: -.015em;
+}
+.et-sezione .chiosa { color: var(--testo-3); font-size: var(--t-piccolo); }
+
+/* ---------- 6. Pannelli ---------- */
+
+.pannello {
+  background: var(--superficie);
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio);
+  box-shadow: var(--ombra);
+  overflow: hidden;
+}
+
+.testa-pannello {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--bordo);
+}
+
+.testa-pannello h3 { margin: 0; font-size: var(--t-medio); font-weight: 700; letter-spacing: -.01em; }
+.testa-pannello .chiosa { color: var(--testo-3); font-size: var(--t-piccolo); }
+
+.corpo-pannello { padding: 20px 22px 22px; }
+.corpo-pannello.stretto { padding: 16px 18px 18px; }
+
+/* ---------- 7. Carte KPI ---------- */
+
+.griglia-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: 14px;
+}
+
+.carta-kpi {
+  position: relative;
+  padding: 18px 20px 16px;
+  background: var(--superficie);
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio);
+  box-shadow: var(--ombra);
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  /* Senza questo, la cifra grande impone la propria min-content alla carta e
+     tutti i figli sporgono oltre il padding destro. */
+  min-width: 0;
+  transition: border-color .2s ease, transform .2s ease;
+}
+.carta-kpi:hover { border-color: var(--bordo-forte); transform: translateY(-2px); }
+
+.carta-kpi .et {
+  font-size: var(--t-micro);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--testo-3);
+}
+
+.carta-kpi .cifra {
+  font-family: var(--font-cifre);
+  font-size: var(--t-cifra);
+  font-weight: 600;
+  letter-spacing: -.025em;
+  /* 1.05 era sotto il box del carattere: l'asta dell'«1» e gli accenti
+     venivano tagliati di 3px a 34px e di 5px a 44px. */
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.carta-kpi .cifra.grande { font-size: var(--t-cifrona); }
+.carta-kpi .cifra .valuta {
+  font-family: var(--font-ui);
+  font-size: var(--t-piccolo);
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--testo-3);
+  text-transform: uppercase;
+}
+
+.carta-kpi .piede { font-size: var(--t-piccolo); color: var(--testo-3); }
+.carta-kpi .piede b { color: var(--testo-2); font-weight: 600; }
+
+.accento  { color: var(--accento); }
+.positivo { color: var(--guadagno); }
+.negativo { color: var(--perdita); }
+.ambrato  { color: var(--ambra); }
+.assente  { color: var(--testo-3); }
+
+/* Filo di stato in cima alla carta */
+.carta-kpi::before {
+  content: '';
+  position: absolute; inset: 0 0 auto 0;
+  height: 2px;
+  background: transparent;
+}
+.carta-kpi.segnata-accento::before  { background: linear-gradient(90deg, var(--accento), transparent); }
+.carta-kpi.segnata-guadagno::before { background: linear-gradient(90deg, var(--guadagno), transparent); }
+.carta-kpi.segnata-perdita::before  { background: linear-gradient(90deg, var(--perdita), transparent); }
+.carta-kpi.segnata-ambra::before    { background: linear-gradient(90deg, var(--ambra), transparent); }
+
+/* ---------- 8. Comandi ---------- */
+
+.segmentato {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--superficie-2);
+  border: 1px solid var(--bordo);
+  border-radius: 999px;
+}
+
+.segmentato button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--testo-2);
+  font-family: inherit;
+  font-size: var(--t-piccolo);
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .18s ease, color .18s ease;
+}
+.segmentato button:hover { color: var(--testo); }
+.segmentato button[aria-pressed='true'] {
+  background: var(--superficie-3);
+  color: var(--testo);
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset;
+}
+[data-tema='chiaro'] .segmentato button[aria-pressed='true'] {
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16,20,28,.12);
+}
+.segmentato button:focus-visible { outline: 2px solid var(--accento); outline-offset: 2px; }
+
+.bottone {
+  appearance: none;
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: inherit;
+  font-size: var(--t-piccolo);
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: var(--raggio-s);
+  border: 1px solid transparent;
+  background: var(--accento-2);
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter .18s ease, transform .18s ease, background .18s ease;
+}
+.bottone:hover { filter: brightness(1.12); transform: translateY(-1px); }
+.bottone:focus-visible { outline: 2px solid var(--accento); outline-offset: 2px; }
+
+.bottone.quieto {
+  background: var(--superficie-2);
+  color: var(--testo);
+  border-color: var(--bordo);
+}
+.bottone.quieto:hover { background: var(--superficie-3); }
+
+.bottone.nudo { background: transparent; color: var(--testo-2); border-color: var(--bordo); }
+.bottone.nudo:hover { color: var(--testo); }
+
+.icona-bottone {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  padding: 0;
+  border-radius: var(--raggio-s);
+  border: 1px solid var(--bordo);
+  background: var(--superficie);
+  color: var(--testo-2);
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease;
+}
+.icona-bottone:hover { color: var(--testo); background: var(--superficie-2); }
+.icona-bottone:focus-visible { outline: 2px solid var(--accento); outline-offset: 2px; }
+.icona-bottone svg { width: 18px; height: 18px; }
+[data-tema='chiaro'] .solo-scuro { display: none; }
+.solo-chiaro { display: none; }
+[data-tema='chiaro'] .solo-chiaro { display: block; }
+
+/* ---------- 9. Pillole e timbri ---------- */
+
+.pillola {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--bordo);
+  background: var(--superficie-2);
+  color: var(--testo-2);
+  white-space: nowrap;
+}
+.pillola.obsoleta   { color: var(--ambra);    background: var(--alone-ambra);    border-color: transparent; }
+.pillola.mai        { color: var(--testo-3);  background: var(--superficie-3);   border-color: transparent; }
+.pillola.viva       { color: var(--guadagno); background: var(--alone-guadagno); border-color: transparent; }
+.pillola.fonte      { color: var(--testo-2);  font-family: var(--font-mono); font-weight: 500; letter-spacing: 0; }
+.pillola.di-backup  { color: var(--viola);    background: rgba(177,140,255,.14); border-color: transparent; }
+.pillola.isin       { font-family: var(--font-mono); letter-spacing: .04em; font-weight: 500; }
+
+/* ---------- 10. Avvisi ---------- */
+
+.avviso {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+  padding: 14px 18px;
+  border-radius: var(--raggio);
+  border: 1px solid var(--bordo);
+  background: var(--superficie);
+  box-shadow: var(--ombra);
+}
+.avviso .dettagli { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.avviso .glifo {
+  width: 34px; height: 34px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  background: var(--alone-ambra);
+  color: var(--ambra);
+}
+.avviso strong { display: block; font-size: var(--t-base); }
+.avviso p { margin: 2px 0 0; font-size: var(--t-piccolo); color: var(--testo-2); }
+.avviso.sereno .glifo { background: var(--alone-guadagno); color: var(--guadagno); }
+
+/* ---------- 11. Tabelle ---------- */
+
+.tabella-scroll { overflow-x: auto; }
+
+table.dati {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-base);
+}
+
+table.dati thead th {
+  position: sticky; top: 0;
+  text-align: left;
+  font-size: var(--t-micro);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--testo-3);
+  padding: 13px 18px;
+  background: var(--superficie-2);
+  border-bottom: 1px solid var(--bordo);
+  white-space: nowrap;
+}
+
+table.dati tbody td {
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--bordo);
+  vertical-align: middle;
+}
+
+table.dati tbody tr { transition: background .16s ease; }
+table.dati tbody tr.cliccabile { cursor: pointer; }
+table.dati tbody tr.cliccabile:hover { background: var(--superficie-2); }
+table.dati tbody tr.cliccabile:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px; }
+
+table.dati .cifra {
+  text-align: right;
+  font-family: var(--font-cifre);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+table.dati .cifra.forte { font-weight: 700; }
+
+table.dati tfoot td {
+  padding: 15px 18px;
+  background: var(--superficie-2);
+  font-weight: 700;
+  border-top: 1px solid var(--bordo-forte);
+}
+table.dati tfoot .et-totale { font-size: var(--t-piccolo); color: var(--testo-2); font-weight: 600; }
+
+.voce-titolo { display: grid; gap: 3px; min-width: 210px; }
+.voce-titolo strong { font-weight: 700; font-size: var(--t-base); }
+.voce-titolo .isin {
+  font-family: var(--font-mono);
+  font-size: var(--t-piccolo);
+  letter-spacing: .05em;
+  color: var(--testo-3);
+}
+
+.cella-rilevamento { display: grid; gap: 5px; justify-items: end; }
+.cella-rilevamento .istante {
+  font-family: var(--font-mono);
+  font-size: var(--t-piccolo);
+  color: var(--testo-2);
+  white-space: nowrap;
+}
+.cella-rilevamento .istante.debole { color: var(--testo-3); }
+
+.freccia-riga { color: var(--testo-3); text-align: right; }
+tr.cliccabile:hover .freccia-riga { color: var(--accento); }
+
+.nota-tabella {
+  margin: 0;
+  padding: 14px 22px 18px;
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+  border-top: 1px solid var(--bordo);
+}
+.nota-tabella em { color: var(--testo-2); font-style: normal; font-weight: 600; }
+
+/* ---------- 12. Grafici ---------- */
+
+.zona-grafico { position: relative; }
+.zona-grafico svg { display: block; width: 100%; height: auto; }
+
+.legenda { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; }
+.voce-legenda {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--t-piccolo);
+  color: var(--testo-2);
+}
+.voce-legenda .punto { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.voce-legenda .tratto { width: 16px; height: 0; border-top: 2px dashed currentColor; flex: none; }
+
+.suggerimento {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -118%);
+  padding: 9px 12px;
+  border-radius: var(--raggio-xs);
+  background: var(--superficie-3);
+  border: 1px solid var(--bordo-forte);
+  box-shadow: 0 12px 30px -14px rgba(0,0,0,.8);
+  font-size: var(--t-piccolo);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .14s ease;
+  z-index: 5;
+}
+.suggerimento.visibile { opacity: 1; }
+.suggerimento .quando { display: block; color: var(--testo-3); font-size: var(--t-micro); }
+.suggerimento .quanto { font-family: var(--font-cifre); font-weight: 700; font-size: var(--t-medio); }
+
+/* Composizione */
+.composizione { display: grid; gap: 18px; justify-items: center; }
+.ciambella { position: relative; width: 208px; }
+.ciambella .centro {
+  position: absolute; inset: 0;
+  display: grid; place-content: center; text-align: center; gap: 2px;
+}
+.ciambella .centro .et {
+  font-size: var(--t-micro); text-transform: uppercase; letter-spacing: .14em; color: var(--testo-3); font-weight: 700;
+}
+.ciambella .centro .cifra {
+  font-family: var(--font-cifre); font-size: var(--t-grande); font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.ciambella svg circle { transition: opacity .18s ease, stroke-width .18s ease; }
+.ciambella.evidenzia svg circle:not(.acceso) { opacity: .28; }
+
+.elenco-quote { width: 100%; display: grid; gap: 2px; }
+.quota {
+  display: grid;
+  grid-template-columns: 12px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 10px;
+  border-radius: var(--raggio-xs);
+  cursor: default;
+  transition: background .16s ease;
+}
+.quota:hover { background: var(--superficie-2); }
+.quota .punto { width: 10px; height: 10px; border-radius: 50%; }
+.quota .nome { min-width: 0; }
+.quota .nome strong { display: block; font-size: var(--t-piccolo); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.quota .nome span { font-family: var(--font-mono); font-size: var(--t-micro); color: var(--testo-3); }
+.quota .valori { text-align: right; }
+.quota .valori b { display: block; font-family: var(--font-cifre); font-variant-numeric: tabular-nums; font-weight: 600; font-size: var(--t-base); }
+.quota .valori span { font-size: var(--t-micro); color: var(--testo-3); }
+
+/* ---------- 13. Griglie di contenuto ---------- */
+
+.griglia-doppia {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(300px, .95fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.griglia-def {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
+  gap: 1px;
+  background: var(--bordo);
+  border-radius: var(--raggio-s);
+  overflow: hidden;
+}
+.voce-def {
+  background: var(--superficie);
+  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+}
+.voce-def .et {
+  font-size: var(--t-micro);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--testo-3);
+  font-weight: 700;
+}
+.voce-def .dato { font-size: var(--t-base); font-weight: 600; }
+.voce-def .dato.mono { font-family: var(--font-mono); font-weight: 500; letter-spacing: .04em; }
+.voce-def .dato.vuoto { color: var(--testo-3); font-weight: 500; }
+
+/* ---------- 14. Le due misure (scheda titolo) ---------- */
+
+.misure {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 46px minmax(0,1fr);
+  align-items: stretch;
+  gap: 0;
+}
+
+.misura {
+  background: var(--superficie);
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio);
+  box-shadow: var(--ombra);
+  padding: 20px 22px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.misura .testa { display: grid; gap: 4px; }
+.misura .et-misura { font-size: var(--t-medio); font-weight: 700; letter-spacing: -.01em; }
+.misura .unita { font-size: var(--t-piccolo); color: var(--testo-3); }
+.misura .unita b { color: var(--testo-2); font-weight: 700; }
+
+.misura .cifre { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.misura .importo {
+  font-family: var(--font-cifre);
+  font-size: var(--t-cifra);
+  font-weight: 600;
+  letter-spacing: -.025em;
+  font-variant-numeric: tabular-nums;
+}
+.misura .percento {
+  font-family: var(--font-cifre);
+  font-size: var(--t-grande);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.provenienza {
+  margin: 0;
+  padding: 13px 15px;
+  border-radius: var(--raggio-s);
+  background: var(--superficie-2);
+  border: 1px solid var(--bordo);
+  font-size: var(--t-piccolo);
+  color: var(--testo-2);
+  display: grid;
+  gap: 7px;
+}
+.provenienza .et-prov {
+  font-size: var(--t-micro);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--testo-3);
+  font-weight: 700;
+}
+.provenienza .passi { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.provenienza b { color: var(--testo); font-family: var(--font-cifre); font-weight: 600; }
+.provenienza .freccia { color: var(--testo-3); }
+
+.perno {
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.perno::before {
+  content: '';
+  position: absolute;
+  top: 26px; bottom: 26px;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--bordo-forte), transparent);
+}
+.perno .segno {
+  position: relative;
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--fondo-2);
+  border: 1px solid var(--bordo-forte);
+  font-family: var(--font-cifre);
+  font-size: var(--t-grande);
+  color: var(--testo-2);
+}
+
+.segna-orizzonte {
+  justify-self: start;
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+.segna-orizzonte.fissa  { color: var(--testo-2);  background: var(--superficie-3); }
+.segna-orizzonte.mobile { color: var(--accento);  background: var(--alone-accento); }
+
+.chiosa-misura { margin: 0; font-size: var(--t-piccolo); color: var(--testo-3); }
+.chiosa-misura b { color: var(--testo-2); }
+
+/* ---------- 15. Intestazione del titolo (scheda) ---------- */
+
+.testa-titolo {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 22px;
+  border-radius: var(--raggio);
+  border: 1px solid var(--bordo);
+  background:
+    linear-gradient(120deg, var(--alone-accento), transparent 46%),
+    var(--superficie);
+  box-shadow: var(--ombra);
+}
+.testa-titolo .stemma {
+  width: 56px; height: 56px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 16px;
+  background: var(--superficie-3);
+  font-family: var(--font-cifre);
+  font-size: var(--t-grande);
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.testa-titolo .anagrafe { min-width: 0; flex: 1 1 320px; display: grid; gap: 7px; }
+.testa-titolo h1 {
+  margin: 0;
+  font-family: var(--font-cifre);
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.25;
+}
+.testa-titolo .marcature { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.testa-titolo .prezzo-vivo { display: grid; gap: 3px; text-align: right; }
+.testa-titolo .prezzo-vivo .cifra {
+  font-family: var(--font-cifre);
+  font-size: var(--t-cifra);
+  font-weight: 600;
+  letter-spacing: -.025em;
+  font-variant-numeric: tabular-nums;
+}
+.testa-titolo .prezzo-vivo .et {
+  font-size: var(--t-micro); text-transform: uppercase; letter-spacing: .14em; color: var(--testo-3); font-weight: 700;
+}
+
+/* ---------- 16. Movimento ---------- */
+
+.entra { opacity: 0; transform: translateY(14px); }
+.entra.dentro { animation: sali .5s cubic-bezier(.22,.68,.32,1) forwards; }
+
+@keyframes sali { to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .entra, .entra.dentro { opacity: 1; transform: none; animation: none; }
+  * { transition-duration: .01ms !important; }
+}
+
+/* ---------- 17. Adattamento ---------- */
+
+@media (max-width: 1180px) {
+  .griglia-doppia { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 980px) {
+  .guscio { grid-template-columns: minmax(0, 1fr); }
+  .barra-laterale {
+    position: static; height: auto; flex-direction: row; align-items: center;
+    gap: 16px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--bordo);
+  }
+  .barra-laterale .gruppo-nav { display: flex; gap: 4px; }
+  .et-nav, .piede-laterale { display: none; }
+  .principale { padding: 0 18px 56px; }
+  .misure { grid-template-columns: minmax(0,1fr); gap: 14px; }
+  .perno { height: 44px; }
+  .perno::before { top: auto; bottom: auto; left: 26px; right: 26px; width: auto; height: 1px; background: linear-gradient(90deg, transparent, var(--bordo-forte), transparent); }
+}
+
+/* ============================================================
+   US-053 — Elenco portafogli
+   Sezioni aggiunte da questa cartella rispetto alla copia di
+   partenza (US-051/shared.css): l'elenco è la prima schermata
+   dell'app, quindi introduce lo stato vuoto, il modulo di
+   creazione (stesso linguaggio della «Gestione del conto» già
+   spedita in US-051) e il dialogo di scelta portafoglio — oggi
+   in produzione stilizzato inline con i colori del Libro Mastro,
+   qui reso coerente col resto del quadro.
+   ============================================================ */
+
+/* ---------- 18. Vuoti e modulo di gestione ----------
+   Stesse classi già presenti in client/src/quadro.css (sezione
+   16, TASK-05 di US-051): .placeholder-quadro per «non c'è
+   ancora nulla», .modulo-gestione/.campo-gestione/.riga-campo
+   per un piccolo form con errore inline. Qui il placeholder
+   serve per «nessun portafoglio» e il modulo per «nuovo
+   portafoglio» invece che per rinomina — stessa grammatica
+   visiva, contesto diverso. */
+
+.placeholder-quadro { text-align: center; padding: 48px 24px; color: var(--testo-2); }
+.placeholder-quadro h3 { margin: 0 0 8px; font-size: var(--t-grande); color: var(--testo); }
+.placeholder-quadro p { margin: 0 auto; max-width: 460px; font-size: var(--t-base); line-height: 1.5; }
+.placeholder-quadro em { color: var(--testo); font-style: italic; }
+
+.modulo-gestione { display: grid; gap: 18px; }
+
+.campo-gestione { display: grid; gap: 8px; max-width: 480px; }
+.campo-gestione label {
+  font-size: var(--t-piccolo); font-weight: 700; letter-spacing: .02em; color: var(--testo-2);
+}
+
+.riga-campo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.riga-campo input[type='text'] {
+  flex: 1 1 220px;
+  padding: 10px 14px;
+  border-radius: var(--raggio-s);
+  border: 1px solid var(--bordo);
+  background: var(--superficie-2);
+  color: var(--testo);
+  font-family: inherit;
+  font-size: var(--t-base);
+}
+.riga-campo input[type='text']:focus-visible { outline: 2px solid var(--accento); outline-offset: 1px; }
+.riga-campo input[type='text'].con-errore { border-color: var(--perdita); }
+.errore-campo-quadro { color: var(--perdita); font-size: var(--t-piccolo); flex-basis: 100%; }
+
+/* ---------- 19. Elenco portafogli ----------
+   Stessa struttura della tabella titoli del riepilogo
+   (table.dati + riga cliccabile + freccia), con una cella
+   dedicata al nome del conto invece che al titolo. */
+
+.voce-portafoglio { display: grid; gap: 3px; min-width: 210px; }
+.voce-portafoglio strong { font-weight: 700; font-size: var(--t-base); }
+.voce-portafoglio .meta {
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+}
+
+.contatore-portafogli { color: var(--testo-3); font-size: var(--t-piccolo); }
+.contatore-portafogli b { color: var(--testo-2); font-weight: 700; }
+
+/* Le due varianti dello stesso pannello (elenco popolato / «nessun
+   portafoglio») vivono nello stesso markup: il bottone demo commuta
+   la classe `.mostra-vuoto` sul pannello, il CSS fa il resto — in
+   produzione è la stessa condizione (`portfolios.length === 0`) a
+   scegliere quale dei due rendere. */
+[data-pannello='elenco-portafogli'] .stato-vuoto { display: none; }
+[data-pannello='elenco-portafogli'].mostra-vuoto .stato-vuoto { display: block; }
+[data-pannello='elenco-portafogli'].mostra-vuoto .stato-popolato { display: none; }
+
+/* ---------- 20. Dialogo di scelta portafoglio ----------
+   Oggi (`PortfolioSelectDialog.tsx`) il componente è condiviso
+   fra i due design e stilizzato interamente inline coi colori
+   del mastro (`--carta`, `--oro`, `--seppia`) — nel quadro
+   arriva solo per alias di variabile, quindi sembra un corpo
+   estraneo. Qui il riquadro diventa un `.pannello` a tutti gli
+   effetti: stessa superficie, stesso raggio, stessa ombra; le
+   righe selezionabili riprendono lo stile a "radio" già usato
+   nei comandi segmentati, con lo stesso accento del resto del
+   design invece dell'oro del registro. */
+
+.overlay-quadro {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 6, 8, .62);
+  backdrop-filter: blur(2px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+.overlay-quadro.aperto { display: flex; }
+
+.dialog-quadro {
+  background: var(--superficie);
+  border: 1px solid var(--bordo-forte);
+  border-radius: var(--raggio);
+  box-shadow: var(--ombra), 0 30px 70px -30px rgba(0,0,0,.85);
+  width: 100%;
+  max-width: 480px;
+  max-height: min(600px, 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: sali-dialogo .22s cubic-bezier(.22,.68,.32,1);
+}
+@keyframes sali-dialogo { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.dialog-quadro .testa-pannello { flex: none; }
+.dialog-quadro .testa-pannello h3 { font-size: var(--t-medio); }
+
+.dialog-quadro .chiudi-dialog-quadro {
+  width: 32px; height: 32px; flex: none;
+  display: grid; place-items: center;
+  border-radius: var(--raggio-s);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--testo-3);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+.dialog-quadro .chiudi-dialog-quadro:hover { background: var(--superficie-2); color: var(--testo); }
+.dialog-quadro .chiudi-dialog-quadro:focus-visible { outline: 2px solid var(--accento); outline-offset: 1px; }
+
+.corpo-dialog-quadro {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 22px 22px;
+}
+.corpo-dialog-quadro .nota-dialog-quadro {
+  margin: 0 0 14px;
+  font-size: var(--t-piccolo);
+  color: var(--testo-2);
+}
+
+.elenco-scelta-portafoglio { display: grid; gap: 6px; }
+
+.riga-scelta-portafoglio {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio-s);
+  background: var(--superficie-2);
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease;
+}
+.riga-scelta-portafoglio:hover { border-color: var(--bordo-forte); }
+.riga-scelta-portafoglio:focus-visible { outline: 2px solid var(--accento); outline-offset: 1px; }
+.riga-scelta-portafoglio.selezionata {
+  border-color: var(--accento);
+  background: var(--alone-accento);
+}
+
+.radio-quadro {
+  width: 16px; height: 16px; flex: none;
+  border-radius: 50%;
+  border: 2px solid var(--bordo-forte);
+  display: grid; place-items: center;
+  transition: border-color .16s ease;
+}
+.riga-scelta-portafoglio.selezionata .radio-quadro { border-color: var(--accento); }
+.radio-quadro::after {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accento);
+  transform: scale(0);
+  transition: transform .14s ease;
+}
+.riga-scelta-portafoglio.selezionata .radio-quadro::after { transform: scale(1); }
+
+.riga-scelta-portafoglio .nome-scelta { font-weight: 700; font-size: var(--t-base); }
+
+.piede-dialog-quadro {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--bordo);
+  background: var(--superficie-2);
+}
+
+.demo-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+}
+
+/* ---------- 21. Ricerca titoli (US-055) ----------
+   La schermata di ricerca per ISIN nella veste del quadro. Quasi tutto è
+   già in casa: il modulo riusa `.modulo-gestione`/`.campo-gestione`/
+   `.riga-campo` della sezione 18, l'anagrafica riusa `.griglia-def` della
+   sezione 13, la provenienza riusa `.pillola` della sezione 9 e lo stato
+   «non trovato» riusa `.placeholder-quadro` della sezione 18. Restano
+   quattro cose che nessuna sezione copriva: il campo ISIN monospaziato con
+   il suo contatore di caratteri, l'esito della ricerca come riga di stato,
+   lo scheletro di caricamento dell'anagrafica e la riga di provenienza del
+   dato (che nel quadro esiste già nella scheda titolo, ma questa cartella
+   non la porta). */
+
+.campo-gestione.campo-isin { max-width: 560px; }
+
+.riga-campo input[type='text'].isin {
+  font-family: var(--font-mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-size: var(--t-medio);
+  padding: 12px 14px;
+}
+.riga-campo input[type='text'].isin::placeholder {
+  letter-spacing: .08em;
+  text-transform: none;
+  color: var(--testo-3);
+}
+
+/* Il contatore dei 12 caratteri: informazione, non decorazione — l'ISIN ha
+   una lunghezza fissa e vederla scorrere evita metà degli errori di battitura. */
+.contatore-isin {
+  font-family: var(--font-mono);
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+  flex: none;
+  min-width: 44px;
+  text-align: right;
+}
+.contatore-isin.completo { color: var(--guadagno); }
+
+.nota-campo-isin {
+  flex-basis: 100%;
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+  margin: 0;
+}
+
+/* ----- Esito della ricerca: una riga sola, sempre nello stesso posto ----- */
+
+.riga-esito-quadro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 44px;
+  padding: 11px 16px;
+  border: 1px solid var(--bordo);
+  border-left: 3px solid var(--bordo-forte);
+  border-radius: var(--raggio-s);
+  background: var(--superficie-2);
+  font-size: var(--t-piccolo);
+  color: var(--testo-2);
+}
+.riga-esito-quadro b { color: var(--testo); font-weight: 700; }
+.riga-esito-quadro .isin-citato { font-family: var(--font-mono); letter-spacing: .06em; color: var(--testo); }
+.riga-esito-quadro.trovato      { border-left-color: var(--guadagno); }
+.riga-esito-quadro.non-trovato  { border-left-color: var(--perdita); }
+.riga-esito-quadro.in-attesa    { border-left-color: var(--accento); }
+.riga-esito-quadro.guasto       { border-left-color: var(--ambra); }
+.riga-esito-quadro.inerte       { color: var(--testo-3); }
+
+/* Il punto che pulsa mentre la fonte è interrogata: unico segnale di attesa
+   oltre allo scheletro, e volutamente piccolo — la ricerca di backup può
+   durare una decina di secondi e una barra che corre a vuoto mentirebbe. */
+.punto-attesa {
+  width: 9px; height: 9px; flex: none;
+  border-radius: 50%;
+  background: var(--accento);
+  animation: pulsa-punto 1.1s ease-in-out infinite;
+}
+@keyframes pulsa-punto {
+  0%, 100% { opacity: .28; transform: scale(.8); }
+  50%      { opacity: 1;   transform: scale(1.15); }
+}
+
+/* ----- Scheletro dell'anagrafica in attesa ----- */
+
+.scheletro-quadro {
+  display: block;
+  height: 15px;
+  width: 72%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--superficie-2) 0%, var(--superficie-3) 42%, var(--superficie-2) 84%);
+  background-size: 220% 100%;
+  animation: scorre-scheletro 1.5s linear infinite;
+}
+.voce-def:nth-child(3n) .scheletro-quadro { width: 54%; }
+.voce-def:nth-child(3n + 2) .scheletro-quadro { width: 86%; }
+@keyframes scorre-scheletro {
+  from { background-position: 120% 0; }
+  to   { background-position: -80% 0; }
+}
+
+/* ----- Provenienza del dato (FR-021) ----- */
+
+.riga-provenienza-quadro {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio-s);
+  background: var(--superficie-2);
+  font-size: var(--t-piccolo);
+  color: var(--testo-2);
+}
+.riga-provenienza-quadro b { color: var(--testo); font-weight: 700; }
+.riga-provenienza-quadro .istante { font-family: var(--font-mono); }
+.riga-provenienza-quadro .azione-fonte { margin-left: auto; }
+
+/* ----- Avviso della guardia di buona cittadinanza (US-030) ----- */
+
+.avviso .bottoni-avviso { display: flex; gap: 10px; flex-wrap: wrap; margin-left: auto; }
+
+/* ----- Barra dei comandi sotto il risultato ----- */
+
+.barra-azioni-risultato {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+.barra-azioni-risultato .chiosa { color: var(--testo-3); font-size: var(--t-piccolo); max-width: 460px; }
+
+/* ============================================================
+   Sezioni 22-24 — Iscrizione carichi e scarichi (US-054)
+   Aggiunte di questa cartella. Le sezioni 1-21 sono la copia
+   autosufficiente di ../US-055/, invariata.
+   ============================================================ */
+
+/* Il commutatore degli stati nasconde con l'attributo `hidden`, e `hidden` porta
+   con sé solo `display: none` dal foglio di stile del browser: qualunque regola
+   d'autore con `display: flex`/`grid` lo scavalca per specificità. Le sezioni di
+   questa schermata sono quasi tutte flex o grid, quindi la dichiarazione va
+   resa vincente una volta per tutte invece che ricordata caso per caso. */
+[hidden] { display: none !important; }
+
+/* ---------- 22. I due moduli di iscrizione ----------
+   Carico e scarico sono lo **stesso oggetto visivo** — stessa griglia di
+   campi, stesse unità, stessi errori inline — e cambiano una cosa sola: il
+   *verso* dell'operazione. È l'unica cosa che deve essere impossibile
+   confondere, quindi è l'unica che il design distingue: un filo in cima al
+   pannello, blu per il carico e carminio per lo scarico, la pillola del
+   verso nella testa e il colore del bottone d'invio. Tutto il resto è
+   deliberatamente identico: due griglie diverse per la stessa operazione
+   inversa costringerebbero a rileggere il modulo ogni volta.
+
+   Il carminio è `--rosso-mastro`, il rosso del margine del Libro Mastro
+   ridotto ad accento (token della sezione 1): il verso di uscita porta lo
+   stesso colore nei due design, ed è l'unico prestito. */
+
+.modulo-iscrizione { position: relative; }
+
+.filo-verso {
+  position: absolute; inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--accento);
+}
+.modulo-iscrizione.verso-scarico .filo-verso { background: var(--rosso-mastro); }
+
+.pillola.verso-carico  { color: var(--accento);       background: var(--alone-accento);        border-color: transparent; }
+.pillola.verso-scarico { color: var(--rosso-mastro);  background: rgba(192, 69, 60, .16);      border-color: transparent; }
+
+.sigla-modulo {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: .04em;
+  color: var(--testo-3);
+}
+
+/* La griglia dei campi: due colonne dove c'è spazio, una sola sotto i 720px.
+   ISIN e denominazione occupano l'intera riga — sono i due campi che
+   identificano il titolo, e spezzarli su due colonne li farebbe leggere come
+   due dati indipendenti. */
+.griglia-campi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px 20px;
+}
+.griglia-campi .campo-modulo.larghezza-piena { grid-column: 1 / -1; }
+
+.campo-modulo { display: grid; gap: 7px; align-content: start; }
+.campo-modulo label {
+  font-size: var(--t-piccolo);
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--testo-2);
+}
+.campo-modulo .sotto-etichetta {
+  display: block;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--testo-3);
+}
+
+/* L'unità di misura sta **dentro** il campo e non nell'etichetta: al momento
+   di digitare la cifra, «EUR» deve essere accanto alla cifra, non due righe
+   sopra. */
+.guscio-campo {
+  display: flex; align-items: center;
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio-s);
+  background: var(--superficie-2);
+  overflow: hidden;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.guscio-campo:focus-within { border-color: var(--accento); box-shadow: 0 0 0 3px var(--alone-accento); }
+.guscio-campo.con-errore { border-color: var(--perdita); background: var(--alone-perdita); }
+.guscio-campo.con-errore:focus-within { box-shadow: 0 0 0 3px var(--alone-perdita); }
+
+.guscio-campo .unita-campo {
+  flex: none;
+  align-self: stretch;
+  display: grid; place-items: center;
+  padding: 0 12px;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: .04em;
+  color: var(--testo-3);
+  background: var(--superficie-3);
+  border-right: 1px solid var(--bordo);
+}
+
+.guscio-campo input,
+.guscio-campo select {
+  flex: 1 1 auto;
+  min-width: 0;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--testo);
+  font-family: inherit;
+  font-size: var(--t-base);
+  padding: 11px 13px;
+}
+.guscio-campo input:focus-visible,
+.guscio-campo select:focus-visible { outline: none; }
+.guscio-campo input.cifra,
+.guscio-campo input.mono {
+  font-family: var(--font-cifre);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+}
+.guscio-campo input.isin-campo {
+  font-family: var(--font-mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.guscio-campo input::placeholder { color: var(--testo-3); letter-spacing: 0; text-transform: none; }
+.guscio-campo select { padding-right: 34px; cursor: pointer; }
+
+/* La freccia della select, disegnata in CSS per non portare un asset. */
+.guscio-campo.con-select { position: relative; }
+.guscio-campo.con-select::after {
+  content: '';
+  position: absolute; right: 14px; top: 50%;
+  width: 7px; height: 7px;
+  border-right: 1.6px solid var(--testo-3);
+  border-bottom: 1.6px solid var(--testo-3);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+/* Campo di sola lettura: il nome del titolo che arriva dalla ricerca. Non è
+   disabilitato-e-basta — è *dichiarato* proveniente da altrove, perché un
+   campo grigio senza spiegazione si legge come un guasto. */
+.campo-modulo.sola-lettura .guscio-campo { background: var(--superficie); border-style: dashed; }
+.campo-modulo.sola-lettura input { color: var(--testo-2); font-style: italic; }
+
+.giacenza-scelta {
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+}
+.giacenza-scelta b {
+  color: var(--testo);
+  font-family: var(--font-cifre);
+  font-variant-numeric: tabular-nums;
+}
+
+.nota-modulo {
+  margin: 18px 0 0;
+  padding: 13px 16px;
+  border-left: 2px solid var(--bordo-forte);
+  border-radius: 0 var(--raggio-xs) var(--raggio-xs) 0;
+  background: var(--superficie-2);
+  font-size: var(--t-piccolo);
+  color: var(--testo-2);
+  line-height: 1.55;
+}
+.nota-modulo b { color: var(--testo); }
+
+.piede-modulo {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 18px;
+}
+.piede-modulo .chiosa { color: var(--testo-3); font-size: var(--t-piccolo); margin-left: auto; }
+
+.bottone.carminio { background: var(--rosso-mastro); }
+.bottone.carminio:hover { filter: brightness(1.14); }
+
+/* Il sommario degli errori di forma: sta **sopra** il modulo perché dice
+   quante voci sono da correggere, non quale — quello lo dicono gli errori
+   inline, accanto al campo che li ha prodotti. */
+.avviso.critico .glifo { background: var(--alone-perdita); color: var(--perdita); }
+.avviso .elenco-errori { margin: 6px 0 0; padding-left: 18px; font-size: var(--t-piccolo); color: var(--testo-2); }
+.avviso .elenco-errori li { margin: 2px 0; }
+
+/* ---------- 23. La fascia dei lotti: LIFO reso visibile ----------
+   LIFO è un *ordine*, e un ordine si mostra disponendo le cose. I lotti
+   stanno uno sotto l'altro dal più recente al più antico — l'ordine esatto in
+   cui il criterio li consuma — e **la quantità è la larghezza**: le barre
+   sono proporzionali, così il rapporto fra consumato e residuo si legge senza
+   aritmetica.
+
+   Il lotto successivo alla data di vendita non è nascosto: è dichiarato fuori
+   data, tratteggiato. Sparire direbbe «non esiste»; comparire tratteggiato
+   dice la cosa vera — «esiste, ma non a quella data» — che è precisamente la
+   ragione per cui una vendita antedatata viene rifiutata. */
+
+.fascia-lifo-quadro {
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio);
+  background: var(--superficie);
+  box-shadow: var(--ombra);
+  overflow: hidden;
+}
+
+.capo-fascia {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--bordo);
+}
+.capo-fascia h3 { margin: 0; font-size: var(--t-medio); font-weight: 700; letter-spacing: -.01em; }
+.capo-fascia h3 .isin-fascia { font-family: var(--font-mono); letter-spacing: .05em; }
+
+/* La direzione del consumo, dichiarata: la freccia guarda in basso perché la
+   pila si consuma dall'alto — dal lotto più recente. */
+.freccia-consumo {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--t-micro);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--testo-3);
+}
+.freccia-consumo::before {
+  content: '';
+  width: 1px; height: 20px;
+  background: linear-gradient(to bottom, transparent, var(--rosso-mastro));
+}
+
+.pila-lotti { display: grid; }
+
+.lotto-quadro {
+  display: grid;
+  grid-template-columns: minmax(170px, 210px) 1fr minmax(180px, 230px);
+  gap: 18px;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--bordo);
+}
+.lotto-quadro:last-child { border-bottom: 0; }
+.lotto-quadro.intatto { background: var(--superficie-2); }
+
+.targa-lotto { display: grid; gap: 2px; }
+.targa-lotto b { font-size: var(--t-base); font-weight: 700; }
+.targa-lotto small {
+  font-family: var(--font-mono);
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+}
+
+.barra-lotto {
+  display: flex;
+  min-height: 34px;
+  border-radius: var(--raggio-xs);
+  overflow: hidden;
+  border: 1px solid var(--bordo);
+}
+/* Centratura con flexbox e non con `place-items` su una griglia: un item
+   flessibile con `flex-basis: 0` risolve la centratura di griglia contro una
+   larghezza non ancora definita e sposta l'etichetta fuori dalla barra, dove
+   `overflow: hidden` se la mangia. */
+.barra-lotto .quota {
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 10px;
+  font-family: var(--font-cifre);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-piccolo);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+}
+.barra-lotto .quota.consumata {
+  color: var(--rosso-mastro);
+  background:
+    repeating-linear-gradient(-45deg,
+      rgba(192,69,60,.30) 0 6px,
+      rgba(192,69,60,.10) 6px 12px);
+}
+.barra-lotto .quota.residua { color: #06281c; background: var(--guadagno); }
+[data-tema='chiaro'] .barra-lotto .quota.residua { color: #fff; }
+.barra-lotto .quota.futura {
+  color: var(--testo-3);
+  background: var(--superficie-2);
+  border: 1px dashed var(--bordo-forte);
+  font-weight: 500;
+  font-family: var(--font-ui);
+}
+
+.esito-lotto {
+  display: grid; gap: 2px;
+  justify-items: end;
+  text-align: right;
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+}
+.esito-lotto b {
+  font-family: var(--font-cifre);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--testo);
+}
+.esito-lotto.non-attribuibile b { color: var(--ambra); }
+
+.legenda-consumo {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  padding: 14px 20px;
+  border-top: 1px solid var(--bordo);
+  background: var(--superficie-2);
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+}
+.legenda-consumo span { display: inline-flex; align-items: center; gap: 8px; }
+.legenda-consumo i { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+.legenda-consumo i.consumata { background: rgba(192,69,60,.4); }
+.legenda-consumo i.residua { background: var(--guadagno); }
+
+/* L'identità che regge il criterio, scritta a schermo perché sia verificabile
+   a occhio prima ancora che da un test: il costo dei carichi non si crea né si
+   distrugge, si ripartisce fra ciò che è uscito e ciò che resta. */
+.identita-costo {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  color: var(--testo-2);
+}
+.identita-costo b { color: var(--testo); }
+
+/* ---------- 24. Registro delle iscrizioni e residuo dopo la vendita ----------
+   La tabella è la `table.dati` della sezione 11, invariata. Qui si aggiunge
+   solo ciò che il registro ha in più di un elenco: la **marca** che dice il
+   verso di ogni riga, la riga appena iscritta che si annuncia, il lotto
+   esaurito che resta a registro invece di sparire, e la riga in rettifica con
+   i suoi campi in linea. */
+
+.marca-iscrizione {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.marca-iscrizione::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+}
+.marca-iscrizione.carico   { color: var(--accento);      background: var(--alone-accento); }
+.marca-iscrizione.scarico  { color: var(--rosso-mastro); background: rgba(192,69,60,.16); }
+.marca-iscrizione.esaurito { color: var(--testo-3);      background: var(--superficie-3); }
+
+table.dati tbody tr.riga-nuova { background: var(--alone-guadagno); }
+table.dati tbody tr.riga-nuova td { border-bottom-color: transparent; }
+table.dati tbody tr.lotto-esaurito td:not(.azioni-riga) { opacity: .62; }
+table.dati tbody tr.riga-scarico .cifra { color: var(--rosso-mastro); }
+
+table.dati .assente { color: var(--testo-3); }
+
+.azioni-riga { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bottone.minuto { padding: 6px 11px; font-size: var(--t-micro); }
+.bottone.impedito { opacity: .45; cursor: not-allowed; pointer-events: none; }
+
+/* Il «perché» del comando impedito, accanto al comando e non in un tooltip:
+   un vincolo che si spiega solo al passaggio del mouse non si spiega su un
+   telefono, e questo vincolo è la regola centrale del registro — un carico
+   consumato da una vendita non si rettifica. */
+.perche-impedito {
+  flex-basis: 100%;
+  font-size: var(--t-micro);
+  color: var(--ambra);
+  line-height: 1.45;
+  max-width: 260px;
+}
+
+.campo-inline {
+  width: 100%;
+  min-width: 84px;
+  padding: 7px 9px;
+  border: 1px solid var(--accento);
+  border-radius: var(--raggio-xs);
+  background: var(--superficie-2);
+  color: var(--testo);
+  font-family: var(--font-cifre);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-piccolo);
+}
+.campo-inline:focus-visible { outline: 2px solid var(--accento); outline-offset: 1px; }
+table.dati tbody tr.in-rettifica { background: var(--alone-accento); }
+
+/* ----- Il residuo dopo la vendita: tre cifre, e per ciascuna il prima ----- */
+
+.griglia-residuo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
+  gap: 14px;
+}
+
+.carta-residuo {
+  position: relative;
+  padding: 18px 20px;
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio);
+  background: var(--superficie);
+  box-shadow: var(--ombra);
+  overflow: hidden;
+}
+.carta-residuo::before {
+  content: '';
+  position: absolute; inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--rosso-mastro);
+}
+.carta-residuo .et {
+  display: block;
+  font-size: var(--t-micro);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--testo-3);
+}
+.carta-residuo .cifra-residuo {
+  display: block;
+  margin: 8px 0 6px;
+  font-family: var(--font-cifre);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-cifra);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.05;
+}
+.carta-residuo .cifra-residuo .valuta {
+  font-size: var(--t-piccolo);
+  font-weight: 600;
+  color: var(--testo-3);
+  margin-right: 6px;
+  letter-spacing: .04em;
+}
+.carta-residuo .cifra-residuo.assente { color: var(--testo-3); }
+.carta-residuo .prima-dopo {
+  display: block;
+  font-size: var(--t-piccolo);
+  color: var(--testo-3);
+  line-height: 1.5;
+}
+.carta-residuo .prima-dopo s { color: var(--testo-3); }
+
+/* Titolo interamente venduto: la carta lo dichiara invece di mostrare uno
+   zero come se fosse una cifra qualunque. */
+.carta-residuo.chiuso::before { background: var(--testo-3); }
+.carta-residuo.chiuso .cifra-residuo { color: var(--testo-2); }
+
+/* ----- Adattamento ----- */
+
+@media (max-width: 860px) {
+  .lotto-quadro { grid-template-columns: 1fr; gap: 10px; }
+  .esito-lotto { justify-items: start; text-align: left; }
+  .identita-costo { margin-left: 0; flex-basis: 100%; }
+}
