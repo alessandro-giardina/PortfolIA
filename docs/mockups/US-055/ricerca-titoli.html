@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="it" data-tema="scuro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolIA · Ricerca titoli — Quadro strumenti</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body data-pagina="ricerca-titoli" data-stato="vuoto">
+
+<div class="guscio">
+
+  <!-- ============ Barra laterale ============ -->
+  <aside class="barra-laterale">
+    <div class="marchio">
+      <span class="segno" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 17l5-6 4 4 5-8 4 5"></path>
+        </svg>
+      </span>
+      <span>
+        <span class="nome">PortfolIA</span>
+        <span class="coda">Quadro strumenti</span>
+      </span>
+    </div>
+
+    <nav class="gruppo-nav" aria-label="Navigazione principale">
+      <span class="et-nav">Registro</span>
+      <a class="voce-nav" href="../US-053/elenco-portafogli.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path></svg>
+        Portafogli
+      </a>
+      <a class="voce-nav" href="../US-051/index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="2"></rect><rect x="13" y="3" width="8" height="5" rx="2"></rect><rect x="13" y="10" width="8" height="11" rx="2"></rect><rect x="3" y="13" width="8" height="8" rx="2"></rect></svg>
+        Riepilogo
+      </a>
+      <a class="voce-nav" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+        Carico titoli
+      </a>
+      <a class="voce-nav attiva" href="ricerca-titoli.html" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        Ricerca titoli
+      </a>
+      <a class="voce-nav" href="../US-052/scheda-titolo.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"></path><path d="M9 12h7M9 16h5"></path></svg>
+        Scheda titolo
+      </a>
+    </nav>
+
+    <div class="piede-laterale">
+      <div class="scheda-conto">
+        <span class="iniziale" aria-hidden="true">AG</span>
+        <span class="righe">
+          <strong>Alessandro G.</strong>
+          <span>6 conti aperti</span>
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ Colonna principale ============ -->
+  <main class="principale">
+
+    <header class="testata">
+      <nav class="briciole" aria-label="Percorso">
+        <a href="../US-053/elenco-portafogli.html">Portafogli</a>
+        <span class="sep">/</span>
+        <b>Ricerca titoli</b>
+      </nav>
+      <div class="azioni-testata">
+        <button class="icona-bottone" type="button" data-azione="tema" aria-label="Alterna tema chiaro e scuro">
+          <svg class="solo-scuro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"></path></svg>
+          <svg class="solo-chiaro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"></path></svg>
+        </button>
+        <button class="bottone nudo" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2.5h4.5a1.5 1.5 0 0 1 1.5 1.5v9.5a1 1 0 0 0-1-1H2z"></path><path d="M14 2.5H9.5A1.5 1.5 0 0 0 8 4v9.5a1 1 0 0 1 1-1h5z"></path></svg>
+          Libro Mastro
+        </button>
+      </div>
+    </header>
+
+    <div class="contenuto">
+
+      <div class="titolo-pagina entra">
+        <div>
+          <h1>Ricerca titoli</h1>
+          <p class="sottotitolo">Digita un codice ISIN e recupera anagrafica e prezzo dalla fonte ufficiale — nessun valore stimato</p>
+        </div>
+      </div>
+
+      <!-- ============ Commutatore degli stati (solo mockup) ============ -->
+      <div class="barra-azioni-risultato entra" role="group" aria-label="Stati della schermata (demo del mockup)">
+        <div class="segmentato">
+          <button type="button" data-stato-scelto="vuoto" aria-pressed="true">Nessuna ricerca</button>
+          <button type="button" data-stato-scelto="attesa" aria-pressed="false">In attesa</button>
+          <button type="button" data-stato-scelto="trovato" aria-pressed="false">Trovato</button>
+          <button type="button" data-stato-scelto="non-trovato" aria-pressed="false">Non trovato</button>
+          <button type="button" data-stato-scelto="fonte-muta" aria-pressed="false">Fonte muta</button>
+          <button type="button" data-stato-scelto="guardia" aria-pressed="false">Guardia</button>
+          <button type="button" data-stato-scelto="isin-invalido" aria-pressed="false">ISIN non valido</button>
+        </div>
+        <span class="demo-note">solo nel mockup: nell'app lo stato lo decide la risposta della fonte</span>
+      </div>
+
+      <!-- ============ Modulo di ricerca ============ -->
+      <section class="pannello entra" aria-label="Ricerca per ISIN">
+        <div class="testa-pannello">
+          <div>
+            <h3>Ricerca per ISIN</h3>
+            <span class="chiosa">FR-004 · il dato proviene dalla fonte ufficiale — Borsa Italiana, MorningStar come ripiego</span>
+          </div>
+          <span class="pillola">12 caratteri</span>
+        </div>
+
+        <div class="corpo-pannello">
+          <form class="modulo-gestione" data-form="ricerca-isin" novalidate>
+            <div class="campo-gestione campo-isin">
+              <label for="isin">Codice ISIN del titolo</label>
+              <div class="riga-campo">
+                <input id="isin" type="text" class="isin" data-campo="isin" placeholder="es. IE00B4L5Y983"
+                       maxlength="12" autocomplete="off" spellcheck="false" value="">
+                <span class="contatore-isin" data-contatore="isin" aria-live="polite">0/12</span>
+                <button class="bottone" type="submit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+                  Recupera anagrafica
+                </button>
+                <p class="errore-campo-quadro" data-quando="isin-invalido" hidden>
+                  Codice ISIN non valido: servono 12 caratteri (2 lettere del paese, 9 alfanumerici, 1 cifra di controllo).
+                </p>
+                <p class="nota-campo-isin">
+                  Il primo recupero di un titolo mai visto può richiedere fino a una decina di secondi: la fonte
+                  di ripiego risponde solo attraverso un browser.
+                </p>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ============ Riga di esito ============ -->
+
+      <div class="riga-esito-quadro inerte entra" role="status" data-quando="vuoto isin-invalido">
+        <span>Nessuna ricerca eseguita. L'anagrafica compare qui sotto appena la fonte risponde.</span>
+      </div>
+
+      <div class="riga-esito-quadro in-attesa entra" role="status" data-quando="attesa" hidden>
+        <span class="punto-attesa" aria-hidden="true"></span>
+        <span>Interrogazione della fonte ufficiale in corso per <span class="isin-citato">IE00B4L5Y983</span>…</span>
+      </div>
+
+      <div class="riga-esito-quadro trovato entra" role="status" data-quando="trovato guardia" hidden>
+        <span class="pillola viva">Titolo trovato</span>
+        <span><b>iShares Core MSCI World UCITS ETF USD (Acc)</b> · <b>$ 128,46</b></span>
+      </div>
+
+      <div class="riga-esito-quadro non-trovato entra" role="status" data-quando="non-trovato" hidden>
+        <span class="pillola mai">Dato non disponibile</span>
+        <span>Nessuna corrispondenza per <span class="isin-citato">IT0000000000</span> presso le fonti interrogate.</span>
+      </div>
+
+      <div class="riga-esito-quadro guasto entra" role="status" data-quando="fonte-muta" hidden>
+        <span class="pillola obsoleta">Fonte non raggiungibile</span>
+        <span>Le fonti sono state interrogate e nessuna ha risposto. Riprova più tardi — nessun valore viene inventato al loro posto.</span>
+      </div>
+
+      <!-- ============ Guardia di buona cittadinanza (US-030) ============ -->
+      <div class="avviso critico entra" role="alertdialog" aria-label="Conferma nuova ricerca" data-quando="guardia" hidden>
+        <div class="dettagli">
+          <span class="glifo" aria-hidden="true">!</span>
+          <div>
+            <strong>Dati già rilevati di recente</strong>
+            <p>Questo titolo è stato rilevato meno di un'ora fa, alla chiusura odierna. Un nuovo recupero
+              interrogherebbe di nuovo la fonte senza che nulla sia cambiato.</p>
+          </div>
+        </div>
+        <div class="bottoni-avviso">
+          <button class="bottone" type="button">Procedi comunque</button>
+          <button class="bottone quieto" type="button" data-stato-scelto="trovato">Annulla</button>
+        </div>
+      </div>
+
+      <!-- ============ Anagrafica: scheletro in attesa ============ -->
+      <section class="pannello entra" aria-label="Anagrafica in caricamento" data-quando="attesa" hidden>
+        <div class="testa-pannello">
+          <div>
+            <h3>Anagrafica recuperata</h3>
+            <span class="chiosa">attendere il responso della fonte</span>
+          </div>
+        </div>
+        <div class="corpo-pannello stretto">
+          <div class="griglia-def" aria-hidden="true">
+            <div class="voce-def"><span class="et">Denominazione</span><span class="scheletro-quadro"></span></div>
+            <div class="voce-def"><span class="et">ISIN</span><span class="scheletro-quadro"></span></div>
+            <div class="voce-def"><span class="et">Ticker</span><span class="scheletro-quadro"></span></div>
+            <div class="voce-def"><span class="et">Tipo strumento</span><span class="scheletro-quadro"></span></div>
+            <div class="voce-def"><span class="et">Commissioni annue</span><span class="scheletro-quadro"></span></div>
+            <div class="voce-def"><span class="et">Valuta</span><span class="scheletro-quadro"></span></div>
+            <div class="voce-def"><span class="et">Emittente</span><span class="scheletro-quadro"></span></div>
+            <div class="voce-def"><span class="et">Segmento</span><span class="scheletro-quadro"></span></div>
+            <div class="voce-def"><span class="et">Politica dividendi</span><span class="scheletro-quadro"></span></div>
+            <div class="voce-def"><span class="et">Prezzo attuale</span><span class="scheletro-quadro"></span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Risultato trovato ============ -->
+
+      <section class="testa-titolo entra" data-quando="trovato guardia" hidden>
+        <span class="stemma" aria-hidden="true">iS</span>
+        <div class="anagrafe">
+          <h1>iShares Core MSCI World UCITS ETF USD (Acc)</h1>
+          <div class="marcature">
+            <span class="pillola isin">IE00B4L5Y983</span>
+            <span class="pillola">SWDA</span>
+            <span class="pillola">ETF</span>
+            <span class="pillola fonte">Borsa Italiana</span>
+          </div>
+        </div>
+        <div class="prezzo-vivo">
+          <span class="et">Prezzo attuale</span>
+          <span class="cifra accento">$ 128,46</span>
+        </div>
+      </section>
+
+      <div class="riga-provenienza-quadro entra" data-quando="trovato guardia" hidden>
+        <span class="pillola fonte">Fonte primaria</span>
+        <span>Fonte: <b>Borsa Italiana</b></span>
+        <span class="istante">Prezzo rilevato il <b>20.VIII.2026 · 17:35</b></span>
+        <span class="azione-fonte">
+          <button class="bottone-minuto" type="button"><span class="glifo">&#x21bb;</span> Aggiorna dati</button>
+        </span>
+      </div>
+
+      <section class="pannello entra" aria-label="Anagrafica ufficiale" data-quando="trovato guardia" hidden>
+        <div class="testa-pannello">
+          <div>
+            <h3>Anagrafica ufficiale</h3>
+            <span class="chiosa">dati come rilevati alla fonte · nessun valore stimato</span>
+          </div>
+          <span class="pillola viva">10 campi su 10</span>
+        </div>
+        <div class="corpo-pannello stretto">
+          <div class="griglia-def">
+            <div class="voce-def"><span class="et">Denominazione</span><span class="dato">iShares Core MSCI World UCITS ETF USD (Acc)</span></div>
+            <div class="voce-def"><span class="et">ISIN</span><span class="dato mono">IE00B4L5Y983</span></div>
+            <div class="voce-def"><span class="et">Ticker</span><span class="dato mono">SWDA</span></div>
+            <div class="voce-def"><span class="et">Tipo strumento</span><span class="dato">ETF</span></div>
+            <div class="voce-def"><span class="et">Commissioni totali annue</span><span class="dato">0,20%</span></div>
+            <div class="voce-def"><span class="et">Valuta di denominazione</span><span class="dato">USD</span></div>
+            <div class="voce-def"><span class="et">Emittente</span><span class="dato">iShares III plc</span></div>
+            <div class="voce-def"><span class="et">Segmento</span><span class="dato">ETF Indicizzati</span></div>
+            <div class="voce-def"><span class="et">Politica dividendi</span><span class="dato vuoto">Dato non disponibile</span></div>
+            <div class="voce-def"><span class="et">Prezzo attuale</span><span class="dato">$ 128,46</span></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="barra-azioni-risultato entra" data-quando="trovato guardia" hidden>
+        <button class="bottone" type="button" data-azione="apri-dialogo-scelta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg>
+          Aggiungi a portafoglio
+        </button>
+        <span class="chiosa">Il titolo viene proposto in carico sul portafoglio scelto: quantità, data e prezzo
+          d'acquisto restano da iscrivere nel modulo di carico.</span>
+      </div>
+
+      <!-- ============ Non trovato ============ -->
+      <section class="pannello entra" aria-label="Esito della ricerca" data-quando="non-trovato" hidden>
+        <div class="corpo-pannello">
+          <div class="placeholder-quadro">
+            <h3>Titolo non reperito</h3>
+            <p>
+              Il codice <em>IT0000000000</em> non corrisponde ad alcun titolo presso le fonti interrogate,
+              oppure i dati non sono al momento disponibili.
+            </p>
+            <p style="margin-top:12px">
+              Verifica il codice — dodici caratteri esatti — e riprova. PortfolIA non mostra mai denominazioni,
+              prezzi o valori stimati.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Fonte muta ============ -->
+      <section class="pannello entra" aria-label="Fonte non raggiungibile" data-quando="fonte-muta" hidden>
+        <div class="corpo-pannello">
+          <div class="placeholder-quadro">
+            <h3>Nessuna fonte ha risposto</h3>
+            <p>
+              Borsa Italiana e la fonte di ripiego sono state interrogate entrambe e nessuna ha risposto in
+              tempo utile. Non è un titolo inesistente: è un'interrogazione andata a vuoto.
+            </p>
+            <p style="margin-top:12px">
+              Riprova fra qualche minuto. Nel frattempo l'archivio resta come è: <em>nessun prezzo viene stimato
+              al posto di quello mancante</em>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Nessuna ricerca ============ -->
+      <section class="pannello entra" aria-label="Nessuna ricerca eseguita" data-quando="vuoto isin-invalido">
+        <div class="corpo-pannello">
+          <div class="placeholder-quadro">
+            <h3>Nessun titolo in consultazione</h3>
+            <p>
+              Inserisci un codice ISIN nel modulo qui sopra. L'anagrafica e il prezzo compariranno qui,
+              con la fonte da cui provengono e l'istante in cui sono stati rilevati.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ============ Dialogo di scelta portafoglio ============ -->
+<div class="overlay-quadro" data-dialogo="scelta-portafoglio" role="dialog" aria-modal="true" aria-label="Scegli il portafoglio">
+  <div class="dialog-quadro">
+    <div class="testa-pannello">
+      <div>
+        <h3>Aggiungi a portafoglio</h3>
+        <span class="chiosa">iShares Core MSCI World UCITS ETF · IE00B4L5Y983</span>
+      </div>
+      <button class="chiudi-dialog-quadro" type="button" data-azione="chiudi-dialogo" aria-label="Chiudi">✕</button>
+    </div>
+
+    <div class="corpo-dialog-quadro">
+      <p class="nota-dialog-quadro">Scegli il conto su cui iscrivere il carico. Quantità, data e prezzo d'acquisto
+        si compilano nel modulo di carico del portafoglio.</p>
+      <div class="elenco-scelta-portafoglio" role="listbox" aria-label="Portafogli disponibili">
+        <div class="riga-scelta-portafoglio" role="option" tabindex="0" aria-selected="false">
+          <span class="radio-quadro" aria-hidden="true"></span>
+          <span class="nome-scelta">Portafoglio Principale</span>
+        </div>
+        <div class="riga-scelta-portafoglio" role="option" tabindex="0" aria-selected="false">
+          <span class="radio-quadro" aria-hidden="true"></span>
+          <span class="nome-scelta">Piano di accumulo</span>
+        </div>
+        <div class="riga-scelta-portafoglio" role="option" tabindex="0" aria-selected="false">
+          <span class="radio-quadro" aria-hidden="true"></span>
+          <span class="nome-scelta">Conto titoli estero</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="piede-dialog-quadro">
+      <button class="bottone quieto" type="button" data-azione="chiudi-dialogo">Annulla</button>
+      <button class="bottone" type="button" data-azione="conferma-dialogo" disabled>Conferma</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
