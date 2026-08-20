@@ -6,60 +6,68 @@ tasks:
     title: Estrarre DashboardMastro.tsx e trasformare DashboardPage.tsx in dispatcher
     description: Spostare verbatim il markup mastro attuale di `DashboardPage.tsx` (tabella `.mastro`, stato vuoto, montaggio di `CreatePortfolioForm`) in `client/src/views/DashboardMastro.tsx`, esportando un'interfaccia `DashboardProps` (`portfolios`, `loading`, `error`, `onOpen`, `onCreated`). `DashboardPage.tsx` diventa un dispatcher sottile che usa `useDesign()` e monta `DashboardMastro` (per ora sempre, il ramo quadro arriva in TASK-05) dentro `<Guscio>`. Nessun cambiamento di comportamento per il design mastro.
     type: Impl
-    status: TODO
+    status: DONE
     body: Spostare verbatim il markup mastro attuale di `DashboardPage.tsx` (tabella `.mastro`, stato vuoto, montaggio di `CreatePortfolioForm`) in `client/src/views/DashboardMastro.tsx`, esportando un'interfaccia `DashboardProps` (`portfolios`, `loading`, `error`, `onOpen`, `onCreated`). `DashboardPage.tsx` diventa un dispatcher sottile che usa `useDesign()` e monta `DashboardMastro` (per ora sempre, il ramo quadro arriva in TASK-05) dentro `<Guscio>`. Nessun cambiamento di comportamento per il design mastro.
+    ref: TASK-01
   - id: TASK-02
     title: Estrarre useCreaPortafoglio da CreatePortfolioForm
     description: Creare `client/src/hooks/useCreaPortafoglio.ts` che estrae da `CreatePortfolioForm.tsx` lo stato (`name`, `error`, `loading`) e `handleSubmit` (validazione client-side + `POST /api/portfolios` + gestione 409/errore). Refattorizzare `CreatePortfolioForm.tsx` per usare l'hook, mantenendo invariate copy, classi e comportamento visibile del design mastro.
     type: Impl
-    status: TODO
+    status: DONE
     body: Creare `client/src/hooks/useCreaPortafoglio.ts` che estrae da `CreatePortfolioForm.tsx` lo stato (`name`, `error`, `loading`) e `handleSubmit` (validazione client-side + `POST /api/portfolios` + gestione 409/errore). Refattorizzare `CreatePortfolioForm.tsx` per usare l'hook, mantenendo invariate copy, classi e comportamento visibile del design mastro.
+    ref: TASK-02
   - id: TASK-03
     title: Convertire PortfolioSelectDialog da stile inline a classNames
     description: 'Spostare tutte le proprietà di stile inline di `PortfolioSelectDialog.tsx` in classNames dedicati (`overlay-dialog`, `dialog-portafoglio`, `dialog-intestazione`, `dialog-corpo`, `riga-portafoglio`, `radio-custom`, `dialog-bottoni`), preservando struttura DOM e tutti i `data-testid` esistenti (`dialog-corpo`, `portafoglio-option-{id}`, `btn-annulla-dialog`, `btn-conferma-dialog`, `msg-nessun-portafoglio`) invariati. Nessuna regola CSS aggiunta in questo task: le classi restano senza stile fino a TASK-04.'
     type: Impl
-    status: TODO
+    status: DONE
     body: 'Spostare tutte le proprietà di stile inline di `PortfolioSelectDialog.tsx` in classNames dedicati (`overlay-dialog`, `dialog-portafoglio`, `dialog-intestazione`, `dialog-corpo`, `riga-portafoglio`, `radio-custom`, `dialog-bottoni`), preservando struttura DOM e tutti i `data-testid` esistenti (`dialog-corpo`, `portafoglio-option-{id}`, `btn-annulla-dialog`, `btn-conferma-dialog`, `msg-nessun-portafoglio`) invariati. Nessuna regola CSS aggiunta in questo task: le classi restano senza stile fino a TASK-04.'
+    ref: TASK-03
   - id: TASK-04
     title: Stilizzare PortfolioSelectDialog per entrambi i design
     description: 'Aggiungere sotto `:root[data-design=''mastro'']` in `ledger.css` le regole per i classNames introdotti in TASK-03, replicando esattamente i valori inline attuali (nessun cambiamento visivo per il mastro). Aggiungere sotto `:root[data-design=''quadro'']` in `quadro.css` (sezione 15, componenti condivisi) regole coerenti con l''estetica quadro: superficie `--superficie`, `--raggio`, `--ombra`, righe selezionabili con hover `--superficie-2` e stato selezionato con `--accento`, focus-visible su bottoni e righe. Riferimento visivo: `docs/mockups/US-053/elenco-portafogli.html`.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
     body: 'Aggiungere sotto `:root[data-design=''mastro'']` in `ledger.css` le regole per i classNames introdotti in TASK-03, replicando esattamente i valori inline attuali (nessun cambiamento visivo per il mastro). Aggiungere sotto `:root[data-design=''quadro'']` in `quadro.css` (sezione 15, componenti condivisi) regole coerenti con l''estetica quadro: superficie `--superficie`, `--raggio`, `--ombra`, righe selezionabili con hover `--superficie-2` e stato selezionato con `--accento`, focus-visible su bottoni e righe. Riferimento visivo: `docs/mockups/US-053/elenco-portafogli.html`.'
+    ref: TASK-04
   - id: TASK-05
     title: Creare CreaPortafoglioQuadro.tsx
     description: 'Creare `client/src/views/CreaPortafoglioQuadro.tsx`: presentazione quadro del modulo di creazione portafoglio, usando `useCreaPortafoglio` (TASK-02). Markup: `.pannello` > `.corpo-pannello.modulo-gestione` > `.campo-gestione` con label «Nuovo portafoglio», `.riga-campo` (input testo + bottone «Crea») e `.errore-campo-quadro` per l''errore inline — stesse classi già usate dal modulo "Gestione del conto" di `RiepilogoQuadro.tsx`, nessuna nuova classe CSS. Riferimento visivo: `docs/mockups/US-053/elenco-portafogli.html`.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-02
     body: 'Creare `client/src/views/CreaPortafoglioQuadro.tsx`: presentazione quadro del modulo di creazione portafoglio, usando `useCreaPortafoglio` (TASK-02). Markup: `.pannello` > `.corpo-pannello.modulo-gestione` > `.campo-gestione` con label «Nuovo portafoglio», `.riga-campo` (input testo + bottone «Crea») e `.errore-campo-quadro` per l''errore inline — stesse classi già usate dal modulo "Gestione del conto" di `RiepilogoQuadro.tsx`, nessuna nuova classe CSS. Riferimento visivo: `docs/mockups/US-053/elenco-portafogli.html`.'
+    ref: TASK-05
   - id: TASK-06
     title: Creare DashboardQuadro.tsx e completare il dispatcher
     description: 'Creare `client/src/views/DashboardQuadro.tsx`: header `.titolo-pagina` (h1 «Portafogli» + sottotitolo con conteggio), `.pannello` con `table.dati` per l''elenco (righe cliccabili con `role="button"`/`tabIndex`/`onKeyDown` verso `/portfolio/:id`, `data-testid="riga-portafoglio-{id}"`), stato vuoto con `.placeholder-quadro`, e montaggio di `CreaPortafoglioQuadro` (TASK-05). Aggiornare `DashboardPage.tsx` (TASK-01) per montare `DashboardQuadro` quando `design === ''quadro''`, `DashboardMastro` altrimenti — stesso pattern del ternario in `PortfolioDetailPage.tsx`. Riferimento visivo: `docs/mockups/US-053/elenco-portafogli.html`.'
     type: Impl
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-01
       - TASK-05
     body: 'Creare `client/src/views/DashboardQuadro.tsx`: header `.titolo-pagina` (h1 «Portafogli» + sottotitolo con conteggio), `.pannello` con `table.dati` per l''elenco (righe cliccabili con `role="button"`/`tabIndex`/`onKeyDown` verso `/portfolio/:id`, `data-testid="riga-portafoglio-{id}"`), stato vuoto con `.placeholder-quadro`, e montaggio di `CreaPortafoglioQuadro` (TASK-05). Aggiornare `DashboardPage.tsx` (TASK-01) per montare `DashboardQuadro` quando `design === ''quadro''`, `DashboardMastro` altrimenti — stesso pattern del ternario in `PortfolioDetailPage.tsx`. Riferimento visivo: `docs/mockups/US-053/elenco-portafogli.html`.'
+    ref: TASK-06
   - id: TASK-07
     title: npm run check verde
     description: Eseguire `npm run check` (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) e verificare che tutta la pipeline sia verde. Correggere eventuali errori introdotti dal refactoring o dai nuovi componenti.
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-03
       - TASK-04
       - TASK-06
     body: Eseguire `npm run check` (lint → typecheck → typecheck:e2e → check:chiavi → test:e2e-support → test) e verificare che tutta la pipeline sia verde. Correggere eventuali errori introdotti dal refactoring o dai nuovi componenti.
+    ref: TASK-07
   - id: TASK-08
     title: Test E2E — elenco portafogli nel quadro
     description: 'Creare `e2e/US-053__elenco-portafogli-quadro.spec.ts` con gli scenari: elenco vuoto (placeholder quadro), elenco popolato con navigazione al dettaglio, creazione di un nuovo portafoglio dal pannello quadro (scenario demo, con video salvato in `docs/test-results/US-053/`), percorso end-to-end rinomina/eliminazione passando dal dettaglio quadro già esistente, e verifica dello stile/funzionamento del dialogo di scelta portafoglio in design quadro. Eseguire l''intera suite E2E e verificare che i file esistenti (in particolare `US-027__dialog-elenco-portafogli.spec.ts` e `US-006__rinomina-elimina-portafoglio.spec.ts`) passino senza modifiche ai test.'
     type: Test
-    status: TODO
+    status: DONE
     dependencies:
       - TASK-07
     body: 'Creare `e2e/US-053__elenco-portafogli-quadro.spec.ts` con gli scenari: elenco vuoto (placeholder quadro), elenco popolato con navigazione al dettaglio, creazione di un nuovo portafoglio dal pannello quadro (scenario demo, con video salvato in `docs/test-results/US-053/`), percorso end-to-end rinomina/eliminazione passando dal dettaglio quadro già esistente, e verifica dello stile/funzionamento del dialogo di scelta portafoglio in design quadro. Eseguire l''intera suite E2E e verificare che i file esistenti (in particolare `US-027__dialog-elenco-portafogli.spec.ts` e `US-006__rinomina-elimina-portafoglio.spec.ts`) passino senza modifiche ai test.'
+    ref: TASK-08

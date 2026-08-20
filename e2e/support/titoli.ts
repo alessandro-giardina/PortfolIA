@@ -124,15 +124,16 @@ export const TITOLO_US_025: TitoloSeminabile = {
 /**
  * Riservato a `US-027__scorre-elenco-portafogli.spec.ts` (il solo file demo).
  *
- * Il file fratello `US-027__dialog-elenco-portafogli.spec.ts` importa la costante ma
- * non la semina: ne legge i campi per servirli con `route.fulfill()`, senza mai
- * toccare la cache. La regola vincola chi scrive, quindi la spec resta con un unico
- * ISIN seminabile.
+ * I file fratelli `US-027__dialog-elenco-portafogli.spec.ts` e
+ * `US-053__quadro-elenco-portafogli.spec.ts` importano la costante ma non la
+ * seminano: ne leggono i campi per servirli con `route.fulfill()`, senza mai
+ * toccare la cache. La regola vincola chi scrive, quindi la spec resta con un
+ * unico ISIN seminabile.
  */
 export const TITOLO_US_027: TitoloSeminabile = {
   isin: 'IE00B5BMR087',
   file: 'US-027__scorre-elenco-portafogli.spec.ts',
-  lettoDa: ['US-027__dialog-elenco-portafogli.spec.ts'],
+  lettoDa: ['US-027__dialog-elenco-portafogli.spec.ts', 'US-053__quadro-elenco-portafogli.spec.ts'],
   campi: {
     name: 'Ishares Core S&P 500 Ucits Etf Usd Acc',
     price: 552.18,
@@ -2112,6 +2113,32 @@ export const TITOLO_US_052_DEMO: TitoloSeminabile = {
     segment: 'ETF Indicizzati',
     dividend_policy: 'ad accumulazione',
     data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-053__quadro-elenco-portafogli.spec.ts`.
+ *
+ * Serve solo a costruire la premessa del percorso rinomina/eliminazione:
+ * `RiepilogoQuadro` mostra il pannello «Gestione del conto» (e con esso
+ * rinomina/elimina) solo quando `enrichedPositions.length > 0` — un
+ * portafoglio senza alcun carico esce dalla scheda con il solo placeholder
+ * «Nessun titolo iscritto», prima ancora del titolo di pagina. Un carico
+ * basta: lo scenario non mette alla prova prezzo o valorizzazione, quindi
+ * non semina osservazioni né richiede l'endpoint di aggiornamento dati.
+ */
+export const TITOLO_US_053: TitoloSeminabile = {
+  isin: 'IE00BQZJ8X95',
+  file: 'US-053__quadro-elenco-portafogli.spec.ts',
+  campi: {
+    name: 'Xtrackers Msci World Ucits Etf 1c',
+    price: 91.5,
+    ticker: 'XDWD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,19%',
+    currency: 'EUR',
+    issuer: 'XTRACKERS IE PLC',
+    segment: 'ETF Indicizzati',
   },
 };
 

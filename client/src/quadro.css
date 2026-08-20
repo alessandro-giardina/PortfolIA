@@ -641,6 +641,13 @@
     color: var(--testo-3);
   }
 
+  /* ---------- 11b. Elenco portafogli (US-053/TASK-06) ---------- */
+  .voce-portafoglio { display: grid; gap: 3px; min-width: 210px; }
+  .voce-portafoglio strong { font-weight: 700; font-size: var(--t-base); }
+
+  .contatore-portafogli { color: var(--testo-3); font-size: var(--t-piccolo); }
+  .contatore-portafogli b { color: var(--testo-2); font-weight: 700; }
+
   .cella-rilevamento { display: grid; gap: 5px; justify-items: end; }
   .cella-rilevamento .istante {
     font-family: var(--font-mono);
@@ -2184,6 +2191,118 @@
   .bottone.pericolo:disabled { opacity: .6; cursor: not-allowed; }
 
   .messaggio-errore-quadro { margin: 0; font-size: var(--t-piccolo); color: var(--perdita); }
+
+  /* ---------- 15f. PortfolioSelectDialog (US-053/TASK-04) ----------
+     Oggi il componente è condiviso fra i due design e stilizzato interamente
+     inline coi colori del mastro (`--carta`, `--oro`, `--seppia`) — qui il
+     riquadro diventa un pannello quadro a tutti gli effetti: stessa
+     superficie, stesso raggio, stessa ombra; le righe selezionabili
+     riprendono lo stile a "radio" con l'accento del design invece dell'oro
+     del registro. */
+  .overlay-dialog {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 6, 8, .62);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 100;
+  }
+  .dialog-portafoglio {
+    background: var(--superficie);
+    border: 1px solid var(--bordo-forte);
+    border-radius: var(--raggio);
+    box-shadow: var(--ombra), 0 30px 70px -30px rgba(0,0,0,.85);
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
+  }
+  .dialog-intestazione {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-shrink: 0;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--bordo);
+  }
+  .titolo-dialog { font-weight: 700; font-size: var(--t-medio); margin-bottom: 4px; }
+  .sottotitolo-dialog { font-size: var(--t-piccolo); color: var(--testo-3); }
+  .chiudi-dialog {
+    width: 32px; height: 32px; flex: none;
+    display: grid; place-items: center;
+    border-radius: var(--raggio-s);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--testo-3);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .chiudi-dialog:hover { background: var(--superficie-2); color: var(--testo); }
+  .chiudi-dialog:focus-visible { outline: 2px solid var(--accento); outline-offset: 1px; }
+  .dialog-corpo {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 18px 22px 22px;
+  }
+  .caricamento-dialog { margin-top: 0; color: var(--testo-2); font-size: var(--t-piccolo); }
+  .msg-nessun-portafoglio-corpo { text-align: center; padding: 16px 0; }
+  .msg-nessun-portafoglio-titolo { margin-bottom: 8px; color: var(--testo); font-weight: 600; }
+  .msg-nessun-portafoglio-dettaglio { font-size: var(--t-piccolo); color: var(--testo-3); }
+  .nota-dialog { margin: 0 0 14px; font-size: var(--t-piccolo); color: var(--testo-2); }
+  .lista-portafogli { display: grid; gap: 6px; }
+  .riga-portafoglio {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--bordo);
+    border-radius: var(--raggio-s);
+    background: var(--superficie-2);
+    cursor: pointer;
+    transition: border-color .16s ease, background .16s ease;
+  }
+  .riga-portafoglio:hover { border-color: var(--bordo-forte); }
+  .riga-portafoglio:focus-visible { outline: 2px solid var(--accento); outline-offset: 1px; }
+  .riga-portafoglio.selezionata {
+    border-color: var(--accento);
+    background: var(--alone-accento);
+  }
+  .radio-custom {
+    width: 16px; height: 16px; flex: none;
+    border-radius: 50%;
+    border: 2px solid var(--bordo-forte);
+    background: transparent;
+    display: grid; place-items: center;
+    transition: border-color .16s ease;
+  }
+  .radio-custom::after {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accento);
+    transform: scale(0);
+    transition: transform .14s ease;
+  }
+  .riga-portafoglio.selezionata .radio-custom { border-color: var(--accento); }
+  .riga-portafoglio.selezionata .radio-custom::after { transform: scale(1); }
+  .nome-portafoglio { font-weight: 700; font-size: var(--t-base); flex: 1; }
+  .dialog-bottoni {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 16px 22px;
+    border-top: 1px solid var(--bordo);
+    background: var(--superficie-2);
+  }
 }
 
 /* Le keyframe dei componenti condivisi (sezione 15): stessa ragione di

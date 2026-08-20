@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import type { Portfolio } from '@portfolia/shared';
+import { useDesign } from '../hooks/useDesign.js';
 
 interface Props {
   /** Info del titolo trovato, per mostrare nel sottotitolo del dialog */
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function PortfolioSelectDialog({ isin, name, onConfirm, onClose }: Props) {
+  const { design } = useDesign();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -50,119 +52,85 @@ export default function PortfolioSelectDialog({ isin, name, onConfirm, onClose }
   // DOM — gli si dipinge sopra. Finché il riquadro era basso non si vedeva; da
   // quando arriva in fondo alla finestra il footer intercetta i clic sulle ultime
   // righe dell'elenco. Il portale toglie il dialog da quel contesto una volta per tutte.
+  // NB: gli stili qui sotto sono ora solo `className`, senza regole CSS ancora
+  // scritte (arrivano in TASK-04). `.overlay-dialog` deve restare
+  // `position: fixed; inset: 0; display: flex; align-items/justify-content: center;
+  // padding: 24px` — il padding è il respiro fra il riquadro e i bordi della
+  // finestra quando l'elenco è alla massima altezza.
   return createPortal(
-    <div
-      className="overlay-dialog"
-      role="presentation"
-      onClick={handleOverlayClick}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.45)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        // Respiro fra il riquadro e i bordi della finestra: senza, con l'elenco al
-        // massimo dell'altezza il dialog toccherebbe i lati dello schermo.
-        padding: '24px',
-        zIndex: 100,
-      }}
-    >
+    <div className="overlay-dialog" role="presentation" onClick={handleOverlayClick}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-titolo"
         className="dialog-portafoglio"
-        style={{
-          background: 'var(--carta)',
-          border: '1.5px solid var(--oro)',
-          borderRadius: '2px',
-          padding: '28px',
-          minWidth: '360px',
-          maxWidth: '520px',
-          width: '100%',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.22)',
-          // Colonna flex con un tetto d'altezza: l'elenco non fa più crescere il
-          // riquadro oltre la finestra, scorre dentro `.dialog-corpo`. Il 100% è
-          // l'altezza utile dell'overlay, già al netto del suo padding, e comprende
-          // padding e bordo del riquadro grazie al `box-sizing: border-box` globale.
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: '100%',
-        }}
       >
-        <div className="dialog-intestazione" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexShrink: 0 }}>
+        {/*
+          `.dialog-portafoglio` deve restare una colonna flex con un tetto
+          d'altezza (`display: flex; flex-direction: column; max-height: 100%`):
+          l'elenco non deve far crescere il riquadro oltre la finestra, deve
+          scorrere dentro `.dialog-corpo`. Il 100% è l'altezza utile
+          dell'overlay già al netto del suo padding.
+        */}
+        <div className="dialog-intestazione">
           <div>
-            <div className="titolo-dialog" id="dialog-titolo" style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px' }}>
+            <div className="titolo-dialog" id="dialog-titolo">
               Scegli un Portafoglio
             </div>
-            <div className="sottotitolo-dialog" style={{ fontSize: '12px', color: 'var(--seppia)', opacity: 0.8 }}>
+            <div className="sottotitolo-dialog">
               {name ?? isin} &middot; {isin}
             </div>
           </div>
-          <button
-            type="button"
-            className="chiudi-dialog"
-            aria-label="Chiudi"
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1, padding: '2px 6px' }}
-          >
+          <button type="button" className="chiudi-dialog" aria-label="Chiudi" onClick={onClose}>
             ✕
           </button>
         </div>
 
         {/*
-          L'unica area scorrevole del dialog. `minHeight: 0` è indispensabile: senza,
-          la base minima di un figlio flex è il suo contenuto, quindi il corpo si
-          rifiuterebbe di rimpicciolirsi e il tetto d'altezza del riquadro verrebbe
-          sfondato dall'elenco invece che assorbito dallo scorrimento.
+          L'unica area scorrevole del dialog. Nel `.dialog-corpo` di TASK-04, `min-height: 0`
+          è indispensabile: senza, la base minima di un figlio flex è il suo contenuto,
+          quindi il corpo si rifiuterebbe di rimpicciolirsi e il tetto d'altezza del
+          riquadro verrebbe sfondato dall'elenco invece che assorbito dallo
+          scorrimento (`flex: 1 1 auto; overflow-y: auto`). `overscroll-behavior: contain`
+          ferma lo scorrimento qui: arrivati a fondo elenco non deve proseguire
+          trascinando la pagina che sta sotto l'overlay.
         */}
-        <div
-          className="dialog-corpo"
-          data-testid="dialog-corpo"
-          style={{
-            flex: '1 1 auto',
-            minHeight: 0,
-            overflowY: 'auto',
-            // Lo scorrimento si ferma qui: arrivati a fondo elenco non prosegue
-            // trascinando la pagina che sta sotto l'overlay.
-            overscrollBehavior: 'contain',
-          }}
-        >
+        <div className="dialog-corpo" data-testid="dialog-corpo">
           {/*
-            `marginTop: 0` esplicito sui due paragrafi che aprono direttamente il corpo
-            (caricamento e nota). Lo stato "nessun portafoglio" non ne ha bisogno: il
-            suo `<p>` è avvolto in un `<div>` con padding, che il margine non
-            attraversava nemmeno prima. Prima erano i
-            13px del margine predefinito dello user-agent, che risalivano attraverso
-            `.dialog-corpo` e collassavano con il `marginBottom: 16px`
-            dell'intestazione — `max(16, 13)`, quindi 16. Da quando il riquadro è un
-            contenitore flex i margini dei figli non collassano più e quei 13px si
-            sommerebbero, spostando in basso l'intero dialog: azzerarli conserva la
-            spaziatura di prima invece di affidarla a un collasso che non avviene più.
+            I due paragrafi che aprono direttamente il corpo (caricamento e nota,
+            classi `caricamento-dialog`/`nota-dialog`) devono avere `margin-top: 0`
+            esplicito. Lo stato "nessun portafoglio" non ne ha bisogno: il suo `<p>`
+            è avvolto in un `<div>` con padding (`msg-nessun-portafoglio-corpo`), che
+            il margine non attraversava nemmeno prima. Prima erano i 13px del margine
+            predefinito dello user-agent, che risalivano attraverso `.dialog-corpo` e
+            collassavano con il `margin-bottom: 16px` dell'intestazione —
+            `max(16, 13)`, quindi 16. Da quando il riquadro è un contenitore flex i
+            margini dei figli non collassano più e quei 13px si sommerebbero,
+            spostando in basso l'intero dialog: azzerarli conserva la spaziatura di
+            prima invece di affidarla a un collasso che non avviene più.
           */}
           {loading ? (
-            <p style={{ marginTop: 0, fontStyle: 'italic', color: 'var(--seppia)', fontSize: '13px' }}>Caricamento portafogli…</p>
+            <p className="caricamento-dialog">Caricamento portafogli…</p>
           ) : portfolios.length === 0 ? (
-            <div data-testid="msg-nessun-portafoglio" style={{ textAlign: 'center', padding: '16px 0' }}>
-              <p style={{ fontStyle: 'italic', marginBottom: '8px' }}>Nessun portafoglio disponibile.</p>
-              <p style={{ fontSize: '12px', color: 'var(--seppia)' }}>
+            <div data-testid="msg-nessun-portafoglio" className="msg-nessun-portafoglio-corpo">
+              <p className="msg-nessun-portafoglio-titolo">Nessun portafoglio disponibile.</p>
+              <p className="msg-nessun-portafoglio-dettaglio">
                 Crea prima un portafoglio dalla pagina principale per poter aggiungere un titolo.
               </p>
             </div>
           ) : (
             <>
-              <p className="nota-dialog" style={{ marginTop: 0, fontSize: '13px', fontStyle: 'italic', marginBottom: '14px', color: 'var(--seppia)' }}>
+              <p className="nota-dialog">
                 Seleziona il portafoglio di destinazione. Il modulo di carico sarà pre-compilato
                 con ISIN, nome e prezzo corrente del titolo.
               </p>
-              <div
-                className="lista-portafogli"
-                role="listbox"
-                aria-label="Portafogli disponibili"
-                style={{ marginBottom: '20px' }}
-              >
+              <div className="lista-portafogli" role="listbox" aria-label="Portafogli disponibili">
                 {portfolios.map((p) => (
+                  // Lo stato selezionato (bordo/sfondo della riga, riempimento del
+                  // pallino) è espresso solo dalla classe `selezionata`: TASK-04 lo
+                  // stila con i selettori composti `.riga-portafoglio.selezionata`
+                  // e `.riga-portafoglio.selezionata .radio-custom`, non più con
+                  // uno stile inline calcolato da `selectedId === p.id`.
                   <div
                     key={p.id}
                     className={`riga-portafoglio${selectedId === p.id ? ' selezionata' : ''}`}
@@ -172,33 +140,9 @@ export default function PortfolioSelectDialog({ isin, name, onConfirm, onClose }
                     data-testid={`portafoglio-option-${p.id}`}
                     onClick={() => setSelectedId(p.id)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedId(p.id); }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      padding: '10px 12px',
-                      marginBottom: '6px',
-                      cursor: 'pointer',
-                      border: `1px solid ${selectedId === p.id ? 'var(--oro)' : 'rgba(110,90,54,0.25)'}`,
-                      background: selectedId === p.id ? 'rgba(174,144,73,0.08)' : 'transparent',
-                      borderRadius: '2px',
-                    }}
                   >
-                    <div
-                      className="radio-custom"
-                      aria-hidden="true"
-                      style={{
-                        width: '14px',
-                        height: '14px',
-                        borderRadius: '50%',
-                        border: `2px solid var(--oro)`,
-                        background: selectedId === p.id ? 'var(--oro)' : 'transparent',
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div className="nome-portafoglio" style={{ fontWeight: 600, fontSize: '14px', flex: 1 }}>
-                      {p.name}
-                    </div>
+                    <div className="radio-custom" aria-hidden="true" />
+                    <div className="nome-portafoglio">{p.name}</div>
                   </div>
                 ))}
               </div>
@@ -210,10 +154,10 @@ export default function PortfolioSelectDialog({ isin, name, onConfirm, onClose }
           Fuori dal corpo, quindi fuori dallo scorrimento: "Annulla" e "Conferma"
           restano ancorati in fondo al riquadro comunque sia lungo l'elenco.
         */}
-        <div className="dialog-bottoni" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexShrink: 0 }}>
+        <div className="dialog-bottoni">
           <button
             type="button"
-            className="bottone secondario"
+            className={design === 'quadro' ? 'bottone quieto' : 'bottone secondario'}
             data-testid="btn-annulla-dialog"
             onClick={onClose}
           >
