@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import type { CaricoLotto, CreateSaleRequest, Sale, VenditaLotto } from '@portfolia/shared';
+import type { CaricoLotto, Sale, VenditaLotto } from '@portfolia/shared';
 import FasciaLifo from './FasciaLifo.js';
 import { quantita } from './Foglio.js';
+import { ISO_DATE_RE, useFormScarico } from '../hooks/useFormScarico.js';
 
 /**
  * Il **modulo di scarico**: la registrazione di una vendita (US-042, FR-022).
@@ -20,6 +20,10 @@ import { quantita } from './Foglio.js';
  * Il titolo si sceglie da un elenco e non si digita: si vende ciò che si possiede,
  * e un campo libero permetterebbe di iscrivere lo scarico di un ISIN mai caricato
  * — un rifiuto che si può evitare per costruzione invece di spiegare a posteriori.
+ *
+ * Da US-054 questa è la **resa mastro**: stato, validazione e `POST` vivono in
+ * `useFormScarico`, e `ModuloScaricoQuadro` è la gemella che li rende nel design
+ * «Quadro strumenti». Un solo validatore, un solo `fetch`, due rese.
  */
 export interface TitoloScaricabile {
   /** Codice ISIN. */
@@ -47,22 +51,21 @@ export interface ModuloScaricoProps {
   onIscritta: (vendita: Sale) => void;
 }
 
-/** RegExp formato data ISO-8601 YYYY-MM-DD, la stessa del modulo di carico. */
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
 export default function ModuloScarico({ portfolioId, titoli, onIscritta }: ModuloScaricoProps) {
-  const [isin, setIsin] = useState('');
-  const [saleDate, setSaleDate] = useState('');
-  const [salePrice, setSalePrice] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [errore, setErrore] = useState<string | null>(null);
-  const [erroriCampo, setErroriCampo] = useState<{ quantity?: string; saleDate?: string; salePrice?: string }>({});
-  const [inCorso, setInCorso] = useState(false);
-
-  // Il titolo scelto, oppure il primo dell'elenco quando nulla è ancora stato
-  // scelto: la `select` mostra già quella voce, e leggere la giacenza di un altro
-  // titolo accanto a essa sarebbe una cifra sbagliata al posto giusto.
-  const scelto = titoli.find((t) => t.isin === isin) ?? titoli[0] ?? null;
+  const {
+    saleDate,
+    setSaleDate,
+    salePrice,
+    setSalePrice,
+    quantity,
+    setQuantity,
+    setIsin,
+    errore,
+    erroriCampo,
+    inCorso,
+    scelto,
+    iscrivi,
+  } = useFormScarico(portfolioId, titoli, onIscritta);
 
   if (titoli.length === 0) {
     return (
@@ -71,78 +74,6 @@ export default function ModuloScarico({ portfolioId, titoli, onIscritta }: Modul
         su una giacenza, e i carichi interamente venduti restano iscritti a registro.
       </p>
     );
-  }
-
-  function ripulisci(): void {
-    setSaleDate('');
-    setSalePrice('');
-    setQuantity('');
-    setErroriCampo({});
-  }
-
-  /**
-   * Validazione di **forma** lato client: data, prezzo, quantità.
-   *
-   * Non duplica la verifica del registro, e non deve: «quante quote sono
-   * disponibili al 3 giugno» dipende dall'attribuzione LIFO di tutte le vendite
-   * già iscritte, e la risposta autoritativa è quella del server — che la calcola
-   * sui dati veri e nello stesso istante in cui iscrive. Anticiparla qui
-   * significherebbe tenere due giudici della stessa questione, con il client che
-   * legge un registro potenzialmente più vecchio di qualche secondo.
-   */
-  function validaForma(): boolean {
-    const errori: typeof erroriCampo = {};
-    if (!saleDate || !ISO_DATE_RE.test(saleDate)) {
-      errori.saleDate = 'La data di vendita è obbligatoria.';
-    }
-    const prezzo = parseFloat(salePrice);
-    if (!salePrice || Number.isNaN(prezzo) || prezzo <= 0) {
-      errori.salePrice = 'Il prezzo di vendita deve essere un valore positivo.';
-    }
-    const normalizzata = quantity.trim().replace(',', '.');
-    const quote = parseFloat(normalizzata);
-    if (!quantity || Number.isNaN(quote) || quote <= 0 || Math.round(quote * 1e6) / 1e6 !== quote) {
-      errori.quantity = 'La quantità venduta deve essere un numero positivo con al più 6 decimali.';
-    }
-    setErroriCampo(errori);
-    return Object.keys(errori).length === 0;
-  }
-
-  async function iscrivi(e: React.FormEvent): Promise<void> {
-    e.preventDefault();
-    setErrore(null);
-    if (!scelto || !validaForma()) return;
-
-    setInCorso(true);
-    try {
-      const payload: CreateSaleRequest = {
-        isin: scelto.isin,
-        sale_date: saleDate,
-        sale_price: parseFloat(salePrice),
-        quantity: parseFloat(quantity.replace(',', '.')),
-      };
-      const res = await fetch(`/api/portfolios/${portfolioId}/sales`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const dati = (await res.json()) as { error?: string };
-        // Il messaggio del server è mostrato **così com'è**: è lui a distinguere
-        // la quantità eccedente dalla vendita antedatata (criteri 4 e 5), e
-        // riassumerlo qui in un «operazione non consentita» butterebbe via
-        // proprio l'informazione che dice quale premessa è saltata.
-        setErrore(dati.error ?? 'Errore durante la registrazione della vendita.');
-        return;
-      }
-      const vendita = (await res.json()) as Sale;
-      ripulisci();
-      onIscritta(vendita);
-    } catch {
-      setErrore('Backend non raggiungibile.');
-    } finally {
-      setInCorso(false);
-    }
   }
 
   return (

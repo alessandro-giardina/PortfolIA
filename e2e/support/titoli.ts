@@ -2199,6 +2199,58 @@ export const TITOLO_US_055_DEMO: TitoloSeminabile = {
 };
 
 /**
+ * Riservato a `US-054__quadro-carico-scarico.spec.ts`.
+ *
+ * Il file **iscrive posizioni** su questo ISIN, quindi non è un lettore: la
+ * premessa del prezzo va costruita, non ereditata (è il difetto che US-040 ha
+ * bonificato). Il seme porta `fetched_at` di adesso — il default di
+ * `seminaTitolo` — ed è la guardia contro il recupero reale da 8-12 secondi che
+ * il passaggio dalla ricerca titoli pagherebbe a cache scaduta.
+ *
+ * `data_source` è esplicito perché lo scenario di precompilazione attraversa
+ * `GET /api/securities/:isin` e la scheda del risultato dichiara la fonte.
+ */
+export const TITOLO_US_054: TitoloSeminabile = {
+  isin: 'LU1737652583',
+  file: 'US-054__quadro-carico-scarico.spec.ts',
+  campi: {
+    name: 'Amundi Index Msci World Ucits Etf Dr',
+    price: 9.842,
+    ticker: 'MWRD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,18%',
+    currency: 'EUR',
+    issuer: 'AMUNDI INDEX SOLUTIONS',
+    segment: 'ETF Indicizzati',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
+ * Riservato a `US-054__quadro-carico-scarico-demo.spec.ts` (il solo file demo).
+ *
+ * Chiave propria e non condivisa con `TITOLO_US_054`: i due file girano su
+ * worker distinti e seminare la stessa riga da entrambi renderebbe il
+ * ripristino uno stack di undo intrecciato. Il nome è per esteso perché il
+ * video mostra la riga del registro con la denominazione, non il solo codice.
+ */
+export const TITOLO_US_054_DEMO: TitoloSeminabile = {
+  isin: 'LU1900066462',
+  file: 'US-054__quadro-carico-scarico-demo.spec.ts',
+  campi: {
+    name: 'Lyxor Core Msci World Ucits Etf Acc',
+    price: 24.15,
+    ticker: 'LCWD',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,12%',
+    currency: 'EUR',
+    issuer: 'MULTI UNITS LUXEMBOURG',
+    segment: 'ETF Indicizzati',
+    data_source: 'borsaitaliana',
+  },
+};
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *

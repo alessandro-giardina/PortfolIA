@@ -2141,6 +2141,160 @@
     .bilancia .fulcro { display: none; }
   }
 
+  /* ---------- 15h. FasciaLifo — l'attribuzione LIFO resa visibile (US-054/TASK-03) ----------
+     Stessa tecnica di 15f e 15g: `FasciaLifo.tsx` non cambia di una riga e sono
+     le sue classi mastro a essere rivestite qui. Un diagramma non si biforca —
+     forkarlo significherebbe due disegni della stessa attribuzione, cioè il
+     primo posto in cui divergere in silenzio.
+
+     Riferimento visivo: `docs/mockups/US-054/carico-scarico.html`, sezione 23
+     del suo `shared.css` — dove le classi si chiamano `.fascia-lifo-quadro` &c.
+     perché il mockup è autosufficiente; qui vanno sui nomi mastro.
+
+     Ogni regola è ancorata sotto `.fascia-lifo`: `.capo`, `.targa`, `.barra` ed
+     `.esito` sono nomi troppo generici per stare da soli in un foglio che veste
+     l'intera applicazione. */
+
+  .fascia-lifo {
+    margin-top: 20px;
+    border: 1px solid var(--bordo);
+    border-radius: var(--raggio);
+    background: var(--superficie);
+    box-shadow: var(--ombra);
+    overflow: hidden;
+  }
+
+  .fascia-lifo .capo {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--bordo);
+  }
+  .fascia-lifo .capo h3 {
+    margin: 0;
+    font-size: var(--t-medio);
+    font-weight: 700;
+    letter-spacing: -.01em;
+    font-family: var(--font-ui);
+  }
+
+  /* La direzione del consumo, dichiarata: il filo guarda in basso perché la
+     pila si consuma dall'alto — dal lotto più recente. */
+  .fascia-lifo .freccia-lifo {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: var(--t-micro);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--testo-3);
+  }
+  .fascia-lifo .freccia-lifo::before {
+    content: '';
+    width: 1px; height: 20px;
+    background: linear-gradient(to bottom, transparent, var(--rosso-mastro));
+  }
+
+  .fascia-lifo .lotti { display: grid; }
+
+  .fascia-lifo .lotto {
+    display: grid;
+    grid-template-columns: minmax(170px, 210px) 1fr minmax(180px, 230px);
+    gap: 18px;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--bordo);
+  }
+  .fascia-lifo .lotto:last-child { border-bottom: 0; }
+  .fascia-lifo .lotto.intatto { background: var(--superficie-2); }
+
+  .fascia-lifo .targa { display: grid; gap: 2px; }
+  .fascia-lifo .targa b { font-size: var(--t-base); font-weight: 700; }
+  .fascia-lifo .targa small {
+    font-family: var(--font-mono);
+    font-size: var(--t-piccolo);
+    color: var(--testo-3);
+  }
+
+  .fascia-lifo .barra {
+    display: flex;
+    min-height: 34px;
+    border-radius: var(--raggio-xs);
+    overflow: hidden;
+    border: 1px solid var(--bordo);
+  }
+
+  /* Centratura con flexbox e **non** con `place-items` su una griglia: un item
+     flessibile con `flex-basis: 0` risolve la centratura di griglia contro una
+     larghezza non ancora definita e spinge l'etichetta fuori dalla barra, dove
+     `overflow: hidden` se la mangia. `ledger.css` fa già così nel mastro. */
+  .fascia-lifo .quota {
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 10px;
+    font-family: var(--font-cifre);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--t-piccolo);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .fascia-lifo .quota.consumata {
+    color: var(--rosso-mastro);
+    background:
+      repeating-linear-gradient(-45deg,
+        rgba(192,69,60,.30) 0 6px,
+        rgba(192,69,60,.10) 6px 12px);
+  }
+  .fascia-lifo .quota.residua { color: #06281c; background: var(--guadagno); }
+  .fascia-lifo .quota.futura {
+    color: var(--testo-3);
+    background: var(--superficie-2);
+    border: 1px dashed var(--bordo-forte);
+    font-weight: 500;
+    font-family: var(--font-ui);
+  }
+
+  .fascia-lifo .esito {
+    display: grid; gap: 2px;
+    justify-items: end;
+    text-align: right;
+    font-size: var(--t-piccolo);
+    color: var(--testo-3);
+  }
+  .fascia-lifo .esito b {
+    font-family: var(--font-cifre);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--testo);
+  }
+
+  .fascia-lifo .legenda-lifo {
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    padding: 14px 20px;
+    border-top: 1px solid var(--bordo);
+    background: var(--superficie-2);
+    font-size: var(--t-piccolo);
+    color: var(--testo-3);
+  }
+  .fascia-lifo .legenda-lifo span { display: inline-flex; align-items: center; gap: 8px; }
+  .fascia-lifo .legenda-lifo i { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+  .fascia-lifo .legenda-lifo i.consumata { background: rgba(192,69,60,.4); }
+  .fascia-lifo .legenda-lifo i.residua { background: var(--guadagno); }
+
+  /* L'identità che regge il criterio, scritta a schermo perché sia verificabile
+     a occhio prima ancora che da un test: il costo dei carichi non si crea né
+     si distrugge, si ripartisce fra ciò che è uscito e ciò che resta. */
+  .fascia-lifo .legenda-lifo [data-testid='identita-costo'] {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    color: var(--testo-2);
+  }
+
+  @media (max-width: 860px) {
+    .fascia-lifo .lotto { grid-template-columns: 1fr; gap: 10px; }
+    .fascia-lifo .esito { justify-items: start; text-align: left; }
+    .fascia-lifo .legenda-lifo [data-testid='identita-costo'] { margin-left: 0; flex-basis: 100%; }
+  }
+
   /* ---------- 16. Riepilogo — vuoti e gestione del conto (US-051/TASK-05) ----------
      Le due sole cose che la vista Riepilogo aveva ancora bisogno e che nessuna
      sezione precedente copriva: il messaggio da mostrare al posto di un
@@ -2425,6 +2579,311 @@
   }
   .riga-provenienza-quadro b { color: var(--testo); font-weight: 700; }
   .riga-provenienza-quadro .istante { font-family: var(--font-mono); }
+
+  /* ---------- 22. Carico titoli — i due moduli, il registro, il residuo (US-054/TASK-04) ----------
+     Carico e scarico sono lo **stesso oggetto visivo** — stessa griglia di
+     campi, stesse unità, stessi errori inline — e cambiano una cosa sola: il
+     *verso* dell'operazione. È l'unica cosa che deve essere impossibile
+     confondere, quindi è l'unica che il design distingue: un filo in cima al
+     pannello, blu per il carico e carminio per lo scarico, la pillola del verso
+     nella testa e il colore del bottone d'invio. Due griglie diverse per la
+     stessa operazione inversa costringerebbero a rileggere il modulo ogni volta.
+
+     I nomi sono **propri** e non riusano `.riquadro-modulo`/`.riga-modulo`/
+     `.campo`/`.unita` del mastro: i moduli si biforcano (decisione 1 del piano),
+     e `.unita` esiste già nel quadro dentro `MetricheTitolo` (`.bilancia .unita`,
+     15g) — una regola `.unita` non ancorata la investirebbe.
+
+     Riusati senza aggiunte: `.pannello`/`.testa-pannello`/`.corpo-pannello` (6),
+     `.pillola` (9), `.avviso` con `.sereno`/`.critico` (10), `table.dati` con
+     `.voce-titolo`/`.cifra`/`tfoot` e `.tabella-scroll` (11), `.et-sezione` (5),
+     `.placeholder-quadro` (16), `.errore-campo-quadro` (16).
+
+     Riferimento visivo: `docs/mockups/US-054/carico-scarico.html`, sezioni 22 e
+     24 del suo `shared.css`. */
+
+  /* ----- 22a. Il verso dell'operazione ----- */
+
+  .modulo-iscrizione { position: relative; }
+
+  .filo-verso {
+    position: absolute; inset: 0 0 auto 0;
+    height: 2px;
+    background: var(--accento);
+  }
+  .modulo-iscrizione.verso-scarico .filo-verso { background: var(--rosso-mastro); }
+
+  /* Il carminio è `--rosso-mastro`, il rosso del margine del Libro Mastro
+     ridotto ad accento: il verso di uscita porta lo stesso colore nei due
+     design, ed è l'unico prestito. */
+  .pillola.verso-carico  { color: var(--accento);      background: var(--alone-accento);   border-color: transparent; }
+  .pillola.verso-scarico { color: var(--rosso-mastro); background: rgba(192,69,60,.16);    border-color: transparent; }
+
+  .sigla-modulo {
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    letter-spacing: .04em;
+    color: var(--testo-3);
+  }
+
+  /* ----- 22b. La griglia dei campi -----
+     Due colonne dove c'è spazio, una sola sotto i 720px. ISIN e denominazione
+     occupano l'intera riga — sono i due campi che identificano il titolo, e
+     spezzarli su due colonne li farebbe leggere come due dati indipendenti. */
+
+  .griglia-campi {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px 20px;
+  }
+  .griglia-campi .campo-modulo.larghezza-piena { grid-column: 1 / -1; }
+
+  .campo-modulo { display: grid; gap: 7px; align-content: start; }
+  .campo-modulo label {
+    font-size: var(--t-piccolo);
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: var(--testo-2);
+  }
+  .campo-modulo .sotto-etichetta {
+    display: block;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--testo-3);
+  }
+
+  /* L'unità di misura sta **dentro** il campo e non nell'etichetta: al momento
+     di digitare la cifra, «EUR» deve essere accanto alla cifra, non due righe
+     sopra. */
+  .guscio-campo {
+    display: flex; align-items: center;
+    border: 1px solid var(--bordo);
+    border-radius: var(--raggio-s);
+    background: var(--superficie-2);
+    overflow: hidden;
+    transition: border-color .18s ease, box-shadow .18s ease;
+  }
+  .guscio-campo:focus-within { border-color: var(--accento); box-shadow: 0 0 0 3px var(--alone-accento); }
+  .guscio-campo.con-errore { border-color: var(--perdita); background: var(--alone-perdita); }
+  .guscio-campo.con-errore:focus-within { box-shadow: 0 0 0 3px var(--alone-perdita); }
+
+  .guscio-campo .unita-campo {
+    flex: none;
+    align-self: stretch;
+    display: grid; place-items: center;
+    padding: 0 12px;
+    font-family: var(--font-mono);
+    font-size: var(--t-micro);
+    letter-spacing: .04em;
+    color: var(--testo-3);
+    background: var(--superficie-3);
+    border-right: 1px solid var(--bordo);
+  }
+
+  .guscio-campo input,
+  .guscio-campo select {
+    flex: 1 1 auto;
+    min-width: 0;
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--testo);
+    font-family: inherit;
+    font-size: var(--t-base);
+    padding: 11px 13px;
+  }
+  .guscio-campo input:focus-visible,
+  .guscio-campo select:focus-visible { outline: none; }
+  .guscio-campo input.cifra {
+    font-family: var(--font-cifre);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.01em;
+  }
+  .guscio-campo input.isin-campo {
+    font-family: var(--font-mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .guscio-campo input::placeholder { color: var(--testo-3); letter-spacing: 0; text-transform: none; }
+  .guscio-campo select { padding-right: 34px; cursor: pointer; }
+
+  /* La freccia della select, disegnata in CSS per non portare un asset. */
+  .guscio-campo.con-select { position: relative; }
+  .guscio-campo.con-select::after {
+    content: '';
+    position: absolute; right: 14px; top: 50%;
+    width: 7px; height: 7px;
+    border-right: 1.6px solid var(--testo-3);
+    border-bottom: 1.6px solid var(--testo-3);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+
+  /* Campo di sola lettura: il nome del titolo che arriva dalla ricerca. Non è
+     disabilitato-e-basta — è *dichiarato* proveniente da altrove, perché un
+     campo grigio senza spiegazione si legge come un guasto. */
+  .campo-modulo.sola-lettura .guscio-campo { background: var(--superficie); border-style: dashed; }
+  .campo-modulo.sola-lettura input { color: var(--testo-2); font-style: italic; }
+
+  .giacenza-scelta { font-size: var(--t-piccolo); color: var(--testo-3); }
+  .giacenza-scelta b {
+    color: var(--testo);
+    font-family: var(--font-cifre);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nota-modulo {
+    margin: 18px 0 0;
+    padding: 13px 16px;
+    border-left: 2px solid var(--bordo-forte);
+    border-radius: 0 var(--raggio-xs) var(--raggio-xs) 0;
+    background: var(--superficie-2);
+    font-size: var(--t-piccolo);
+    color: var(--testo-2);
+    line-height: 1.55;
+  }
+  .nota-modulo b { color: var(--testo); }
+
+  .piede-modulo {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .piede-modulo .chiosa { color: var(--testo-3); font-size: var(--t-piccolo); margin-left: auto; }
+
+  .bottone.carminio { background: var(--rosso-mastro); }
+  .bottone.carminio:hover { filter: brightness(1.14); }
+
+  /* Il sommario degli errori di forma sta **sopra** il modulo perché dice quante
+     voci sono da correggere, non quale — quello lo dicono gli errori inline,
+     accanto al campo che li ha prodotti. */
+  .avviso .elenco-errori { margin: 6px 0 0; padding-left: 18px; font-size: var(--t-piccolo); color: var(--testo-2); }
+  .avviso .elenco-errori li { margin: 2px 0; }
+
+  /* ----- 22c. Registro delle iscrizioni -----
+     La tabella è la `table.dati` della sezione 11, invariata. Qui si aggiunge
+     solo ciò che il registro ha in più di un elenco: la **marca** che dice il
+     verso di ogni riga, la riga appena iscritta che si annuncia, il lotto
+     esaurito che resta a registro invece di sparire, e la riga in rettifica con
+     i suoi campi in linea. */
+
+  .marca-iscrizione {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: var(--t-micro);
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .marca-iscrizione::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+  }
+  .marca-iscrizione.carico   { color: var(--accento);      background: var(--alone-accento); }
+  .marca-iscrizione.scarico  { color: var(--rosso-mastro); background: rgba(192,69,60,.16); }
+  .marca-iscrizione.esaurito { color: var(--testo-3);      background: var(--superficie-3); }
+
+  table.dati tbody tr.riga-nuova { background: var(--alone-guadagno); }
+  table.dati tbody tr.riga-nuova td { border-bottom-color: transparent; }
+  table.dati tbody tr.lotto-esaurito td:not(.azioni-riga) { opacity: .62; }
+  table.dati tbody tr.riga-scarico .cifra { color: var(--rosso-mastro); }
+  table.dati tbody tr.in-rettifica { background: var(--alone-accento); }
+
+  table.dati .assente { color: var(--testo-3); }
+
+  .azioni-riga { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .bottone.minuto { padding: 6px 11px; font-size: var(--t-micro); }
+  .bottone.impedito { opacity: .45; cursor: not-allowed; }
+
+  /* Il «perché» del comando impedito, accanto al comando e non in un tooltip:
+     un vincolo che si spiega solo al passaggio del mouse non si spiega su un
+     telefono, e questo vincolo è la regola centrale del registro — un carico
+     consumato da una vendita non si rettifica. */
+  .perche-impedito {
+    flex-basis: 100%;
+    font-size: var(--t-micro);
+    color: var(--ambra);
+    line-height: 1.45;
+    max-width: 260px;
+  }
+
+  .campo-inline {
+    width: 100%;
+    min-width: 84px;
+    padding: 7px 9px;
+    border: 1px solid var(--accento);
+    border-radius: var(--raggio-xs);
+    background: var(--superficie-2);
+    color: var(--testo);
+    font-family: var(--font-cifre);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--t-piccolo);
+  }
+  .campo-inline:focus-visible { outline: 2px solid var(--accento); outline-offset: 1px; }
+
+  /* ----- 22d. Il residuo dopo la vendita: tre cifre, e per ciascuna il prima ----- */
+
+  .griglia-residuo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
+    gap: 14px;
+  }
+
+  .carta-residuo {
+    position: relative;
+    padding: 18px 20px;
+    border: 1px solid var(--bordo);
+    border-radius: var(--raggio);
+    background: var(--superficie);
+    box-shadow: var(--ombra);
+    overflow: hidden;
+  }
+  .carta-residuo::before {
+    content: '';
+    position: absolute; inset: 0 0 auto 0;
+    height: 2px;
+    background: var(--rosso-mastro);
+  }
+  .carta-residuo .et {
+    display: block;
+    font-size: var(--t-micro);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--testo-3);
+  }
+  .carta-residuo .cifra-residuo {
+    display: block;
+    margin: 8px 0 6px;
+    font-family: var(--font-cifre);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--t-cifra);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.05;
+  }
+  .carta-residuo .cifra-residuo .valuta {
+    font-size: var(--t-piccolo);
+    font-weight: 600;
+    color: var(--testo-3);
+    margin-right: 6px;
+    letter-spacing: .04em;
+  }
+  .carta-residuo .cifra-residuo.assente { color: var(--testo-3); }
+  .carta-residuo .prima-dopo {
+    display: block;
+    font-size: var(--t-piccolo);
+    color: var(--testo-3);
+    line-height: 1.5;
+  }
+  .carta-residuo .prima-dopo s { color: var(--testo-3); }
+
+  /* Titolo interamente venduto: la carta lo dichiara invece di mostrare uno
+     zero come se fosse una cifra qualunque. */
+  .carta-residuo.chiuso::before { background: var(--testo-3); }
+  .carta-residuo.chiuso .cifra-residuo { color: var(--testo-2); }
 }
 
 /* Le keyframe dei componenti condivisi (sezione 15): stessa ragione di
@@ -2482,6 +2941,11 @@
   --ombra: 0 1px 2px rgba(16,20,28,.05), 0 18px 40px -30px rgba(16,20,28,.5);
 
   /* Rifiniture che il solo cambio di token non copre. */
+
+  /* Il verde del residuo (sezione 15h) è chiaro nel tema chiaro: la cifra
+     dentro la barra torna bianca, o si perderebbe sul proprio fondo. */
+  .fascia-lifo .quota.residua { color: #fff; }
+
   .segmentato button[aria-pressed='true'] {
     background: #fff;
     box-shadow: 0 1px 2px rgba(16,20,28,.12);

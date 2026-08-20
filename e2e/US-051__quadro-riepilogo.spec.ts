@@ -230,7 +230,12 @@ test('la barra laterale porta all\'elenco portafogli e alla scheda "Carico titol
   await expect(page.getByTestId('barra-laterale')).toBeVisible();
 
   await barraLaterale.locator('a', { hasText: 'Carico titoli' }).click();
-  await expect(page.locator('#form-carico')).toBeVisible({ timeout: 8000 });
+  // Il `data-testid` e non l'`id` del modulo: da US-054 la scheda carico ha una
+  // resa quadro propria (`CaricoQuadro`), e `#form-carico` era il modulo del
+  // mastro che il quadro rendeva finché la sua gemella non esisteva. Il
+  // comportamento asserito è lo stesso — la voce di navigazione apre la scheda
+  // carico — e il `data-testid` è condiviso dalle due rese per costruzione.
+  await expect(page.getByTestId('input-isin')).toBeVisible({ timeout: 8000 });
 });
 
 test('il pannello Composizione somma a circa 100% ed esplicita la posizione esclusa', async ({
