@@ -99,7 +99,10 @@ test('parità mastro/quadro: lo stesso titolo dice le stesse cose nelle due rese
   // Fonte e istante di rilevamento (FR-021): la riga di provenienza del quadro.
   const provenienza = page.getByTestId('fonte-dato');
   await expect(provenienza).toContainText('Borsa Italiana');
-  await expect(page.getByTestId('istante-rilevazione')).toBeVisible();
+  const istanteRilevazione = page.getByTestId('istante-rilevazione');
+  await expect(istanteRilevazione).toBeVisible();
+  // US-063: formato gg/mm/aaaa hh:mm, non più a numeri romani.
+  await expect(istanteRilevazione.locator('b')).toHaveText(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
 
   // L'intestazione del risultato ripete nome, ISIN e ticker.
   const testa = page.getByTestId('testa-titolo-ricerca');

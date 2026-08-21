@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: LOW
 points: 2
-status: TODO
+status: REVIEW
 body: |-
   #### US-063: Formattare come gg/mm/aaaa hh:mm la data di rilevazione del prezzo nel design Quadro Strumenti
 
@@ -34,3 +34,9 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-21T12:10:40Z"
+  - status: PLANNED
+    at: "2026-08-21T15:22:20Z"
+  - status: IN PROGRESS
+    at: "2026-08-21T15:23:08Z"
+  - status: REVIEW
+    at: "2026-08-21T15:27:59Z"

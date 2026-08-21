@@ -1,6 +1,5 @@
 import { normalizeIsin } from '@portfolia/shared';
 import type { SecurityInfo } from '@portfolia/shared';
-import { dataRegistro } from '../components/Foglio.js';
 import PortfolioSelectDialog from '../components/PortfolioSelectDialog.js';
 import { nomeFonte, prezzo, simboloDi } from '../domain/formattazione.js';
 import type { RicercaProps } from './RicercaMastro.js';
@@ -9,15 +8,17 @@ import type { RicercaProps } from './RicercaMastro.js';
 const NON_DISPONIBILE = 'Dato non disponibile';
 
 /**
- * Formatta un timestamp unix come "20.VIII.2026 · 17:35" — identica a
- * `SchedaTitoloQuadro`, per la stessa ragione già registrata lì: è una lettura
- * diversa degli stessi dati, non una seconda convenzione di data.
+ * Formatta un timestamp unix come "21/08/2026 13:17" — la stessa convenzione
+ * gg/mm/aaaa hh:mm già usata da `RiepilogoQuadro`, propria del design Quadro
+ * Strumenti (a differenza dei numeri romani del Libro Mastro).
  */
-function dataRilevazione(fetchedAt: number): string {
+function dataRilevamento(fetchedAt: number): string {
   const d = new Date(fetchedAt * 1000);
+  const gg = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${dataRegistro(fetchedAt)} · ${hh}:${mm}`;
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${gg}/${mm}/${d.getFullYear()} ${hh}:${min}`;
 }
 
 /** Il prezzo nella convenzione del quadro: simbolo di valuta e quattro decimali. */
@@ -337,7 +338,7 @@ export default function RicercaQuadro({
             </span>
             {lastFetchedAt !== null && (
               <span className="istante" data-testid="istante-rilevazione">
-                Prezzo rilevato il <b>{dataRilevazione(lastFetchedAt)}</b>
+                Prezzo rilevato il <b>{dataRilevamento(lastFetchedAt)}</b>
               </span>
             )}
           </div>

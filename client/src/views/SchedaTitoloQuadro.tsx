@@ -1,8 +1,8 @@
-// Stessa ragione della coppia di formattatori duplicata da `RiepilogoQuadro`
-// rispetto a `RiepilogoMastro` (US-051/TASK-05): `dataRilevazione` e
-// `giornoSettimana` sono già in `SchedaTitolo.tsx`, identiche qui — è una
-// lettura diversa degli stessi dati, non una seconda convenzione.
-import { dataCarico, dataRegistro, quantita } from '../components/Foglio.js';
+// `giornoSettimana` è già in `SchedaTitolo.tsx`, identica qui — è una lettura
+// diversa degli stessi dati, non una seconda convenzione. `dataRilevamento`
+// invece è propria del design Quadro Strumenti: usa gg/mm/aaaa hh:mm (come
+// `RiepilogoQuadro`) e non i numeri romani del Libro Mastro.
+import { dataCarico, quantita } from '../components/Foglio.js';
 import {
   classeSegno,
   importo,
@@ -18,12 +18,14 @@ import { useSchedaTitolo, type UseSchedaTitoloProps } from '../hooks/useSchedaTi
 
 type SchedaTitoloQuadroProps = UseSchedaTitoloProps;
 
-/** Formatta un timestamp unix come "07.VIII.2026 · 09:14" — identica a `SchedaTitolo`. */
-function dataRilevazione(fetchedAt: number): string {
+/** Formatta un timestamp unix come "21/08/2026 13:17" — la stessa convenzione di `RiepilogoQuadro`. */
+function dataRilevamento(fetchedAt: number): string {
   const d = new Date(fetchedAt * 1000);
+  const gg = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${dataRegistro(fetchedAt)} · ${hh}:${mm}`;
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${gg}/${mm}/${d.getFullYear()} ${hh}:${min}`;
 }
 
 /** Giorno della settimana di una rilevazione, es. "lunedì" — identica a `SchedaTitolo`. */
@@ -174,7 +176,7 @@ export default function SchedaTitoloQuadro({
             <span className="istante-rilevazione">
               Rilevato il{' '}
               <b className={appenaAggiornato ? 'appena-aggiornato' : undefined} data-testid="istante-rilevazione">
-                {dataRilevazione(detail.fetchedAt)}
+                {dataRilevamento(detail.fetchedAt)}
               </b>
             </span>
           )}
@@ -493,7 +495,7 @@ export default function SchedaTitoloQuadro({
                       data-testid={`osservazione-${indice}`}
                     >
                       <td>
-                        {dataRilevazione(osservazione.observedAt)}
+                        {dataRilevamento(osservazione.observedAt)}
                         {indice === 0 && (
                           <span className="pillola viva" style={{ marginLeft: 8 }}>
                             {numeroOsservazioni === 1 ? 'unica' : 'ultima'}

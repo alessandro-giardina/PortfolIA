@@ -216,6 +216,9 @@ test('anagrafica ufficiale, carichi registrati e storico prezzi mostrano i dati 
   await expect(page.getByTestId('osservazione-0')).toBeVisible();
   await expect(page.getByTestId('osservazione-3')).toBeVisible();
   await expect(tabellaStorico).toContainText('ultima');
+  // US-063: la colonna «Prezzo rilevato» è in formato gg/mm/aaaa hh:mm, non più a numeri romani.
+  await expect(page.getByTestId('osservazione-0')).toHaveText(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/);
+  await expect(page.getByTestId('osservazione-3')).toHaveText(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/);
   await expect(page.getByTestId('storico-prezzi-vuoto')).toHaveCount(0);
 });
 
@@ -296,7 +299,10 @@ test('quando la fonte risponde, la scheda quadro dichiara «dati aggiornati» e 
 
   await expect(page.getByTestId('esito-aggiornamento')).toContainText('Dati aggiornati');
   await expect(page.getByTestId('fonte-dato')).toContainText('Fonte primaria');
-  await expect(page.getByTestId('istante-rilevazione')).toBeVisible();
+  const istanteRilevazione = page.getByTestId('istante-rilevazione');
+  await expect(istanteRilevazione).toBeVisible();
+  // US-063: formato gg/mm/aaaa hh:mm, non più a numeri romani.
+  await expect(istanteRilevazione).toHaveText(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
   // 90 quote × € 99,90 = € 8991,00
   await expect(page.getByTestId('dettaglio-valore-attuale')).toHaveText('€ 8991,00');
 });
