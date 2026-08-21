@@ -1,0 +1,36 @@
+schema: archetipo/spec/v2
+code: US-063
+title: Formattare come gg/mm/aaaa hh:mm la data di rilevazione del prezzo nel design Quadro Strumenti
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: LOW
+points: 2
+status: TODO
+body: |-
+  #### US-063: Formattare come gg/mm/aaaa hh:mm la data di rilevazione del prezzo nel design Quadro Strumenti
+
+  **Epica:** EP-009 | **Priorità:** LOW | **Punti:** 2 | **Stato:** TODO
+  **Bloccato da:** -
+
+  **User Story**
+  Come utente di PortfolIA che lavora nel design «Quadro strumenti»,
+  voglio che la data accanto all'etichetta «Prezzo rilevato il» / «Rilevato il» sia scritta come gg/mm/aaaa hh:mm (es. 21/08/2026 13:17) invece che nel formato arcaico con mese in numeri romani (es. 21.VIII.2026 · 13:17),
+  in modo che quella data rispetti la convenzione visiva del Quadro Strumenti e non porti con sé un tratto stilistico proprio dell'altro design, il Libro Mastro.
+
+  **Contesto**
+  La funzione `dataRilevazione` è duplicata in modo identico in `SchedaTitoloQuadro.tsx` (riga 22) e in `RicercaQuadro.tsx` (riga 16); entrambe le copie delegano la parte della data alla funzione condivisa `dataRegistro`, definita in `Foglio.tsx` (riga 144), che usa i numeri romani per il mese — la stessa convenzione usata dal Libro Mastro (dove esistono copie analoghe, `formatRilevazione`, in `SchedaTitolo.tsx` e `RicercaMastro.tsx`). Questa spec introduce, per le sole copie usate dal Quadro Strumenti, un formato gg/mm/aaaa hh:mm, senza toccare `dataRegistro` (che resta in uso dal Libro Mastro) e senza toccare le altre date del Quadro Strumenti che non hanno un orario associato (es. le date di carico/scarico nei grafici e nelle tabelle di lotti, o `dataCivile` usata nei titoli di pagina), che restano fuori dal perimetro di questa spec.
+
+  **Dimostra**
+  Dopo l'implementazione, cercando un ISIN nella pagina di ricerca titoli del Quadro Strumenti e aprendo la scheda di un titolo, sia la riga «Rilevato il» in testata sia ogni riga della tabella dello storico prezzi mostrano la data nel formato gg/mm/aaaa hh:mm (es. «21/08/2026 13:17»); le stesse schermate nel design Libro Mastro restano invariate, con il formato arcaico a numeri romani.
+
+  **Criteri di Accettazione**
+  - [ ] In `RicercaQuadro.tsx`, la data accanto a «Prezzo rilevato il» è nel formato gg/mm/aaaa hh:mm
+  - [ ] In `SchedaTitoloQuadro.tsx`, sia la riga «Rilevato il» in testata sia la colonna «Prezzo rilevato» della tabella storico osservazioni mostrano la data nel formato gg/mm/aaaa hh:mm
+  - [ ] Il design Libro Mastro (`SchedaTitolo.tsx`, `RicercaMastro.tsx`) non viene toccato e continua a mostrare il formato arcaico a numeri romani
+  - [ ] `dataRegistro` in `Foglio.tsx` resta invariata, poiché ancora in uso dal Libro Mastro
+  - [ ] I test E2E esistenti che coprono queste due pagine del Quadro Strumenti passano verdi, aggiornati dove necessario per il nuovo formato di data
+  - [ ] `npm run check` è verde
+history:
+  - status: TODO
+    at: "2026-08-21T12:10:40Z"
