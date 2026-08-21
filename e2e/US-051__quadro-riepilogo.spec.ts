@@ -111,12 +111,12 @@ async function creaPortafoglioDiProva(archivio: GestoreArchivio) {
 /**
  * Apre il portafoglio già nel design «quadro».
  *
- * Non tramite il bottone «Quadro strumenti» di `Foglio` (il meccanismo di
+ * Non tramite il bottone «Vista Quadro Strumenti» di `Foglio` (il meccanismo di
  * `US-050__commutatore-design.spec.ts`): su questa pagina `Guscio` e `Foglio`
  * chiamano ciascuno una propria istanza di `useDesign()` — due `useState`
  * indipendenti che leggono lo stesso `document.documentElement.dataset` solo
  * al proprio montaggio. Un clic sul bottone dentro `Foglio` aggiorna lo stato
- * *di `Foglio`* (da cui l'etichetta «Libro Mastro» dopo il clic) e l'attributo
+ * *di `Foglio`* (da cui l'etichetta «Vista Libro Mastro» dopo il clic) e l'attributo
  * globale sul `<html>`, ma non quello di `Guscio`, che quindi continua a
  * renderizzare `<Foglio>` invece di passare a `<Quadro>` — un'incoerenza reale
  * dell'app, invisibile a `US-050` perché quella spec verifica solo l'attributo

@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: LOW
 points: 2
-status: TODO
+status: REVIEW
 blocked_by:
   - US-050
 body: |-
@@ -31,3 +31,9 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-21T11:51:31Z"
+  - status: PLANNED
+    at: "2026-08-21T15:11:36Z"
+  - status: IN PROGRESS
+    at: "2026-08-21T15:12:17Z"
+  - status: REVIEW
+    at: "2026-08-21T15:18:32Z"

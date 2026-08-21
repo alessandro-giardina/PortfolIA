@@ -26,6 +26,15 @@ test('commutazione a "quadro": il pulsante aggiorna l\'attributo e salva la pref
   await expect(page.locator('html')).toHaveAttribute('data-design', 'quadro');
   const preferenzaSalvata = await page.evaluate(() => localStorage.getItem('portfolia-design'));
   expect(preferenzaSalvata).toBe('quadro');
+
+  const commutatore = page.getByRole('button', { name: /libro mastro/i });
+  const toggleTema = page.getByTestId('toggle-tema');
+  await expect(commutatore).toBeVisible();
+  await expect(toggleTema).toBeVisible();
+  const altezzaCommutatore = (await commutatore.boundingBox())?.height ?? NaN;
+  const altezzaToggleTema = (await toggleTema.boundingBox())?.height ?? NaN;
+  // toBeCloseTo tollera l'arrotondamento sub-pixel del rendering (es. 35.999996 vs 36).
+  expect(altezzaCommutatore).toBeCloseTo(altezzaToggleTema, 0);
 });
 
 test('persistenza: la preferenza "quadro" resta applicata dopo un ricaricamento', async ({ page }) => {

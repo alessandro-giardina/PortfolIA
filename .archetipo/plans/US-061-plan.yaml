@@ -1,0 +1,70 @@
+schema: archetipo/plan/v2
+spec_code: US-061
+body: |-
+  ## Technical Solution
+
+  Il testo dei due pulsanti di commutazione design vive in punti diversi del codice perché ciascun design ha il proprio guscio: `Foglio.tsx` è il guscio condiviso da tutte le pagine del design Libro Mastro (righe 91-111), `Quadro.tsx` è il guscio condiviso da tutte le pagine del design Quadro Strumenti (righe 169-223, unico punto che renderizza `azioni-testata`). Non serve toccare le singole viste: entrambe le testate sono già centralizzate in questi due componenti.
+
+  - In `Foglio.tsx` il pulsante `commutatore` (riga 91) ha un ternario su `design`: dentro il guscio Mastro `design === 'mastro'` è sempre vero, quindi solo il testo di riga 100 ("Quadro strumenti") è realmente visibile; il ramo di riga 108 ("Libro Mastro") è codice difensivo mai raggiunto in questo contesto ma va comunque allineato per coerenza semantica del componente.
+  - In `Quadro.tsx` il pulsante `bottone nudo` (riga 215-221) mostra staticamente "Libro Mastro" (riga 220): unico punto da cambiare per il lato Quadro.
+  - Il pulsante tema Day/Night adiacente (`icona-bottone`, `quadro.css` righe 501-514) ha un'altezza fissa esplicita `height: 36px`. Il pulsante `.bottone` (righe 473-487) non fissa l'altezza — la ottiene da `padding: 10px 16px` + `font-size` + `border`, che in pratica produce un'altezza vicina ma non garantita uguale a 36px su tutti i browser/font. `azioni-testata` (riga 184 di `Quadro.tsx`) è l'unico contenitore del genere nell'app (nessun'altra vista usa questa classe), quindi si può aggiungere una regola scoped `.azioni-testata .bottone.nudo { height: 36px; }` in `quadro.css` senza impattare altri pulsanti `.bottone`/`.bottone.nudo` usati altrove nel design Quadro.
+  - I locator E2E esistenti usano regex case-insensitive senza ancoraggio (`/quadro strumenti/i`, `/libro mastro/i`), quindi il testo "Vista Quadro Strumenti"/"Vista Libro Mastro" continua a matchare senza modifiche ai locator — va solo aggiunta l'asserzione sull'altezza, non ancora presente.
+
+  ## Test Strategy
+
+  La modifica è interamente di superficie (testo statico + una regola CSS), niente stato server o dati: la suite E2E esistente basta a coprire il comportamento funzionale, va solo estesa con un'asserzione dimensionale per il criterio sull'altezza. Nessun dato di archivio è coinvolto: i test non toccano portafogli/titoli, quindi non serve la fixture `archivio`.
+
+  ### E2E Tests — User Simulation
+
+  **Framework:** Playwright (`e2e/*.spec.ts`, esistente nel progetto)
+  **Video recording:** Nessuna nuova registrazione richiesta — lo scenario dimostrativo di commutazione design è già coperto dal video esistente di `e2e/demo__commuta-design.spec.ts` (US-050); il nuovo testo apparirà automaticamente nel prossimo run di quello spec, senza modifiche al file.
+
+  | Scenario | User flow description |
+  |---|---|
+  | Commutazione a Quadro con testo aggiornato | L'utente nel design Mastro clicca il pulsante di commutazione (ora atteso mostrare ancora la sotto-stringa "quadro strumenti"), atterra nel design Quadro; il pulsante di ritorno mostra la sotto-stringa "libro mastro" — copre entrambi i lati del cambio testo senza toccare i locator esistenti |
+  | Altezza pulsante commutazione = altezza pulsante tema | Nel design Quadro, dopo la commutazione, si confronta `boundingBox().height` del pulsante "Vista Libro Mastro" con quella del pulsante `data-testid="toggle-tema"`: devono coincidere |
+
+  _Plan generated via ARchetipo Planning_
+tasks:
+  - id: TASK-01
+    title: Aggiorna il testo del pulsante di commutazione nel design Quadro Strumenti
+    description: In client/src/components/Quadro.tsx (riga 220), cambia il testo del pulsante da "Libro Mastro" a "Vista Libro Mastro" per chiarire la destinazione del pulsante.
+    type: Impl
+    status: DONE
+    body: In client/src/components/Quadro.tsx (riga 220), cambia il testo del pulsante da "Libro Mastro" a "Vista Libro Mastro" per chiarire la destinazione del pulsante.
+    ref: TASK-01
+  - id: TASK-02
+    title: Aggiorna il testo del pulsante di commutazione nel design Libro Mastro
+    description: In client/src/components/Foglio.tsx, cambia il testo di riga 100 da "Quadro strumenti" a "Vista Quadro Strumenti" (ramo effettivamente renderizzato) e, per coerenza del componente, anche quello di riga 108 da "Libro Mastro" a "Vista Libro Mastro" (ramo difensivo non raggiunto in questo contesto).
+    type: Impl
+    status: DONE
+    body: In client/src/components/Foglio.tsx, cambia il testo di riga 100 da "Quadro strumenti" a "Vista Quadro Strumenti" (ramo effettivamente renderizzato) e, per coerenza del componente, anche quello di riga 108 da "Libro Mastro" a "Vista Libro Mastro" (ramo difensivo non raggiunto in questo contesto).
+    ref: TASK-02
+  - id: TASK-03
+    title: Allinea l'altezza del pulsante di commutazione a quella del pulsante tema
+    description: 'In client/src/quadro.css aggiungi una regola scoped al contenitore `.azioni-testata` (es. `.azioni-testata .bottone.nudo { height: 36px; }`) pari al valore fisso di `.icona-bottone` (righe 501-514), così che il pulsante "Vista Libro Mastro" abbia la stessa altezza del pulsante Day/Night adiacente senza toccare la classe base `.bottone` usata altrove nel design Quadro.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'In client/src/quadro.css aggiungi una regola scoped al contenitore `.azioni-testata` (es. `.azioni-testata .bottone.nudo { height: 36px; }`) pari al valore fisso di `.icona-bottone` (righe 501-514), così che il pulsante "Vista Libro Mastro" abbia la stessa altezza del pulsante Day/Night adiacente senza toccare la classe base `.bottone` usata altrove nel design Quadro.'
+    ref: TASK-03
+  - id: TASK-04
+    title: Verifica la suite E2E esistente con i nuovi testi
+    description: 'Esegui e2e/demo__commuta-design.spec.ts e e2e/US-050__commutatore-design.spec.ts: i locator regex case-insensitive (/quadro strumenti/i, /libro mastro/i) devono continuare a matchare i nuovi testi senza modifiche al codice degli spec. Conferma che passano verdi dopo TASK-01/TASK-02.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+    body: 'Esegui e2e/demo__commuta-design.spec.ts e e2e/US-050__commutatore-design.spec.ts: i locator regex case-insensitive (/quadro strumenti/i, /libro mastro/i) devono continuare a matchare i nuovi testi senza modifiche al codice degli spec. Conferma che passano verdi dopo TASK-01/TASK-02.'
+    ref: TASK-04
+  - id: TASK-05
+    title: Aggiungi l'asserzione E2E sull'altezza dei due pulsanti in testata
+    description: 'In e2e/US-050__commutatore-design.spec.ts, nel test ''commutazione a "quadro"'' (dopo il click che porta a data-design=''quadro''), leggi boundingBox().height del pulsante di commutazione design (getByRole(''button'', {name: /libro mastro/i})) e di page.getByTestId(''toggle-tema''), e asserisci che coincidano. Copre il criterio di accettazione sull''altezza introdotto da TASK-03.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-03
+    body: 'In e2e/US-050__commutatore-design.spec.ts, nel test ''commutazione a "quadro"'' (dopo il click che porta a data-design=''quadro''), leggi boundingBox().height del pulsante di commutazione design (getByRole(''button'', {name: /libro mastro/i})) e di page.getByTestId(''toggle-tema''), e asserisci che coincidano. Copre il criterio di accettazione sull''altezza introdotto da TASK-03.'
+    ref: TASK-05

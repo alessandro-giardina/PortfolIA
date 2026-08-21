@@ -498,6 +498,8 @@
   .bottone.nudo { background: transparent; color: var(--testo-2); border-color: var(--bordo); }
   .bottone.nudo:hover { color: var(--testo); }
 
+  .azioni-testata .bottone.nudo { height: 36px; }
+
   .icona-bottone {
     width: 36px; height: 36px;
     display: grid; place-items: center;

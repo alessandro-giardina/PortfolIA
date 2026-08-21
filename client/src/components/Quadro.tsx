@@ -217,7 +217,7 @@ export default function Quadro({
                 <path d="M2 2.5h4.5a1.5 1.5 0 0 1 1.5 1.5v9.5a1 1 0 0 0-1-1H2z" />
                 <path d="M14 2.5H9.5A1.5 1.5 0 0 0 8 4v9.5a1 1 0 0 1 1-1h5z" />
               </svg>
-              Libro Mastro
+              Vista Libro Mastro
             </button>
           </div>
         </header>
