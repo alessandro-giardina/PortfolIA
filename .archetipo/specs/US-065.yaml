@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-065
+title: Contare e aggiornare solo le posizioni aperte nello stato dei rilevamenti
+epic:
+  code: EP-005
+  title: Visualizzazione dei titoli
+priority: HIGH
+points: 1
+status: TODO
+body: |-
+  #### US-065: Contare e aggiornare solo le posizioni aperte nello stato dei rilevamenti
+
+  **Epic:** EP-005 | **Priorità:** HIGH | **Punti:** 1 | **Stato:** TODO
+  **Bloccata da:** -
+
+  **User Story**
+  Come Alessandro, investitore-proprietario,
+  voglio che lo stato dei rilevamenti e il pulsante «Aggiorna i titoli obsoleti» contino e interroghino soltanto i titoli attualmente detenuti in portafoglio,
+  in modo da non essere confuso da conteggi che includono titoli ormai venduti, e da non sprecare tempo e richieste alle fonti dati per titoli che non mi servono più.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, in un portafoglio con 4 posizioni aperte (tutte allineate) e 2 posizioni chiuse mai più rilevate dopo la vendita, il riepilogo dichiara «tutti i titoli sono allineati» su un totale di 4 e il pulsante è inattivo; avviando comunque un aggiornamento in un portafoglio con posizioni aperte obsolete, i 2 ISIN venduti non vengono mai interrogati alla fonte.
+
+  **Criteri di Accettazione**
+  - [ ] Il conteggio nel pannello «Stato dei rilevamenti» (denominatore, obsoleti, mai rilevati) considera soltanto le posizioni aperte (quantità detenuta > 0), escludendo le posizioni chiuse
+  - [ ] Avviando il lavoro di aggiornamento, la coda dei titoli da interrogare è costruita sulle sole posizioni aperte: nessuna richiesta parte per un ISIN di una posizione chiusa, anche se il suo ultimo rilevamento risulta obsoleto o assente
+  - [ ] Un portafoglio con sole posizioni chiuse dichiara zero titoli da aggiornare e il pulsante risulta inattivo
+  - [ ] La correzione riguarda entrambe le viste che montano il pannello (Riepilogo Mastro e Riepilogo Quadro); nessuna delle due regredisce
+  - [ ] La tabella delle posizioni chiuse (EP-008) continua a mostrare tutte le posizioni vendute, invariata: la correzione non ne restringe l'elenco
+  - [ ] Un test copre un portafoglio con posizioni sia aperte sia chiuse, verificando che sia il conteggio sia la coda di aggiornamento ignorino le posizioni chiuse
+history:
+  - status: TODO
+    at: "2026-08-21T13:06:38Z"
