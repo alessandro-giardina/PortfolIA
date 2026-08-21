@@ -722,9 +722,9 @@
   }
 
   /* ---------- 12c. Intestazione del titolo (scheda titolo, US-052/TASK-02) ----------
-     Porta `.testa-titolo` dal mockup: stemma a due lettere, denominazione e
-     pillole di marcatura, prezzo attuale in evidenza — stessi token di colore
-     e tipografia delle carte KPI qui sopra, nessun valore hardcoded nuovo. */
+     Porta `.testa-titolo` dal mockup: denominazione e pillole di marcatura,
+     prezzo attuale in evidenza — stessi token di colore e tipografia delle
+     carte KPI qui sopra, nessun valore hardcoded nuovo. */
 
   .testa-titolo {
     display: flex;
@@ -738,16 +738,6 @@
       linear-gradient(120deg, var(--alone-accento), transparent 46%),
       var(--superficie);
     box-shadow: var(--ombra);
-  }
-  .testa-titolo .stemma {
-    width: 56px; height: 56px; flex: none;
-    display: grid; place-items: center;
-    border-radius: 16px;
-    background: var(--superficie-3);
-    font-family: var(--font-cifre);
-    font-size: var(--t-grande);
-    font-weight: 700;
-    letter-spacing: -.02em;
   }
   .testa-titolo .anagrafe { min-width: 0; flex: 1 1 320px; display: grid; gap: 7px; }
   .testa-titolo h1 {

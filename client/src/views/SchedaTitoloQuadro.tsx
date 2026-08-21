@@ -34,15 +34,6 @@ function giornoSettimana(observedAt: number): string {
 /** Etichetta unica per ogni campo assente: la spec vieta il valore inventato. */
 const NON_DISPONIBILE = 'Dato non disponibile';
 
-/**
- * Lo stemma a due lettere dell'intestazione (mockup `docs/mockups/US-052/`):
- * dal nome se l'anagrafica lo conosce, dall'ISIN altrimenti — non maiuscolato
- * a forza, per restare fedele a come il mockup lo mostra ("iS", non "IS").
- */
-function stemmaDi(nome: string | null, isin: string): string {
-  return (nome !== null && nome !== '' ? nome : isin).slice(0, 2);
-}
-
 /** Una voce dell'anagrafica ufficiale sulla griglia `.griglia-def` del design quadro. */
 function VoceAnagraficaQuadro({
   etichetta,
@@ -136,9 +127,6 @@ export default function SchedaTitoloQuadro({
     <div data-testid="scheda-titolo" data-isin={detail.isin}>
       {/* ===== Intestazione del titolo ===== */}
       <section className="testa-titolo">
-        <span className="stemma" aria-hidden="true">
-          {stemmaDi(detail.name, detail.isin)}
-        </span>
         <div className="anagrafe">
           <h1>{detail.name ?? detail.isin}</h1>
           <div className="marcature">

@@ -20,15 +20,6 @@ function dataRilevazione(fetchedAt: number): string {
   return `${dataRegistro(fetchedAt)} · ${hh}:${mm}`;
 }
 
-/**
- * Lo stemma a due lettere dell'intestazione (mockup `docs/mockups/US-055/`):
- * dal nome se l'anagrafica lo conosce, dall'ISIN altrimenti — stessa regola di
- * `SchedaTitoloQuadro`, dove è nato.
- */
-function stemmaDi(nome: string | null, isin: string): string {
-  return (nome !== null && nome !== '' ? nome : isin).slice(0, 2);
-}
-
 /** Il prezzo nella convenzione del quadro: simbolo di valuta e quattro decimali. */
 function prezzoDi(security: SecurityInfo): string | null {
   return security.price !== null ? `${simboloDi(security.currency)} ${prezzo(security.price)}` : null;
@@ -312,9 +303,6 @@ export default function RicercaQuadro({
       {status === 'found' && security !== null && (
         <>
           <section className="testa-titolo" data-testid="testa-titolo-ricerca">
-            <span className="stemma" aria-hidden="true">
-              {stemmaDi(security.name, security.isin)}
-            </span>
             <div className="anagrafe">
               <h1>{security.name ?? security.isin}</h1>
               <div className="marcature">
