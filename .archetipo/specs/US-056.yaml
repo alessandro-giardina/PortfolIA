@@ -1,0 +1,37 @@
+schema: archetipo/spec/v2
+code: US-056
+title: Quadro strumenti — gestione di un conto senza titoli
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: HIGH
+points: 2
+status: TODO
+body: |
+  #### US-056: Quadro strumenti — gestione di un conto senza titoli
+
+  **Epica:** EP-009 | **Priorità:** HIGH | **Punti:** 2 | **Stato:** TODO
+  **Bloccato da:** -
+
+  **User Story**
+  Come utente di PortfolIA che lavora nel design «Quadro strumenti»,
+  voglio poter rinominare ed estinguere anche un conto che non ha ancora titoli iscritti,
+  così che un portafoglio creato per errore o rimasto vuoto non mi obblighi a tornare al «Libro Mastro» per liberarmene.
+
+  **Contesto**
+  Nella scheda «Riepilogo» del design «quadro» la sezione «Gestione del conto» — rinomina e zona pericolo con eliminazione — e il collegamento «Torna all'elenco portafogli» spariscono quando il portafoglio non ha posizioni: la vista esce prima di renderli e mostra il solo segnaposto «Nessun titolo iscritto». Nel «mastro» le stesse due parti restano visibili perché sono rese fuori dal ramo condizionale. Il risultato è che rinomina ed eliminazione, che US-053 aveva già accettato come funzionanti, oggi non sono raggiungibili nel «quadro» proprio nel caso in cui servono di più: il conto appena aperto. Lo stesso accade, in modo transitorio, mentre i titoli del conto sono in caricamento.
+
+  **Dimostra**
+  Dopo l'implementazione, nel design «Quadro strumenti» si crea un portafoglio, lo si apre e — pur non avendo alcun titolo — si vedono il segnaposto «Nessun titolo iscritto», il collegamento «Torna all'elenco portafogli» e il pannello «Gestione del conto»: da lì il conto si rinomina e si elimina senza mai commutare design. Commutando su «Libro Mastro» sulla stessa pagina, le due schede mostrano le stesse possibilità.
+
+  **Criteri di accettazione**
+  - [ ] Su un portafoglio senza posizioni, la scheda «Riepilogo» del design «quadro» mostra il segnaposto di stato vuoto **e** il pannello «Gestione del conto» con il campo di rinomina e il comando di eliminazione
+  - [ ] Sullo stesso portafoglio è presente il collegamento «Torna all'elenco portafogli»
+  - [ ] La rinomina e l'eliminazione di un conto vuoto funzionano nel «quadro» esattamente come nel «mastro», compresi i messaggi di errore del server
+  - [ ] Mentre i titoli del conto sono in caricamento, la scheda non nasconde il resto del suo contenuto: l'attesa è dichiarata in aggiunta, non al posto della pagina
+  - [ ] Le due rese restano coerenti: commutando design sulla stessa pagina si vedono le stesse possibilità di gestione del conto
+  - [ ] Test E2E nel design «quadro»: creazione di un portafoglio, apertura, rinomina e successiva eliminazione senza passare dal «mastro»
+  - [ ] La suite esistente resta verde: nessuno scenario del «mastro» né delle altre schede del «quadro» cambia comportamento
+history:
+  - status: TODO
+    at: "2026-08-20T16:55:23Z"

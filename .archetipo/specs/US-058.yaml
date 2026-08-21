@@ -1,0 +1,38 @@
+schema: archetipo/spec/v2
+code: US-058
+title: Quadro strumenti — contesto di pagina in ogni scheda
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 3
+status: TODO
+body: |
+  #### US-058: Quadro strumenti — contesto di pagina in ogni scheda
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 3 | **Stato:** TODO
+  **Bloccato da:** -
+
+  **User Story**
+  Come utente di PortfolIA che lavora nel design «Quadro strumenti»,
+  voglio che ogni scheda mi dica a schermo dove sono e su quale conto sto lavorando,
+  così che non debba dedurlo dalla briciola o ricordarmelo passando da una scheda all'altra.
+
+  **Contesto**
+  Il guscio del «quadro» riceve dalle pagine le stesse informazioni di intestazione del «mastro», ma ne usa solo una parte: la colonna di registro non è resa affatto, e il sottotesto della pagina finisce in un suggerimento del passaggio del mouse invece che a schermo. Tre schede su cinque si sono costruite un proprio titolo di pagina e non ne risentono; «Carico titoli» e «Scheda titolo» no. Nel «quadro», aprendo «Carico titoli», la frase che dichiara in che scheda ci si trova non è leggibile da nessuna parte, e la data di apertura del conto compare solo nel «Riepilogo».
+
+  La decisione da prendere fa parte della spec: la colonna di registro del «mastro» è in buona parte scenografia d'epoca — numero di volume, anno in numeri romani, sigla del modulo — e ricopiarla nel «quadro» sarebbe fedeltà mal riposta. Ciò che va portato è l'informazione: su quale conto si sta lavorando, da quando esiste, in quale scheda si è. Quel che resta scenografia va tolto dal contratto condiviso invece di continuare a essere passato a un guscio che lo ignora: una proprietà che nessuno rende è una dichiarazione falsa nel tipo.
+
+  **Dimostra**
+  Dopo l'implementazione, nel design «Quadro strumenti» ognuna delle cinque schede — elenco portafogli, riepilogo, carico titoli, scheda titolo, ricerca titoli — dichiara a schermo dove ci si trova, e nelle schede di un conto anche di quale conto si tratta. Aprendo «Carico titoli» si legge il nome del conto e il fatto che quella è la scheda di iscrizione di una nuova posizione, senza passare il mouse su nulla. Il contratto fra pagina e guscio non contiene più campi che il «quadro» non rende.
+
+  **Criteri di accettazione**
+  - [ ] Nel design «quadro», le schede «Carico titoli» e «Scheda titolo» dichiarano a schermo la scheda corrente e il conto su cui si opera
+  - [ ] Il sottotesto della pagina non è più affidato al solo suggerimento del passaggio del mouse in nessuna scheda
+  - [ ] Le informazioni della colonna di registro che sono **dati** (nome e data di apertura del conto, numero di conti aperti) sono raggiungibili nel «quadro»; quelle che sono **decorazione d'epoca** sono dichiarate tali e non portate
+  - [ ] Il contratto di props fra pagine e guscio non contiene più campi ignorati dal «quadro»: o sono resi, o sono rimossi dal contratto condiviso
+  - [ ] Il design «mastro» non cambia: testata, colonna di registro e sottotesto restano come oggi
+  - [ ] La suite E2E esistente resta verde, in entrambi i design
+history:
+  - status: TODO
+    at: "2026-08-20T16:56:42Z"

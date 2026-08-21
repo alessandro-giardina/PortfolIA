@@ -1,0 +1,39 @@
+schema: archetipo/spec/v2
+code: US-057
+title: Quadro strumenti — stati di contorno della pagina di dettaglio
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 3
+status: TODO
+body: |
+  #### US-057: Quadro strumenti — stati di contorno della pagina di dettaglio
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 3 | **Stato:** TODO
+  **Bloccato da:** -
+
+  **User Story**
+  Come utente di PortfolIA che lavora nel design «Quadro strumenti»,
+  voglio che anche l'attesa, l'errore e il portafoglio inesistente mi siano mostrati nella veste del quadro,
+  così che un momento storto dell'app non mi sbatta davanti una pagina che sembra rotta.
+
+  **Contesto**
+  Lo stile del «Libro Mastro» vive tutto sotto `:root[data-design='mastro']`: ogni classe che esiste solo lì non ha alcuna regola quando il design attivo è «quadro». La pagina di dettaglio del portafoglio rende però i suoi tre stati di contorno — caricamento, errore di rete, portafoglio non trovato — con marcatura del solo «mastro», senza scegliere in base al design; lo stesso vale per l'errore di caricamento dell'elenco portafogli. In «quadro» quei messaggi compaiono quindi come testo nudo, e il comando di ritorno all'elenco si presenta come azione primaria invece che quieta. Le primitive equivalenti nel «quadro» esistono già e sono usate nelle altre schede.
+
+  Allo stesso gruppo appartengono tre varianti visive di componenti condivisi che il «quadro» monta invariati ma non riveste: la prima delle due dimensioni di copertura nel grafico del portafoglio, il piatto del P&L nella bilancia del titolo e la marcatura «assente per scelta in questa vista». I componenti funzionano, ma perdono il segnale.
+
+  **Dimostra**
+  Dopo l'implementazione, con il design «Quadro strumenti» attivo: aprendo l'indirizzo di un portafoglio inesistente compare un segnaposto nella veste del quadro con il comando di ritorno all'elenco reso come azione quieta; con il backend spento l'errore compare come avviso del quadro e non come riga di testo grezza; il caricamento è dichiarato con la tipografia del quadro. Nessuna schermata mostra più testo privo di stile, e le tre marcature dei grafici sono visibili come nel «mastro».
+
+  **Criteri di accettazione**
+  - [ ] Nel design «quadro», lo stato «portafoglio non trovato» è reso con le primitive del quadro, compreso il comando di ritorno all'elenco nella sua variante quieta
+  - [ ] Nel design «quadro», il caricamento del portafoglio e l'errore di caricamento sono resi con le primitive del quadro
+  - [ ] Nel design «quadro», l'errore di caricamento dell'elenco portafogli è reso con le primitive del quadro, coerente con il messaggio di attesa che gli sta accanto
+  - [ ] Le tre varianti visive oggi prive di regola nel foglio di stile del «quadro» — copertura temporale del grafico del portafoglio, piatto del P&L della bilancia del titolo, marcatura della serie soppressa nella vista corrente — sono coperte
+  - [ ] Nessuna classe del solo «mastro» resta raggiungibile con il design «quadro» attivo: la verifica è ripetibile e documentata
+  - [ ] Il design «mastro» non cambia: gli stessi tre stati continuano a comparire come oggi
+  - [ ] La suite E2E esistente resta verde
+history:
+  - status: TODO
+    at: "2026-08-20T16:56:00Z"

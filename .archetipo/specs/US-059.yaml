@@ -1,0 +1,40 @@
+schema: archetipo/spec/v2
+code: US-059
+title: Quadro strumenti — dichiarazioni testuali del riepilogo
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: LOW
+points: 2
+status: TODO
+body: |
+  #### US-059: Quadro strumenti — dichiarazioni testuali del riepilogo
+
+  **Epica:** EP-009 | **Priorità:** LOW | **Punti:** 2 | **Stato:** TODO
+  **Bloccato da:** -
+
+  **User Story**
+  Come utente di PortfolIA che legge il riepilogo nel design «Quadro strumenti»,
+  voglio che il perché di un totale incompleto mi sia detto a parole e non solo con un contatore,
+  così che la trasparenza sui dati mancanti non dipenda dal design che ho scelto.
+
+  **Contesto**
+  ADR-003 impone che ciò che manca sia dichiarato invece di essere stimato, e US-014 chiede che il prezzo corrente assente sia «dichiarato in modo trasparente». Il «mastro» lo fa con una frase: dice se il valore è parziale o del tutto assente, quante posizioni restano fuori dal totale e che cosa questo comporta. Il «quadro» lo dice con un numero — una carta «Senza prezzo» — che è vero ma più povero: chi legge apprende quante posizioni mancano, non che il totale che ha appena letto le esclude.
+
+  Allo stesso registro appartengono altri tre segnali che il «quadro» oggi non dà: la nota che spiega perché le posizioni chiuse sono di sola consultazione, la marcatura della riga mentre l'aggiornamento in blocco la sta lavorando, e la marcatura dell'istante di rilevamento quando quel rilevamento è obsoleto — nel «quadro» lo dice solo la pillola accanto, e il colore non deve mai essere l'unico segnale ma nemmeno l'unico posto in cui il segnale esiste.
+
+  **Dimostra**
+  Dopo l'implementazione, nel design «Quadro strumenti»: un portafoglio in cui alcuni titoli non hanno prezzo in archivio mostra, accanto al valore totale, la dichiarazione che il totale è parziale e quante posizioni ne restano fuori; un portafoglio in cui nessun titolo ha prezzo lo dichiara come caso distinto; la sezione delle posizioni chiuse spiega perché è di sola consultazione; avviando l'aggiornamento in blocco la riga in lavorazione è riconoscibile; una riga con rilevamento obsoleto lo segnala sia sull'istante sia sulla pillola. Le stesse cifre e le stesse frasi del «mastro», nella veste del quadro.
+
+  **Criteri di accettazione**
+  - [ ] Nel «quadro», un totale che esclude posizioni prive di prezzo lo dichiara a parole, nominando quante posizioni restano escluse
+  - [ ] Il caso «nessuna posizione ha prezzo» è distinto a schermo dal caso «alcune posizioni non hanno prezzo»
+  - [ ] La sezione delle posizioni chiuse dichiara perché è di sola consultazione, non solo che lo è
+  - [ ] Durante l'aggiornamento in blocco, la riga in lavorazione è distinguibile dalle altre
+  - [ ] Un rilevamento obsoleto è segnalato anche sull'istante, non solo sulla pillola accanto
+  - [ ] Nessuna cifra è ricalcolata: le dichiarazioni nascono dagli stessi dati e dagli stessi formattatori già in uso, così che le due rese non possano divergere
+  - [ ] Il design «mastro» non cambia
+  - [ ] La suite E2E esistente resta verde
+history:
+  - status: TODO
+    at: "2026-08-20T16:57:17Z"

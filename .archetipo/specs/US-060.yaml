@@ -1,0 +1,41 @@
+schema: archetipo/spec/v2
+code: US-060
+title: Libro Mastro — composizione del portafoglio
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: LOW
+points: 3
+status: TODO
+body: |
+  #### US-060: Libro Mastro — composizione del portafoglio
+
+  **Epica:** EP-009 | **Priorità:** LOW | **Punti:** 3 | **Stato:** TODO
+  **Bloccato da:** -
+
+  **User Story**
+  Come utente di PortfolIA che preferisce il design «Libro Mastro»,
+  voglio vedere come il valore del mio portafoglio si ripartisce fra le posizioni,
+  così che scegliere la veste d'epoca non mi costi una lettura che l'altro design offre.
+
+  **Contesto**
+  La verifica di parità fra i due design ha trovato un solo scarto nella direzione opposta a tutti gli altri: il pannello «Composizione» — la ripartizione del valore attuale per posizione, con la legenda delle quote — esiste nel «Quadro strumenti» e non ha alcun equivalente nel «Libro Mastro». Fin qui l'epica ha sempre inseguito il mastro; qui è il mastro a essere indietro.
+
+  Due vincoli da tenere presenti. Il primo: il calcolo della ripartizione vive già in un modulo di dominio separato dalla resa ed è coperto da test unitari — non va duplicato, va riusato. Il secondo: la tavolozza delle fette è costruita sulle variabili di colore del solo «quadro»; nel «mastro» quelle variabili non esistono e un riuso diretto darebbe fette senza colore. Il porting ha quindi bisogno di una propria tavolozza, coerente con gli inchiostri del registro.
+
+  È un'ipotesi alternativa legittima, da valutare in pianificazione, che la composizione resti una specificità del «quadro» — i due design non sono obbligati a essere sovrapponibili in ogni pannello. Se si sceglie quella strada, la spec si chiude come non fatta con la motivazione registrata, invece di restare aperta a tempo indeterminato.
+
+  **Dimostra**
+  Dopo l'implementazione, aprendo il riepilogo di un portafoglio con più titoli nel design «Libro Mastro» compare un pannello che ripartisce il valore attuale fra le posizioni, con la legenda delle quote e la stessa nota di chiusura del «quadro» su quante posizioni entrano nel calcolo e quante ne restano fuori per prezzo mancante. Commutando design sulla stessa pagina, le due rese mostrano le stesse quote sulle stesse posizioni.
+
+  **Criteri di accettazione**
+  - [ ] Il riepilogo del design «mastro» mostra la ripartizione del valore attuale per posizione, nella veste del registro
+  - [ ] Le quote mostrate coincidono con quelle del «quadro» sugli stessi dati: il calcolo è quello già esistente, riusato e non riscritto
+  - [ ] Le posizioni prive di prezzo corrente sono dichiarate come escluse dal calcolo, non omesse in silenzio
+  - [ ] Un portafoglio in cui nessuna posizione ha prezzo dichiara il caso invece di mostrare una ripartizione vuota
+  - [ ] I colori delle fette nel «mastro» sono definiti sugli inchiostri del registro: nessuna fetta resta senza colore per una variabile che in quel design non esiste
+  - [ ] Il design «quadro» non cambia
+  - [ ] La suite E2E esistente resta verde, e il nuovo pannello del «mastro» è coperto da uno scenario
+history:
+  - status: TODO
+    at: "2026-08-20T16:58:09Z"
