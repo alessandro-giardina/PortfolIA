@@ -369,7 +369,7 @@ export default function RiepilogoQuadro({
           </div>
         </div>
         <div className="corpo-pannello">
-          <Composizione enrichedPositions={enrichedPositions} />
+          <Composizione posizioniAperte={posizioniAperte} />
         </div>
       </section>
 

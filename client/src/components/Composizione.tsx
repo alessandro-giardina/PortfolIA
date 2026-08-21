@@ -4,8 +4,15 @@ import { importo } from '../domain/formattazione.js';
 import CellaTitolo from './CellaTitolo.js';
 
 export interface ComposizioneProps {
-  /** Le posizioni arricchite del portafoglio, le stesse del riepilogo (US-051, TASK-06). */
-  enrichedPositions: readonly EnrichedPositionSummary[];
+  /**
+   * Le posizioni arricchite del portafoglio, **solo quelle aperte**
+   * (quantità residua maggiore di zero): una posizione interamente venduta
+   * non deve comparire come fetta a valore zero né alterare il conteggio
+   * della nota di chiusura (US-066). Chi monta il componente passa lo stesso
+   * array `posizioniAperte` già calcolato da `useDatiPortafoglio`, la
+   * medesima convenzione di `AggiornaObsoleti`.
+   */
+  posizioniAperte: readonly EnrichedPositionSummary[];
 }
 
 /**
@@ -68,8 +75,8 @@ function notaChiusura(numeroIncluse: number, numeroEscluse: number): string {
  * (dominio puro, testato indipendentemente): questo componente si limita a
  * disegnarla e a colorarla.
  */
-export default function Composizione({ enrichedPositions }: ComposizioneProps) {
-  const { fette, totale, numeroIncluse, numeroEscluse } = calcolaComposizione(enrichedPositions);
+export default function Composizione({ posizioniAperte }: ComposizioneProps) {
+  const { fette, totale, numeroIncluse, numeroEscluse } = calcolaComposizione(posizioniAperte);
 
   return (
     <div className="composizione" data-testid="composizione-portafoglio">

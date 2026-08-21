@@ -2251,6 +2251,121 @@ export const TITOLO_US_054_DEMO: TitoloSeminabile = {
 };
 
 /**
+ * Riservato a `US-066__esclude-posizioni-chiuse-da-composizione.spec.ts`: la
+ * posizione **aperta** con un prezzo già valorizzato in cache — il caso che
+ * deve continuare a comparire nel grafico di composizione dopo il fix.
+ */
+export const TITOLO_US_066_APERTO_CON_PREZZO: TitoloSeminabile = {
+  isin: 'IE00BPN3S620',
+  file: 'US-066__esclude-posizioni-chiuse-da-composizione.spec.ts',
+  campi: {
+    name: 'Ishares Msci World Ii Ucits Etf Usd Acc',
+    price: 68.9,
+    ticker: 'IUSQ',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,20%',
+    currency: 'USD',
+    issuer: 'ISHARES III PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservato a `US-066__esclude-posizioni-chiuse-da-composizione.spec.ts`: la
+ * posizione **aperta senza alcun prezzo in cache** — il file la *rimuove* con
+ * `archivio.rimuoviTitolo` per garantire il cache miss, stesso pattern di
+ * `ISIN_MAI_RILEVATO_US_034`. Rimuovere e ripristinare è la stessa pila di
+ * undo del seeding, quindi vale comunque la riserva per file.
+ */
+export const ISIN_US_066_APERTO_SENZA_PREZZO: ChiaveRiservata = {
+  isin: 'IE00BPN3S737',
+  file: 'US-066__esclude-posizioni-chiuse-da-composizione.spec.ts',
+};
+
+/**
+ * Riservato a `US-066__esclude-posizioni-chiuse-da-composizione.spec.ts`: la
+ * posizione che lo scenario **chiude per intero** (vendita a quantità zero)
+ * pur lasciando un prezzo valorizzato in cache — è la fotografia esatta del
+ * bug che la spec chiude: senza il filtro sulle posizioni aperte, un titolo
+ * venduto per intero ma ancora prezzato in cache comparirebbe comunque nel
+ * grafico di composizione. Seminato con `fetched_at` di adesso perché lo
+ * scenario mette alla prova la composizione, non l'obsolescenza del
+ * rilevamento.
+ */
+export const TITOLO_US_066_CHIUSO_CON_PREZZO: TitoloSeminabile = {
+  isin: 'LU2517288184',
+  file: 'US-066__esclude-posizioni-chiuse-da-composizione.spec.ts',
+  campi: {
+    name: 'Xtrackers Msci Emerging Markets Ucits Etf 1c',
+    price: 41.15,
+    ticker: 'XMME',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,18%',
+    currency: 'EUR',
+    issuer: 'XTRACKERS IE PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservato a `US-066__esclude-posizioni-chiuse-da-composizione-demo.spec.ts`:
+ * la stessa premessa a tre posizioni della spec di verifica, ma con chiavi
+ * proprie — regola un-ISIN-per-file, la demo non eredita le riserve del file
+ * di verifica. La posizione **aperta con prezzo** che deve restare l'unica
+ * fetta della ciambella dopo il fix.
+ */
+export const TITOLO_US_066_DEMO_APERTO_CON_PREZZO: TitoloSeminabile = {
+  isin: 'IE00BPN3S844',
+  file: 'US-066__esclude-posizioni-chiuse-da-composizione-demo.spec.ts',
+  campi: {
+    name: 'Ishares Msci World Ii Ucits Etf Usd Acc',
+    price: 68.9,
+    ticker: 'IUSQ',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,20%',
+    currency: 'USD',
+    issuer: 'ISHARES III PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+/**
+ * Riservato a `US-066__esclude-posizioni-chiuse-da-composizione-demo.spec.ts`:
+ * la posizione **aperta senza alcun prezzo in cache** — il file la *rimuove*
+ * con `archivio.rimuoviTitolo` per garantire il cache miss.
+ */
+export const ISIN_US_066_DEMO_APERTO_SENZA_PREZZO: ChiaveRiservata = {
+  isin: 'IE00BPN3S919',
+  file: 'US-066__esclude-posizioni-chiuse-da-composizione-demo.spec.ts',
+};
+
+/**
+ * Riservato a `US-066__esclude-posizioni-chiuse-da-composizione-demo.spec.ts`:
+ * la posizione che la demo **chiude per intero** (vendita a quantità zero)
+ * pur lasciando un prezzo valorizzato in cache — la fotografia esatta del bug
+ * che la spec chiude, mostrata dal vivo nel video.
+ */
+export const TITOLO_US_066_DEMO_CHIUSO_CON_PREZZO: TitoloSeminabile = {
+  isin: 'IE00BPN3S992',
+  file: 'US-066__esclude-posizioni-chiuse-da-composizione-demo.spec.ts',
+  campi: {
+    name: 'Xtrackers Msci Emerging Markets Ucits Etf 1c',
+    price: 41.15,
+    ticker: 'XMME',
+    instrument_type: 'ETF ARMONIZZATI',
+    total_annual_fees: '0,18%',
+    currency: 'EUR',
+    issuer: 'XTRACKERS IE PLC',
+    segment: 'ETF Indicizzati',
+    dividend_policy: 'ad accumulazione',
+  },
+};
+
+
+/**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
  *
@@ -2351,4 +2466,17 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   // per crearne una.
   TITOLO_US_052.isin,
   TITOLO_US_052_DEMO.isin,
+  // I due titoli di US-066 seminati in cache (l'aperto valorizzato e il
+  // chiuso con prezzo residuo): nessuno scenario vi semina osservazioni
+  // esplicite, ma il seme in cache basta al backfill d'avvio per crearne una.
+  // ISIN_US_066_APERTO_SENZA_PREZZO non entra: non viene mai seminato in
+  // `securities` (il file lo rimuove per garantire il cache miss), quindi il
+  // backfill d'avvio non avrebbe da dove partire.
+  TITOLO_US_066_APERTO_CON_PREZZO.isin,
+  TITOLO_US_066_CHIUSO_CON_PREZZO.isin,
+  // Gli stessi due, con chiavi proprie, seminati dalla demo di US-066.
+  // ISIN_US_066_DEMO_APERTO_SENZA_PREZZO non entra, per lo stesso motivo del
+  // suo gemello non-demo.
+  TITOLO_US_066_DEMO_APERTO_CON_PREZZO.isin,
+  TITOLO_US_066_DEMO_CHIUSO_CON_PREZZO.isin,
 ];
