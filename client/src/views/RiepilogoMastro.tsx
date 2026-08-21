@@ -84,7 +84,7 @@ export default function RiepilogoMastro({
       {/* Tabella titoli arricchita (FR-013) */}
       <div className="sezione-titolo" style={{ marginTop: '6px' }}>
         Titoli iscritti a conto
-        <span className="nota">FR-013 &middot; valore attuale e differenza rispetto al carico</span>
+        <span className="nota">valore attuale e differenza rispetto al carico</span>
       </div>
 
       {enrichedLoading ? (
@@ -142,7 +142,7 @@ export default function RiepilogoMastro({
           <QuadroRisultato enrichedPositions={enrichedPositions} />
           <div className="sezione-titolo" style={{ marginTop: '40px' }}>
             Andamento del portafoglio
-            <span className="nota">FR-015 &middot; valore complessivo nel tempo, dal registro dei carichi e delle rilevazioni</span>
+            <span className="nota">valore complessivo nel tempo, dal registro dei carichi e delle rilevazioni</span>
           </div>
 
           {seriesLoading ? (
@@ -162,7 +162,7 @@ export default function RiepilogoMastro({
           {id && (
             <AggiornaObsoleti
               portfolioId={id}
-              posizioni={enrichedPositions}
+              posizioniAperte={posizioniAperte}
               onRicalcola={ricalcolaSilenzioso}
               onTitoloInCorso={setIsinInLavorazione}
             />
@@ -309,7 +309,7 @@ export default function RiepilogoMastro({
             <>
               <div className="sezione-titolo" style={{ marginTop: '40px' }}>
                 Posizioni chiuse
-                <span className="nota">FR-026, FR-013 &middot; titoli venduti per intero — fuori dalla tabella qui sopra, dentro il risultato del portafoglio</span>
+                <span className="nota">titoli venduti per intero — fuori dalla tabella qui sopra, dentro il risultato del portafoglio</span>
               </div>
 
               <div className="blocco-posizioni-chiuse" aria-label="Posizioni interamente vendute">

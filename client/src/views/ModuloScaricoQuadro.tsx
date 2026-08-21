@@ -70,7 +70,6 @@ export default function ModuloScaricoQuadro({ portfolioId, titoli, onIscritta }:
             <h3>Registrazione di uno scarico</h3>
             <span className="chiosa">
               l&rsquo;incasso non è trattenuto come liquidità: PortfolIA tiene i titoli, non la cassa
-              (ADR-009)
             </span>
           </div>
           <div className="azioni-riga">

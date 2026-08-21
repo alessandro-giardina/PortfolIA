@@ -129,7 +129,7 @@ export default function CaricoMastro({ id, carico, dati, modifica, dopoScaricoCo
       {/* Sezione modulo iscrizione */}
       <div className="sezione-titolo">
         Iscrizione nuova posizione
-        <span className="nota">FR-007 · compila tutti i campi obbligatori</span>
+        <span className="nota">compila tutti i campi obbligatori</span>
       </div>
 
       <div className="riquadro-modulo">
@@ -293,7 +293,7 @@ export default function CaricoMastro({ id, carico, dati, modifica, dopoScaricoCo
       <div className="sezione-titolo" style={{ marginTop: '32px' }}>
         Scarico titoli &middot; registrazione di una vendita
         <span className="nota">
-          FR-022 &middot; la vendita è una nuova iscrizione, non la rettifica di un carico
+          la vendita è una nuova iscrizione, non la rettifica di un carico
         </span>
       </div>
 

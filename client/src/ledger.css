@@ -3438,13 +3438,6 @@ body {
   font-weight: 400;
   color: var(--carta-chiara);
 }
-.quadro-risultato .capo-quadro .rimando {
-  font-family: 'Courier Prime', monospace;
-  font-size: 11px;
-  letter-spacing: .04em;
-  color: rgba(241,231,207,.68);
-}
-
 /* la somma in orizzontale: addendo · operatore · addendo · uguale · totale */
 .quadro-risultato .somma {
   display: grid;

@@ -145,7 +145,7 @@ export default function CaricoQuadro({ id, carico, dati, modifica, dopoScaricoCo
           <div>
             <h3>Iscrizione nuova posizione</h3>
             <span className="chiosa">
-              FR-007 · il controvalore è calcolato come prezzo &times; quantità al salvataggio
+              il controvalore è calcolato come prezzo &times; quantità al salvataggio
             </span>
           </div>
           <div className="azioni-riga">
@@ -320,7 +320,7 @@ export default function CaricoQuadro({ id, carico, dati, modifica, dopoScaricoCo
       <div className="et-sezione">
         <h2>Scarico titoli</h2>
         <span className="chiosa">
-          FR-022 · la vendita è una nuova iscrizione, non la rettifica di un carico
+          la vendita è una nuova iscrizione, non la rettifica di un carico
         </span>
       </div>
 

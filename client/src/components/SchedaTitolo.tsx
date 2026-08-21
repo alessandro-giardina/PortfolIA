@@ -133,7 +133,7 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
       {/* ===== 1. Posizione a conto ===== */}
       <div className="sezione-titolo" style={{ marginTop: '6px' }}>
         Posizione a conto
-        <span className="nota">FR-014 &middot; dati della posizione nel portafoglio</span>
+        <span className="nota">dati della posizione nel portafoglio</span>
       </div>
 
       <div className="orizzonti">
@@ -401,7 +401,7 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
       <div className="sezione-titolo">
         Storico prezzi
         <span className="nota">
-          FR-018 &middot; le quotazioni gi&agrave; rilevate &middot; nessuna richiesta in pi&ugrave;
+          le quotazioni gi&agrave; rilevate &middot; nessuna richiesta in pi&ugrave;
           alla fonte
         </span>
       </div>
@@ -522,7 +522,7 @@ export default function SchedaTitolo({ portfolioId, isin, onDatiAggiornati }: Sc
       <div className="sezione-titolo" data-testid="sezione-grafico-titolo">
         Andamento del titolo
         <span className="nota">
-          FR-015 &middot; FR-017 &middot; ADR-008 &middot; dal primo carico a oggi &middot; due viste
+          dal primo carico a oggi &middot; due viste
           della stessa storia, sui soli dati d&rsquo;archivio
         </span>
       </div>

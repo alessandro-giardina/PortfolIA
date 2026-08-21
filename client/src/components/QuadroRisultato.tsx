@@ -85,7 +85,6 @@ export default function QuadroRisultato({ enrichedPositions }: QuadroRisultatoPr
       <div className="interno">
         <div className="capo-quadro">
           <h2>Quadro del risultato{parziale ? ' — parziale' : ''}</h2>
-          <span className="rimando">FR-025 &middot; ADR-009 &mdash; realizzato + latente = totale</span>
         </div>
 
         <div className="somma">

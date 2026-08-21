@@ -262,7 +262,7 @@ export default function SchedaTitoloQuadro({
       {/* ===== Posizione a conto ===== */}
       <div className="et-sezione">
         <h2>Posizione a conto</h2>
-        <span className="chiosa">FR-014 · dati della posizione nel portafoglio</span>
+        <span className="chiosa">dati della posizione nel portafoglio</span>
       </div>
 
       <section className="griglia-kpi" aria-label="Posizione a conto">
@@ -338,7 +338,7 @@ export default function SchedaTitoloQuadro({
       <div className="et-sezione" data-testid="sezione-grafico-titolo">
         <h2>Andamento del titolo</h2>
         <span className="chiosa">
-          FR-015 · FR-017 · ADR-008 · dal primo carico a oggi · due viste della stessa storia, sui soli dati
+          dal primo carico a oggi · due viste della stessa storia, sui soli dati
           d&rsquo;archivio
         </span>
       </div>
@@ -460,7 +460,7 @@ export default function SchedaTitoloQuadro({
           <div className="testa-pannello">
             <div>
               <h3>Storico prezzi</h3>
-              <span className="chiosa">FR-018 · le quotazioni già rilevate · nessuna richiesta in più alla fonte</span>
+              <span className="chiosa">le quotazioni già rilevate · nessuna richiesta in più alla fonte</span>
             </div>
             <span className="pillola">
               {numeroOsservazioni} {numeroOsservazioni === 1 ? 'rilevazione' : 'rilevazioni'}

@@ -1,0 +1,157 @@
+schema: archetipo/plan/v2
+spec_code: US-064
+body: |
+  # US-064: Rimuovere ovunque i riferimenti a FR e ADR dal testo mostrato all'utente — Piano di Implementazione
+
+  **Generato da:** Team di Planning ARchetipo
+  **Data:** 2026-08-21
+
+  ---
+
+  ## Spec
+
+  **Epica:** EP-009 — Direzione visiva commutabile
+  **Priorità:** MEDIUM | **Punti:** 5
+
+  **User Story**
+  Come utente di PortfolIA, voglio che nessuna schermata mostri sigle come «FR-025» o «ADR-009», così che il testo dell'app non faccia riferimento a documenti interni di progetto (requisiti funzionali, decisioni architetturali) che non ho mai visto e a cui non ho motivo di accedere.
+
+  **Criteri di accettazione**
+  - Nei nove file elencati nel Contesto, ogni nota che oggi comincia con una sigla FR-xxx (`.nota`/`.chiosa` con «FR-xxx · ...») è riformulata mantenendo la spiegazione ma senza la sigla iniziale
+  - Ogni nota che oggi chiude la frase con «(ADR-xxx)» resta invariata nel resto del contenuto, senza il riferimento tra parentesi
+  - Lo `span.rimando` di `QuadroRisultato.tsx` e la regola CSS dedicata `.quadro-risultato .capo-quadro .rimando` sono rimossi, senza lasciare un vuoto innaturale accanto al titolo «Quadro del risultato»
+  - Una ricerca testuale su tutto `client/src` per i pattern `FR-\d{3}` e `ADR-\d{3}` non restituisce alcun risultato al di fuori di commenti di codice (`//`, `/* */`, `{/* */}`)
+  - I test E2E esistenti sulle schermate toccate passano senza modifiche
+  - `npm run check` è verde
+
+  ---
+
+  ## Technical Solution
+
+  Il lavoro è puramente testuale: nessuna nuova struttura, nessun nuovo componente, nessuna nuova rotta. La ricognizione preliminare (`grep -rnE "FR-[0-9]{3}|ADR-[0-9]{3}" client/src`) conferma che tutte le occorrenze **fuori dai commenti di codice** cadono esattamente nei nove file già elencati nel Contesto della spec; tutte le altre occorrenze (in `ledger.css`, `quadro.css`, JSDoc, commenti `//` e `{/* */}` di altri componenti come `GraficoPortafoglio.tsx`, `MetricheTitolo.tsx`, `CellaTitolo.tsx`, ecc.) sono commenti per sviluppatori e restano fuori scope per esplicita clausola del criterio di accettazione.
+
+  Due pattern testuali distinti, già distinti nel testo della spec:
+
+  1. **Note `.nota`/`.chiosa` che iniziano con la sigla** (formato «FR-xxx · spiegazione telegrafica»): si toglie il prefisso «FR-xxx · » (o «FR-xxx · FR-yyy · ADR-zzz · », quando le sigle sono concatenate) e si verifica che la frase residua resti grammaticalmente autonoma. In tutti i nove casi la spiegazione dopo il primo «·» è già una frase di senso compiuto (es. «dati della posizione nel portafoglio», «la vendita è una nuova iscrizione, non la rettifica di un carico»): non serve riscrittura semantica, solo la rimozione del prefisso.
+  2. **Riferimenti «(ADR-xxx)» a fine frase o a fine inciso**: la frase che li precede è già autosufficiente (è la clausola esplicita del criterio di accettazione), quindi si rimuove solo la parentesi, senza toccare il resto della frase. Attenzione alla punteggiatura residua: dove «(ADR-xxx)» chiude il periodo la frase deve terminare comunque con un punto (es. GraficoTitolo.tsx:790 e :1928 hanno già il punto fermo dopo la chiusura tonda, va solo tolta la parentesi mantenendo il punto).
+
+  **Caso speciale — `QuadroRisultato.tsx`:** qui la nota non va riformulata ma **rimossa del tutto**. Il suo contenuto («realizzato + latente = totale») è già ridondante con il layout visivo del componente, che secondo il suo stesso JSDoc «scrive la somma e non la sottintende, con gli operatori veri fra le tre caselle» — l'utente vede già `realizzato + latente ═ totale` nella disposizione delle tre caselle sottostanti. Rimuovere lo `span.rimando` insieme alla sua regola CSS (`.quadro-risultato .capo-quadro .rimando`, presente identica in `ledger.css:3441` e `quadro.css:913`, una per ciascun design) non lascia un vuoto innaturale: `.capo-quadro` è già `display:flex; justify-content:space-between` fra `h2` e `.rimando` — con un solo figlio rimasto (`h2`), il flexbox lo allinea naturalmente a sinistra senza spazio vuoto a destra, nessuna modifica di layout aggiuntiva è necessaria.
+
+  **File toccati (9, invarianti secondo il Contesto della spec) più le due regole CSS gemelle:**
+  - `client/src/components/QuadroRisultato.tsx` — rimozione span + JSDoc riga 88 lasciata intatta (è un commento)
+  - `client/src/ledger.css` (riga 3441) e `client/src/quadro.css` (riga 913) — rimozione regola `.rimando`
+  - `client/src/views/CaricoMastro.tsx` (righe 132, 296)
+  - `client/src/views/CaricoQuadro.tsx` (righe 148, 323)
+  - `client/src/components/SchedaTitolo.tsx` (righe 136, 404, 525)
+  - `client/src/views/SchedaTitoloQuadro.tsx` (righe 265, 341, 463)
+  - `client/src/views/RiepilogoMastro.tsx` (righe 87, 145, 312)
+  - `client/src/components/GraficoTitolo.tsx` (righe 790, 1723, 1928) — solo parentesi ADR, condiviso da entrambi i design
+  - `client/src/components/ModuloScarico.tsx` (riga 198)
+  - `client/src/views/ModuloScaricoQuadro.tsx` (righe 71-74)
+
+  Nessuna modifica lato server, nessuna modifica di schema, nessuna nuova dipendenza. Il rischio principale è di sbagliare un'occorrenza per copia-incolla imprecisa (specialmente le entità HTML `&middot;`/`&mdash;` in `SchedaTitolo.tsx`/`CaricoMastro.tsx`/`GraficoTitolo.tsx` contro il carattere Unicode diretto `·`/`—` nei corrispondenti file `*Quadro.tsx`): ogni file mantiene la propria convenzione di escaping già in uso, non se ne introduce una nuova.
+
+  ---
+
+  ## Test Strategy
+
+  Non c'è comportamento nuovo da testare: è una spec di sola riformulazione testuale, senza logica, senza nuovi stati, senza nuove interazioni utente. La strategia di verifica è quindi basata su regressione e su un controllo testuale esplicito, non su nuovi scenari e2e:
+
+  - **Verifica statica (grep):** eseguire `grep -rnE "FR-[0-9]{3}|ADR-[0-9]{3}" client/src` a fine lavoro e confermare che ogni riga rimanente sia un commento (`//`, `/* ... */`, `{/* ... */}`) — è il criterio di accettazione stesso, va eseguito letteralmente come gate finale, non solo verificato "a occhio".
+  - **Regressione E2E (nessuno spec nuovo):** i design Mastro e Quadro hanno già suite Playwright che attraversano le nove schermate toccate (tra le altre: `e2e/US-018__dettaglio-titolo.spec.ts`, `e2e/US-042__registra-vendita-lifo.spec.ts`, `e2e/US-042__vendita-rifiuti.spec.ts`, `e2e/US-051__quadro-riepilogo.spec.ts`, `e2e/US-043__mostra-pnl-realizzato-e-latente-varianti.spec.ts`, `e2e/US-055__quadro-ricerca-titoli.spec.ts`, oltre alle spec di carico/scarico). Ricerca preliminare confermata: **nessuna** di queste spec asserisce il testo letterale «FR-xxx»/«ADR-xxx» né la frase completa delle note toccate — assertano semmai `data-testid` o porzioni di testo che restano invariate. Non serve quindi modificare alcuno spec esistente; la sua riuscita immutata è essa stessa la prova di non-regressione.
+  - **Nessun nuovo spec e2e da scrivere:** lo scenario "Dimostra" del Contesto («navigando tutte le schermate nessuna sigla compare più») è un controllo di assenza testuale su contenuto statico, meglio coperto dal grep del criterio di accettazione che da un'asserzione Playwright dedicata — non introduce un incremento di comportamento filmabile che giustifichi un nuovo `.spec.ts` con relativo video demo.
+  - **Gate finale:** `npm run check` (lint + typecheck + typecheck:e2e + check:chiavi + test:e2e-support + test) deve restare verde; nessuna delle note toccate compare in test unitari server (`server/tests/`), quindi nessuna modifica attesa lì.
+
+  ---
+
+  _Piano generato via ARchetipo Planning — 2026-08-21_
+tasks:
+  - id: TASK-01
+    title: Rimuovere lo span.rimando e la regola CSS in QuadroRisultato.tsx
+    description: 'In client/src/components/QuadroRisultato.tsx rimuovere interamente la riga 88 (<span className="rimando">FR-025 · ADR-009 — realizzato + latente = totale</span>) senza sostituirla con altro testo: il contenuto è ridondante con la disposizione visiva realizzato+latente=totale già presente sotto. Rimuovere anche la regola CSS `.quadro-risultato .capo-quadro .rimando` sia in client/src/ledger.css (riga 3441) sia in client/src/quadro.css (riga 913). Verificare che .capo-quadro (flex, justify-content:space-between) non lasci un vuoto innaturale con il solo h2 rimasto — non serve modifica di layout aggiuntiva.'
+    type: Impl
+    status: DONE
+    body: 'In client/src/components/QuadroRisultato.tsx rimuovere interamente la riga 88 (<span className="rimando">FR-025 · ADR-009 — realizzato + latente = totale</span>) senza sostituirla con altro testo: il contenuto è ridondante con la disposizione visiva realizzato+latente=totale già presente sotto. Rimuovere anche la regola CSS `.quadro-risultato .capo-quadro .rimando` sia in client/src/ledger.css (riga 3441) sia in client/src/quadro.css (riga 913). Verificare che .capo-quadro (flex, justify-content:space-between) non lasci un vuoto innaturale con il solo h2 rimasto — non serve modifica di layout aggiuntiva.'
+    ref: TASK-01
+  - id: TASK-02
+    title: Riformulare le note FR-007/FR-022 in CaricoMastro.tsx e CaricoQuadro.tsx
+    description: 'Rimuovere il prefisso sigla mantenendo la spiegazione: CaricoMastro.tsx riga 132 ("FR-007 · compila tutti i campi obbligatori" -> "compila tutti i campi obbligatori") e riga 296 ("FR-022 · la vendita è una nuova iscrizione, non la rettifica di un carico" -> stesso testo senza prefisso); CaricoQuadro.tsx riga 148 ("FR-007 · il controvalore è calcolato come prezzo × quantità al salvataggio" -> senza prefisso) e riga 323 ("FR-022 · la vendita è una nuova iscrizione, non la rettifica di un carico" -> senza prefisso). Mantenere l''entità HTML/carattere già in uso in ciascun file (&middot; in CaricoMastro.tsx, · diretto in CaricoQuadro.tsx).'
+    type: Impl
+    status: DONE
+    body: 'Rimuovere il prefisso sigla mantenendo la spiegazione: CaricoMastro.tsx riga 132 ("FR-007 · compila tutti i campi obbligatori" -> "compila tutti i campi obbligatori") e riga 296 ("FR-022 · la vendita è una nuova iscrizione, non la rettifica di un carico" -> stesso testo senza prefisso); CaricoQuadro.tsx riga 148 ("FR-007 · il controvalore è calcolato come prezzo × quantità al salvataggio" -> senza prefisso) e riga 323 ("FR-022 · la vendita è una nuova iscrizione, non la rettifica di un carico" -> senza prefisso). Mantenere l''entità HTML/carattere già in uso in ciascun file (&middot; in CaricoMastro.tsx, · diretto in CaricoQuadro.tsx).'
+    ref: TASK-02
+  - id: TASK-03
+    title: Riformulare le note FR-014/FR-018/FR-015-FR-017-ADR-008 in SchedaTitolo.tsx
+    description: 'In client/src/components/SchedaTitolo.tsx rimuovere i prefissi sigla nelle tre note: riga 136 ("FR-014 · dati della posizione nel portafoglio" -> "dati della posizione nel portafoglio"), riga 404 ("FR-018 · le quotazioni già rilevate · nessuna richiesta in più alla fonte" -> senza prefisso), riga 525 ("FR-015 · FR-017 · ADR-008 · dal primo carico a oggi · due viste della stessa storia, sui soli dati d''archivio" -> "dal primo carico a oggi · due viste della stessa storia, sui soli dati d''archivio"). Mantenere le entità HTML già usate nel file (&middot;, &rsquo;).'
+    type: Impl
+    status: DONE
+    body: 'In client/src/components/SchedaTitolo.tsx rimuovere i prefissi sigla nelle tre note: riga 136 ("FR-014 · dati della posizione nel portafoglio" -> "dati della posizione nel portafoglio"), riga 404 ("FR-018 · le quotazioni già rilevate · nessuna richiesta in più alla fonte" -> senza prefisso), riga 525 ("FR-015 · FR-017 · ADR-008 · dal primo carico a oggi · due viste della stessa storia, sui soli dati d''archivio" -> "dal primo carico a oggi · due viste della stessa storia, sui soli dati d''archivio"). Mantenere le entità HTML già usate nel file (&middot;, &rsquo;).'
+    ref: TASK-03
+  - id: TASK-04
+    title: Riformulare le note equivalenti in SchedaTitoloQuadro.tsx
+    description: 'In client/src/views/SchedaTitoloQuadro.tsx applicare la stessa riformulazione del TASK-03 al design Quadro: riga 265 ("FR-014 · dati della posizione nel portafoglio" -> senza prefisso), riga 341 ("FR-015 · FR-017 · ADR-008 · dal primo carico a oggi · due viste della stessa storia, sui soli dati d''archivio" -> senza i tre prefissi), riga 463 ("FR-018 · le quotazioni già rilevate · nessuna richiesta in più alla fonte" -> senza prefisso). Usare il carattere · diretto, coerente con le altre note già presenti nel file.'
+    type: Impl
+    status: DONE
+    body: 'In client/src/views/SchedaTitoloQuadro.tsx applicare la stessa riformulazione del TASK-03 al design Quadro: riga 265 ("FR-014 · dati della posizione nel portafoglio" -> senza prefisso), riga 341 ("FR-015 · FR-017 · ADR-008 · dal primo carico a oggi · due viste della stessa storia, sui soli dati d''archivio" -> senza i tre prefissi), riga 463 ("FR-018 · le quotazioni già rilevate · nessuna richiesta in più alla fonte" -> senza prefisso). Usare il carattere · diretto, coerente con le altre note già presenti nel file.'
+    ref: TASK-04
+  - id: TASK-05
+    title: Riformulare le note FR-013/FR-015/FR-026 in RiepilogoMastro.tsx
+    description: 'In client/src/views/RiepilogoMastro.tsx rimuovere i prefissi sigla: riga 87 ("FR-013 · valore attuale e differenza rispetto al carico" -> senza prefisso), riga 145 ("FR-015 · valore complessivo nel tempo, dal registro dei carichi e delle rilevazioni" -> senza prefisso), riga 312 ("FR-026, FR-013 · titoli venduti per intero — fuori dalla tabella qui sopra, dentro il risultato del portafoglio" -> senza prefisso). Il componente RiepilogoQuadro.tsx equivalente non ripete queste sigle (già confermato dal Contesto della spec) e non va toccato.'
+    type: Impl
+    status: DONE
+    body: 'In client/src/views/RiepilogoMastro.tsx rimuovere i prefissi sigla: riga 87 ("FR-013 · valore attuale e differenza rispetto al carico" -> senza prefisso), riga 145 ("FR-015 · valore complessivo nel tempo, dal registro dei carichi e delle rilevazioni" -> senza prefisso), riga 312 ("FR-026, FR-013 · titoli venduti per intero — fuori dalla tabella qui sopra, dentro il risultato del portafoglio" -> senza prefisso). Il componente RiepilogoQuadro.tsx equivalente non ripete queste sigle (già confermato dal Contesto della spec) e non va toccato.'
+    ref: TASK-05
+  - id: TASK-06
+    title: Rimuovere i riferimenti (ADR-xxx) tra parentesi in GraficoTitolo.tsx
+    description: 'In client/src/components/GraficoTitolo.tsx rimuovere solo l''inciso tra parentesi in tre punti, lasciando il resto della frase invariato: riga 790 ("...la finestra resta perciò senza tracciato (ADR-003)." -> "...la finestra resta perciò senza tracciato."), riga 1723 ("PortfolIA conserva prezzi solo da quando è in esercizio (ADR-008): prima di..." -> "PortfolIA conserva prezzi solo da quando è in esercizio: prima di..."), riga 1928 ("...nessun valore intermedio viene stimato o interpolato (ADR-003). L''asse dei tempi..." -> "...nessun valore intermedio viene stimato o interpolato. L''asse dei tempi..."). Il componente è condiviso da entrambi i design: un solo intervento copre Mastro e Quadro.'
+    type: Impl
+    status: DONE
+    body: 'In client/src/components/GraficoTitolo.tsx rimuovere solo l''inciso tra parentesi in tre punti, lasciando il resto della frase invariato: riga 790 ("...la finestra resta perciò senza tracciato (ADR-003)." -> "...la finestra resta perciò senza tracciato."), riga 1723 ("PortfolIA conserva prezzi solo da quando è in esercizio (ADR-008): prima di..." -> "PortfolIA conserva prezzi solo da quando è in esercizio: prima di..."), riga 1928 ("...nessun valore intermedio viene stimato o interpolato (ADR-003). L''asse dei tempi..." -> "...nessun valore intermedio viene stimato o interpolato. L''asse dei tempi..."). Il componente è condiviso da entrambi i design: un solo intervento copre Mastro e Quadro.'
+    ref: TASK-06
+  - id: TASK-07
+    title: Rimuovere i riferimenti (ADR-009) in ModuloScarico.tsx e ModuloScaricoQuadro.tsx
+    description: 'In client/src/components/ModuloScarico.tsx riga 198 rimuovere "(ADR-009)" da "...PortfolIA tiene i titoli, non la cassa (ADR-009). La vendita è..." -> "...PortfolIA tiene i titoli, non la cassa. La vendita è...". In client/src/views/ModuloScaricoQuadro.tsx righe 71-74 rimuovere "(ADR-009)" dalla chiosa "l''incasso non è trattenuto come liquidità: PortfolIA tiene i titoli, non la cassa (ADR-009)" -> "...non la cassa" (senza parentesi finale, verificando la punteggiatura di chiusura del tag).'
+    type: Impl
+    status: DONE
+    body: 'In client/src/components/ModuloScarico.tsx riga 198 rimuovere "(ADR-009)" da "...PortfolIA tiene i titoli, non la cassa (ADR-009). La vendita è..." -> "...PortfolIA tiene i titoli, non la cassa. La vendita è...". In client/src/views/ModuloScaricoQuadro.tsx righe 71-74 rimuovere "(ADR-009)" dalla chiosa "l''incasso non è trattenuto come liquidità: PortfolIA tiene i titoli, non la cassa (ADR-009)" -> "...non la cassa" (senza parentesi finale, verificando la punteggiatura di chiusura del tag).'
+    ref: TASK-07
+  - id: TASK-08
+    title: 'Verifica testuale: nessun FR-xxx/ADR-xxx fuori dai commenti in client/src'
+    description: Eseguire `grep -rnE "FR-[0-9]{3}|ADR-[0-9]{3}" client/src` e confermare che ogni riga residua sia dentro un commento di codice (//, /* */, {/* */}) — è il criterio di accettazione letterale della spec, va eseguito come gate esplicito dopo i TASK-01..07, non solo verificato a occhio durante le modifiche.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+      - TASK-03
+      - TASK-04
+      - TASK-05
+      - TASK-06
+      - TASK-07
+    body: Eseguire `grep -rnE "FR-[0-9]{3}|ADR-[0-9]{3}" client/src` e confermare che ogni riga residua sia dentro un commento di codice (//, /* */, {/* */}) — è il criterio di accettazione letterale della spec, va eseguito come gate esplicito dopo i TASK-01..07, non solo verificato a occhio durante le modifiche.
+    ref: TASK-08
+  - id: TASK-09
+    title: Rieseguire la suite E2E esistente sulle schermate toccate
+    description: 'Eseguire `npx playwright test` (o quantomeno le spec che attraversano le nove schermate toccate: US-018, US-042, US-043, US-051, US-055 e le spec di carico/scarico di entrambi i design) e confermare che passano senza alcuna modifica, come richiesto dal criterio di accettazione — nessuna spec asserisce oggi il testo letterale rimosso, quindi un fallimento qui indicherebbe un refuso introdotto nelle modifiche testuali.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+      - TASK-03
+      - TASK-04
+      - TASK-05
+      - TASK-06
+      - TASK-07
+    body: 'Eseguire `npx playwright test` (o quantomeno le spec che attraversano le nove schermate toccate: US-018, US-042, US-043, US-051, US-055 e le spec di carico/scarico di entrambi i design) e confermare che passano senza alcuna modifica, come richiesto dal criterio di accettazione — nessuna spec asserisce oggi il testo letterale rimosso, quindi un fallimento qui indicherebbe un refuso introdotto nelle modifiche testuali.'
+    ref: TASK-09
+  - id: TASK-10
+    title: Eseguire npm run check come gate finale
+    description: Eseguire `npm run check` (lint + typecheck + typecheck:e2e + check:chiavi + test:e2e-support + test) e confermare che sia verde, come richiesto esplicitamente dal criterio di accettazione finale della spec.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-08
+      - TASK-09
+    body: Eseguire `npm run check` (lint + typecheck + typecheck:e2e + check:chiavi + test:e2e-support + test) e confermare che sia verde, come richiesto esplicitamente dal criterio di accettazione finale della spec.
+    ref: TASK-10

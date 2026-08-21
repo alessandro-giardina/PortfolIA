@@ -786,8 +786,7 @@ export default function GraficoTitolo({
             Il prezzo del <b>{dataPunto(ultimoArchivio)}</b> resta dov&rsquo;&egrave;: PortfolIA non lo
             prolunga fino a oggi, non lo ripete come ultimo valore noto e non traccia una retta
             piatta al suo livello. Portarlo dentro una finestra che non lo contiene significherebbe
-            affermare un prezzo mai osservato: la finestra resta perci&ograve; senza tracciato
-            (ADR-003).
+            affermare un prezzo mai osservato: la finestra resta perci&ograve; senza tracciato.
           </span>
         </div>
 
@@ -1720,7 +1719,7 @@ export default function GraficoTitolo({
                 </>
               ) : (
                 <>
-                  PortfolIA conserva prezzi solo da quando &egrave; in esercizio (ADR-008): prima di
+                  PortfolIA conserva prezzi solo da quando &egrave; in esercizio: prima di
                   quella data l&rsquo;archivio &egrave; muto, e l&rsquo;asse lo mostra invece di
                   accorciarsi.
                 </>
@@ -1925,7 +1924,7 @@ export default function GraficoTitolo({
         Il tratteggio &egrave; una dichiarazione, non uno stile: unisce due punti d&rsquo;archivio{' '}
         <em>senza affermare</em> che il prezzo abbia seguito quella retta. Fra due punti
         l&rsquo;archivio non possiede alcun prezzo, e nessun valore intermedio viene stimato o
-        interpolato (ADR-003). L&rsquo;asse dei tempi prosegue fino a <b>oggi</b> anche quando
+        interpolato. L&rsquo;asse dei tempi prosegue fino a <b>oggi</b> anche quando
         l&rsquo;ultimo punto &egrave; anteriore
         {giorniScoperti > 0 ? (
           <>

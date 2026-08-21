@@ -195,7 +195,7 @@ export default function ModuloScarico({ portfolioId, titoli, onIscritta }: Modul
 
           <p className="nota-contabile">
             L&apos;incasso dell&apos;operazione — prezzo &times; quantità — <b>non</b> è trattenuto come
-            liquidità del portafoglio: PortfolIA tiene i titoli, non la cassa (ADR-009). La vendita è
+            liquidità del portafoglio: PortfolIA tiene i titoli, non la cassa. La vendita è
             una <b>nuova iscrizione</b>: nessun carico viene modificato o cancellato.
           </p>
 
