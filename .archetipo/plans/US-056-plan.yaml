@@ -1,0 +1,131 @@
+schema: archetipo/plan/v2
+spec_code: US-056
+body: |-
+  # US-056: Quadro strumenti — gestione di un conto senza titoli — Piano di implementazione
+
+  **Generato da:** Team di Planning ARchetipo
+  **Data:** 2026-08-21
+
+  ---
+
+  ## Spec
+
+  **Epica:** EP-009 — Direzione visiva commutabile
+  **Priorità:** HIGH | **Punti:** 2
+
+  **User Story**
+  Come utente di PortfolIA che lavora nel design «Quadro strumenti», voglio poter rinominare ed estinguere anche un conto che non ha ancora titoli iscritti, così che un portafoglio creato per errore o rimasto vuoto non mi obblighi a tornare al «Libro Mastro» per liberarmene.
+
+  **Criteri di accettazione**
+  - Su un portafoglio senza posizioni, la scheda «Riepilogo» del design «quadro» mostra il segnaposto di stato vuoto **e** il pannello «Gestione del conto» con il campo di rinomina e il comando di eliminazione
+  - Sullo stesso portafoglio è presente il collegamento «Torna all'elenco portafogli»
+  - La rinomina e l'eliminazione di un conto vuoto funzionano nel «quadro» esattamente come nel «mastro», compresi i messaggi di errore del server
+  - Mentre i titoli del conto sono in caricamento, la scheda non nasconde il resto del suo contenuto: l'attesa è dichiarata in aggiunta, non al posto della pagina
+  - Le due rese restano coerenti: commutando design sulla stessa pagina si vedono le stesse possibilità di gestione del conto
+  - Test E2E nel design «quadro»: creazione di un portafoglio, apertura, rinomina e successiva eliminazione senza passare dal «mastro»
+  - La suite esistente resta verde: nessuno scenario del «mastro» né delle altre schede del «quadro» cambia comportamento
+
+  ---
+
+  ## Soluzione tecnica
+
+  Il difetto è strutturale, non di dati: `RiepilogoQuadro.tsx` (`client/src/views/RiepilogoQuadro.tsx`) tratta i rami «in caricamento» (`enrichedLoading`) e «vuoto» (`enrichedPositions.length === 0`) come `return` anticipati, che sostituiscono l'intero componente con un solo paragrafo o un solo placeholder. Il collegamento «Torna all'elenco portafogli» e la sezione «Gestione del conto» (rinomina + zona pericolo) vivono più in basso nello stesso file, quindi in quei due rami non vengono mai renderizzati. `RiepilogoMastro.tsx` non ha questo problema perché la stessa alternanza (caricamento / vuoto / contenuto pieno) è un'espressione JSX innestata in un unico `return`, con bottoni e pannello di gestione dichiarati *dopo* quel blocco condizionale, quindi sempre presenti.
+
+  - Rimuovere i due `return` anticipati in `RiepilogoQuadro`: il corpo diventa un unico `return` con un blocco condizionale (analogo a quello del mastro) che alterna caricamento → placeholder vuoto → contenuto pieno (carte KPI, tabella, grafico, posizioni chiuse), seguito — fuori dal condizionale — dal collegamento «Torna all'elenco portafogli» e dalla sezione «Gestione del conto», esattamente come in `RiepilogoMastro`.
+  - Nessuna modifica a `RiepilogoProps`, a `usePortafoglio`/`useDatiPortafoglio` o alle chiamate API: i dati (`renameValue`, `renameError`, `renaming`, `handleRename`, `deleteError`, `deleting`, `handleDelete`) sono già disponibili e già cablati alla sezione di gestione; il bug è solo nel punto della resa in cui quella sezione viene raggiunta.
+  - L'intestazione «titolo-pagina» (nome conto + conteggio posizioni) resta all'interno del ramo «contenuto pieno» — non è richiesta dai criteri di accettazione sul caso vuoto/caricamento, e il mastro non ha un equivalente proprio (il titolo di pagina lì è responsabilità di `Guscio`, non di `RiepilogoMastro`). Cambiare quel dettaglio non serve alla correzione e allargherebbe il diff senza necessità.
+  - Effetto collaterale positivo: il commento nel test `e2e/US-053__quadro-elenco-portafogli.spec.ts` (righe 99-101) che documenta «il titolo di pagina, e con esso il pannello «Gestione del conto», compare solo perché il portafoglio ha almeno un carico» descrive un limite che questa spec elimina — va corretto per non certificare come comportamento attuale un bug appena risolto.
+
+  ---
+
+  ## Strategia di test
+
+  Il progetto non ha component test di UI (solo Vitest su logica di dominio pura); la verifica di questa correzione è quindi interamente E2E, in coerenza con le altre spec del design «quadro» (US-053/US-054/US-055).
+
+  - Nuovo file `e2e/US-056__quadro-conto-senza-titoli.spec.ts`, che segue le convenzioni di `support/fixtures.ts` (fixture `archivio`, mai `try/finally`) e non necessita di alcuna chiave ISIN in `support/titoli.ts`: gli scenari creano un portafoglio senza mai iscrivere un titolo.
+  - Correzione documentale del commento non più accurato in `US-053__quadro-elenco-portafogli.spec.ts`.
+  - Verifica di non regressione: `npm run check` (lint, typecheck, registro chiavi E2E, test e2e-support, test server) e la suite Playwright completa, per la garanzia esplicita che nessuno scenario esistente di mastro/quadro cambi comportamento.
+
+  ### Test E2E — Simulazione utente
+
+  **Framework:** Playwright (`e2e/`, fixture condivise in `e2e/support/`)
+  **Registrazione video:** nessuna — questa spec non ha un `Demonstrates` filmabile a sé stante oltre a quanto già coperto dalle demo di US-053/US-054; solo scenari senza registrazione
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Conto vuoto: placeholder + gestione + collegamento | Nel design «quadro», crea un portafoglio senza posizioni, lo apre e verifica che siano visibili insieme: il segnaposto «Nessun titolo iscritto», il collegamento «Torna all'elenco portafogli» e il pannello «Gestione del conto» (campo rinomina, comando elimina) |
+  | Conto vuoto: caricamento transitorio | Ritarda con `page.route` la risposta di `/api/portfolios/:id/positions/enriched` e verifica che, mentre è visibile «Caricamento titoli…», il collegamento e il pannello di gestione siano già presenti — l'attesa si aggiunge al contenuto, non lo sostituisce |
+  | Rinomina ed eliminazione di un conto vuoto, senza uscire dal quadro | Sul portafoglio vuoto creato sopra, rinomina dal pannello di gestione e verifica l'effetto (intestazione di pagina di `Guscio`), poi elimina con la stessa guardia `window.confirm` del mastro e verifica il redirect all'elenco, ancora nel design quadro |
+  | Parità quadro/mastro sullo stesso conto vuoto | Sullo stesso portafoglio vuoto, commuta il design da «quadro» a «mastro» sulla stessa pagina (come in US-053) e verifica che le stesse possibilità di gestione (rinomina, elimina) restino presenti in entrambe le rese |
+
+  ---
+
+  _Piano generato via ARchetipo Planning — 2026-08-21_
+tasks:
+  - id: TASK-01
+    title: Correggere la struttura condizionale di RiepilogoQuadro
+    description: In client/src/views/RiepilogoQuadro.tsx, eliminare i due `return` anticipati per `enrichedLoading` e per `enrichedPositions.length === 0`; unificarli in un unico blocco condizionale (caricamento → vuoto → contenuto pieno) dentro un solo `return`, seguito — fuori dal condizionale — dal collegamento «Torna all'elenco portafogli» e dalla sezione «Gestione del conto» (rinomina + zona pericolo), esattamente come in RiepilogoMastro.tsx. Nessuna modifica a RiepilogoProps né alle chiamate API.
+    type: Impl
+    status: DONE
+    body: In client/src/views/RiepilogoQuadro.tsx, eliminare i due `return` anticipati per `enrichedLoading` e per `enrichedPositions.length === 0`; unificarli in un unico blocco condizionale (caricamento → vuoto → contenuto pieno) dentro un solo `return`, seguito — fuori dal condizionale — dal collegamento «Torna all'elenco portafogli» e dalla sezione «Gestione del conto» (rinomina + zona pericolo), esattamente come in RiepilogoMastro.tsx. Nessuna modifica a RiepilogoProps né alle chiamate API.
+    ref: TASK-01
+  - id: TASK-02
+    title: 'Test E2E: conto vuoto mostra placeholder, collegamento e gestione'
+    description: 'Nuovo file e2e/US-056__quadro-conto-senza-titoli.spec.ts (fixture archivio, nessuna chiave ISIN necessaria): crea un portafoglio senza posizioni nel design quadro, lo apre e verifica che siano visibili insieme il placeholder «Nessun titolo iscritto», il collegamento «Torna all''elenco portafogli» e il pannello «Gestione del conto» con campo di rinomina e comando di eliminazione.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'Nuovo file e2e/US-056__quadro-conto-senza-titoli.spec.ts (fixture archivio, nessuna chiave ISIN necessaria): crea un portafoglio senza posizioni nel design quadro, lo apre e verifica che siano visibili insieme il placeholder «Nessun titolo iscritto», il collegamento «Torna all''elenco portafogli» e il pannello «Gestione del conto» con campo di rinomina e comando di eliminazione.'
+    ref: TASK-02
+  - id: TASK-03
+    title: 'Test E2E: gestione visibile durante il caricamento transitorio'
+    description: Nello stesso file spec, ritardare con page.route la risposta di /api/portfolios/:id/positions/enriched e verificare che, mentre è mostrato «Caricamento titoli…», il collegamento «Torna all'elenco portafogli» e il pannello «Gestione del conto» siano già presenti nella pagina.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: Nello stesso file spec, ritardare con page.route la risposta di /api/portfolios/:id/positions/enriched e verificare che, mentre è mostrato «Caricamento titoli…», il collegamento «Torna all'elenco portafogli» e il pannello «Gestione del conto» siano già presenti nella pagina.
+    ref: TASK-03
+  - id: TASK-04
+    title: 'Test E2E: rinomina ed eliminazione di un conto vuoto senza uscire dal quadro'
+    description: Sul portafoglio vuoto creato in TASK-02, eseguire rinomina dal pannello di gestione e verificarne l'effetto (intestazione di pagina di Guscio), poi eliminazione con la stessa guardia window.confirm del mastro; verificare il redirect all'elenco portafogli restando nel design quadro per tutto il percorso.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+    body: Sul portafoglio vuoto creato in TASK-02, eseguire rinomina dal pannello di gestione e verificarne l'effetto (intestazione di pagina di Guscio), poi eliminazione con la stessa guardia window.confirm del mastro; verificare il redirect all'elenco portafogli restando nel design quadro per tutto il percorso.
+    ref: TASK-04
+  - id: TASK-05
+    title: 'Test E2E: parità quadro/mastro sullo stesso conto vuoto'
+    description: Sullo stesso conto vuoto, commutare il design da quadro a mastro sulla stessa pagina (come in US-053) e verificare che rinomina ed eliminazione restino ugualmente possibili in entrambe le rese, in coerenza con il criterio di accettazione sulla parità fra design.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: Sullo stesso conto vuoto, commutare il design da quadro a mastro sulla stessa pagina (come in US-053) e verificare che rinomina ed eliminazione restino ugualmente possibili in entrambe le rese, in coerenza con il criterio di accettazione sulla parità fra design.
+    ref: TASK-05
+  - id: TASK-06
+    title: Correggere il commento non più accurato in US-053
+    description: 'In e2e/US-053__quadro-elenco-portafogli.spec.ts (righe 99-101), aggiornare il commento che afferma che il titolo di pagina e il pannello «Gestione del conto» compaiono solo perché il portafoglio ha almeno un carico: dopo questa correzione compaiono sempre, indipendentemente dalle posizioni iscritte.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'In e2e/US-053__quadro-elenco-portafogli.spec.ts (righe 99-101), aggiornare il commento che afferma che il titolo di pagina e il pannello «Gestione del conto» compaiono solo perché il portafoglio ha almeno un carico: dopo questa correzione compaiono sempre, indipendentemente dalle posizioni iscritte.'
+    ref: TASK-06
+  - id: TASK-07
+    title: Verifica di non regressione sull'intera suite
+    description: Eseguire npm run check (lint, typecheck, registro chiavi E2E, test e2e-support, test server) e la suite Playwright completa, per confermare che nessuno scenario esistente di mastro o delle altre schede del quadro cambi comportamento.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-01
+      - TASK-02
+      - TASK-03
+      - TASK-04
+      - TASK-05
+      - TASK-06
+    body: Eseguire npm run check (lint, typecheck, registro chiavi E2E, test e2e-support, test server) e la suite Playwright completa, per confermare che nessuno scenario esistente di mastro o delle altre schede del quadro cambi comportamento.
+    ref: TASK-07

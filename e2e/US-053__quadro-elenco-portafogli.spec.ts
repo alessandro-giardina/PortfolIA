@@ -96,8 +96,11 @@ test(
     await page.getByTestId(`riga-portafoglio-${id}`).click();
     await expect(page).toHaveURL(`/portfolio/${id}`);
 
-    // Il titolo di pagina, e con esso il pannello «Gestione del conto», compare
-    // solo perché il portafoglio ha almeno un carico (TASK-08, vedi TITOLO_US_053).
+    // Il titolo di pagina (`.titolo-pagina h1`, dentro la sezione KPI) compare
+    // solo perché il portafoglio ha almeno un carico (TASK-08, vedi
+    // TITOLO_US_053): resta legato alle posizioni, non essendone lo scopo.
+    // Il pannello «Gestione del conto», invece, da US-056 compare sempre,
+    // indipendentemente dalle posizioni iscritte — verificato là, non qui.
     await expect(page.locator('.titolo-pagina h1')).toHaveText(nomeOriginale, { timeout: 8000 });
 
     // Rinomina

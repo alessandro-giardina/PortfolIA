@@ -88,24 +88,6 @@ export default function RiepilogoQuadro({
   deleting,
   handleDelete,
 }: RiepilogoProps) {
-  if (enrichedLoading) {
-    return <p className="chiosa">Caricamento titoli…</p>;
-  }
-
-  if (enrichedPositions.length === 0) {
-    return (
-      <section className="pannello" data-testid="riepilogo-vuoto">
-        <div className="placeholder-quadro">
-          <h3>Nessun titolo iscritto</h3>
-          <p>
-            Nessun titolo è stato ancora iscritto in questo portafoglio. Vai alla scheda{' '}
-            <em>Carico titoli</em> per registrare il primo carico.
-          </p>
-        </div>
-      </section>
-    );
-  }
-
   // ─── Le cinque carte KPI ────────────────────────────────────────────────
   const positionsWithPrice = posizioniAperte.filter((ep) => ep.currentValue !== null);
   const totalCurrentValue = positionsWithPrice.reduce((s, ep) => s + (ep.currentValue ?? 0), 0);
@@ -133,6 +115,20 @@ export default function RiepilogoQuadro({
 
   return (
     <>
+      {enrichedLoading ? (
+        <p className="chiosa">Caricamento titoli…</p>
+      ) : enrichedPositions.length === 0 ? (
+        <section className="pannello" data-testid="riepilogo-vuoto">
+          <div className="placeholder-quadro">
+            <h3>Nessun titolo iscritto</h3>
+            <p>
+              Nessun titolo è stato ancora iscritto in questo portafoglio. Vai alla scheda{' '}
+              <em>Carico titoli</em> per registrare il primo carico.
+            </p>
+          </div>
+        </section>
+      ) : (
+      <>
       <div className="titolo-pagina">
         <div>
           <h1>{portfolioName}</h1>
@@ -463,6 +459,8 @@ export default function RiepilogoQuadro({
             ricalcolato qui, è letto da lì.
           </p>
         </section>
+      )}
+      </>
       )}
 
       <div className="bottoni">
