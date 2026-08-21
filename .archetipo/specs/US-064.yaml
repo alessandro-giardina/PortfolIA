@@ -1,0 +1,44 @@
+schema: archetipo/spec/v2
+code: US-064
+title: Rimuovere ovunque i riferimenti a FR e ADR dal testo mostrato all'utente
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 5
+status: TODO
+body: |-
+  #### US-064: Rimuovere ovunque i riferimenti a FR e ADR dal testo mostrato all'utente
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 5 | **Stato:** TODO
+  **Bloccato da:** -
+
+  **User Story**
+  Come utente di PortfolIA,
+  voglio che nessuna schermata mostri sigle come «FR-025» o «ADR-009»,
+  così che il testo dell'app non faccia riferimento a documenti interni di progetto (requisiti funzionali, decisioni architetturali) che non ho mai visto e a cui non ho motivo di accedere.
+
+  **Contesto**
+  Il caso segnalato — lo `span.rimando` «FR-025 · ADR-009 — realizzato + latente = totale» accanto al titolo «Quadro del risultato» in `QuadroRisultato.tsx` (riga 88) — non è isolato: la stessa abitudine di annotare il testo per l'utente con le sigle dei documenti di progetto (FR-xxx per i requisiti funzionali, ADR-xxx per le decisioni architetturali) compare in altri 8 componenti, in entrambi i design:
+
+  - `CaricoMastro.tsx` (righe 132, 296) e il suo equivalente `CaricoQuadro.tsx` (righe 148, 323) — note su iscrizione e scarico titoli
+  - `SchedaTitolo.tsx` (righe 136, 404, 525) e `SchedaTitoloQuadro.tsx` (righe 277, 475, 353) — note su posizione, storico prezzi e andamento del titolo
+  - `RiepilogoMastro.tsx` (righe 87, 145, 312) — note sul riepilogo posizioni (il «quadro», in `RiepilogoQuadro.tsx`, non ripete queste sigle)
+  - `GraficoTitolo.tsx` (righe 790, 1723, 1928) — tooltip e didascalie del grafico del titolo, condiviso da entrambi i design
+  - `ModuloScarico.tsx` (riga 198) e `ModuloScaricoQuadro.tsx` (riga 73) — nota sul modulo di vendita
+
+  In tutti i casi la sigla non aggiunge nulla che l'utente possa consultare o verificare: dove il resto della frase è già comprensibile da sola (i casi «(ADR-xxx)» tra parentesi), va tolta solo la sigla; dove invece l'intera nota è la sigla seguita da una spiegazione telegrafica introdotta da «·» (i casi `.nota`/`.chiosa`/`.rimando` con «FR-xxx · ...»), la spiegazione va riformulata come frase autonoma, comprensibile senza la sigla davanti.
+
+  **Dimostra**
+  Dopo l'implementazione, navigando in un ordine qualunque tutte le schermate di entrambi i design — riepilogo, carico, ricerca/scheda titolo e vendita — nessuna nota, chiosa o didascalia mostra più sigle come «FR-013» o «ADR-008»; il contenuto informativo di ogni nota resta lo stesso, riformulato in linguaggio naturale.
+
+  **Criteri di accettazione**
+  - [ ] Nei nove file elencati nel Contesto, ogni nota che oggi comincia con una sigla FR-xxx (`.nota`/`.chiosa` con «FR-xxx · ...») è riformulata mantenendo la spiegazione ma senza la sigla iniziale
+  - [ ] Ogni nota che oggi chiude la frase con «(ADR-xxx)» resta invariata nel resto del contenuto, senza il riferimento tra parentesi
+  - [ ] Lo `span.rimando` di `QuadroRisultato.tsx` (il caso originariamente segnalato) e la regola CSS dedicata `.quadro-risultato .capo-quadro .rimando` sono rimossi, senza lasciare un vuoto innaturale accanto al titolo «Quadro del risultato»
+  - [ ] Una ricerca testuale su tutto `client/src` per i pattern `FR-\d{3}` e `ADR-\d{3}` non restituisce alcun risultato al di fuori di commenti di codice (`//`, `/* */`, `{/* */}`)
+  - [ ] I test E2E esistenti sulle schermate toccate passano senza modifiche, poiché nessuno asserisce oggi il testo letterale rimosso
+  - [ ] `npm run check` è verde
+history:
+  - status: TODO
+    at: "2026-08-21T12:54:59Z"
