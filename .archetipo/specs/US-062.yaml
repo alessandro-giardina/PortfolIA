@@ -1,0 +1,37 @@
+schema: archetipo/spec/v2
+code: US-062
+title: Rimuovere lo stemma segnaposto dalla ricerca titoli e dalla scheda titolo
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 2
+status: TODO
+body: |-
+  #### US-062: Rimuovere lo stemma segnaposto dalla ricerca titoli e dalla scheda titolo
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 2 | **Stato:** TODO
+  **Bloccato da:** -
+
+  **User Story**
+  Come utente di PortfolIA che lavora nel design «Quadro strumenti»,
+  voglio che né il risultato della ricerca titoli né la scheda titolo mostrino un riquadro con le iniziali del titolo,
+  così che nessuna delle due schermate lasci intendere che la fonte fornisca un logo o un'immagine che in realtà non esiste.
+
+  **Contesto**
+  Lo «stemma» a due lettere — le prime due della denominazione, o dell'ISIN quando la denominazione manca — è definito due volte in modo identico: `stemmaDi` nasce in `SchedaTitoloQuadro.tsx` (US-052) e viene riusato tale e quale in `RicercaQuadro.tsx` (US-055). Nessuna fonte (Borsa Italiana, MorningStar) restituisce un logo o un'immagine del titolo: l'elemento è un artificio puramente grafico, non un dato recuperato. In entrambe le schermate può leggersi come un'icona ufficiale della fonte, mentre non lo è. Questa spec rimuove l'elemento e la funzione `stemmaDi` da entrambi i punti in cui compaiono.
+
+  **Dimostra**
+  Dopo l'implementazione, sia cercando un ISIN sia apendo la scheda di un titolo nel design «Quadro strumenti», la testata mostra denominazione, pillole di marcatura (ISIN, categoria, borsa) e prezzo attuale senza alcun riquadro di iniziali davanti al nome; il resto del layout di entrambe le testate resta invariato.
+
+  **Criteri di accettazione**
+  - [ ] Nel design «quadro», la testata del risultato di ricerca (`testa-titolo-ricerca`) non contiene più l'elemento `.stemma`
+  - [ ] Nel design «quadro», la testata della scheda titolo (`scheda-titolo`) non contiene più l'elemento `.stemma`
+  - [ ] La funzione `stemmaDi` e la regola CSS `.testa-titolo .stemma` sono rimosse da entrambi i file coinvolti (`RicercaQuadro.tsx`, `SchedaTitoloQuadro.tsx`, `quadro.css`), senza lasciare codice morto
+  - [ ] La denominazione, l'ISIN e le pillole di marcatura restano visibili e leggibili con lo spazio recuperato, senza un vuoto innaturale a sinistra del nome, in entrambe le schermate
+  - [ ] Il design «Libro Mastro» non è toccato: non conteneva questo elemento e resta invariato
+  - [ ] I test E2E esistenti (`US-055__quadro-ricerca-titoli*.spec.ts`, `US-052__quadro-scheda-titolo.spec.ts`) passano senza modifiche, in quanto non asseriscono il contenuto dello stemma
+  - [ ] `npm run check` è verde
+history:
+  - status: TODO
+    at: "2026-08-21T12:00:29Z"
