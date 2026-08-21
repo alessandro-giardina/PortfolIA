@@ -44,8 +44,14 @@ import { recuperaTitolo } from '../domain/recuperoTitolo.js';
 interface AggiornaObsoletiProps {
   /** Portafoglio in vista. Cambiandolo il lavoro in corso viene abbandonato. */
   portfolioId: string;
-  /** Le posizioni del riepilogo, con il `freshness` deciso dal server. */
-  posizioni: EnrichedPositionSummary[];
+  /**
+   * Le posizioni del riepilogo, con il `freshness` deciso dal server.
+   *
+   * Solo posizioni **aperte** (quantità residua maggiore di zero): il
+   * conteggio e la coda di aggiornamento non devono mai includere posizioni
+   * chiuse, il cui ISIN non è più detenuto in portafoglio (US-065).
+   */
+  posizioniAperte: EnrichedPositionSummary[];
   /**
    * Rilegge la vista arricchita in modalità silenziosa (senza sostituire la
    * tabella con «Caricamento titoli…»). Il ciclo la attende dopo ogni titolo:
@@ -100,7 +106,7 @@ function ragioneScritta(ragione: Ragione): string {
 
 export default function AggiornaObsoleti({
   portfolioId,
-  posizioni,
+  posizioniAperte,
   onRicalcola,
   onTitoloInCorso,
 }: AggiornaObsoletiProps) {
@@ -108,10 +114,10 @@ export default function AggiornaObsoleti({
   // `freshness` arriva già calcolato dal server con la stessa classificazione
   // oraria della guardia di buona cittadinanza. Qui si conta soltanto: nessuna
   // regola di orario di borsa vive nel client.
-  const obsoleti = posizioni.filter((p) => p.freshness === 'stale').length;
-  const maiRilevati = posizioni.filter((p) => p.freshness === 'never-fetched').length;
+  const obsoleti = posizioniAperte.filter((p) => p.freshness === 'stale').length;
+  const maiRilevati = posizioniAperte.filter((p) => p.freshness === 'never-fetched').length;
   const daAggiornare = obsoleti + maiRilevati;
-  const totale = posizioni.length;
+  const totale = posizioniAperte.length;
 
   // ─── Stato del lavoro ─────────────────────────────────────────────────────
   const [fase, setFase] = useState<Fase>('riposo');
@@ -204,7 +210,7 @@ export default function AggiornaObsoleti({
      * «2 di 1». Il totale resta quello dello scatto iniziale, ed è l'unico numero
      * che l'utente possa seguire.
      */
-    const daFare = posizioni.filter((p) => p.freshness !== 'current').map((p) => p.isin);
+    const daFare = posizioniAperte.filter((p) => p.freshness !== 'current').map((p) => p.isin);
     if (daFare.length === 0) return;
 
     inCorso.current = true;
@@ -272,7 +278,7 @@ export default function AggiornaObsoleti({
     setInterrotto(fermato);
     setFase('consuntivo');
     inCorso.current = false;
-  }, [posizioni]);
+  }, [posizioniAperte]);
 
   /**
    * L'interruzione è uno stato dichiarato, non un ritorno immediato al riposo:

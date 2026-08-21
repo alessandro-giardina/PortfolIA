@@ -6,7 +6,7 @@ epic:
   title: Visualizzazione dei titoli
 priority: HIGH
 points: 1
-status: TODO
+status: REVIEW
 body: |-
   #### US-065: Contare e aggiornare solo le posizioni aperte nello stato dei rilevamenti
 
@@ -31,3 +31,9 @@ body: |-
 history:
   - status: TODO
     at: "2026-08-21T13:06:38Z"
+  - status: PLANNED
+    at: "2026-08-21T13:33:01Z"
+  - status: IN PROGRESS
+    at: "2026-08-21T13:33:42Z"
+  - status: REVIEW
+    at: "2026-08-21T13:48:56Z"

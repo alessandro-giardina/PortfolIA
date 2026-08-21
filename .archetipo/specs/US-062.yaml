@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: MEDIUM
 points: 2
-status: IN PROGRESS
+status: REVIEW
 body: |-
   #### US-062: Rimuovere lo stemma segnaposto dalla ricerca titoli e dalla scheda titolo
 
@@ -39,3 +39,5 @@ history:
     at: "2026-08-21T14:52:57Z"
   - status: IN PROGRESS
     at: "2026-08-21T14:53:37Z"
+  - status: REVIEW
+    at: "2026-08-21T14:57:24Z"

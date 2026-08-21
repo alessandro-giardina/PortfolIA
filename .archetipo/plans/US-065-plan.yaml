@@ -1,0 +1,141 @@
+schema: archetipo/plan/v2
+spec_code: US-065
+body: |-
+  # US-065: Contare e aggiornare solo le posizioni aperte nello stato dei rilevamenti — Piano di implementazione
+
+  **Generato da:** Team di Pianificazione ARchetipo
+  **Data:** 2026-08-21
+
+  ---
+
+  ## Spec
+
+  **Epica:** EP-005 — Visualizzazione dei titoli
+  **Priorità:** HIGH | **Punti:** 1
+
+  **User Story**
+  Come Alessandro, investitore-proprietario, voglio che lo stato dei rilevamenti e il pulsante «Aggiorna i titoli obsoleti» contino e interroghino soltanto i titoli attualmente detenuti in portafoglio, in modo da non essere confuso da conteggi che includono titoli ormai venduti, e da non sprecare tempo e richieste alle fonti dati per titoli che non mi servono più.
+
+  **Criteri di accettazione**
+  - [ ] Il conteggio nel pannello «Stato dei rilevamenti» (denominatore, obsoleti, mai rilevati) considera soltanto le posizioni aperte (quantità detenuta > 0), escludendo le posizioni chiuse
+  - [ ] Avviando il lavoro di aggiornamento, la coda dei titoli da interrogare è costruita sulle sole posizioni aperte: nessuna richiesta parte per un ISIN di una posizione chiusa, anche se il suo ultimo rilevamento risulta obsoleto o assente
+  - [ ] Un portafoglio con sole posizioni chiuse dichiara zero titoli da aggiornare e il pulsante risulta inattivo
+  - [ ] La correzione riguarda entrambe le viste che montano il pannello (Riepilogo Mastro e Riepilogo Quadro); nessuna delle due regredisce
+  - [ ] La tabella delle posizioni chiuse (EP-008) continua a mostrare tutte le posizioni vendute, invariata: la correzione non ne restringe l'elenco
+  - [ ] Un test copre un portafoglio con posizioni sia aperte sia chiuse, verificando che sia il conteggio sia la coda di aggiornamento ignorino le posizioni chiuse
+
+  ---
+
+  ## Soluzione tecnica
+
+  Il difetto è un caso di prop sbagliata, non di logica sbagliata. `AggiornaObsoleti.tsx` (che rende sia il riquadro «Stato dei rilevamenti» sia il pulsante «Aggiorna i titoli obsoleti») calcola `totale`, `obsoleti`, `maiRilevati` e la coda `daFare` tutti a partire da un'unica prop `posizioni`. Entrambi i punti di montaggio — `RiepilogoMastro.tsx` (riga ~165) e `RiepilogoQuadro.tsx` (riga ~223) — le passano oggi `enrichedPositions`, l'array grezzo e non filtrato che include anche le posizioni interamente vendute (`totalQuantity === 0`). Il filtro corretto esiste già e nello stesso file: `useDatiPortafoglio.ts` (righe 154-161) calcola `posizioniAperte = enrichedPositions.filter(ep => ep.totalQuantity > 0)` e `posizioniChiuse` con il complemento, e li propaga fino a `RiepilogoMastro`/`RiepilogoQuadro` come props già pronte, usate altrove nello stesso file (contatori, tabella posizioni, placeholder «nessun titolo posseduto») — semplicemente non ancora instradate verso `AggiornaObsoleti`.
+
+  Non esiste una coda o un conteggio lato server per questa funzionalità: `GET /api/portfolios/:id/positions/enriched` (server/src/api/positions.ts) restituisce di proposito TUTTE le posizioni, aperte e chiuse, perché la stessa risposta alimenta anche la tabella delle posizioni chiuse (EP-008/US-044) — non va toccata, altrimenti quella tabella si svuota. Il filtro aperte/chiuse è per convenzione del progetto una responsabilità client-side, già consolidata in `useDatiPortafoglio`. La correzione quindi non tocca lo schema, le rotte API né la classificazione `freshness` (che resta indipendente dalla quantità, correttamente): cambia solo quale array viene passato ad `AggiornaObsoleti`.
+
+  ### Decisioni architetturali
+
+  1. **Contratto esplicito nella prop, non solo nel chiamante.** Invece di limitarsi a cambiare il valore passato (`posizioni={enrichedPositions}` → `posizioni={posizioniAperte}`), la prop dell'interfaccia `AggiornaObsoletiProps` viene rinominata da `posizioni` a `posizioniAperte`. È una riga di differenza nel diff ma rende impossibile in futuro rimontare per errore l'array non filtrato con lo stesso nome generico: il tipo e il nome comunicano il vincolo, non solo il JSDoc.
+  2. **Nessun cambiamento a `useDatiPortafoglio` né a `positions/enriched`.** `posizioniAperte` esiste già, è già testato indirettamente da tutto ciò che la consuma, e la sua semantica (`totalQuantity > 0`) è quella richiesta dai criteri di accettazione. Riusarla evita di introdurre una seconda definizione di «posizione aperta» nel codice.
+  3. **`freshness` resta invariato.** Il server classifica `freshness` per ISIN indipendentemente dalla quantità residua (correttamente: un titolo appena venduto ha comunque un ultimo prezzo osservato valido). Il fix agisce solo a valle, filtrando quali righe entrano nel conteggio e nella coda — non su come viene calcolato `freshness` per ciascuna riga.
+  4. **La tabella delle posizioni chiuse non è toccata.** Riceve `posizioniChiuse` da un percorso props separato e indipendente da `AggiornaObsoleti`; il criterio di non-regressione EP-008 è quindi soddisfatto per costruzione, ma va comunque verificato in test perché la spec lo richiede esplicitamente.
+  5. **Correzione simmetrica sulle due viste.** `RiepilogoMastro.tsx` e `RiepilogoQuadro.tsx` montano lo stesso componente `AggiornaObsoleti` con la stessa forma di props (`RiepilogoProps` condiviso, come documentato nel commento di `PortfolioDetailPage.tsx`); la correzione è lo stesso identico cambio di riga in entrambi i file, senza divergenze di comportamento tra i due design.
+
+  ### Rischi e mitigazioni
+
+  - **Refetch involontario in produzione durante lo sviluppo/test.** Nessun rischio nuovo: la modifica è puramente di instradamento props, non tocca il ciclo di fetch (`avvia()`, `recuperaTitolo`, `onRicalcola`).
+  - **Regressione sul conteggio «totale» mostrato in frase (`Tutti i N titoli sono allineati`).** `totale = posizioni.length` (riga 114 di `AggiornaObsoleti.tsx`) deriva dalla stessa prop rinominata: cambia automaticamente insieme a obsoleti/maiRilevati/daFare, senza bisogno di toccare quella riga.
+  - **Portafoglio con sole posizioni chiuse.** Con `posizioniAperte` vuoto, `totale === 0`, `daAggiornare === 0` e il pulsante risulta disabilitato dalla guardia già esistente (`disabled={lavorando || daAggiornare === 0}`) — comportamento coperto dal criterio di accettazione dedicato e da verificare esplicitamente in E2E.
+
+  ---
+
+  ## Strategia di test
+
+  La spec è un difetto di comportamento osservabile solo a schermo (conteggio e coda di rete), non c'è logica di dominio nuova da isolare in unità: la strategia E2E copre da sola tutti i criteri di accettazione. Nessuna modifica lato server, quindi nessun nuovo test in `server/tests/` — `server/tests/api.positions.enriched.test.ts` resta invariato e continua a validare che `positions/enriched` restituisca tutte le posizioni (comportamento voluto, da cui il client filtra).
+
+  - Regressione di non-rottura: gli scenari esistenti US-034 e US-035 (rilevamento obsoleto, pulsante di aggiornamento) devono continuare a passare senza modifiche ai loro file — usano portafogli a sole posizioni aperte, quindi il filtro aggiunto non cambia il loro esito atteso.
+  - Nuova copertura mirata su un portafoglio misto aperte+chiuse, sia per il conteggio sia per la coda di rete, sulle due viste (mastro e quadro).
+
+  ### Test E2E
+
+  **Framework:** Playwright (già in uso nel progetto).
+  **Video demo:** registrato per il solo scenario dimostrativo, salvato in `docs/test-results/US-065/`. Lo scenario demo vive in un file separato perché `launchOptions` (slowMo) non è scopabile a un `describe` — stessa coppia di file già usata da US-026/US-051/US-055.
+
+  | Scenario | Descrizione del flusso utente |
+  |---|---|
+  | Conteggio ignora le posizioni chiuse | In un portafoglio con posizioni aperte allineate e posizioni chiuse mai più rilevate, il pannello «Stato dei rilevamenti» dichiara tutti i titoli allineati sul solo numero delle posizioni aperte, e il pulsante «Aggiorna i titoli obsoleti» risulta inattivo |
+  | La coda di aggiornamento ignora le posizioni chiuse | In un portafoglio con posizioni aperte obsolete e posizioni chiuse obsolete, avviando l'aggiornamento e intercettando `**/api/securities/**`, nessuna richiesta viene mai emessa per gli ISIN delle posizioni chiuse, solo per quelli aperti |
+  | Portafoglio a sole posizioni chiuse | Un portafoglio senza alcuna posizione aperta dichiara zero titoli da aggiornare e il pulsante risulta inattivo |
+  | Parità fra i due design | Le stesse assertion su conteggio e pulsante valgono anche commutando su `localStorage.setItem('portfolia-design','quadro')`, per coprire il montaggio in Riepilogo Quadro oltre che in Riepilogo Mastro |
+  | Non regressione tabella posizioni chiuse (EP-008) | Nello stesso portafoglio misto, `tabella-posizioni-chiuse` continua a elencare tutte le posizioni vendute, senza restrizioni introdotte dal fix |
+  | Scenario dimostrativo (demo, video) | Riproduce esattamente il campo «Dimostra» della spec: un portafoglio con 4 posizioni aperte allineate e 2 posizioni chiuse mai più rilevate dopo la vendita mostra «tutti i titoli sono allineati» su un totale di 4 col pulsante inattivo; avviando comunque un aggiornamento in un secondo portafoglio con posizioni aperte obsolete, i 2 ISIN venduti non vengono mai interrogati alla fonte |
+
+  ### Registro delle chiavi E2E
+
+  Il nuovo file funzionale e il file demo richiedono ciascuno le proprie chiavi in `e2e/support/titoli.ts` (mai condivise con altri file, per costruzione verificata da `npm run check:chiavi`): almeno un ISIN «aperto e allineato» e un ISIN «chiuso e obsoleto/mai rilevato» per il file funzionale, e l'insieme più ampio richiesto dallo scenario demo (4 aperti allineati, 2 chiusi mai rilevati, più gli aperti obsoleti del secondo portafoglio). Le posizioni chiuse si costruiscono seminando il titolo e poi vendendone l'intera quantità residua con gli helper di `e2e/support/api.ts`/`archivio.ts`, così che `totalQuantity` risulti 0 sul lato server esattamente come per una vendita reale.
+
+  ---
+
+  _Piano generato via ARchetipo Planning — 2026-08-21_
+tasks:
+  - id: TASK-01
+    title: Rendere esplicito il contratto "solo posizioni aperte" in AggiornaObsoleti
+    description: In client/src/components/AggiornaObsoleti.tsx rinominare la prop dell'interfaccia AggiornaObsoletiProps da posizioni a posizioniAperte, aggiornando tutti i riferimenti interni che oggi leggono posizioni (obsoleti, maiRilevati, totale alla riga 114, daFare dentro avvia() alla riga 207) e il JSDoc della prop, che deve dichiarare esplicitamente il vincolo (solo posizioni con quantita residua maggiore di zero). Nessun cambiamento alla logica di calcolo o al ciclo di fetch, solo rinomina e documentazione del contratto.
+    type: Impl
+    status: DONE
+    body: In client/src/components/AggiornaObsoleti.tsx rinominare la prop dell'interfaccia AggiornaObsoletiProps da posizioni a posizioniAperte, aggiornando tutti i riferimenti interni che oggi leggono posizioni (obsoleti, maiRilevati, totale alla riga 114, daFare dentro avvia() alla riga 207) e il JSDoc della prop, che deve dichiarare esplicitamente il vincolo (solo posizioni con quantita residua maggiore di zero). Nessun cambiamento alla logica di calcolo o al ciclo di fetch, solo rinomina e documentazione del contratto.
+    ref: TASK-01
+  - id: TASK-02
+    title: Passare posizioniAperte ad AggiornaObsoleti in Riepilogo Mastro
+    description: In client/src/views/RiepilogoMastro.tsx, nel montaggio di <AggiornaObsoleti> (riga ~163-169), sostituire posizioni={enrichedPositions} con posizioniAperte={posizioniAperte} (per allinearsi alla prop rinominata in TASK-01), riusando la costante posizioniAperte gia calcolata da useDatiPortafoglio e gia in uso altrove nello stesso file (contatori, tabella, placeholder).
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: In client/src/views/RiepilogoMastro.tsx, nel montaggio di <AggiornaObsoleti> (riga ~163-169), sostituire posizioni={enrichedPositions} con posizioniAperte={posizioniAperte} (per allinearsi alla prop rinominata in TASK-01), riusando la costante posizioniAperte gia calcolata da useDatiPortafoglio e gia in uso altrove nello stesso file (contatori, tabella, placeholder).
+    ref: TASK-02
+  - id: TASK-03
+    title: Passare posizioniAperte ad AggiornaObsoleti in Riepilogo Quadro
+    description: 'Stessa correzione di TASK-02 applicata a client/src/views/RiepilogoQuadro.tsx, nel montaggio di <AggiornaObsoleti> (riga ~221-227): sostituire posizioni={enrichedPositions} con posizioniAperte={posizioniAperte}, gia disponibile come prop del componente.'
+    type: Impl
+    status: DONE
+    dependencies:
+      - TASK-01
+    body: 'Stessa correzione di TASK-02 applicata a client/src/views/RiepilogoQuadro.tsx, nel montaggio di <AggiornaObsoleti> (riga ~221-227): sostituire posizioni={enrichedPositions} con posizioniAperte={posizioniAperte}, gia disponibile come prop del componente.'
+    ref: TASK-03
+  - id: TASK-04
+    title: npm run check verde
+    description: Eseguire npm run check (lint, typecheck, typecheck:e2e, check:chiavi, test:e2e-support, test) e verificare che l'intera pipeline sia verde dopo la rinomina della prop e l'aggiornamento dei due punti di montaggio, correggendo eventuali riferimenti residui al vecchio nome posizioni.
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-02
+      - TASK-03
+    body: Eseguire npm run check (lint, typecheck, typecheck:e2e, check:chiavi, test:e2e-support, test) e verificare che l'intera pipeline sia verde dopo la rinomina della prop e l'aggiornamento dei due punti di montaggio, correggendo eventuali riferimenti residui al vecchio nome posizioni.
+    ref: TASK-04
+  - id: TASK-05
+    title: Registrare le chiavi E2E per US-065
+    description: 'Dichiarare in e2e/support/titoli.ts le nuove chiavi riservate al file funzionale e al file demo di questa spec (un ISIN aperto e allineato e un ISIN chiuso e obsoleto/mai rilevato per il file funzionale; l''insieme piu ampio richiesto dallo scenario demo: 4 aperti allineati, 2 chiusi mai rilevati, piu gli aperti obsoleti del secondo portafoglio demo), seguendo il pattern TitoloSeminabile/ChiaveRiservata gia in uso e il campo file che ne dichiara il proprietario esclusivo.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-04
+    body: 'Dichiarare in e2e/support/titoli.ts le nuove chiavi riservate al file funzionale e al file demo di questa spec (un ISIN aperto e allineato e un ISIN chiuso e obsoleto/mai rilevato per il file funzionale; l''insieme piu ampio richiesto dallo scenario demo: 4 aperti allineati, 2 chiusi mai rilevati, piu gli aperti obsoleti del secondo portafoglio demo), seguendo il pattern TitoloSeminabile/ChiaveRiservata gia in uso e il campo file che ne dichiara il proprietario esclusivo.'
+    ref: TASK-05
+  - id: TASK-06
+    title: Test E2E — conteggio e coda ignorano le posizioni chiuse
+    description: 'Creare e2e/US-065__conteggio-solo-posizioni-aperte.spec.ts con gli scenari: (a) portafoglio con posizioni aperte allineate e posizioni chiuse obsolete, il pannello dichiara tutti allineati sul solo conteggio delle aperte e il pulsante e inattivo; (b) portafoglio con posizioni aperte obsolete e posizioni chiuse obsolete, avviando l''aggiornamento e intercettando **/api/securities/** nessuna richiesta parte per gli ISIN delle posizioni chiuse; (c) portafoglio a sole posizioni chiuse, zero titoli da aggiornare e pulsante inattivo; (d) ripetere le assertion chiave del conteggio con localStorage.setItem(''portfolia-design'',''quadro'') per coprire Riepilogo Quadro; (e) verificare che tabella-posizioni-chiuse continui a elencare tutte le posizioni chiuse, invariata. Verificare inoltre che le suite esistenti US-034 e US-035 continuino a passare senza modifiche.'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-05
+    body: 'Creare e2e/US-065__conteggio-solo-posizioni-aperte.spec.ts con gli scenari: (a) portafoglio con posizioni aperte allineate e posizioni chiuse obsolete, il pannello dichiara tutti allineati sul solo conteggio delle aperte e il pulsante e inattivo; (b) portafoglio con posizioni aperte obsolete e posizioni chiuse obsolete, avviando l''aggiornamento e intercettando **/api/securities/** nessuna richiesta parte per gli ISIN delle posizioni chiuse; (c) portafoglio a sole posizioni chiuse, zero titoli da aggiornare e pulsante inattivo; (d) ripetere le assertion chiave del conteggio con localStorage.setItem(''portfolia-design'',''quadro'') per coprire Riepilogo Quadro; (e) verificare che tabella-posizioni-chiuse continui a elencare tutte le posizioni chiuse, invariata. Verificare inoltre che le suite esistenti US-034 e US-035 continuino a passare senza modifiche.'
+    ref: TASK-06
+  - id: TASK-07
+    title: Test E2E — scenario dimostrativo con video
+    description: 'Creare e2e/US-065__conteggio-solo-posizioni-aperte-demo.spec.ts con il solo scenario dimostrativo che riproduce il campo Dimostra della spec: portafoglio con 4 posizioni aperte allineate e 2 posizioni chiuse mai piu rilevate dopo la vendita, verificando la frase tutti i titoli sono allineati su un totale di 4 e il pulsante inattivo; poi, in un secondo portafoglio con posizioni aperte obsolete, avviare l''aggiornamento e verificare che i 2 ISIN venduti non vengano mai interrogati. File con test.use({ video, slowMo }) a livello di modulo, video salvato in docs/test-results/US-065/ da un afterEach dopo page.close().'
+    type: Test
+    status: DONE
+    dependencies:
+      - TASK-06
+    body: 'Creare e2e/US-065__conteggio-solo-posizioni-aperte-demo.spec.ts con il solo scenario dimostrativo che riproduce il campo Dimostra della spec: portafoglio con 4 posizioni aperte allineate e 2 posizioni chiuse mai piu rilevate dopo la vendita, verificando la frase tutti i titoli sono allineati su un totale di 4 e il pulsante inattivo; poi, in un secondo portafoglio con posizioni aperte obsolete, avviare l''aggiornamento e verificare che i 2 ISIN venduti non vengano mai interrogati. File con test.use({ video, slowMo }) a livello di modulo, video salvato in docs/test-results/US-065/ da un afterEach dopo page.close().'
+    ref: TASK-07

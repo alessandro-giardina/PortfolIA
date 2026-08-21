@@ -6,7 +6,7 @@ epic:
   title: Direzione visiva commutabile
 priority: MEDIUM
 points: 5
-status: IN PROGRESS
+status: REVIEW
 body: |-
   #### US-064: Rimuovere ovunque i riferimenti a FR e ADR dal testo mostrato all'utente
 
@@ -46,3 +46,5 @@ history:
     at: "2026-08-21T15:02:17Z"
   - status: IN PROGRESS
     at: "2026-08-21T15:03:03Z"
+  - status: REVIEW
+    at: "2026-08-21T15:07:55Z"

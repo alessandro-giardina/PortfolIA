@@ -220,7 +220,7 @@ export default function RiepilogoQuadro({
       {id && (
         <AggiornaObsoleti
           portfolioId={id}
-          posizioni={enrichedPositions}
+          posizioniAperte={posizioniAperte}
           onRicalcola={ricalcolaSilenzioso}
           onTitoloInCorso={setIsinInLavorazione}
         />

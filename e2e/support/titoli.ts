@@ -2251,6 +2251,267 @@ export const TITOLO_US_054_DEMO: TitoloSeminabile = {
 };
 
 /**
+ * Riservati a `US-065__conteggio-solo-posizioni-aperte.spec.ts`: le due
+ * posizioni **aperte** che il file tiene allineate o rende obsolete a seconda
+ * dello scenario.
+ *
+ * Due titoli, non uno, perché lo scenario (a) deve produrre la forma plurale
+ * «Tutti i N titoli sono allineati…» (N = 2) e non quella riservata a un solo
+ * titolo — è la frase che il conteggio-solo-aperte deve dichiarare *ignorando*
+ * le posizioni chiuse dello stesso portafoglio, e un N = 1 la renderebbe
+ * indistinguibile dal caso singolare già coperto da US-034. Lo stesso ISIN è
+ * riseminato più volte nel file con `fetched_at` diverso — adesso per lo
+ * scenario allineato, quattordici giorni indietro per quello obsoleto —
+ * perché seminare ripetutamente la stessa chiave dentro un solo file è sicuro
+ * (`fullyParallel: false` lo serializza con sé stesso).
+ */
+export const TITOLI_US_065_APERTI: TitoloSeminabile[] = [
+  {
+    isin: 'IE00BPN3S406',
+    file: 'US-065__conteggio-solo-posizioni-aperte.spec.ts',
+    campi: {
+      name: 'Amundi Msci World Ii Ucits Etf Eur Acc',
+      price: 102.35,
+      ticker: 'CW8M',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,15%',
+      currency: 'EUR',
+      issuer: 'AMUNDI INDEX SOLUTIONS',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+  {
+    isin: 'IE00BPN3S513',
+    file: 'US-065__conteggio-solo-posizioni-aperte.spec.ts',
+    campi: {
+      name: 'Vanguard Ftse Developed World Ucits Etf',
+      price: 74.6,
+      ticker: 'VDEV',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,12%',
+      currency: 'EUR',
+      issuer: 'VANGUARD FUNDS PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+];
+
+/**
+ * Riservati a `US-065__conteggio-solo-posizioni-aperte.spec.ts`: le due
+ * posizioni **chiuse** — vendute per intero via `registraVendita` — su cui il
+ * file dimostra la crepa che la spec chiude.
+ *
+ * Senza il filtro per posizioni aperte, un ISIN venduto per intero ma con
+ * rilevamento obsoleto entrava comunque nel conteggio «Stato dei rilevamenti»
+ * e nella coda di `AggiornaObsoleti` di un portafoglio che non lo possiede
+ * più: il bug di US-065. Seminati sempre con `fetched_at` fissato quattordici
+ * giorni indietro **da adesso** — mai con il default di `seminaTitolo` — per
+ * rappresentare il prezzo mai più rilevato dopo la vendita, e restano
+ * obsoleti a qualunque ora giri la suite per lo stesso argomento di
+ * `TITOLO_US_034_OBSOLETO`: il passato non si avvicina.
+ */
+export const TITOLI_US_065_CHIUSI: TitoloSeminabile[] = [
+  {
+    isin: 'LU2517287947',
+    file: 'US-065__conteggio-solo-posizioni-aperte.spec.ts',
+    campi: {
+      name: 'Amundi Prime Global Ucits Etf',
+      price: 15.8,
+      ticker: 'PRAW',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,05%',
+      currency: 'EUR',
+      issuer: 'AMUNDI INDEX SOLUTIONS',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+  {
+    isin: 'LU2517288077',
+    file: 'US-065__conteggio-solo-posizioni-aperte.spec.ts',
+    campi: {
+      name: 'Xtrackers Msci Europe Ucits Etf 1c',
+      price: 55.4,
+      ticker: 'XMEU',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,15%',
+      currency: 'EUR',
+      issuer: 'XTRACKERS IE PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+];
+
+/**
+ * Riservati a `US-065__conteggio-solo-posizioni-aperte-demo.spec.ts`: le
+ * quattro posizioni **aperte e allineate** del primo portafoglio della demo.
+ *
+ * Quattro titoli, non uno, perché il campo `Dimostra` della spec promette
+ * parola per parola «il riepilogo dichiara "tutti i titoli sono allineati" su
+ * un totale di 4»: il video deve mostrare esattamente quella cifra, e un solo
+ * titolo cadrebbe nella forma singolare («L'unico titolo…») invece che nella
+ * plurale che la spec cita. Seminati senza `fetched_at` esplicito — il
+ * default di `seminaTitolo` è adesso — perché un rilevamento «adesso» non può
+ * mai risultare obsoleto (`classifyRefetch(now, now)` non è mai `none`),
+ * stesso argomento già registrato su `TITOLO_US_034_FRESCO`.
+ */
+export const TITOLI_US_065_DEMO_APERTI: TitoloSeminabile[] = [
+  {
+    isin: 'IE00B4L5YX21',
+    file: 'US-065__conteggio-solo-posizioni-aperte-demo.spec.ts',
+    campi: {
+      name: 'Ishares Core Msci World Ucits Etf Usd Dist',
+      price: 95.1,
+      ticker: 'IWQD',
+      instrument_type: 'ETF',
+      total_annual_fees: '0,20%',
+      currency: 'USD',
+      issuer: 'ISHARES III PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'a distribuzione',
+    },
+  },
+  {
+    isin: 'IE00BFY90Y70',
+    file: 'US-065__conteggio-solo-posizioni-aperte-demo.spec.ts',
+    campi: {
+      name: 'Spdr Msci Acwi Ucits Etf',
+      price: 132.4,
+      ticker: 'ACWI',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,12%',
+      currency: 'USD',
+      issuer: 'SSGA SPDR ETFS EUROPE II PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+  {
+    isin: 'IE00BKX55W04',
+    file: 'US-065__conteggio-solo-posizioni-aperte-demo.spec.ts',
+    campi: {
+      name: 'Amundi Index Msci Emerging Markets Ucits Etf',
+      price: 28.75,
+      ticker: 'APXJ',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,20%',
+      currency: 'EUR',
+      issuer: 'AMUNDI INDEX SOLUTIONS',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+  {
+    isin: 'IE00BJXRZJ40',
+    file: 'US-065__conteggio-solo-posizioni-aperte-demo.spec.ts',
+    campi: {
+      name: 'Ishares Msci Japan Ucits Etf',
+      price: 45.9,
+      ticker: 'IJPN',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,15%',
+      currency: 'EUR',
+      issuer: 'ISHARES III PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+];
+
+/**
+ * Riservati a `US-065__conteggio-solo-posizioni-aperte-demo.spec.ts`: i due
+ * ISIN venduti per intero e **mai più rilevati dopo la vendita** — la frase
+ * stessa del campo `Dimostra`.
+ *
+ * Compaiono in *entrambi* i portafogli della demo, chiusi da una vendita
+ * totale in ciascuno: nel primo dimostrano che non contribuiscono al
+ * conteggio «tutti allineati» nonostante il rilevamento obsoleto, nel secondo
+ * che l'avvio dell'aggiornamento in blocco non li interroga mai — è il
+ * criterio dello scenario reso eseguibile. Seminati con `fetched_at` fissato
+ * quattordici giorni indietro **da adesso**, mai con il default di
+ * `seminaTitolo`: rappresentano un prezzo che nessuno ha più rilevato dopo la
+ * vendita, e restano obsoleti a qualunque ora giri la suite per lo stesso
+ * argomento di `TITOLO_US_034_OBSOLETO`.
+ */
+export const TITOLI_US_065_DEMO_CHIUSI: TitoloSeminabile[] = [
+  {
+    isin: 'LU1737653102',
+    file: 'US-065__conteggio-solo-posizioni-aperte-demo.spec.ts',
+    campi: {
+      name: 'Amundi Index Solutions Msci Europe Ucits Etf',
+      price: 62.3,
+      ticker: 'AEUR',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,15%',
+      currency: 'EUR',
+      issuer: 'AMUNDI INDEX SOLUTIONS',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+  {
+    isin: 'LU2216455647',
+    file: 'US-065__conteggio-solo-posizioni-aperte-demo.spec.ts',
+    campi: {
+      name: 'Xtrackers Ftse All-World Ucits Etf',
+      price: 8.9,
+      ticker: 'XAWX',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,15%',
+      currency: 'EUR',
+      issuer: 'XTRACKERS IE PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'ad accumulazione',
+    },
+  },
+];
+
+/**
+ * Riservati a `US-065__conteggio-solo-posizioni-aperte-demo.spec.ts`: le
+ * posizioni **aperte e obsolete** del secondo portafoglio della demo, quello
+ * su cui la corsa di aggiornamento viene davvero avviata.
+ *
+ * Due titoli e non uno, per rendere la corsa realistica esattamente come fa
+ * `TITOLI_US_035_VARIANTI`; seminati con `fetched_at` fissato quattordici
+ * giorni indietro **da adesso**, per lo stesso argomento già registrato sopra.
+ */
+export const TITOLI_US_065_DEMO_OBSOLETI: TitoloSeminabile[] = [
+  {
+    isin: 'IE00BF4RFJ54',
+    file: 'US-065__conteggio-solo-posizioni-aperte-demo.spec.ts',
+    campi: {
+      name: 'Ishares Msci World Small Cap Ucits Etf Eur Dist',
+      price: 6.55,
+      ticker: 'WSMD',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,35%',
+      currency: 'EUR',
+      issuer: 'ISHARES III PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'a distribuzione',
+    },
+  },
+  {
+    isin: 'IE00BQ70R696',
+    file: 'US-065__conteggio-solo-posizioni-aperte-demo.spec.ts',
+    campi: {
+      name: 'Vanguard Esg Global All Cap Ucits Etf Dist',
+      price: 118.2,
+      ticker: 'V3AD',
+      instrument_type: 'ETF ARMONIZZATI',
+      total_annual_fees: '0,24%',
+      currency: 'EUR',
+      issuer: 'VANGUARD FUNDS PLC',
+      segment: 'ETF Indicizzati',
+      dividend_policy: 'a distribuzione',
+    },
+  },
+];
+
+/**
  * Riservato a `US-066__esclude-posizioni-chiuse-da-composizione.spec.ts`: la
  * posizione **aperta** con un prezzo già valorizzato in cache — il caso che
  * deve continuare a comparire nel grafico di composizione dopo il fix.
@@ -2364,7 +2625,6 @@ export const TITOLO_US_066_DEMO_CHIUSO_CON_PREZZO: TitoloSeminabile = {
   },
 };
 
-
 /**
  * Gli ISIN su cui la suite semina osservazioni di prezzo (US-009, US-036, US-037,
  * US-038, US-039).
@@ -2466,6 +2726,15 @@ export const ISIN_CON_OSSERVAZIONI_E2E: readonly string[] = [
   // per crearne una.
   TITOLO_US_052.isin,
   TITOLO_US_052_DEMO.isin,
+  // I quattro titoli di US-065 (due aperti, due chiusi): nessuno scenario vi
+  // semina osservazioni esplicite, ma il seme in cache — sempre presente,
+  // allineato o obsoleto che sia — basta al backfill d'avvio per crearne una.
+  ...TITOLI_US_065_APERTI.map((t) => t.isin),
+  ...TITOLI_US_065_CHIUSI.map((t) => t.isin),
+  // Gli otto titoli della demo di US-065: stessa ragione, stesso backfill.
+  ...TITOLI_US_065_DEMO_APERTI.map((t) => t.isin),
+  ...TITOLI_US_065_DEMO_CHIUSI.map((t) => t.isin),
+  ...TITOLI_US_065_DEMO_OBSOLETI.map((t) => t.isin),
   // I due titoli di US-066 seminati in cache (l'aperto valorizzato e il
   // chiuso con prezzo residuo): nessuno scenario vi semina osservazioni
   // esplicite, ma il seme in cache basta al backfill d'avvio per crearne una.
