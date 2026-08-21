@@ -1,0 +1,33 @@
+schema: archetipo/spec/v2
+code: US-061
+title: Chiarire il testo dei pulsanti di commutazione fra i due design
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: LOW
+points: 2
+status: TODO
+blocked_by:
+  - US-050
+body: |-
+  #### US-061: Chiarire il testo dei pulsanti di commutazione fra i due design
+
+  **Epica:** EP-009 | **Priorità:** LOW | **Punti:** 2 | **Stato:** TODO
+  **Bloccato da:** US-050
+
+  **User Story**
+  Come utente di PortfolIA,
+  voglio che i pulsanti di commutazione fra i due design indichino chiaramente dove portano ("Vista Libro Mastro" e "Vista Quadro Strumenti" invece di "Libro Mastro" e "QUADRO STRUMENTI"),
+  così che sia immediato capire la destinazione del pulsante senza confonderla con il nome del design in cui mi trovo già.
+
+  **Dimostra**
+  Dopo l'implementazione, nel design Quadro Strumenti il pulsante in testata mostra "Vista Libro Mastro" e ha la stessa altezza del pulsante di commutazione tema (Day/Night) accanto a esso; nel design Libro Mastro il pulsante di commutazione mostra "Vista Quadro Strumenti".
+
+  **Criteri di Accettazione**
+  - [ ] Nel design Quadro Strumenti, il pulsante che porta al Libro Mastro mostra il testo "Vista Libro Mastro"
+  - [ ] Quel pulsante ha la stessa altezza del pulsante di commutazione Day/Night adiacente in testata
+  - [ ] Nel design Libro Mastro, il pulsante che porta al Quadro Strumenti mostra il testo "Vista Quadro Strumenti"
+  - [ ] La suite E2E esistente che verifica la commutazione fra i due design passa verde, aggiornata dove necessario per i nuovi testi
+history:
+  - status: TODO
+    at: "2026-08-21T11:51:31Z"
