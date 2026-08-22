@@ -6,8 +6,8 @@ epic:
   title: Direzione visiva commutabile
 priority: LOW
 points: 2
-status: REVIEW
-body: |-
+status: TODO
+body: |
   #### US-063: Formattare come gg/mm/aaaa hh:mm la data di rilevazione del prezzo nel design Quadro Strumenti
 
   **Epica:** EP-009 | **Priorità:** LOW | **Punti:** 2 | **Stato:** TODO
@@ -31,6 +31,19 @@ body: |-
   - [ ] `dataRegistro` in `Foglio.tsx` resta invariata, poiché ancora in uso dal Libro Mastro
   - [ ] I test E2E esistenti che coprono queste due pagine del Quadro Strumenti passano verdi, aggiornati dove necessario per il nuovo formato di data
   - [ ] `npm run check` è verde
+
+  ## Rework Feedback
+
+  <!-- Added by request-changes. archetipo-plan converts each item into a Fix task. -->
+
+  - Il formato gg/mm/aaaa hh:mm consegnato e' corretto e i criteri di accettazione da 1 a 6 risultano tutti soddisfatti (npm run check verde, 15/15 test Playwright su US-052 e US-055 verdi, Libro Mastro e dataRegistro invariati). L'increment torna in rework per una sola ragione, di qualita' del codice: il «Contesto» della spec indicava la duplicazione di dataRilevazione come premessa del problema, ma la soluzione l'ha aumentata invece di ridurla. Esistono ora QUATTRO copie byte-identiche della stessa funzione dataRilevamento: RicercaQuadro.tsx:15, SchedaTitoloQuadro.tsx:22, RiepilogoQuadro.tsx:18, RiepilogoMastro.tsx:16. Quattro definizioni della stessa convenzione di data possono divergere, e nel momento in cui divergono almeno tre di esse sono false. Da fare: estrarre un unico formattatore condiviso, esportato da client/src/domain/formattazione.ts accanto a dataCivile, importo e prezzo (che e' la sede stabilita per le convenzioni di formattazione trasversali ai due design), e farlo usare da tutti e quattro i punti d'uso, eliminando le copie locali. Il nome dataRilevamento va conservato. Vincoli invariati: nessuna modifica al Libro Mastro nelle sue viste a numeri romani (components/SchedaTitolo.tsx, views/RicercaMastro.tsx) ne' a dataRegistro in components/Foglio.tsx; le asserzioni e2e di formato aggiunte in US-052 e US-055 devono restare verdi senza essere allentate.
+  - **client/src/domain/formattazione.ts:56** — Sede della nuova funzione condivisa: esportare qui dataRilevamento(fetchedAt: number): string, che formatta un timestamp unix in secondi come gg/mm/aaaa hh:mm (es. «21/08/2026 13:17»). Collocarla accanto a dataCivile, con un JSDoc che dica in che cosa differisce dalle vicine: dataCivile e dataCarico rendono una data civile senza orario nella convenzione del registro (numeri romani), mentre dataRilevamento porta con se' l'orario di rilevazione ed e' la convenzione usata da entrambi i design per l'istante in cui un prezzo e' stato osservato. Precisare anche che l'unita' attesa sono secondi (a differenza di dataRegistro, che tollera secondi o millisecondi), perche' tutti e quattro i chiamanti passano fetchedAt/observedAt in secondi.
+  - **client/src/views/RicercaQuadro.tsx:15** — Rimuovere questa copia locale di dataRilevamento e importare la funzione condivisa da ../domain/formattazione.js, dove sono gia' importati nomeFonte, prezzo e simboloDi (nessuna riga di import nuova). Il JSDoc che spiega la convenzione si trasferisce sulla funzione condivisa: qui non resta nulla da commentare.
+  - **client/src/views/SchedaTitoloQuadro.tsx:22** — Rimuovere questa copia locale di dataRilevamento e importare la funzione condivisa da ../domain/formattazione.js, dove sono gia' importati classeSegno, importo e altri. Attenzione ai due punti d'uso da preservare: la riga «Rilevato il» in testata (riga 178 circa) e la colonna «Prezzo rilevato» della tabella storico osservazioni (riga 497 circa). Rivedere anche il commento di testata del file, che dopo l'estrazione parla di una funzione che non vive piu' qui.
+  - **client/src/views/RiepilogoQuadro.tsx:18** — Rimuovere questa copia locale di dataRilevamento e usare la funzione condivisa, che questo file importa gia' da ../domain/formattazione.js insieme a dataCivile, importo e percentualeConSegno. Il punto d'uso da preservare e' la colonna della data di rilevazione nella tabella delle posizioni (riga 309 circa).
+  - **client/src/views/RiepilogoMastro.tsx:16** — Rimuovere anche questa copia locale e usare la funzione condivisa. Nota che il Libro Mastro qui usa gia' il formato gg/mm/aaaa hh:mm per l'istante di rilevazione: dedurne un uso della funzione condivisa NON e' una modifica visibile e NON contraddice il criterio n. 3 della spec, che vincola le sole viste a numeri romani (components/SchedaTitolo.tsx e views/RicercaMastro.tsx). Verificare comunque che la resa a schermo di questa vista sia identica prima e dopo.
+  - Fuori perimetro, registrato qui solo perche' non vada perso: la sezione «Andamento del portafoglio» del Riepilogo, e diverse altre viste del Quadro Strumenti, mostrano ancora date a numeri romani (es. «10.VIII.2026», «06.V.2025», e il cartellino «RILEVAZIONE DEL 21.VIII.2026»). Sono date senza orario, prodotte da dataIstante e dataPunto in components/graficoTela.ts (che delegano a dataRegistro) e da dataCarico e dataCivile: il «Contesto» di US-063 le esclude espressamente dal perimetro. Vanno inoltre risolte alla radice e non qui, perche' i componenti che le rendono (GraficoPortafoglio, GraficoTitolo, MetrichePortafoglio, MetricheTitolo) sono condivisi fra i due design e montati sia da RiepilogoMastro sia da RiepilogoQuadro: cambiarne il formato cambierebbe anche il Libro Mastro, violando il criterio n. 3 di questa spec. Serve rendere i formattatori consapevoli del design attivo, su circa 55 punti d'uso. Trattare come spec a se' stante, non come rework di US-063. NON intervenire su questo punto mentre si lavora alla rework qui sopra.
+rework: true
 history:
   - status: TODO
     at: "2026-08-21T12:10:40Z"
@@ -40,3 +53,5 @@ history:
     at: "2026-08-21T15:23:08Z"
   - status: REVIEW
     at: "2026-08-21T15:27:59Z"
+  - status: TODO
+    at: "2026-08-22T09:59:40Z"
