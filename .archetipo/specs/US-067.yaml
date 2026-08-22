@@ -1,0 +1,39 @@
+schema: archetipo/spec/v2
+code: US-067
+title: Scrivere gg/mm/aaaa le date del grafico e delle metriche del portafoglio nel Quadro Strumenti
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 5
+status: TODO
+body: |
+  #### US-067: Scrivere gg/mm/aaaa le date del grafico e delle metriche del portafoglio nel Quadro Strumenti
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 5 | **Stato:** TODO
+  **Bloccato da:** -
+
+  **User Story**
+  Come utente di PortfolIA che lavora nel design «Quadro strumenti»,
+  voglio che le date della sezione «Andamento del portafoglio» e delle sue metriche siano scritte come gg/mm/aaaa,
+  così che il Riepilogo non mi mostri il mese in numeri romani, che è la convenzione visiva del Libro Mastro.
+
+  **Contesto**
+  La sezione «Andamento del portafoglio» del Riepilogo è resa da `GraficoPortafoglio.tsx` e `MetrichePortafoglio.tsx`, **componenti condivisi montati da entrambi i design** (`RiepilogoMastro.tsx:151`, `RiepilogoQuadro.tsx:387`). Le loro date passano da `dataIstante` e `dataPunto` (`graficoTela.ts`), che delegano a `dataRegistro`/`dataCarico` (`Foglio.tsx`, numeri romani) — 23 punti d'uso nel grafico, 3 nelle metriche, dove `dataPunto` è ricopiata in locale. Cambiarne il formato dentro i componenti cambierebbe anche il Libro Mastro: la resa deve dipendere dal design attivo, che `useDesign()` già espone come store condiviso leggibile da qualunque componente (precedente: `PortfolioSelectDialog.tsx:17`, componente condiviso che lo chiama per conto proprio). Fuori dai componenti restano `dataCarico` nella colonna di chiusura di `RiepilogoQuadro.tsx:426` e `dataCivile` (`formattazione.ts:56`, oggi «27 giu 2026»), usata dalle sole viste quadro in `RiepilogoQuadro.tsx:137` e `DashboardQuadro.tsx:80`, allineata qui alla stessa convenzione. La data di rilevazione **con orario** (gg/mm/aaaa hh:mm) è materia di US-063 e non va toccata; `dataRegistro` resta invariata perché il Libro Mastro continua a usarla.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, aprendo il Riepilogo di un portafoglio nel design «Quadro strumenti», ogni data della sezione «Andamento del portafoglio» — «i dati cominciano il», «perimetro completo dal», «copertura piena dal», «OGGI ·», «Punto del», i cartellini «rilevazione del» / «quotazione del», le etichette dell'asse e le fasce dei titoli detenuti — è scritta come `10/08/2026`; commutando su «Libro Mastro» sulla stessa pagina, senza ricaricare, le stesse date tornano `10.VIII.2026`.
+
+  **Criteri di Accettazione**
+  - [ ] Nel design «quadro», tutte le date rese da `GraficoPortafoglio` e `MetrichePortafoglio` sono nel formato gg/mm/aaaa
+  - [ ] Nel design «mastro» le stesse date restano a numeri romani, e la commutazione fra i due design le riscrive senza ricaricare la pagina
+  - [ ] `dataRegistro` e `dataCarico` in `Foglio.tsx` restano invariate: il Libro Mastro non cambia in nessuna delle sue schermate
+  - [ ] La colonna di chiusura delle posizioni chiuse in `RiepilogoQuadro` è nel formato gg/mm/aaaa
+  - [ ] `dataCivile` produce gg/mm/aaaa, e i suoi due punti d'uso (titolo di pagina del Riepilogo quadro, colonna data dell'elenco portafogli quadro) lo riflettono
+  - [ ] `e2e/US-019__grafico-portafoglio.spec.ts` passa **senza modifiche**, comprese le sue quattro asserzioni su date a numeri romani: gira sul design predefinito ed è la guardia di non-regressione del Libro Mastro
+  - [ ] Un test E2E nel design «quadro» asserisce il formato gg/mm/aaaa su almeno un verdetto del grafico e un cartellino di riporto
+  - [ ] Nessuna copia locale del formattatore resta duplicata fra grafico e metriche: la convenzione è definita in un solo posto
+  - [ ] `npm run check` è verde
+history:
+  - status: TODO
+    at: "2026-08-22T10:07:36Z"

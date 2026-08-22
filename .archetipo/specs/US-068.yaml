@@ -1,0 +1,37 @@
+schema: archetipo/spec/v2
+code: US-068
+title: Scrivere gg/mm/aaaa le date della scheda titolo e dei carichi nel Quadro Strumenti
+epic:
+  code: EP-009
+  title: Direzione visiva commutabile
+priority: MEDIUM
+points: 5
+status: TODO
+body: |
+  #### US-068: Scrivere gg/mm/aaaa le date della scheda titolo e dei carichi nel Quadro Strumenti
+
+  **Epica:** EP-009 | **Priorità:** MEDIUM | **Punti:** 5 | **Stato:** TODO
+  **Bloccato da:** US-067
+
+  **User Story**
+  Come utente di PortfolIA che lavora nel design «Quadro strumenti»,
+  voglio che le date del grafico del titolo, delle sue metriche e delle tabelle di carichi e vendite siano scritte come gg/mm/aaaa,
+  così che nessuna schermata del Quadro Strumenti conservi il mese in numeri romani.
+
+  **Contesto**
+  Chiude il perimetro aperto da US-067 riusandone il formattatore consapevole del design attivo, senza introdurre alcun meccanismo nuovo. Restano da convertire `GraficoTitolo.tsx` (25 punti d'uso) e `MetricheTitolo.tsx` (5, con la solita copia locale di `dataPunto`) — anch'essi componenti condivisi fra i due design — più i punti d'uso diretti di `dataCarico` nelle viste quadro: `CaricoQuadro.tsx` (righe 99, 519, 631 — nota sull'ultima vendita, tabella delle vendite, tabella dei carichi) e `SchedaTitoloQuadro.tsx:425` (tabella «Carichi registrati»). Valgono gli stessi vincoli di US-067: `dataRegistro` e `dataCarico` invariate, Libro Mastro invariato in tutte le sue schermate, e la data di rilevazione con orario (materia di US-063) fuori perimetro.
+
+  **Dimostra**
+  Dopo l'implementazione di questa spec, aprendo la scheda di un titolo nel design «Quadro strumenti» e poi la sua pagina di iscrizione carichi, ogni data del grafico del titolo, delle sue metriche («Primo punto», «Ultimo punto», «Gradino del»), della tabella «Carichi registrati» e della tabella delle vendite è scritta come `12/05/2026`; commutando su «Libro Mastro» le stesse date tornano `12.V.2026`.
+
+  **Criteri di Accettazione**
+  - [ ] Nel design «quadro», tutte le date rese da `GraficoTitolo` e `MetricheTitolo` sono nel formato gg/mm/aaaa, tooltip e didascalie comprese
+  - [ ] Nel design «quadro», le tabelle di carichi e vendite di `CaricoQuadro` e `SchedaTitoloQuadro` mostrano le date in gg/mm/aaaa
+  - [ ] Nel design «mastro» le stesse schermate restano a numeri romani, e la commutazione fra i due design le riscrive senza ricaricare la pagina
+  - [ ] `e2e/US-018__dettaglio-titolo.spec.ts`, `e2e/US-018__dettaglio-titolo-dati-mancanti.spec.ts` e `e2e/US-036__grafico-titolo-varianti.spec.ts` passano **senza modifiche**, comprese le loro nove asserzioni su date a numeri romani
+  - [ ] Un test E2E nel design «quadro» asserisce il formato gg/mm/aaaa su una data del grafico del titolo e su una riga della tabella dei carichi
+  - [ ] Una ricerca su tutto `client/src` non trova più alcun punto d'uso di `dataRegistro`, `dataCarico` o `dataPunto` che raggiunga una schermata del «quadro» senza passare dal formattatore consapevole del design
+  - [ ] `npm run check` è verde
+history:
+  - status: TODO
+    at: "2026-08-22T10:07:36Z"
