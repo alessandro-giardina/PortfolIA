@@ -6,10 +6,10 @@ epic:
   title: Direzione visiva commutabile
 priority: LOW
 points: 2
-status: REVIEW
+status: TODO
 blocked_by:
   - US-050
-body: |-
+body: |
   #### US-061: Chiarire il testo dei pulsanti di commutazione fra i due design
 
   **Epica:** EP-009 | **Priorità:** LOW | **Punti:** 2 | **Stato:** TODO
@@ -28,6 +28,16 @@ body: |-
   - [ ] Quel pulsante ha la stessa altezza del pulsante di commutazione Day/Night adiacente in testata
   - [ ] Nel design Libro Mastro, il pulsante che porta al Quadro Strumenti mostra il testo "Vista Quadro Strumenti"
   - [ ] La suite E2E esistente che verifica la commutazione fra i due design passa verde, aggiornata dove necessario per i nuovi testi
+
+  ## Rework Feedback
+
+  <!-- Added by request-changes. archetipo-plan converts each item into a Fix task. -->
+
+  - **client/src/quadro.css:501** — La regola `.azioni-testata .bottone.nudo { height: 36px; }` fissa l'altezza del pulsante ma nessuna regola dimensiona la sua icona: manca in quadro.css l'equivalente di `.commutatore svg { width: 11px; height: 11px; flex-shrink: 0 }` che in ledger.css tiene in scala l'icona del pulsante gemello del Libro Mastro. Senza dimensione l'SVG inline assume quella predefinita, comprime il testo e sfonda i 36px. Aggiungere una dimensione esplicita dell'icona (in scala con il testo) e impedire che il testo vada a capo, così che tutto il contenuto resti dentro il pulsante.
+  - **client/src/components/Quadro.tsx:216** — L'SVG del pulsante "Vista Libro Mastro" è inline senza attributi width/height e senza classe che lo dimensioni: è la causa dello sfondamento, poiché la sola altezza fissata sul pulsante non vincola il contenuto. Dimensionare l'icona (via CSS scoped alla testata, coerentemente con `.icona-bottone svg`, oppure con attributi espliciti) mantenendo il pulsante alto 36px come già richiesto dal criterio di accettazione.
+  - **e2e/US-050__commutatore-design.spec.ts:34** — L'asserzione sull'altezza confronta i boundingBox dei due pulsanti e resta verde anche con il difetto presente: `height: 36px` è fissa, quindi la scatola misura 36px mentre icona e testo debordano. La verifica non copre il criterio che intendeva coprire. Aggiungere un'asserzione sul contenimento del contenuto — per esempio che il pulsante non abbia overflow (scrollHeight/scrollWidth entro clientHeight/clientWidth) e che l'icona abbia una dimensione in scala con il testo — così che una regressione dello stesso tipo faccia fallire la suite.
+  - Il criterio "il pulsante ha la stessa altezza del pulsante Day/Night adiacente" va inteso come pulsante ben formato a quell'altezza, non come semplice misura della scatola: la correzione è completa solo quando icona e testo del pulsante "Vista Libro Mastro" stanno interamente entro i suoi bordi, su una sola riga, in tema chiaro e in tema scuro, in tutte le pagine che usano la testata del Quadro Strumenti (Portafogli, Riepilogo, Ricerca titoli, Scheda titolo). Non è emersa evidenza visiva a supporto: docs/test-results/US-061/ non esiste.
+rework: true
 history:
   - status: TODO
     at: "2026-08-21T11:51:31Z"
@@ -37,3 +47,5 @@ history:
     at: "2026-08-21T15:12:17Z"
   - status: REVIEW
     at: "2026-08-21T15:18:32Z"
+  - status: TODO
+    at: "2026-08-22T09:45:16Z"
